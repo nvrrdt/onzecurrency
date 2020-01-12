@@ -1,9 +1,11 @@
 #include <iostream>
 #include "authentication.hpp"
+#include "merkle_tree.hpp"
 
 using namespace crowd;
 using namespace std;
 
+// TODO: use ncurses for proper authentication with integration of @ and . and ****
 void authentication::auth()
 {
     string email, password;
@@ -11,5 +13,8 @@ void authentication::auth()
     cout << "Email adress: ";
     cin >> email;
     cout << "Password: ";
-    cin >> password;  // credentials.hpp en cpp toevoegen, zenden naar create_hash()
+    cin >> password;
+
+    merkle_tree mt;
+    mt.create_block(email, password);
 }

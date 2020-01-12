@@ -1,13 +1,17 @@
 #ifndef MERKLE_TREE_H
 #define MERKLE_TREE_H
 
+#include <iostream>
+#include <string>
+
+using namespace std;
+
 namespace crowd
 {
     class merkle_tree
     {
     public:
-        void do_something();
-        void create_block();
+        void create_block(string email, string password);
     private:
         void create_hash();
     };

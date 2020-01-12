@@ -6,11 +6,8 @@ using namespace std;
 
 int main()
 {
-    authentication a;
-    a.auth();
-
-    merkle_tree mt;
-    mt.do_something();
+    authentication auth;
+    auth.auth();
 
     return 0;
 }
