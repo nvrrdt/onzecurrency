@@ -11,7 +11,7 @@ namespace crowd
     class merkle_tree
     {
     public:
-        void create_block(string email, string password);
+        void create_user(string email, string password);
     private:
         string create_hash(const string str);
     };

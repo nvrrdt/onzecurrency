@@ -16,5 +16,5 @@ void authentication::auth()
     cin >> password;
 
     merkle_tree mt;
-    mt.create_block(email, password);
+    mt.create_user(email, password);
 }
