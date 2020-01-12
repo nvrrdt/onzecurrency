@@ -13,7 +13,7 @@ namespace crowd
     public:
         void create_block(string email, string password);
     private:
-        void create_hash();
+        string create_hash(const string str);
     };
 }
 
