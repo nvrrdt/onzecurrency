@@ -8,6 +8,8 @@ namespace crowd
     public:
         void do_something();
         void create_block();
+    private:
+        void create_hash();
     };
 }
 

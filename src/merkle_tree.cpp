@@ -1,5 +1,5 @@
+#include <iostream>
 #include "merkle_tree.hpp"
-#include <iostream> // header in standard library
 
 using namespace crowd;
 using namespace std;

@@ -1,17 +1,16 @@
+#include "authentication.hpp"
 #include "merkle_tree.hpp"
-#include <iostream>
+
 using namespace crowd;
 using namespace std;
-int main() 
-{
-    string email, password;
 
-    cout << "Email adress: ";
-    cin >> email;
-    cout << "Password: ";
-    cin >> password;  // credentials.hpp en cpp toevoegen, zenden naar create_hash()
+int main()
+{
+    authentication a;
+    a.auth();
 
     merkle_tree mt;
     mt.do_something();
+
     return 0;
 }
