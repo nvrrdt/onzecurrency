@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [-d ./build]; then
+if [ -d ./build ]; then
   cd ./build;
   cmake .. && make && ./crowd;
 else
