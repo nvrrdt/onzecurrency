@@ -10,6 +10,16 @@
 
 using namespace crowd;
 
+/**
+ * a block consists of a timestamp and a merkle tree of users
+ * or a list of alfabetically sorted users and a root hash
+ * each user is hashed email concatenatenated with a hashed password
+ * when logging in the hashed email and hashed password must be found in the verified blockchain
+ * logging in with email and password and blockchain id, the last one is for trying to make a private blockchain
+ */
+
+
+
 void merkle_tree::create_user(string email, string password)
 {
     // de hash van de user's emailadressen en de hash van het paswoord concatenated
