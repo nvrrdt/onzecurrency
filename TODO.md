@@ -1,0 +1,2 @@
+- restructuring the merkle tree of users by removing all the accounts that weren't used in the last 2 years should be possible
+- onzecoin: rewarding system like bitcoin: a few years 1000 coins you get when you're the chosen one and then a halving to 500 coins for the chosen one, so there's also a limited amount of coins

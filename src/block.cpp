@@ -11,11 +11,12 @@
 using namespace crowd;
 
 /**
- * a block consists of a timestamp and a merkle tree of users
+ * a block consists of a timestamp hashed just before the root hash and a merkle tree of users
  * or a list of alfabetically sorted users and a root hash
  * each user is hashed email concatenatenated with a hashed password
  * when logging in the hashed email and hashed password must be found in the verified blockchain
  * logging in with email and password and blockchain id, the last one is for trying to make a private blockchain
+ * the timestamp is the start of a timeframe of 1 hour
  */
 
 
