@@ -2,9 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-// #include <openssl/evp.h> // add this line when evp with new libssl
-
-#include <openssl/sha.h> // remove this when using evp with new libssl
+#include <openssl/evp.h>
 
 #include "merkle_tree.hpp"
 
@@ -23,30 +21,14 @@ using namespace crowd;
 
 void merkle_tree::create_user(string email, string password)
 {
-    // de hash van de user's emailadressen en de hash van het paswoord concatenated
-    // in main moet nog 2 inputs komen voor emailadres en paswoord
+    string email_hashed, password_hashed;
 
-    cout << create_hash(email) << endl;
-    cout << create_hash(password) << endl;
-}
-
-// remove below function with newe libssl version
-string merkle_tree::create_hash(const string str)
-{
-    unsigned char hash[SHA256_DIGEST_LENGTH];
-    SHA256_CTX sha256;
-    SHA256_Init(&sha256);
-    SHA256_Update(&sha256, str.c_str(), str.size());
-    SHA256_Final(hash, &sha256);
-    stringstream ss;
-    for(int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-    {
-        ss << hex << setw(2) << setfill('0') << (int)hash[i];
+    if (merkle_tree::create_hash(email, email_hashed) &&
+        merkle_tree::create_hash(password, password_hashed) == true) {
+            cout << email_hashed << endl << password_hashed << endl;
     }
-    return ss.str();
 }
 
-/* needs to be used with a newer version of libssl
 bool merkle_tree::create_hash(const string& unhashed, string& hashed)
 {
     bool success = false;
@@ -81,4 +63,3 @@ bool merkle_tree::create_hash(const string& unhashed, string& hashed)
 
     return success;
 }
-*/
