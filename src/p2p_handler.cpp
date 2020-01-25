@@ -23,7 +23,7 @@ void p2p_handler::p2p_switch()
     acceptor_server.accept(server_socket); 
   
     // Reading username 
-    string u_name = getData(server_socket); 
+    string u_name = server_getData(server_socket); 
     // Removing "\n" from the username 
     u_name.pop_back(); 
   
@@ -31,12 +31,12 @@ void p2p_handler::p2p_switch()
     string response, reply; 
     reply = "Hello " + u_name + "!"; 
     cout << "Server: " << reply << endl; 
-    sendData(server_socket, reply); 
+    server_sendData(server_socket, reply); 
   
     while (true) { 
   
         // Fetching response 
-        response = getData(server_socket); 
+        response = server_getData(server_socket); 
   
         // Popping last character "\n" 
         response.pop_back(); 
@@ -52,7 +52,7 @@ void p2p_handler::p2p_switch()
         cout << "Server"
              << ": "; 
         getline(cin, reply); 
-        sendData(server_socket, reply); 
+        server_sendData(server_socket, reply); 
   
         if (reply == "exit") 
             break; 

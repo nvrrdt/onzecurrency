@@ -4,7 +4,7 @@
 using namespace crowd;
 
 // Driver program for receiving data from buffer 
-string p2p_handler::getData(tcp::socket& socket) 
+string p2p_handler::server_getData(tcp::socket& socket) 
 { 
     boost::asio::streambuf buf; 
     boost::asio::read_until(socket, buf, "\n"); 
@@ -13,7 +13,7 @@ string p2p_handler::getData(tcp::socket& socket)
 } 
   
 // Driver program to send data 
-void p2p_handler::sendData(tcp::socket& socket, const string& message) 
+void p2p_handler::server_sendData(tcp::socket& socket, const string& message) 
 { 
     write(socket, 
           buffer(message + "\n")); 

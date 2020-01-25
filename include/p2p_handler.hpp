@@ -15,8 +15,8 @@ namespace crowd
     public:
         void p2p_switch();
     private:
-        string getData(tcp::socket& socket);
-        void sendData(tcp::socket& socket, const string& message);
+        string server_getData(tcp::socket& socket);
+        void server_sendData(tcp::socket& socket, const string& message);
     };
 }
 
