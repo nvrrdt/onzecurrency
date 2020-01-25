@@ -11,10 +11,10 @@ void p2p_handler::p2p_switch()
     io_service io_service; 
   
     // Listening for any new incomming connection 
-    // at port 9999 with IPv4 protocol 
+    // at port 1975 with IPv4 protocol 
     tcp::acceptor acceptor_server( 
         io_service, 
-        tcp::endpoint(tcp::v4(), 9999)); 
+        tcp::endpoint(tcp::v4(), 1975)); 
   
     // Creating socket object 
     tcp::socket server_socket(io_service); 
