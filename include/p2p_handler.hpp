@@ -17,6 +17,7 @@ namespace crowd
     private:
         string server_getData(tcp::socket& socket);
         void server_sendData(tcp::socket& socket, const string& message);
+        int client();
     };
 }
 
