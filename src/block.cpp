@@ -21,11 +21,28 @@ using namespace crowd;
 
 void merkle_tree::create_user(string email, string password)
 {
-    string email_hashed, password_hashed;
+    string email_hashed, password_hashed, user_conc, user_hashed;
 
     if (merkle_tree::create_hash(email, email_hashed) &&
-        merkle_tree::create_hash(password, password_hashed) == true) {
-            cout << email_hashed << endl << password_hashed << endl;
+        merkle_tree::create_hash(password, password_hashed) == true)
+    {
+        
+        cout << email_hashed << endl << password_hashed << endl;
+
+        // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
+        if (email_hashed <= password_hashed)
+        {
+            user_conc = email_hashed + password_hashed;
+        }
+        else 
+        {
+            user_conc = password_hashed + email_hashed;
+        }
+
+        if (merkle_tree::create_hash(user_conc, user_hashed) == true)
+        {
+            cout << "root: " << user_hashed << endl;
+        }
     }
 }
 
