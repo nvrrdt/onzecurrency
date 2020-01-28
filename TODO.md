@@ -6,3 +6,24 @@
 1) DONE create hash from user's emailadres and a hash from the password, then a hash from those two hashes , first the email hash and then the concatenated password hash
 2) every hour a list with new users needs to be kept, that list will become a block, a merkle tree of the new users
 3) // create ip_peers.json with the root hash (1) and with its ip in a dictionary || SOMETHING WRONG
+
+### The blueprint:
+- check peers / assemble a peers list / update the peers list / kademlia
+- | check de blockchain's integrity or download the blockchain if none existent
+- if all ok: create/login
+- search in all the blocks users (email and password!)
+--> first search for a users (!, not block) root hash
+--> if no email then create
+--> if email existent check the password
+- create is assembling in an hour all the new users
+- the upper user seen from the root hash of this block of new users is the user who communicates the final hash of the block
+( timestamp/timeframe (see below) + root hash block + previous hash ) ==> hash communicated by the chosen one
+- 51% of the currently online users should give their ok as assembled by the chosen one, the ok sayers communicate their ok to their list of ip's an expect a returned ok in 51% of their ip's / first layer peers, so a delayed ok towards the chosen one ...
+- when ok for chosen one, the block is mined
+--> racing between blocks: a certain amount of blocks must be copied from peers, until the hour has passes or the block size exceeds 1MB
+- here derived apps can pick in, like for instance a coin or a smart contract system, later more ...
+
+#### What's the genesis hourly timeframe's name? That's '0.0' an hour later then '1.0' ... , if divided in blocks of 1MB it's '34.1' followed by '34.2'
+
+- communicating being online in the network, and leaving the network ... a dht besides the blockchain to keep track of online presences
+- what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
