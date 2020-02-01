@@ -3,18 +3,37 @@
 //using namespace std; 
 using namespace crowd;
 
-// Driver program for receiving data from buffer 
-string p2p_handler::server_getData(tcp::socket& socket) 
-{ 
-    boost::asio::streambuf buf; 
-    boost::asio::read_until(socket, buf, "\n"); 
-    string data = buffer_cast<const char*>(buf.data()); 
-    return data; 
-} 
-  
-// Driver program to send data 
-void p2p_handler::server_sendData(tcp::socket& socket, const string& message) 
-{ 
-    write(socket, 
-          buffer(message + "\n")); 
+std::string make_daytime_string()
+{
+  using namespace std; // For time_t, time and ctime;
+  time_t now = time(0);
+  return ctime(&now);
+}
+
+int p2p_handler::server_main()
+{
+    try
+    {
+        boost::asio::io_service io_service;
+
+        tcp::acceptor acceptor(io_service, tcp::endpoint(tcp::v4(), 1975));
+
+        for (;;)
+        {
+        tcp::socket socket(io_service);
+        acceptor.accept(socket);
+
+        std::string message = make_daytime_string();
+
+        boost::system::error_code ignored_error;
+        boost::asio::write(socket, boost::asio::buffer(message),
+            boost::asio::transfer_all(), ignored_error);
+        }
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
+
+    return 0;
 }
