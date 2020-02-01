@@ -10,6 +10,8 @@ find_package(OpenSSL REQUIRED)
 set(BOOST_INCLUDEDIR /usr/include)
 find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
+find_package(Threads)
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
@@ -26,4 +28,5 @@ target_link_libraries(${PROJECT_NAME}
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+                      ${CMAKE_THREAD_LIBS_INIT}
 )
