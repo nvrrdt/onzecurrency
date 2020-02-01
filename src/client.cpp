@@ -11,7 +11,7 @@ int p2p_handler::client(string& ip_adress)
         boost::asio::io_service io_service;
 
         tcp::resolver resolver(io_service);
-        tcp::resolver::query query("127.0.0.1", port);
+        tcp::resolver::query query(ip_adress, port);
         tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
         tcp::resolver::iterator end;
 
