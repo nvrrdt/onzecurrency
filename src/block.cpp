@@ -6,6 +6,9 @@
 
 #include "merkle_tree.hpp"
 
+#include <fstream>
+#include "json.hpp"
+
 using namespace crowd;
 
 /**
@@ -42,6 +45,10 @@ void merkle_tree::create_user(string email, string password)
         if (merkle_tree::create_hash(user_conc, user_hashed) == true)
         {
             cout << "root: " << user_hashed << endl;
+            
+            // Add new user to pool:
+            merkle_tree mt;
+            mt.save_new_user(user_hashed);
         }
     }
 }
@@ -79,4 +86,40 @@ bool merkle_tree::create_hash(const string& unhashed, string& hashed)
     }
 
     return success;
+}
+
+void merkle_tree::save_new_user(string& new_user)
+{
+    ofstream file("../new_users_pool.json");
+	nlohmann::json j;
+	
+    j.push_back(new_user);
+
+	file << j;
+}
+
+/*
+int merkle_tree::get_current_utc_time() // TODO: inject this code in the system
+{
+    // Current date/time based on current system
+    time_t now = time(0);
+
+    // Convert now to tm struct for UTC
+    tm* gmtm = gmtime(&now);
+    if (gmtm != NULL) {
+        cout << "The UTC date and time is: " << asctime(gmtm) << endl;
+        return 0;
+    }
+    else
+    {
+        cerr << "Failed to get the UTC date and time" << endl;
+        return 1;
+    }
+}
+*/
+
+void merkle_tree::ticking_clock()
+{
+    // https://www.codespeedy.com/digital-clock-in-cpp/ + Thread programming
+    // every 2 hours new_users_pool.json should be made into a block
 }
