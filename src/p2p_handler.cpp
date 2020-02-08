@@ -16,26 +16,17 @@ using namespace crowd;
 
 void p2p_handler::p2p_switch()
 {
-    // Create a packaged_task using some task and get its future.
-    std::packaged_task<void()> task([] {
-        p2p_handler peers;
-        vector<string> ip_list = peers.parse_ip_peers_json();
+    p2p_handler peers;
+    vector<string> ip_list = peers.parse_ip_peers_json();
 
-        for (string& ip_adress : ip_list)
-        {
-            p2p_handler cl;
-            cl.client(ip_adress);
-        }
+    for (string& ip_adress : ip_list)
+    {
+        p2p_handler cl;
+        cl.client(ip_adress);
+    }
 
-        p2p_handler se;
-        se.server_main();
-    });
-    auto future = task.get_future();
-
-    // Run task on new thread.
-    std::thread t(std::move(task));
-
-    t.join();
+    p2p_handler se;
+    se.server_main();
 }
 
 vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann/json

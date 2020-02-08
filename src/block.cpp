@@ -9,6 +9,8 @@
 #include <fstream>
 #include "json.hpp"
 
+#include <chrono>
+
 using namespace crowd;
 
 /**
@@ -98,28 +100,15 @@ void merkle_tree::save_new_user(string& new_user)
 	file << j;
 }
 
-/*
-int merkle_tree::get_current_utc_time() // TODO: inject this code in the system
+void merkle_tree::create_block()
 {
-    // Current date/time based on current system
-    time_t now = time(0);
+    // create a block every 2 hours
+    /*
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    // Convert now to tm struct for UTC
-    tm* gmtm = gmtime(&now);
-    if (gmtm != NULL) {
-        cout << "The UTC date and time is: " << asctime(gmtm) << endl;
-        return 0;
-    }
-    else
-    {
-        cerr << "Failed to get the UTC date and time" << endl;
-        return 1;
-    }
-}
-*/
-
-void merkle_tree::ticking_clock()
-{
-    // https://www.codespeedy.com/digital-clock-in-cpp/ + Thread programming
-    // every 2 hours new_users_pool.json should be made into a block
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    cout << ss.str() << endl;
+    */
 }
