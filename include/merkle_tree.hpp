@@ -16,9 +16,7 @@ namespace crowd
     private:
         bool create_hash(const string& unhashed, string& hashed);
         void save_new_user(string&);
-        int get_current_utc_time();
-        void ticking_clock();
-
+        void two_hours_timer();
     };
 }
 

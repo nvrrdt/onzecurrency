@@ -10,6 +10,8 @@
 #include "json.hpp"
 
 #include <chrono>
+#include <ctime>
+#include <unistd.h>
 
 using namespace crowd;
 
@@ -102,13 +104,32 @@ void merkle_tree::save_new_user(string& new_user)
 
 void merkle_tree::create_block()
 {
-    // create a block every 2 hours
-    /*
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    merkle_tree::two_hours_timer();
+}
 
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-    cout << ss.str() << endl;
-    */
+void merkle_tree::two_hours_timer()
+{
+    using namespace std::chrono;
+
+    while (1)
+    {
+        system_clock::time_point now = system_clock::now();
+
+        time_t tt = system_clock::to_time_t(now);
+        tm utc_tm = *gmtime(&tt);
+        
+        if (utc_tm.tm_sec % 60 == 0 &&
+            utc_tm.tm_min % 60 == 0 &&
+            utc_tm.tm_hour % 2 == 0) // == 2 hours
+        {
+            std::cout << utc_tm.tm_hour << ":";
+            std::cout << utc_tm.tm_min << endl;
+
+            break;
+        }
+    }
+
+    sleep(1);
+
+    merkle_tree::create_block();
 }
