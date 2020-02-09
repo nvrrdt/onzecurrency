@@ -15,8 +15,9 @@ namespace crowd
         void create_block();
     private:
         bool create_hash(const string& unhashed, string& hashed);
-        void save_new_user(string&);
-        void two_hours_timer();
+        void save_new_user(string&, string&);
+        int two_hours_timer();
+        bool is_empty(std::ifstream&);
     };
 }
 

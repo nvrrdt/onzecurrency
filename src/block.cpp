@@ -33,7 +33,7 @@ void merkle_tree::create_user(string email, string password)
     if (merkle_tree::create_hash(email, email_hashed) &&
         merkle_tree::create_hash(password, password_hashed) == true)
     {
-        
+        /* TODO: use this comment in the creation of the merkle tree
         cout << email_hashed << endl << password_hashed << endl;
 
         // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
@@ -54,6 +54,10 @@ void merkle_tree::create_user(string email, string password)
             merkle_tree mt;
             mt.save_new_user(user_hashed);
         }
+        */
+        
+        // Add new user's credentials to pool:
+        merkle_tree::save_new_user(email_hashed, password_hashed);
     }
 }
 
@@ -92,25 +96,70 @@ bool merkle_tree::create_hash(const string& unhashed, string& hashed)
     return success;
 }
 
-void merkle_tree::save_new_user(string& new_user)
+void merkle_tree::save_new_user(string& hashed_email_new_user, string& hashed_password_new_user)
 {
-    ofstream file("../new_users_pool.json");
-	nlohmann::json j;
-	
-    j.push_back(new_user);
+    ifstream ifile("../new_users_pool.json", ios::in);
 
-	file << j;
+    nlohmann::json j;
+
+    if (merkle_tree::is_empty(ifile))
+    {
+        ofstream ofile("../new_users_pool.json", ios::out);
+        
+        ofile.clear();
+
+        nlohmann::json i;
+        i.push_back(hashed_email_new_user);
+        i.push_back(hashed_password_new_user);
+
+        j.push_back(i);
+
+        ofile << j;
+    }
+    else
+    {
+        ofstream ofile("../new_users_pool.json", ios::out);
+
+        ifile >> j;
+        ofile.clear();
+
+        nlohmann::json i;
+
+        i.push_back(hashed_email_new_user);
+        i.push_back(hashed_password_new_user);
+    
+        j += i;
+
+        ofile << j;
+    }
+}
+
+bool merkle_tree::is_empty(std::ifstream& pFile)
+{
+    return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
 void merkle_tree::create_block()
 {
     merkle_tree::two_hours_timer();
+
+    // TODO: parse new_users_pool, hash users in order (use stack), create merkle_tree, get root_hash
+
+    // parse new_users_pool.json
+    ifstream file("../new_users_pool.json");
+    nlohmann::json j;
+
+    file >> j;
+    
+    for (auto& element : j) {
+        std::cout << std::setw(4) << element << '\n';
+    }
 }
 
-void merkle_tree::two_hours_timer()
+int merkle_tree::two_hours_timer()
 {
     using namespace std::chrono;
-
+    /* TODO: remove this comment in production
     while (1)
     {
         system_clock::time_point now = system_clock::now();
@@ -128,8 +177,8 @@ void merkle_tree::two_hours_timer()
             break;
         }
     }
-
+    */
     sleep(1);
 
-    merkle_tree::create_block();
+    return 0;
 }
