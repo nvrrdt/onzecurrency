@@ -30,4 +30,4 @@
 - what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
 ### What's next?
-See ticking_clock in block.cpp
+See save_new_user in block.cpp, the users aren't saved properly in the json file
