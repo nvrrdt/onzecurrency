@@ -30,4 +30,4 @@
 - what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
 ### What's next?
-See create_block in block.cpp, see the TODO
+See calculate_root_hash in block.cpp, see the TODO

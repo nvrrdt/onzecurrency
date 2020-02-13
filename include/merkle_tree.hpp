@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#include <bits/stdc++.h>
+
 using namespace std;
 
 namespace crowd
@@ -18,6 +20,7 @@ namespace crowd
         void save_new_user(string&, string&);
         int two_hours_timer();
         bool is_empty(std::ifstream&);
+        void calculate_root_hash(stack <string>);
     };
 }
 

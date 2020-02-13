@@ -13,6 +13,8 @@
 #include <ctime>
 #include <unistd.h>
 
+#include <bits/stdc++.h>
+
 using namespace crowd;
 
 /**
@@ -153,6 +155,29 @@ void merkle_tree::create_block()
     
     for (auto& element : j) {
         std::cout << std::setw(4) << element << '\n';
+
+        // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
+        string email_hashed, password_hashed, user_conc, user_hashed;
+        email_hashed = element[0];
+        password_hashed = element[1];
+        if (email_hashed <= password_hashed)
+        {
+            user_conc = email_hashed + password_hashed;
+        }
+        else 
+        {
+            user_conc = password_hashed + email_hashed;
+        }
+
+        stack <string> s;
+        if (merkle_tree::create_hash(user_conc, user_hashed) == true)
+        {
+            cout << "root: " << user_hashed << endl;
+
+            s.push(user_hashed);
+        }
+
+        merkle_tree::calculate_root_hash(s);
     }
 }
 
@@ -181,4 +206,9 @@ int merkle_tree::two_hours_timer()
     sleep(1);
 
     return 0;
+}
+
+void merkle_tree::calculate_root_hash(stack <string> s)
+{
+    cout << "tesste" << endl;
 }
