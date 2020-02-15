@@ -158,6 +158,8 @@ void merkle_tree::create_block()
     }
 
     merkle_tree::calculate_root_hash(s);
+
+    // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 }
 
 int merkle_tree::two_hours_timer()
