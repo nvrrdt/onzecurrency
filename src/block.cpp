@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include <bits/stdc++.h>
+#include <math.h>
 
 using namespace crowd;
 
@@ -35,29 +36,6 @@ void merkle_tree::create_user(string email, string password)
     if (merkle_tree::create_hash(email, email_hashed) &&
         merkle_tree::create_hash(password, password_hashed) == true)
     {
-        /* TODO: use this comment in the creation of the merkle tree
-        cout << email_hashed << endl << password_hashed << endl;
-
-        // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
-        if (email_hashed <= password_hashed)
-        {
-            user_conc = email_hashed + password_hashed;
-        }
-        else 
-        {
-            user_conc = password_hashed + email_hashed;
-        }
-
-        if (merkle_tree::create_hash(user_conc, user_hashed) == true)
-        {
-            cout << "root: " << user_hashed << endl;
-            
-            // Add new user to pool:
-            merkle_tree mt;
-            mt.save_new_user(user_hashed);
-        }
-        */
-        
         // Add new user's credentials to pool:
         merkle_tree::save_new_user(email_hashed, password_hashed);
     }
@@ -145,19 +123,21 @@ void merkle_tree::create_block()
 {
     merkle_tree::two_hours_timer();
 
-    // TODO: parse new_users_pool, hash users in order (use stack), create merkle_tree, get root_hash
-
     // parse new_users_pool.json
     ifstream file("../new_users_pool.json");
     nlohmann::json j;
 
     file >> j;
     
+    stack <string> s;
+
     for (auto& element : j) {
         std::cout << std::setw(4) << element << '\n';
 
         // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
         string email_hashed, password_hashed, user_conc, user_hashed;
+        // TODO: the user's of the block, only hashed email and hashed password, need also to be stored in a json with block number
+        // but there's block arithmetic needed when the winning block is smaller and bigger than this one calculated here ...
         email_hashed = element[0];
         password_hashed = element[1];
         if (email_hashed <= password_hashed)
@@ -169,16 +149,15 @@ void merkle_tree::create_block()
             user_conc = password_hashed + email_hashed;
         }
 
-        stack <string> s;
         if (merkle_tree::create_hash(user_conc, user_hashed) == true)
         {
             cout << "root: " << user_hashed << endl;
 
             s.push(user_hashed);
         }
-
-        merkle_tree::calculate_root_hash(s);
     }
+
+    merkle_tree::calculate_root_hash(s);
 }
 
 int merkle_tree::two_hours_timer()
@@ -210,5 +189,56 @@ int merkle_tree::two_hours_timer()
 
 void merkle_tree::calculate_root_hash(stack <string> s)
 {
-    cout << "tesste" << endl;
+    // 2^n >= s.size lambda? , then add {0}.hashed till 2^n, then pop 2 concatenate and hash, again concateante 2 and hash till root_hash
+    size_t n; // 2^n
+
+    for (size_t i = 0; i < s.size(); i++)
+    {
+        if (pow (2, i) >= s.size())
+        {
+            n = pow (2, i);
+            break;
+        }
+    }
+
+    size_t current_stack_size = s.size();
+    for (size_t i = 0; i < (n - current_stack_size); i++)
+    {
+        s.push("0");
+    }
+    
+    merkle_tree::pop_two_and_hash(s);
+}
+
+string& merkle_tree::pop_two_and_hash(stack <string> s)
+{
+    string uneven, even;
+    stack <string> s1;
+
+    while (!s.empty())
+    {
+        uneven = s.top();
+        s.pop();
+
+        even = s.top();
+        s.pop();
+
+        string parent_conc = uneven + even, parent_hashed;
+
+        if (merkle_tree::create_hash(parent_conc, parent_hashed) == true)
+        {
+            s1.push(parent_hashed);
+        }
+    }
+
+    if (s1.size() == 1)
+    {
+        string& root_hash_block = s1.top();
+
+        cout << root_hash_block << endl;
+
+        return root_hash_block;
+    }
+
+    merkle_tree::pop_two_and_hash(s1);
 }

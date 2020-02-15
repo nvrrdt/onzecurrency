@@ -21,6 +21,7 @@ namespace crowd
         int two_hours_timer();
         bool is_empty(std::ifstream&);
         void calculate_root_hash(stack <string>);
+        string& pop_two_and_hash(stack <string> s);
     };
 }
 
