@@ -191,9 +191,9 @@ int merkle_tree::two_hours_timer()
 
 void merkle_tree::calculate_root_hash(stack <string> s)
 {
-    // 2^n >= s.size lambda? , then add {0}.hashed till 2^n, then pop 2 concatenate and hash, again concateante 2 and hash till root_hash
     size_t n; // 2^n
 
+    // cakculate the next 2^n above stacksize
     for (size_t i = 0; i < s.size(); i++)
     {
         if (pow (2, i) >= s.size())
@@ -203,6 +203,7 @@ void merkle_tree::calculate_root_hash(stack <string> s)
         }
     }
 
+    // add 0's to the stack till a size of 2^n
     size_t current_stack_size = s.size();
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
@@ -219,10 +220,10 @@ string& merkle_tree::pop_two_and_hash(stack <string> s)
 
     while (!s.empty())
     {
-        uneven = s.top();
+        uneven = s.top(); // left!
         s.pop();
 
-        even = s.top();
+        even = s.top(); // right!
         s.pop();
 
         string parent_conc = uneven + even, parent_hashed;
