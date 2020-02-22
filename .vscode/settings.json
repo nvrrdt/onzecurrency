@@ -66,7 +66,14 @@
         "typeindex": "cpp",
         "variant": "cpp",
         "forward_list": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "csetjmp": "cpp",
+        "cuchar": "cpp",
+        "unordered_set": "cpp",
+        "random": "cpp",
+        "regex": "cpp",
+        "scoped_allocator": "cpp",
+        "shared_mutex": "cpp"
     },
     "cmake.configureOnOpen": false
 }
