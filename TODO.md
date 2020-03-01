@@ -18,7 +18,7 @@
 --> if email existent check the password
 - create is assembling in an hour all the new users
 - the upper user seen from the root hash of this block of new users is the user who communicates the final hash of the block
-( timestamp/timeframe (see below) + root hash block + hash chosen one + previous hash ) ==> hash communicated by the chosen one
+( timestamp/timeframe (see below) + root hash block + hash chosen one + previous hash + the hashes from the user's credentials (data = email_hashed and password_hashed)) ==> hash communicated by the chosen one
 - 51% of the currently online users should give their ok as assembled by the chosen one, the ok sayers communicate their ok to their list of ip's an expect a returned ok in 51% of their ip's / first layer peers, so a delayed ok towards the chosen one ...
 - when ok for chosen one, the block is mined
 --> racing between blocks: a certain amount of blocks must be copied from peers, until the hour has passes or the block size exceeds 1MB
@@ -30,4 +30,4 @@
 - what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
 ### What's next?
-See the end of create_block in block.cpp, see the TODO
+See the beginning of create_block in block.cpp, see the TODO
