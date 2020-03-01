@@ -2,7 +2,7 @@
 
 if [ -d ./build ]; then
   cd ./build;
-  cmake .. && make && ./crowd;
+  cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd;
 else
   mkdir -p ./build;
   cd ./build;
