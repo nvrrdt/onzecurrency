@@ -261,6 +261,8 @@ void merkle_tree::create_block()
      * put in timeframe number, the hashes (not root hashes!!) from the users (data), the block's root hash and the previous block's root hash and the hash from the chosen one
      * later on: verification of the latest block's root hash
      * if no new user is added in a timeframe, then the counter goes up, without block creation, so the files don't necessary need following nbumbers
+     * 
+     * for genesis block also a timestamp needs to be added, maybe some news fact can also be shared, perhaps stored in prev_hash
      */
 
     cout << "goed" << endl;
