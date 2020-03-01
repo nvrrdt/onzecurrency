@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 
-#include <bits/stdc++.h>
+#include <stack>
+#include <memory>
 
 using namespace std;
 
@@ -14,14 +15,14 @@ namespace crowd
     {
     public:
         void create_user(string email, string password);
-        void create_block();
+        void prep_block_creation();
     private:
         bool create_hash(const string& unhashed, string& hashed);
         void save_new_user(string&, string&);
         int two_hours_timer();
         bool is_empty(std::ifstream&);
-        void calculate_root_hash(stack <string>);
-        string& pop_two_and_hash(stack <string> s);
+        shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
+        shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
     };
 }
 

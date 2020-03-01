@@ -13,8 +13,9 @@
 #include <ctime>
 #include <unistd.h>
 
-#include <bits/stdc++.h>
 #include <math.h>
+#include <memory>
+#include <stack>
 
 using namespace crowd;
 
@@ -119,7 +120,7 @@ bool merkle_tree::is_empty(std::ifstream& pFile)
     return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
-void merkle_tree::create_block()
+void merkle_tree::prep_block_creation()
 {
     merkle_tree::two_hours_timer();
 
@@ -129,12 +130,12 @@ void merkle_tree::create_block()
 
     file >> j;
     
-    stack <string> s;
+    shared_ptr<stack<string>> s_shptr = make_shared<stack<string>>();
 
     for (auto& element : j) {
         std::cout << std::setw(4) << element << '\n';
 
-        // sort email_hashed and password_hashed alphabetically for consistency in concateation these two hashes
+        // sort email_hashed and password_hashed alphabetically for consistency in concatenating these two hashes
         string email_hashed, password_hashed, user_conc, user_hashed;
         // TODO: the user's of the block, only hashed email and hashed password, need also to be stored in a json with block number
         // but there's block arithmetic needed when the winning block is smaller and bigger than this one calculated here ...
@@ -151,13 +152,15 @@ void merkle_tree::create_block()
 
         if (merkle_tree::create_hash(user_conc, user_hashed) == true)
         {
-            cout << "root: " << user_hashed << endl;
+            std::cout << "root: " << string(user_hashed) << endl;
 
-            s.push(user_hashed);
+            s_shptr->push(user_hashed);
         }
     }
 
-    merkle_tree::calculate_root_hash(s);
+    s_shptr = merkle_tree::calculate_root_hash(s_shptr);
+
+    std::cout << "root hash block: " << s_shptr->top() << endl;
 
     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 }
@@ -189,14 +192,14 @@ int merkle_tree::two_hours_timer()
     return 0;
 }
 
-void merkle_tree::calculate_root_hash(stack <string> s)
+shared_ptr<stack<string>> merkle_tree::calculate_root_hash(shared_ptr<stack<string>> s_shptr)
 {
     size_t n; // 2^n
 
-    // cakculate the next 2^n above stacksize
-    for (size_t i = 0; i < s.size(); i++)
+    // calculate the next 2^n above stacksize
+    for (size_t i = 0; i < s_shptr->size(); i++)
     {
-        if (pow (2, i) >= s.size())
+        if (pow (2, i) >= s_shptr->size())
         {
             n = pow (2, i);
             break;
@@ -204,44 +207,47 @@ void merkle_tree::calculate_root_hash(stack <string> s)
     }
 
     // add 0's to the stack till a size of 2^n
-    size_t current_stack_size = s.size();
+    size_t current_stack_size = s_shptr->size();
+    std::cout << n << " " << current_stack_size << endl;
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
-        s.push("0");
-    }
-    
-    merkle_tree::pop_two_and_hash(s);
-}
-
-string& merkle_tree::pop_two_and_hash(stack <string> s)
-{
-    string uneven, even;
-    stack <string> s1;
-
-    while (!s.empty())
-    {
-        uneven = s.top(); // left!
-        s.pop();
-
-        even = s.top(); // right!
-        s.pop();
-
-        string parent_conc = uneven + even, parent_hashed;
-
-        if (merkle_tree::create_hash(parent_conc, parent_hashed) == true)
+        string zero = "zero", zero_hashed;
+        if (merkle_tree::create_hash(zero, zero_hashed) == true)
         {
-            s1.push(parent_hashed);
+            s_shptr->push(zero_hashed);
         }
     }
 
-    if (s1.size() == 1)
+    return merkle_tree::pop_two_and_hash(s_shptr);
+}
+
+shared_ptr<stack<string>> merkle_tree::pop_two_and_hash(shared_ptr<stack<string>> s_shptr)
+{
+    string uneven, even;
+    shared_ptr<stack<string>> s1_shptr = make_shared<stack<string>>();
+
+    if (s_shptr->size() <= 1)
     {
-        string& root_hash_block = s1.top();
-
-        cout << root_hash_block << endl;
-
-        return root_hash_block;
+        return s_shptr; // only root_hash_block is in stack s_shptr
     }
+    else
+    {
+        while (!s_shptr->empty())
+        {
+            uneven = s_shptr->top(); // left!
+            s_shptr->pop();
 
-    merkle_tree::pop_two_and_hash(s1);
+            even = s_shptr->top(); // right!
+            s_shptr->pop();
+
+            string parent_conc = uneven + even, parent_hashed;
+
+            if (merkle_tree::create_hash(parent_conc, parent_hashed) == true)
+            {
+                s1_shptr->push(parent_hashed);
+            }
+        }
+
+        return merkle_tree::pop_two_and_hash(s1_shptr);
+    }
 }

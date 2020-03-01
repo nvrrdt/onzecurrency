@@ -22,7 +22,7 @@ int main()
 
      std::packaged_task<void()> task2([] {
         merkle_tree mt;
-        mt.create_block();
+        mt.prep_block_creation();
     });
 
     // Run task on new thread.
