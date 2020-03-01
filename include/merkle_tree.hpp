@@ -23,6 +23,7 @@ namespace crowd
         bool is_empty(std::ifstream&);
         shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
         shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
+        void create_block();
     };
 }
 

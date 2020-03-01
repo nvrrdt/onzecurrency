@@ -162,6 +162,8 @@ void merkle_tree::prep_block_creation()
 
     std::cout << "root hash block: " << s_shptr->top() << endl;
 
+    merkle_tree::create_block();
+
     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 }
 
@@ -250,4 +252,16 @@ shared_ptr<stack<string>> merkle_tree::pop_two_and_hash(shared_ptr<stack<string>
 
         return merkle_tree::pop_two_and_hash(s1_shptr);
     }
+}
+
+void merkle_tree::create_block()
+{
+    /**
+     * create file with timeframe number in blockchain folder: 'block00000000.json'
+     * put in timeframe number, the hashes (not root hashes!!) from the users (data), the block's root hash and the previous block's root hash and the hash from the chosen one
+     * later on: verification of the latest block's root hash
+     * if no new user is added in a timeframe, then the counter goes up, without block creation, so the files don't necessary need following nbumbers
+     */
+
+    cout << "goed" << endl;
 }
