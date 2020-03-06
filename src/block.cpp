@@ -257,12 +257,15 @@ shared_ptr<stack<string>> merkle_tree::pop_two_and_hash(shared_ptr<stack<string>
 void merkle_tree::create_block()
 {
     /**
-     * create file with timeframe number in blockchain folder: 'block00000000.json'
-     * put in timeframe number, the hashes (not root hashes!!) from the users (data), the block's root hash and the previous block's root hash and the hash from the chosen one
-     * later on: verification of the latest block's root hash
-     * if no new user is added in a timeframe, then the counter goes up, without block creation, so the files don't necessary need following nbumbers
+     * create file with incremental (+1) numbers in blockchain folder: 'block00000000.json'
+     * in block: put in time since epoch wehen block is sealed/created by chosen one, the hashes (not root hashes!!) from the users (data),
+     * and the previous block's root hash and the hash from the chosen one
      * 
-     * for genesis block also a timestamp needs to be added, maybe some news fact can also be shared, perhaps stored in prev_hash
+     * a verification of next prev_hash follows, if approved, then the next prev_hash get's distributed
+     * 
+     * for genesis block maybe some news fact can be shared through its hash, and the unhashed data is distributed/shared
+     * a prize for when the hash's data remains a secret costs a lot of computing energy, so no, no prize to unhash
+     * the genesis's data is 'secrets are dumb'
      */
 
     cout << "goed" << endl;
