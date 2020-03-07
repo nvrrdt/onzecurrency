@@ -162,7 +162,7 @@ void merkle_tree::prep_block_creation()
 
     std::cout << "root hash block: " << s_shptr->top() << endl;
 
-    merkle_tree::create_block(datetime, s_shptr->top());
+    merkle_tree::create_block(datetime, s_shptr->top(), j);
 
     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 }
@@ -260,7 +260,7 @@ shared_ptr<stack<string>> merkle_tree::pop_two_and_hash(shared_ptr<stack<string>
     }
 }
 
-void merkle_tree::create_block(string& datetime, string root_hash_data)
+void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann::json user_data_j)
 {
     /**
      * in block: put in time since epoch when block is initiated (eg. 02:00:00 or 16:00:00),
@@ -277,13 +277,22 @@ void merkle_tree::create_block(string& datetime, string root_hash_data)
     nlohmann::json j = {
         {"starttime", datetime},
         {"hash_chosen_one", root_hash_data},
-        {"hashes_data_users",
-            {"user1", {"hash_email", "hash_password"}},
-            {"user2", {"hash_email", "hash_password"}},
-            {"user3"}
-        },
         {"previous_hash", "blahblah"}
     };
 
-    cout << "goed " << datetime << " " << root_hash_data << endl;
+    int user_count = 0;
+    for (auto& element : user_data_j) {
+        string email_hashed, password_hashed;
+
+        email_hashed = element[0];
+        password_hashed = element[1];
+
+        j["data"][user_count].push_back(email_hashed);
+        j["data"][user_count].push_back(password_hashed);
+
+        user_count++;
+    }
+
+    cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
+    std::cout << std::setw(4) << j << '\n';
 }
