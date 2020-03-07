@@ -120,7 +120,7 @@ bool merkle_tree::is_empty(std::ifstream& pFile)
     return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
-void merkle_tree::prep_block_creation()
+int merkle_tree::prep_block_creation()
 {
     string datetime = merkle_tree::two_hours_timer();
 
@@ -130,6 +130,10 @@ void merkle_tree::prep_block_creation()
 
     file >> j;
     
+    if (j.empty()) {
+        return 1;
+    }
+
     shared_ptr<stack<string>> s_shptr = make_shared<stack<string>>();
 
     for (auto& element : j) {
@@ -165,6 +169,8 @@ void merkle_tree::prep_block_creation()
     merkle_tree::create_block(datetime, s_shptr->top(), j);
 
     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
+
+    return 0;
 }
 
 string merkle_tree::two_hours_timer()
