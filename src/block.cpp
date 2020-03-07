@@ -122,7 +122,7 @@ bool merkle_tree::is_empty(std::ifstream& pFile)
 
 void merkle_tree::prep_block_creation()
 {
-    merkle_tree::two_hours_timer();
+    string datetime = merkle_tree::two_hours_timer();
 
     // parse new_users_pool.json
     ifstream file("../new_users_pool.json");
@@ -162,15 +162,17 @@ void merkle_tree::prep_block_creation()
 
     std::cout << "root hash block: " << s_shptr->top() << endl;
 
-    merkle_tree::create_block();
+    merkle_tree::create_block(datetime);
 
     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 }
 
-int merkle_tree::two_hours_timer()
+string merkle_tree::two_hours_timer()
 {
     using namespace std::chrono;
-    /* TODO: remove this comment in production
+
+    string datetime;
+
     while (1)
     {
         system_clock::time_point now = system_clock::now();
@@ -178,20 +180,24 @@ int merkle_tree::two_hours_timer()
         time_t tt = system_clock::to_time_t(now);
         tm utc_tm = *gmtime(&tt);
         
+        /** TODO: remove this comment in production
         if (utc_tm.tm_sec % 60 == 0 &&
             utc_tm.tm_min % 60 == 0 &&
-            utc_tm.tm_hour % 2 == 0) // == 2 hours
+            utc_tm.tm_hour % 2 == 0) // == 2 hours */
+        if (utc_tm.tm_sec % 60 == 0 ||
+            utc_tm.tm_sec % 60 == 20 ||
+            utc_tm.tm_sec % 60 == 40)
         {
-            std::cout << utc_tm.tm_hour << ":";
-            std::cout << utc_tm.tm_min << endl;
+            datetime = to_string(utc_tm.tm_hour) + ":" + to_string(utc_tm.tm_min) + ":" + to_string(utc_tm.tm_sec) + " " \
+                       + to_string(utc_tm.tm_mday) + "/" + to_string(utc_tm.tm_mon + 1) + "/" + to_string(utc_tm.tm_year + 1900);
 
             break;
         }
     }
-    */
+
     sleep(1);
 
-    return 0;
+    return datetime;
 }
 
 shared_ptr<stack<string>> merkle_tree::calculate_root_hash(shared_ptr<stack<string>> s_shptr)
@@ -254,19 +260,30 @@ shared_ptr<stack<string>> merkle_tree::pop_two_and_hash(shared_ptr<stack<string>
     }
 }
 
-void merkle_tree::create_block()
+void merkle_tree::create_block(string& datetime)
 {
     /**
-     * create file with incremental (+1) numbers in blockchain folder: 'block00000000.json'
-     * in block: put in time since epoch wehen block is sealed/created by chosen one, the hashes (not root hashes!!) from the users (data),
-     * and the previous block's root hash and the hash from the chosen one
+     * in block: put in time since epoch when block is initiated (eg. 02:00:00 or 16:00:00),
+     * the hashes (not root hashes!!) from the users (data) the previous block's root hash and the hash from the chosen one
      * 
-     * a verification of next prev_hash follows, if approved, then the next prev_hash get's distributed
+     * a verification of next prev_hash follows, if approved/sealed/confirmed by the chosen one, then the next prev_hash get's distributed
      * 
-     * for genesis block maybe some news fact can be shared through its hash, and the unhashed data is distributed/shared
+     * create file with incremental (+1) numbers in blockchain folder: 'block000000000.json'
+     * 
      * a prize for when the hash's data remains a secret costs a lot of computing energy, so no, no prize to unhash
      * the genesis's data is 'secrets are dumb'
      */
 
-    cout << "goed" << endl;
+    nlohmann::json j = {
+        {"starttime", datetime},
+        {"hash_chosen_one", "root_hash_data"},
+        {"hashes_data_users",
+            {"user1", {"hash_email", "hash_password"}},
+            {"user2", {"hash_email", "hash_password"}},
+            {"user3"}
+        },
+        {"previous_hash", "blahblah"}
+    };
+
+    cout << "goed " << datetime << endl;
 }

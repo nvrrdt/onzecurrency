@@ -19,11 +19,11 @@ namespace crowd
     private:
         bool create_hash(const string& unhashed, string& hashed);
         void save_new_user(string&, string&);
-        int two_hours_timer();
+        string two_hours_timer();
         bool is_empty(std::ifstream&);
         shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
         shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
-        void create_block();
+        void create_block(string&);
     };
 }
 
