@@ -287,8 +287,8 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
         email_hashed = element[0];
         password_hashed = element[1];
 
-        j["data"][user_count].push_back(email_hashed);
-        j["data"][user_count].push_back(password_hashed);
+        j["data"][user_count]["email_h"].push_back(email_hashed);
+        j["data"][user_count]["passw_h"].push_back(password_hashed);
 
         user_count++;
     }
