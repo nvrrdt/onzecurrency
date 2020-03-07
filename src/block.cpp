@@ -274,6 +274,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
      * the genesis's data is 'secrets are dumb'
      */
 
+    // creation of the block's data for storage
     nlohmann::json j = {
         {"starttime", datetime},
         {"hash_chosen_one", root_hash_data},
@@ -293,6 +294,20 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
         user_count++;
     }
 
+    // TODO: remove these two lines
     cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
     std::cout << std::setw(4) << j << '\n';
+
+    // hashing of the whole new block
+    string block_j, block_hashed;
+
+    if (merkle_tree::create_hash(block_j, block_hashed) == true)
+    {
+        // search and find the hash or the hash_above in hash table of users, that's the chosen_one
+        // (there need to be already a blockchain, so eventually you're working in the dark)
+        // thus, create a hash table first
+        // then let the chosen_one hash it, and distribute and confirm the block_hashed of his/hers peers^1 and peers^2
+        // then save the json to the blockchain folder as previously described above
+        // inception or genesis user or bootstrapping this is another thing
+    }
 }
