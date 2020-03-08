@@ -309,7 +309,8 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     if (merkle_tree::create_hash(block_j, block_hashed) == true)
     {
-        // search and find the hash or the hash_above in hash table of users, that's the chosen_one
+        // TODO:
+        // search and find the hash or the hash_above in binary search tree (map) of users, that's the chosen_one
         // (there need to be already a blockchain, so eventually you're working in the dark (hypothetically!))
         // thus, create a hash table first
         // then let the chosen_one hash it, and distribute and confirm the block_hashed of his/hers peers^1 and peers^2
