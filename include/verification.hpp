@@ -7,6 +7,8 @@ namespace crowd
     public:
         void verification_handler();
     private:
-        void download_blockchain();
+        int download_blockchain();
+        int update_blockchain();
+        int update_map();
     };
 }
