@@ -3,6 +3,7 @@
 - onzecoin: rewarding system like bitcoin: a few years 1000 coins you get when you're the chosen one and then a halving to 500 coins for the chosen one, so there's also a limited amount of coins
 - create bool functions that can be allowed with an if statement like for authentication ans an example at the evp code in block.cpp
 - maybe search for asynchronous daytime server asio
+- TODO: block malicious users who in more than 51% of following verifications of the block's hash don't approve the block's hash in the case there's at least a 10-33% (amount of users decides, also amount of shards) users approving of the hash - please do not choke the system
 
 1) DONE create hash from user's emailadres and a hash from the password, then a hash from those two hashes , first the email hash and then the concatenated password hash
 2) every hour a list with new users needs to be kept, that list will become a block, a merkle tree of the new users
