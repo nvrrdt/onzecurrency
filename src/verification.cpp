@@ -30,6 +30,7 @@ void verification::verification_handler()
         {
             std::cout << "Directory not empty" << std::endl;
             verification::update_blockchain();
+            verification::update_map();
         }
         else
         {
@@ -50,7 +51,7 @@ int verification::update_blockchain()
 {
     std::cout << "test blockchain update" << std::endl;
 
-    return verification::update_map();
+    return 0;
 }
 
 int verification::update_map()
