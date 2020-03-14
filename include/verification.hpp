@@ -9,7 +9,7 @@ namespace crowd
     {
     public:
         void verification_handler();
-        int update_map(std::string);
+        int update_map();
     private:
         int download_blockchain();
         int update_blockchain();

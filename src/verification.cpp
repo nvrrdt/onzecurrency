@@ -5,7 +5,14 @@
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 
+#include <iomanip>
+#include "json.hpp"
+
+#include <boost/range/iterator_range.hpp>
+#include <fstream>
+
 using namespace crowd;
+using namespace boost::filesystem;
 
 // step 1: if no blockchain present, download blockchain
 // step 2: if blockchain present, but nu map, assemble the map from the blockchain
@@ -34,7 +41,7 @@ void verification::verification_handler()
             verification::update_blockchain();
 
             std::string block;
-            verification::update_map(block);
+            verification::update_map();
         }
         else
         {
@@ -59,11 +66,37 @@ int verification::update_blockchain()
     return 0;
 }
 
-int verification::update_map(std::string block)
+int verification::update_map()
 {
     std::cout << "test map update" << std::endl;
 
-    // create map
+    // create map by reading the blocks in the blockchain map
+    boost::system::error_code c;
+    boost::filesystem::path path("../blockchain");
+    bool isDir = boost::filesystem::is_directory(path, c);
+
+    if(!isDir)
+    {
+        std::cout << "Error Response: " << c << std::endl;
+    }
+    else
+    {
+        for (auto& entry : boost::make_iterator_range(directory_iterator(path), {}))
+        {
+            std::cout << entry << "\n";
+            std::ifstream ifile (entry.path().string(), std::ios::in);
+
+            nlohmann::json j;
+            ifile >> j;
+
+            std::cout << std::setw(4) << j << std::endl;
+            std::cout << "testen" << std::endl;
+
+            // Concatenate email_h and passw_h and hash that string, the resulting hash is the key for the map
+            // What should be the value?
+        }
+    }
+    
 
     return 0;
 }

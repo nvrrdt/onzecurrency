@@ -380,7 +380,7 @@ void merkle_tree::create_genesis_block(string block)
     {
         // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
         verification ver;
-        ver.update_map(block);
+        ver.update_map();
     }
 
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
