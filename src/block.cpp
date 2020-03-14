@@ -17,6 +17,9 @@
 #include <memory>
 #include <stack>
 
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
+
 using namespace crowd;
 
 /**
@@ -130,6 +133,7 @@ int merkle_tree::prep_block_creation()
 
     file >> j;
     
+    // return if new_users_pool.json is empty
     if (j.empty()) {
         return 1;
     }
@@ -283,8 +287,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
     // creation of the block's data for storage
     nlohmann::json j = {
         {"starttime", datetime},
-        {"hash_chosen_one", root_hash_data},
-        {"previous_hash", "blahblah"}
+        {"hash_co", root_hash_data}
     };
 
     int user_count = 0;
@@ -302,11 +305,46 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     // TODO: remove these two lines
     cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
-    std::cout << std::setw(4) << j << '\n';
+    //std::cout << std::setw(4) << j << '\n';
 
     // hashing of the whole new block
     string block_j, block_hashed;
 
+    // create genesis or add to blockchain
+    boost::system::error_code c;
+    boost::filesystem::path path("../blockchain");
+    bool isDir = boost::filesystem::is_directory(path, c);
+    bool isEmpty = boost::filesystem::is_empty(path);
+
+    if(!isDir)
+    {
+        std::cout << "Error Response: " << c << std::endl;
+    }
+    else
+    {
+        if (!isEmpty)
+        {
+            std::cout << "Directory not empty" << std::endl;
+            j["prev_hash"].push_back("prev_hash by chosen one"); // prev_hash by chosen one
+            block_j = to_string(j);
+            merkle_tree::add_block_to_blockchain(block_j);
+        }
+        else
+        {
+            std::cout << "Is a directory, is empty" << std::endl;
+
+            string genesis_prev_hash = "secrets are dumb, universally speaking", genesis_prev_hash_hashed;
+
+            if (merkle_tree::create_hash(genesis_prev_hash, genesis_prev_hash_hashed) == true)
+            {
+                j["prev_hash"].push_back(genesis_prev_hash_hashed);
+                block_j = to_string(j);
+                merkle_tree::create_genesis_block(block_j);
+            }
+        }
+    }
+ 
+    // TODO: dunno yet ... what to do with it
     if (merkle_tree::create_hash(block_j, block_hashed) == true)
     {
         // TODO:
@@ -316,5 +354,26 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
         // then let the chosen_one hash it, and distribute and confirm the block_hashed of his/hers peers^1 and peers^2
         // then save the json to the blockchain folder as previously described above
         // inception or genesis user or bootstrapping this is another thing
+
+        // FOR NOW:
+        // if new_users_pool.json !empty, check if blockchain folder is empty
+        // if empty create genesis block and genesis user(-s)
+        // if not empty add new block to blockchain
+
+        // TODO: do something with block_hashed
     }
+}
+
+void merkle_tree::create_genesis_block(string block)
+{
+    cout << "create genesis block " << block << endl;
+
+    ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
+
+    ofile << block;
+}
+
+void merkle_tree::add_block_to_blockchain(string block)
+{
+    cout << "add block to blockchain" << endl;
 }
