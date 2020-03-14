@@ -42,4 +42,4 @@
 - ...
 
 ### What's next?
-See the end of create_block in block.cpp, about the hash_table
+See create_genesis_block() and add_block_to_blockchain() in block.cpp, see update_map() in verification.cpp
