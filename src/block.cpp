@@ -343,6 +343,11 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             }
         }
     }
+
+    // delete contents of new_users_pool.json
+    std::ofstream ofs;
+    ofs.open("../new_users_pool.json", std::ofstream::out | std::ofstream::trunc);
+    ofs.close();
  
     // TODO: dunno yet ... what to do with it
     if (merkle_tree::create_hash(block_j, block_hashed) == true)
