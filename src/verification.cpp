@@ -93,7 +93,7 @@ int verification::update_map()
             std::cout << "testen" << std::endl;
 
             // Concatenate email_h and passw_h and hash that string, the resulting hash is the key for the map
-            // What should be the value?
+            // What should be the value? online presence (standard not online TODO restart app after creating_user && user_in_block), ...
         }
     }
     
