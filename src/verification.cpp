@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "verification.hpp"
 
 #include <boost/filesystem.hpp>
@@ -29,12 +30,16 @@ void verification::verification_handler()
         if (!isEmpty)
         {
             std::cout << "Directory not empty" << std::endl;
+
             verification::update_blockchain();
-            verification::update_map();
+
+            std::string block;
+            verification::update_map(block);
         }
         else
         {
             std::cout << "Is a directory, is empty" << std::endl;
+
             verification::download_blockchain();
         }
     }
@@ -54,9 +59,11 @@ int verification::update_blockchain()
     return 0;
 }
 
-int verification::update_map()
+int verification::update_map(std::string block)
 {
     std::cout << "test map update" << std::endl;
+
+    // create map
 
     return 0;
 }

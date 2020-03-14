@@ -20,6 +20,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 
+#include "verification.hpp"
+
 using namespace crowd;
 
 /**
@@ -372,6 +374,14 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 void merkle_tree::create_genesis_block(string block)
 {
     cout << "create genesis block " << block << endl;
+
+    string block_hashed;
+    if (merkle_tree::create_hash(block, block_hashed) == true)
+    {
+        // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
+        verification ver;
+        ver.update_map(block);
+    }
 
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
 
