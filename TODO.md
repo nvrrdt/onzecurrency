@@ -31,5 +31,15 @@
 - communicating being online in the network, and leaving the network ... a hash table besides the blockchain to keep track of online presences
 - what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
+### What apps/tools to make?
+- coin (lie bitcoin)
+- contract (like ethereum)
+- ego (like egoconf)
+- link (like linkedin)
+- chat (like slack or like twitter)
+- lottery (tja)
+- git (like github)
+- ...
+
 ### What's next?
 See the end of create_block in block.cpp, about the hash_table
