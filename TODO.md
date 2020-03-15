@@ -39,6 +39,9 @@
 - chat (like slack or like twitter)
 - lottery (tja)
 - git (like github)
+- modestland (unprecedentantly trying to live modestly)
+- coin exchange (coin vs different other currencies)
+- stock exchange (stock valued in coin -- ico)
 - ...
 
 ### What's next?
