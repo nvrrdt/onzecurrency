@@ -44,5 +44,10 @@
 - stock exchange (stock valued in coin -- ico)
 - ...
 
+### Amount of peers:
+- (4^4)^4 = ~4 billion
+- (5^5)^5 = a lot more
+So 4 peers is too low en 5 is the right number. That is 5 peers and 5 peers^1 and 5 peers^2, o r every peer communicates with 5 other peers. Coincident peers is normal business?!
+
 ### What's next?
 See create_genesis_block() and add_block_to_blockchain() in block.cpp
