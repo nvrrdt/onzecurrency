@@ -32,16 +32,18 @@
 - what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
 ### What apps/tools to make?
+- interface (main user interface for all apps)
 - coin (lie bitcoin)
 - contract (like ethereum)
 - ego (like egoconf)
 - link (like linkedin)
 - chat (like slack or like twitter)
 - lottery (tja)
-- git (like github)
+- gitnip (like github)
 - modestland (unprecedentantly trying to live modestly)
 - coin exchange (coin vs different other currencies)
 - stock exchange (stock valued in coin -- ico)
+- file (service to share files)
 - ...
 
 ### Amount of peers:
