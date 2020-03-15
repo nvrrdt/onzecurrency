@@ -335,7 +335,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
         {
             std::cout << "Is a directory, is empty" << std::endl;
 
-            string genesis_prev_hash = "secrets are dumb, universally speaking", genesis_prev_hash_hashed;
+            string genesis_prev_hash = "secrets are dumb, omnivalently speaking", genesis_prev_hash_hashed;
 
             if (merkle_tree::create_hash(genesis_prev_hash, genesis_prev_hash_hashed) == true)
             {
