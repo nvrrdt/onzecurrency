@@ -11,6 +11,8 @@
 #include <boost/range/iterator_range.hpp>
 #include <fstream>
 
+#include "merkle_tree.hpp"
+
 using namespace crowd;
 using namespace boost::filesystem;
 
@@ -81,6 +83,9 @@ int verification::update_map()
     }
     else
     {
+        // make for every directory entry a hashed map entry made by concatenating and hashing email_h + passw_h
+        std::map<std::string, std::string> map_of_users;
+
         for (auto& entry : boost::make_iterator_range(directory_iterator(path), {}))
         {
             std::cout << entry << "\n";
@@ -90,11 +95,28 @@ int verification::update_map()
             ifile >> j;
 
             std::cout << std::setw(4) << j << std::endl;
-            std::cout << "testen" << std::endl;
 
             // Concatenate email_h and passw_h and hash that string, the resulting hash is the key for the map
             // What should be the value? online presence (standard not online TODO restart app after creating_user && user_in_block), ...
+
+            for (auto& element : j["data"]) {
+                std::cout << element["email_h"] << '\n';
+                std::cout << element["passw_h"] << '\n';
+
+                std::string user_conc = to_string(element["email_h"]) + to_string(element["passw_h"]), user_conc_hash;
+                merkle_tree mt;
+                if (mt.create_hash(user_conc, user_conc_hash) == true)
+                {
+                    std::cout << user_conc << std::endl;
+                    std::cout << user_conc_hash << std::endl;
+
+                    map_of_users.insert(std::make_pair(user_conc_hash, "not_online"));
+                }
+            }
         }
+
+        // TODO: I thought of saving the map to a file, but I didn't succeed in finding an example
+        // and I either don't see an advantage, just load it in ram at program start
     }
     
 

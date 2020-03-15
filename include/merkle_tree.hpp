@@ -18,8 +18,8 @@ namespace crowd
     public:
         void create_user(string email, string password);
         int prep_block_creation();
-    private:
         bool create_hash(const string& unhashed, string& hashed);
+    private:
         void save_new_user(string&, string&);
         string two_hours_timer();
         bool is_empty(std::ifstream&);
