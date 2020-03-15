@@ -42,4 +42,4 @@
 - ...
 
 ### What's next?
-See create_genesis_block() and add_block_to_blockchain() in block.cpp, see update_map() in verification.cpp
+See create_genesis_block() and add_block_to_blockchain() in block.cpp
