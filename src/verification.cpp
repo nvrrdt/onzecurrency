@@ -103,7 +103,8 @@ int verification::update_map()
                 std::cout << element["email_h"] << '\n';
                 std::cout << element["passw_h"] << '\n';
 
-                std::string user_conc = to_string(element["email_h"]) + to_string(element["passw_h"]), user_conc_hash;
+                // TODO TEST: verify if user_conc_hash here is the same as user_hashed in block.cpp
+                std::string user_conc = string(element["email_h"][0]) + string(element["passw_h"][0]), user_conc_hash;
                 merkle_tree mt;
                 if (mt.create_hash(user_conc, user_conc_hash) == true)
                 {
