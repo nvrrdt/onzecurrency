@@ -26,7 +26,7 @@ namespace crowd
         shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
         shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
         void create_block(string&, string, nlohmann::json);
-        void create_genesis_block(string);
+        void create_genesis_block(string, nlohmann::json);
         void add_block_to_blockchain(string);
     };
 }

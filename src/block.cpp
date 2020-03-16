@@ -341,7 +341,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             {
                 j["prev_hash"].push_back(genesis_prev_hash_hashed);
                 block_j = to_string(j);
-                merkle_tree::create_genesis_block(block_j);
+                merkle_tree::create_genesis_block(block_j, user_data_j);
             }
         }
     }
@@ -371,20 +371,56 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
     }
 }
 
-void merkle_tree::create_genesis_block(string block)
+void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
 {
+    /**
+     * REMARQUE: the users of the genesis block need to be online for 2 hours after logging in
+     */
+
     cout << "create genesis block " << block << endl;
 
-    string block_hashed;
+    string block_hashed; // block_hashed is the hash as base for finding the chosen one
+    std::map<std::string, std::string> map_of_users;
     if (merkle_tree::create_hash(block, block_hashed) == true)
     {
         // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
-        verification ver;
-        ver.update_map();
+        // --> Use block to create the hashes from the users and the map to find the chosen_one
 
-        // block_hashed is the hash as base for finding the chosen one
+        cout << "heel " << to_string(user_data_j) << endl;
+        for (auto& element : user_data_j)
+        {
+            cout << "hele " << element << endl;
+            cout << "hele1 " << element[0] << endl;
+            cout << "hele2 " << element[1] << endl;
+            string user_conc = string(element[0]) + string(element[1]), user_conc_hashed;
+            if (merkle_tree::create_hash(user_conc, user_conc_hashed) == true)
+            {
+                cout << "heleconc " << user_conc << " " << user_conc_hashed << endl;
+                map_of_users.insert(std::make_pair(user_conc_hashed, "not_online"));
+            }
+        }
     }
 
+    // find the chosen_one
+    for (std::map<std::string, std::string>::iterator it=map_of_users.begin(); it!=map_of_users.end(); ++it)
+    {
+        if (block_hashed >= it->first)
+        {
+            // jeej chosen_one found
+            cout << "chosen_one is " << it->first << endl;
+        }
+        else if (it == --map_of_users.end() && block_hashed != it->first)
+        {
+            cout << "end of genesis map" << it->first << endl;
+            // chosen_one is the first entry of the map
+            cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
+        }
+    }
+
+    // TODO: let the chosen_one verify the genesis block's hash, if true, communicate to your peers and create the block on disk
+    //       if not true, stop genesis block creation
+
+    // create the block on disk
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
 
     ofile << block;
