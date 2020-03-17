@@ -44,6 +44,7 @@
 - coin exchange (coin vs different other currencies)
 - stock exchange (stock valued in coin -- ico)
 - file (service to share files)
+- survey
 - monitor (for crowd and the apps)
 - ...
 
