@@ -35,6 +35,7 @@
 
 ### What apps/tools to make?
 - interface (main user interface for all apps)
+- login (need to make a facial recognition library for all platforms)
 - coin (like bitcoin)
 - contract (like ethereum)
 - ego (like egoconf)
