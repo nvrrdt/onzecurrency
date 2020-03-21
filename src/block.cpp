@@ -401,24 +401,33 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
         }
     }
 
-    // find the chosen_one
+    string chosen_one;
+
+    // find the chosen_one or poco
     for (std::map<std::string, std::string>::iterator it=map_of_users.begin(); it!=map_of_users.end(); ++it)
     {
         if (block_hashed >= it->first)
         {
             // jeej chosen_one found
             cout << "chosen_one is " << it->first << endl;
+            chosen_one = it->first;
         }
         else if (it == --map_of_users.end() && block_hashed != it->first)
         {
             cout << "end of genesis map" << it->first << endl;
             // chosen_one is the first entry of the map
             cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
+            chosen_one = map_of_users.begin()->first;
         }
     }
 
-    // TODO: let the chosen_one verify the genesis block's hash, if true, communicate to your peers and create the block on disk
-    //       if not true, stop genesis block creation
+    /**
+     * TODO: let the chosen_one verify the genesis block's hash, if true, communicate to your peers and create the block on disk if 51% of online users confirms
+     *       if not true, stop genesis block creation
+     * 
+     * - put ip_adress in map instead of ONLINE in the value
+     * - 51% of all online users must confirm the block's hash to the chosen_one
+     */
 
     // create the block on disk
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
