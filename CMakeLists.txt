@@ -12,9 +12,13 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
 find_package(Threads)
 
+set(CURL_LIBRARY "-lcurl") 
+find_package(CURL REQUIRED)
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
+        ${CURL_INCLUDE_DIR}
 )
 
 file(GLOB all_SRCS
@@ -29,4 +33,5 @@ target_link_libraries(${PROJECT_NAME}
                       ${Boost_SYSTEM_LIBRARY}
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                       ${CMAKE_THREAD_LIBS_INIT}
+                      ${CURL_LIBRARIES}
 )
