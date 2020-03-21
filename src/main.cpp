@@ -2,6 +2,7 @@
 #include "merkle_tree.hpp"
 #include "p2p_handler.hpp"
 #include "verification.hpp"
+#include "external_ip.hpp"
 
 #include <future>
 #include <thread>
@@ -14,6 +15,9 @@ int main()
 {
     authentication auth;
     auth.auth();
+
+    external_ip ei;
+    ei.get_external_ip();
 
     // Create a packaged_task using some task and get its future.
     std::packaged_task<void()> task1([] {
