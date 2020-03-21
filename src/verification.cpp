@@ -78,8 +78,22 @@ int verification::download_blockchain()
     p2p_handler ph;
     vector<string> ip_list = ph.parse_ip_peers_json();
 
-    system_ping sp;
-    sp.test_connection("www.google.com", 1);
+    string online_ip;
+
+    for (string& ip_adress : ip_list)
+    {
+        system_ping sp;
+        if (sp.test_connection(ip_adress, 1)) // ping ip_adress to see if it is online
+        {
+            online_ip = ip_adress;
+            break;
+        }
+    }
+
+    p2p_handler ph;
+    ph.client(online_ip); 
+
+    // TODO: get some data from the server
 
     return 0;
 };
