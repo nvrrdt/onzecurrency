@@ -1,4 +1,3 @@
-#include "authentication.hpp"
 #include "merkle_tree.hpp"
 #include "p2p_handler.hpp"
 #include "verification.hpp"
@@ -13,8 +12,8 @@ using namespace std;
 
 int main()
 {
-    authentication auth;
-    auth.auth();
+    verification v;
+    v.verification_handler(); // authentication and verification of the blocks
 
     external_ip ei;
     ei.get_external_ip();
@@ -22,23 +21,17 @@ int main()
     // Create a packaged_task using some task and get its future.
     std::packaged_task<void()> task1([] {
         p2p_handler ph;
-        ph.p2p_switch();
+        ph.p2p_switch(); // handling of the p2p
     });
 
     std::packaged_task<void()> task2([] {
         merkle_tree mt;
-        mt.prep_block_creation();
-    });
-
-    std::packaged_task<void()> task3([] {
-        verification v;
-        v.verification_handler();
+        mt.prep_block_creation(); // creation of the block
     });
 
     // Run task on new thread.
     std::thread t1(std::move(task1));
     std::thread t2(std::move(task2));
-    std::thread t3(std::move(task3));
 
     t1.join();
     t2.join();

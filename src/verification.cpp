@@ -52,6 +52,21 @@ void verification::verification_handler()
             verification::download_blockchain();
         }
     }
+
+    verification::authentication();
+}
+
+void verification::authentication()
+{
+    string email, password;
+
+    cout << "Email adress: ";
+    cin >> email;
+    cout << "Password: ";
+    cin >> password;
+
+    merkle_tree mt;
+    mt.create_user(email, password); // TODO: authenticate (look in blockchain) OR create_user
 }
 
 int verification::download_blockchain()

@@ -13,5 +13,6 @@ namespace crowd
     private:
         int download_blockchain();
         int update_blockchain();
+        void authentication();
     };
 }
