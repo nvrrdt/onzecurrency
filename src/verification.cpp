@@ -12,6 +12,8 @@
 #include <fstream>
 
 #include "merkle_tree.hpp"
+#include "p2p_handler.hpp"
+#include "ping.hpp"
 
 using namespace crowd;
 using namespace boost::filesystem;
@@ -32,7 +34,7 @@ void verification::verification_handler()
 
     if(!isDir)
     {
-        std::cout << "Error Response: " << c << std::endl;
+        std::cout << "Error Response: " << c << std::endl; // TODO: create directory!
     }
     else
     {
@@ -41,8 +43,6 @@ void verification::verification_handler()
             std::cout << "Directory not empty" << std::endl;
 
             verification::update_blockchain();
-
-            std::string block;
             verification::update_map();
         }
         else
@@ -50,6 +50,7 @@ void verification::verification_handler()
             std::cout << "Is a directory, is empty" << std::endl;
 
             verification::download_blockchain();
+            verification::update_map();
         }
     }
 
@@ -72,6 +73,13 @@ void verification::authentication()
 int verification::download_blockchain()
 {
     std::cout << "test download" << std::endl;
+
+    // TODO: get ip adresses from ip_peers.json, ping a random peer for being online, download for 2 minutes from that random peer, then another random peer
+    p2p_handler ph;
+    vector<string> ip_list = ph.parse_ip_peers_json();
+
+    system_ping sp;
+    sp.test_connection("www.google.com", 1);
 
     return 0;
 };
