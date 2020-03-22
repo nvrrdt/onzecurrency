@@ -1,3 +1,4 @@
+### Some ideas:
 - restructuring the merkle tree of users by removing all the accounts that weren't used in the last 2 years should be possible
 - removal of users who don't use crowd for 2 years
 - onzecoin: rewarding system like bitcoin: a few years 1000 coins you get when you're the chosen one and then a halving to 500 coins for the chosen one, so there's also a limited amount of coins
@@ -10,10 +11,8 @@
 - The website hook: <H1>THE NEXT BLOCKCHAIN FOR THE CHEAP.</H1><H2>No energy mungering monstrosity, no concentrated stakeholders, best decentralisation of the market. And rewards.</H2>
 - The login system must be seriously improved, as someone can inject someone else's hashed credentials and no one would notice. A solution would be to let the chosen_one (resulting hash of email_h + passw_h) verify the non-hashed email and communicate this to a few peers who could verify in their turn.
 - Another thing that's possible is, instead of pinging the whole blockchain to verify for a hash, just to ping the 100 online users after the chosen_one and see if 51% of those callees respond the same way.
-
-1) DONE create hash from user's emailadres and a hash from the password, then a hash from those two hashes , first the email hash and then the concatenated password hash
-2) every hour a list with new users needs to be kept, that list will become a block, a merkle tree of the new users
-3) // create ip_peers.json with the root hash (1) and with its ip in a dictionary || SOMETHING WRONG
+- if a chosen_one is malacious found by some peers, who verify the chosen_one's hash, remember and make then a block for the last 4 hours, if in the meantime a new chosen_one is found and proves the prev chosen_one is not malaficious then those peers, who found the peer malacious, communicate to their user that their software is malicious. If the chose_one is indeed malicious found by the new chosen_one then again a new chosen_one is to be found for the block orf the last 4 hours
+- you could also to the verifying by 100 successive online chosen_one's and if 51% confirms a certain hash from the block, then the block's hash is verified
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
