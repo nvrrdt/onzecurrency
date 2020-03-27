@@ -26,6 +26,8 @@ using namespace boost::filesystem;
 
 void verification::verification_handler()
 {
+    // verification::authentication(); // TODO: undo this comment when you want to authenticate
+    
     // verify if blockchain folder is empty and if it is download the blockchain, if it's not empty verify the files to verify the blockchain and the map
     boost::system::error_code c;
     boost::filesystem::path path("../blockchain");
@@ -53,8 +55,6 @@ void verification::verification_handler()
             verification::update_map();
         }
     }
-
-    verification::authentication();
 }
 
 void verification::authentication()
@@ -70,25 +70,21 @@ void verification::authentication()
     mt.create_user(email, password); // TODO: authenticate (look in blockchain) OR create_user
 }
 
-int verification::download_blockchain()
+void verification::download_blockchain()
 {
     std::cout << "test download" << std::endl;
 
     // TODO: get ip adresses from ip_peers.json, ping a random peer for being online, download for 2 minutes from that random peer, then another random peer
     p2p_handler ph;
     ph.p2p_switch("download"); // TODO: get some data from the server
-
-    return 0;
 };
 
-int verification::update_blockchain()
+void verification::update_blockchain()
 {
     std::cout << "test blockchain update" << std::endl;
-
-    return 0;
 }
 
-int verification::update_map()
+void verification::update_map()
 {
     std::cout << "test map update" << std::endl;
 
@@ -139,7 +135,4 @@ int verification::update_map()
         // TODO: I thought of saving the map to a file, but I didn't succeed in finding an example
         // and I either don't see an advantage, just load it in ram at program start
     }
-    
-
-    return 0;
 }

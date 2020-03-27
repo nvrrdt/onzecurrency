@@ -9,10 +9,10 @@ namespace crowd
     {
     public:
         void verification_handler();
-        int update_map();
+        void update_map();
     private:
-        int download_blockchain();
-        int update_blockchain();
+        void download_blockchain();
+        void update_blockchain();
         void authentication();
     };
 }

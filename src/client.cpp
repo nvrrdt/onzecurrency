@@ -41,7 +41,7 @@ int p2p_handler::client(string& ip_adress, string& task_client)
 
             // Validating if the connection has to be closed 
             if (response == "download") { 
-                cout << "responsexxx: Connection terminated" << endl; 
+                cout << "Response: Connection terminated" << endl; 
                 break; 
             } 
     
