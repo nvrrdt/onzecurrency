@@ -15,7 +15,7 @@
 
 using namespace crowd;
 
-void p2p_handler::p2p_switch()
+void p2p_handler::p2p_switch(string task_client)
 {
     p2p_handler peers;
     vector<string> ip_list = peers.parse_ip_peers_json();
@@ -33,7 +33,7 @@ void p2p_handler::p2p_switch()
     }
 
     p2p_handler cl;
-    cl.client(online_ip);
+    cl.client(online_ip, task_client);
 
     p2p_handler se;
     se.server_main();

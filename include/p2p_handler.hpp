@@ -19,11 +19,15 @@ namespace crowd
     class p2p_handler
     {
     public:
-        void p2p_switch();
+        void p2p_switch(string);
         vector<string> parse_ip_peers_json();
     private:
         int server_main();
-        int client(string&);
+        int client(string&, string&);
+        string getDataServer(tcp::socket&);
+        void sendDataServer(tcp::socket&, const string&);
+        string getDataClient(tcp::socket&);
+        void sendDataClient(tcp::socket&, const string&);
     };
 }
 

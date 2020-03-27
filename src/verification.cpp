@@ -76,7 +76,7 @@ int verification::download_blockchain()
 
     // TODO: get ip adresses from ip_peers.json, ping a random peer for being online, download for 2 minutes from that random peer, then another random peer
     p2p_handler ph;
-    ph.p2p_switch(); // TODO: get some data from the server
+    ph.p2p_switch("download"); // TODO: get some data from the server
 
     return 0;
 };
