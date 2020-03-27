@@ -76,24 +76,7 @@ int verification::download_blockchain()
 
     // TODO: get ip adresses from ip_peers.json, ping a random peer for being online, download for 2 minutes from that random peer, then another random peer
     p2p_handler ph;
-    vector<string> ip_list = ph.parse_ip_peers_json();
-
-    string online_ip;
-
-    for (string& ip_adress : ip_list)
-    {
-        system_ping sp;
-        if (sp.test_connection(ip_adress, 1)) // ping ip_adress to see if it is online
-        {
-            online_ip = ip_adress;
-            break;
-        }
-    }
-
-    p2p_handler ph;
-    ph.client(online_ip); 
-
-    // TODO: get some data from the server
+    ph.p2p_switch(); // TODO: get some data from the server
 
     return 0;
 };

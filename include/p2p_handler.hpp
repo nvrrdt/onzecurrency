@@ -21,9 +21,9 @@ namespace crowd
     public:
         void p2p_switch();
         vector<string> parse_ip_peers_json();
-        int client(string&);
     private:
         int server_main();
+        int client(string&);
     };
 }
 
