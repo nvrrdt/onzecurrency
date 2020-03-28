@@ -26,7 +26,7 @@ using namespace boost::filesystem;
 
 void verification::verification_handler()
 {
-    // verification::authentication(); // TODO: undo this comment when you want to authenticate
+    verification::authentication();
     
     // verify if blockchain folder is empty and if it is download the blockchain, if it's not empty verify the files to verify the blockchain and the map
     boost::system::error_code c;
@@ -59,8 +59,10 @@ void verification::verification_handler()
 
 void verification::authentication()
 {
-    string email, password;
+    string network, email, password;
 
+    cout << "Network: ";
+    cin >> network;
     cout << "Email adress: ";
     cin >> email;
     cout << "Password: ";
