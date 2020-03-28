@@ -67,4 +67,5 @@ void p2p_handler::save_blockchain(string response)
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
 
     ofile << response;
+    ofile.close();
 }

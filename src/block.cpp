@@ -433,6 +433,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
 
     ofile << block;
+    ofile.close();
 }
 
 void merkle_tree::add_block_to_blockchain(string block)
