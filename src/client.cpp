@@ -39,9 +39,11 @@ int p2p_handler::client(string& ip_adress, string& task_client)
             // Popping last character "\n" 
             response.pop_back();
 
+            std::cout << "Response client is: " << response << std::endl;
+
             // Validating if the connection has to be closed 
             if (response == "download") { 
-                cout << "Response: Connection terminated" << endl; 
+                cout << "Response: Connection terminated"  << endl; 
                 break; 
             } 
     

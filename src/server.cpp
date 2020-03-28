@@ -1,3 +1,7 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "p2p_handler.hpp"
   
 //using namespace std; 
@@ -18,13 +22,26 @@ int p2p_handler::server_main()
         string task = getDataServer(socket_server); 
         // Removing "\n" from the username 
         task.pop_back(); 
-    
+
         // Replying with default mesage to initiate chat 
         string response;
         if (task == "download")
         {
             std::cout << "download initiated!!" << std::endl;
-            p2p_handler::sendDataServer(socket_server, task); // TODO: change task for a download from the blockchain
+
+            std::ifstream ifile("../blockchain/block0000000000.json", ios::in);
+
+            if (ifile.is_open())
+            {
+                std::string line;
+                while ( std::getline (ifile,line) )
+                {
+                    cout << "line: " << line << '\n';
+                    p2p_handler::sendDataServer(socket_server, line);
+                }
+                ifile.close();
+            }
+            else cout << "Unable to open file";
         } 
 
         while (true)
