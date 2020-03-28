@@ -143,7 +143,7 @@ int merkle_tree::prep_block_creation()
     shared_ptr<stack<string>> s_shptr = make_shared<stack<string>>();
 
     for (auto& element : j) {
-        std::cout << std::setw(4) << element << '\n';
+        //std::cout << std::setw(4) << element << '\n';
 
         // sort email_hashed and password_hashed alphabetically for consistency in concatenating these two hashes
         string email_hashed, password_hashed, user_conc, user_hashed;
@@ -162,7 +162,7 @@ int merkle_tree::prep_block_creation()
 
         if (merkle_tree::create_hash(user_conc, user_hashed) == true)
         {
-            std::cout << "root: " << string(user_hashed) << endl;
+            //std::cout << "root: " << string(user_hashed) << endl;
 
             s_shptr->push(user_hashed);
         }
@@ -170,7 +170,7 @@ int merkle_tree::prep_block_creation()
 
     s_shptr = merkle_tree::calculate_root_hash(s_shptr);
 
-    std::cout << "root hash block: " << s_shptr->top() << endl;
+    //std::cout << "root hash block: " << s_shptr->top() << endl;
 
     merkle_tree::create_block(datetime, s_shptr->top(), j);
 
@@ -228,7 +228,7 @@ shared_ptr<stack<string>> merkle_tree::calculate_root_hash(shared_ptr<stack<stri
 
     // add 0's to the stack till a size of 2^n
     size_t current_stack_size = s_shptr->size();
-    std::cout << n << " " << current_stack_size << endl;
+    //std::cout << n << " " << current_stack_size << endl;
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
         string zero = "zero", zero_hashed;
@@ -306,7 +306,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
     }
 
     // TODO: remove these two lines
-    cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
+    //cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
     //std::cout << std::setw(4) << j << '\n';
 
     // hashing of the whole new block
@@ -377,7 +377,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
      * REMARQUE: the users of the genesis block need to be online for 2 hours after logging in
      */
 
-    cout << "create genesis block " << block << endl;
+    //cout << "create genesis block " << block << endl;
 
     string block_hashed; // block_hashed is the hash as base for finding the chosen one
     std::map<std::string, std::string> map_of_users;
@@ -386,16 +386,16 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
         // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
         // --> Use block to create the hashes from the users and the map to find the chosen_one
 
-        cout << "heel " << to_string(user_data_j) << endl;
+        //cout << "heel " << to_string(user_data_j) << endl;
         for (auto& element : user_data_j)
         {
-            cout << "hele " << element << endl;
-            cout << "hele1 " << element[0] << endl;
-            cout << "hele2 " << element[1] << endl;
+            //cout << "hele " << element << endl;
+            //cout << "hele1 " << element[0] << endl;
+            //cout << "hele2 " << element[1] << endl;
             string user_conc = string(element[0]) + string(element[1]), user_conc_hashed;
             if (merkle_tree::create_hash(user_conc, user_conc_hashed) == true)
             {
-                cout << "heleconc " << user_conc << " " << user_conc_hashed << endl;
+                //cout << "heleconc " << user_conc << " " << user_conc_hashed << endl;
                 map_of_users.insert(std::make_pair(user_conc_hashed, "not_online"));
             }
         }
@@ -409,14 +409,14 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
         if (block_hashed >= it->first)
         {
             // jeej chosen_one found
-            cout << "chosen_one is " << it->first << endl;
+            //cout << "chosen_one is " << it->first << endl;
             chosen_one = it->first;
         }
         else if (it == --map_of_users.end() && block_hashed != it->first)
         {
-            cout << "end of genesis map" << it->first << endl;
+            //cout << "end of genesis map" << it->first << endl;
             // chosen_one is the first entry of the map
-            cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
+            //cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
             chosen_one = map_of_users.begin()->first;
         }
     }

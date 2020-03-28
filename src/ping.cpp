@@ -40,7 +40,7 @@ int system_ping::ping_ip_address(std::string ip_address, int max_attempts, std::
 
 int system_ping::test_connection (std::string ip_address, int max_attempts, bool check_eth_port, int eth_port_number)
 {
-    std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | started" << std::endl;      
+    //std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | started" << std::endl;      
 
     int eth_conn_status_int;
     std::string details;
@@ -71,8 +71,8 @@ int system_ping::test_connection (std::string ip_address, int max_attempts, bool
         return -3;
     }
 
-    std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | ping " << ip_address << " OK" << std::endl;         
-    std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | ended" << std::endl;        
+    //std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | ping " << ip_address << " OK" << std::endl;         
+    //std::cout << __FILE__ << "(" << __FUNCTION__ << ":" << __LINE__ << ") | ended" << std::endl;        
 
     return 0;
 }

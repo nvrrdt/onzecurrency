@@ -19,7 +19,7 @@ std::string external_ip::get_external_ip(void)
  
     /* Perform the request, res will get the return code */ 
     res = curl_easy_perform(curl);
-    std::cout << res << std::endl;
+    //std::cout << res << std::endl;
     /* Check for errors */ 
     if(res != CURLE_OK)
       fprintf(stderr, "curl_easy_perform() failed: %s\n",

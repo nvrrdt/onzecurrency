@@ -89,28 +89,28 @@ void verification::update_map()
 
         for (auto& entry : boost::make_iterator_range(directory_iterator(path), {}))
         {
-            std::cout << entry << "\n";
+            //std::cout << entry << "\n";
             std::ifstream ifile (entry.path().string(), std::ios::in);
 
             nlohmann::json j;
             ifile >> j;
 
-            std::cout << std::setw(4) << j << std::endl;
+            //std::cout << std::setw(4) << j << std::endl;
 
             // Concatenate email_h and passw_h and hash that string, the resulting hash is the key for the map
             // What should be the value? online presence (standard not online TODO restart app after creating_user && user_in_block), ...
 
             for (auto& element : j["data"]) {
-                std::cout << element["email_h"] << '\n';
-                std::cout << element["passw_h"] << '\n';
+                //std::cout << element["email_h"] << '\n';
+                //std::cout << element["passw_h"] << '\n';
 
                 // TODO TEST: verify if user_conc_hash here is the same as user_hashed in block.cpp
                 std::string user_conc = string(element["email_h"][0]) + string(element["passw_h"][0]), user_conc_hash;
                 merkle_tree mt;
                 if (mt.create_hash(user_conc, user_conc_hash) == true)
                 {
-                    std::cout << user_conc << std::endl;
-                    std::cout << user_conc_hash << std::endl;
+                    //std::cout << user_conc << std::endl;
+                    //std::cout << user_conc_hash << std::endl;
 
                     map_of_users.insert(std::make_pair(user_conc_hash, "not_online"));
                 }
