@@ -12,22 +12,26 @@ using namespace std;
 
 int main()
 {
-    verification v;
-    v.verification_handler(); // authentication and verification of the blocks
+    std::packaged_task<void()> task1([] {
+        verification v;
+        v.verification_handler(); // authentication and verification of the blocks
+    });
 
     external_ip ei;
     ei.get_external_ip();
 
     // Create a packaged_task using some task and get its future.
-    std::packaged_task<void()> task1([] {
+    std::packaged_task<void()> task2([] {
         merkle_tree mt;
         mt.prep_block_creation(); // creation of the block2p
     });
 
     // Run task on new thread.
     std::thread t1(std::move(task1));
+    std::thread t2(std::move(task2));
 
     t1.join();
+    t2.join();
 
     return 0;
 }
