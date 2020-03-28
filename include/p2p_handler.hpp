@@ -28,6 +28,7 @@ namespace crowd
         void sendDataServer(tcp::socket&, const string&);
         string getDataClient(tcp::socket&);
         void sendDataClient(tcp::socket&, const string&);
+        void save_blockchain(string);
     };
 }
 

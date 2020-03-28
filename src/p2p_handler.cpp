@@ -60,3 +60,11 @@ vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann
         return ip_list;
 	}
 }
+
+void p2p_handler::save_blockchain(string response)
+{
+    // create the block on disk
+    ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
+
+    ofile << response;
+}
