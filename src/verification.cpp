@@ -26,8 +26,6 @@ using namespace boost::filesystem;
 
 void verification::verification_handler()
 {
-    verification::authentication();
-    
     // verify if blockchain folder is empty and if it is download the blockchain, if it's not empty verify the files to verify the blockchain and the map
     boost::system::error_code c;
     boost::filesystem::path path("../blockchain");
@@ -55,21 +53,6 @@ void verification::verification_handler()
             verification::update_map();
         }
     }
-}
-
-void verification::authentication()
-{
-    string network, email, password;
-
-    cout << "Network: ";
-    cin >> network;
-    cout << "Email adress: ";
-    cin >> email;
-    cout << "Password: ";
-    cin >> password;
-
-    merkle_tree mt;
-    mt.create_user(email, password); // TODO: authenticate (look in blockchain) OR create_user
 }
 
 void verification::download_blockchain()
