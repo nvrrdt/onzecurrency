@@ -33,7 +33,10 @@ void p2p_handler::p2p_switch(string task_client)
     }
 
     p2p_handler cl;
-    cl.client(online_ip, task_client);
+    string response = cl.client(online_ip, task_client);
+
+    // TODO: save response to a file
+    p2p_handler::save_blockchain(response);
 
     p2p_handler se;
     se.server_main();

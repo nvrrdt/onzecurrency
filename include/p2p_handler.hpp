@@ -23,7 +23,7 @@ namespace crowd
         vector<string> parse_ip_peers_json();
     private:
         int server_main();
-        int client(string&, string&);
+        std::string client(string&, string&);
         string getDataServer(tcp::socket&);
         void sendDataServer(tcp::socket&, const string&);
         string getDataClient(tcp::socket&);

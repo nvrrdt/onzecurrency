@@ -1,8 +1,11 @@
+#include <iostream>
+#include <string>
+
 #include "p2p_handler.hpp"
 
 using namespace crowd;
 
-int p2p_handler::client(string& ip_adress, string& task_client) 
+std::string p2p_handler::client(string& ip_adress, string& task_client) 
 { 
     string port = "1975";
 
@@ -42,15 +45,17 @@ int p2p_handler::client(string& ip_adress, string& task_client)
             std::cout << "Response client is: " << response << std::endl;
 
             // Validating if the connection has to be closed 
-            if (response == "download") { 
+            /*if (response == "download") { 
                 cout << "Response: Connection terminated"  << endl; 
                 break; 
-            } 
+            } */
     
             if (error == boost::asio::error::eof)
                 break; // Connection closed cleanly by peer.
             else if (error)
                 throw boost::system::system_error(error); // Some other error.
+
+            return response;
         }
     }
     catch (std::exception& e)
@@ -58,7 +63,7 @@ int p2p_handler::client(string& ip_adress, string& task_client)
         std::cerr << e.what() << std::endl;
     }
 
-    return 0;
+    return to_string(0);
 }
 
 string p2p_handler::getDataClient(tcp::socket& socket) 
