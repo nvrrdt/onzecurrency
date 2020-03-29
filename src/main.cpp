@@ -20,7 +20,7 @@ int main()
 
     std::packaged_task<void()> task1([] {
         verification v;
-        v.verification_handler(::break_server_loop); // authentication and verification of the blocks
+        v.verification_handler(); // authentication and verification of the blocks
     });
 
     external_ip ei;

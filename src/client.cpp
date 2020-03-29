@@ -33,7 +33,8 @@ std::string p2p_handler::client(string& ip_adress, string& task_client)
         p2p_handler::sendDataClient(socket_client, task_client);
 
         string response;
-
+std::cout << "break test3 " << ::break_server_loop << std::endl;
+// implement ::break_server_loop = false, after it's been set to true
         while (true)
         {
             // Fetching response 
@@ -63,7 +64,6 @@ std::string p2p_handler::client(string& ip_adress, string& task_client)
         std::cerr << e.what() << std::endl;
     }
 
-    ::break_server_loop = false; // enable the server loop again
     return to_string(0);
 }
 

@@ -15,7 +15,7 @@
 
 using namespace crowd;
 
-void p2p_handler::p2p_switch(string task_client, bool break_server_loop, string ip_chosen_one)
+void p2p_handler::p2p_switch(string task_client, string ip_chosen_one)
 {
     p2p_handler peers;
     vector<string> ip_list = peers.parse_ip_peers_json();
@@ -47,7 +47,7 @@ void p2p_handler::p2p_switch(string task_client, bool break_server_loop, string 
     p2p_handler::save_blockchain(response);
 
     p2p_handler se;
-    se.server_main(break_server_loop);
+    se.server_main();
 }
 
 vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann/json

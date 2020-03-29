@@ -436,7 +436,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
     p2p_handler ph;
     string msg = "verify"; // verify by chosen_one
     string * m = &msg;
-    ph.p2p_switch(*m, false, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
+    ph.p2p_switch(*m, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
 
     // create the block on disk
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);

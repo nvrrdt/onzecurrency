@@ -7,7 +7,7 @@
 //using namespace std; 
 using namespace crowd;
 
-int p2p_handler::server_main(bool break_server_loop)
+int p2p_handler::server_main()
 {
     try
     {
