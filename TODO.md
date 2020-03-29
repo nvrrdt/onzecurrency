@@ -17,6 +17,8 @@
 - The chosen_one should give a range of ip_adresses of online users (from the map), zo its peers can ping the next range of peers, and so on, until every online has been pinged. I have no clue yet about the quanities of people to ping at each stage. There's some mathematics involved. Key is the amount of online users. -- What about tor and vpn? A full node and a thin client?
 - Please think about sharding! A certain thershold in the network shoul be measured in order to divide the network or a part of the network ... stuff to think about.
 - That's the xth element in the map. To show it really is a lottery becoming the chosen_one.
+- A mail should be sent to the newly created user in order to verify the emailadres (given at user creation). Don't know yet how to implement this, but you should limit the amount of possible users per person, so also a deleting function shoudl be immplemented, deleting the user after 1 year of not using crowd.
+- Do add a version to the various implementations and show this in the user interface.
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
