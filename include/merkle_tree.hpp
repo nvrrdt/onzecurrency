@@ -11,6 +11,8 @@
 
 using namespace std;
 
+extern bool break_server_loop;
+
 namespace crowd
 {
     class merkle_tree

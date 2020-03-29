@@ -14,16 +14,18 @@ using namespace std;
 using namespace boost::asio; 
 using namespace boost::asio::ip;
 
+extern bool break_server_loop;
+
 namespace crowd
 {
     class p2p_handler
     {
     public:
-        void p2p_switch(string);
+        void p2p_switch(string, bool, string);
         vector<string> parse_ip_peers_json();
     private:
-        int server_main();
         std::string client(string&, string&);
+        int server_main(bool);
         string getDataServer(tcp::socket&);
         void sendDataServer(tcp::socket&, const string&);
         string getDataClient(tcp::socket&);

@@ -21,6 +21,7 @@
 #include <boost/system/error_code.hpp>
 
 #include "verification.hpp"
+#include "p2p_handler.hpp"
 
 using namespace crowd;
 
@@ -401,7 +402,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
         }
     }
 
-    string chosen_one;
+    string chosen_one, ip_chosen_one;
 
     // find the chosen_one or poco
     for (std::map<std::string, std::string>::iterator it=map_of_users.begin(); it!=map_of_users.end(); ++it)
@@ -411,6 +412,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
             // jeej chosen_one found
             //cout << "chosen_one is " << it->first << endl;
             chosen_one = it->first;
+            ip_chosen_one = it->second;
         }
         else if (it == --map_of_users.end() && block_hashed != it->first)
         {
@@ -418,6 +420,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
             // chosen_one is the first entry of the map
             //cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
             chosen_one = map_of_users.begin()->first;
+            ip_chosen_one = map_of_users.begin()->second;
         }
     }
 
@@ -428,6 +431,12 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
      * - put ip_adress in map instead of ONLINE in the value
      * - 51% of all online users must confirm the block's hash to the chosen_one
      */
+
+    ::break_server_loop = true; // break the server loop to enable the client again
+    p2p_handler ph;
+    string msg = "verify"; // verify by chosen_one
+    string * m = &msg;
+    ph.p2p_switch(*m, false, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
 
     // create the block on disk
     ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);

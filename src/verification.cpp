@@ -24,7 +24,7 @@ using namespace boost::filesystem;
 // step 4: after step 3 comes verificiation of the map (users hash as key and some data (unknown yet!) as value)
 // step 5: use the map as binary search tree when seeking for a hash above/below (hash_of_chosen_one) withe the hash from the last block (previous_hash of next block)
 
-void verification::verification_handler()
+void verification::verification_handler(bool break_server_loop)
 {
     // verify if blockchain folder is empty and if it is download the blockchain, if it's not empty verify the files to verify the blockchain and the map
     boost::system::error_code c;
@@ -49,19 +49,19 @@ void verification::verification_handler()
         {
             std::cout << "Is a directory, is empty" << std::endl;
 
-            verification::download_blockchain();
+            verification::download_blockchain(break_server_loop);
             verification::update_map();
         }
     }
 }
 
-void verification::download_blockchain()
+void verification::download_blockchain(bool break_server_loop)
 {
     std::cout << "test download" << std::endl;
 
     // TODO: get ip adresses from ip_peers.json, ping a random peer for being online, download for 2 minutes from that random peer, then another random peer
     p2p_handler ph;
-    ph.p2p_switch("download"); // TODO: get some data from the server
+    ph.p2p_switch("download", break_server_loop, ""); // TODO: get some data from the server
 };
 
 void verification::update_blockchain()

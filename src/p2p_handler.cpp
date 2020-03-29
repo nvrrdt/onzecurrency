@@ -15,22 +15,30 @@
 
 using namespace crowd;
 
-void p2p_handler::p2p_switch(string task_client)
+void p2p_handler::p2p_switch(string task_client, bool break_server_loop, string ip_chosen_one)
 {
     p2p_handler peers;
     vector<string> ip_list = peers.parse_ip_peers_json();
 
     string online_ip;
 
-    for (string& ip_adress : ip_list)
+    if (ip_chosen_one == "")
     {
-        system_ping sp;
-        if (sp.test_connection(ip_adress, 1)) // ping ip_adress to see if it is online
+        for (string& ip_adress : ip_list)
         {
-            online_ip = ip_adress;
-            break;
+            system_ping sp;
+            if (sp.test_connection(ip_adress, 1)) // ping ip_adress to see if it is online
+            {
+                online_ip = ip_adress;
+                break;
+            }
         }
     }
+    else
+    {
+        online_ip == ip_chosen_one;
+    }
+    
 
     p2p_handler cl;
     string response = cl.client(online_ip, task_client);
@@ -39,7 +47,7 @@ void p2p_handler::p2p_switch(string task_client)
     p2p_handler::save_blockchain(response);
 
     p2p_handler se;
-    se.server_main();
+    se.server_main(break_server_loop);
 }
 
 vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann/json

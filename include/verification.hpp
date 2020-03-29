@@ -8,10 +8,10 @@ namespace crowd
     class verification
     {
     public:
-        void verification_handler();
+        void verification_handler(bool);
         void update_map();
     private:
-        void download_blockchain();
+        void download_blockchain(bool);
         void update_blockchain();
     };
 }

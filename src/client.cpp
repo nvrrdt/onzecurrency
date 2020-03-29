@@ -63,6 +63,7 @@ std::string p2p_handler::client(string& ip_adress, string& task_client)
         std::cerr << e.what() << std::endl;
     }
 
+    ::break_server_loop = false; // enable the server loop again
     return to_string(0);
 }
 

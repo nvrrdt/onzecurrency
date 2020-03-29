@@ -7,7 +7,7 @@
 //using namespace std; 
 using namespace crowd;
 
-int p2p_handler::server_main()
+int p2p_handler::server_main(bool break_server_loop)
 {
     try
     {
@@ -42,10 +42,20 @@ int p2p_handler::server_main()
                 ifile.close();
             }
             else cout << "Unable to open file";
-        } 
+        }
+        else if (task == "verify") // verification of the block by the chosen_one
+        {
+            std::cout << "verification initiated!!" << std::endl;
+        }
 
         while (true)
         {
+            if (::break_server_loop)
+            {
+                std::cout << "break_loop" << std::endl;
+                break;
+            }
+
             // Fetching response 
             response = p2p_handler::getDataServer(socket_server); 
     
