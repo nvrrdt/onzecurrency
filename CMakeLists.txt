@@ -35,3 +35,16 @@ target_link_libraries(${PROJECT_NAME}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${CURL_LIBRARIES}
 )
+
+# enable_testing:
+
+enable_testing()
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+
+add_executable(tests ${all_TESTS})
+
+target_link_libraries(tests GTest::GTest GTest::Main)
+gtest_discover_tests(tests)
