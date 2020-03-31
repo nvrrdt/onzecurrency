@@ -19,6 +19,7 @@
 - That's the xth element in the map. To show it really is a lottery becoming the chosen_one.
 - A mail should be sent to the newly created user in order to verify the emailadres (given at user creation). Don't know yet how to implement this, but you should limit the amount of possible users per person, so also a deleting function shoudl be immplemented, deleting the user after 1 year of not using crowd.
 - Do add a version to the various implementations and show this in the user interface.
+- Maybe use a mnemonic as password
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
