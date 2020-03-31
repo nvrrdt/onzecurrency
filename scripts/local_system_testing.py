@@ -61,8 +61,8 @@ def adapt_cmakeliststxt_test(test_path, test_folder):
 
 # building and testing stage of 2 executable crowd objects
 def build_and_test(crowd_path, test_path):
-    crowd_build = Path(crowd_path / "scripts/build.sh")
-    test_build = Path(test_path / "scripts/build.sh")
+    crowd_build = Path(crowd_path / "scripts/build_for_testing.py")
+    test_build = Path(test_path / "scripts/build_for_testing.py")
 
     try:
         r = threading.Thread(target=call_script, args=(crowd_build, "80x24+0+0", ))
@@ -77,10 +77,12 @@ def build_and_test(crowd_path, test_path):
 
 # call_script used in building and testing stage
 def call_script(script_path, position):
-    with open(script_path, 'rb') as file:
-        script = file.read()
+    #with open(script_path, 'rb') as file:
+    #    script = file.read()
 
-    command = ['gnome-terminal', '--geometry', position, '--', 'bash', '-c', script]
+    python_script = "python " + str(script_path)
+
+    command = ['gnome-terminal', '--geometry', position, '--', 'bash', '-c', python_script]
     call(command, shell=False, env=os.environ.copy())
 
 # delete the testing directory
