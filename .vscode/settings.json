@@ -76,5 +76,5 @@
         "shared_mutex": "cpp"
     },
     "cmake.configureOnOpen": false,
-    "python.pythonPath": "/home/nico/Downloads/crowd/scripts/bin/python3"
+    "python.pythonPath": "scripts/bin/python"
 }
