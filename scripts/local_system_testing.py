@@ -65,8 +65,8 @@ def build_and_test(crowd_path, test_path):
     test_build = Path(test_path / "scripts/build.sh")
 
     try:
-        r = threading.Thread(target=call_script, args=(crowd_build, ))
-        s = threading.Thread(target=call_script, args=(test_build, ))
+        r = threading.Thread(target=call_script, args=(crowd_build, "80x24+0+0", ))
+        s = threading.Thread(target=call_script, args=(test_build, "80x24+660+0", ))
         r.start()
         s.start()
         r.join()
@@ -77,11 +77,11 @@ def build_and_test(crowd_path, test_path):
         print("Error: unable to start thread")
 
 # call_script used in building and testing stage
-def call_script(script_path):
+def call_script(script_path, position):
     with open(script_path, 'rb') as file:
         script = file.read()
 
-    command = ['gnome-terminal','--', 'bash', '-c', script]
+    command = ['gnome-terminal', '--geometry', position, '--', 'bash', '-c', script]
     call(command, shell=False, env=os.environ.copy())
 
 # delete the testing directory
