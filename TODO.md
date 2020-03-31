@@ -56,6 +56,7 @@
 - stock exchange (stock valued in coin -- ico)
 - file (service to share files)
 - survey
+- fairness (an open and fair prices policy to introduce to companies)
 - monitor (for crowd and the apps)
 - ...
 
