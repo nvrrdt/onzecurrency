@@ -37,6 +37,9 @@ def delete_build_folder(test_path):
     
     try:
         shutil.rmtree(p)
+    # Directory doesn't exist
+    except shutil.Error as e:
+        print('Directory not deleted. Error: %s' % e)
     # Any error saying that the directory doesn't exist
     except OSError as e:
         print('Directory not deleted. Error: %s' % e)
