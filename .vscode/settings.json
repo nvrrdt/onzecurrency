@@ -75,5 +75,6 @@
         "scoped_allocator": "cpp",
         "shared_mutex": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "python.pythonPath": "/home/nico/Downloads/crowd/scripts/bin/python3"
 }
