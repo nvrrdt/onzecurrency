@@ -72,7 +72,6 @@ def build_and_test(crowd_path, test_path):
         r.join()
         s.join()
 
-        input("Continue? [enter]: ") # wasn't able to continue this function after the threads were finished
     except:
         print("Error: unable to start thread")
 
