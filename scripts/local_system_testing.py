@@ -61,8 +61,8 @@ def adapt_cmakeliststxt_test(test_path, test_folder):
 
 # building and testing stage of 2 executable crowd objects
 def build_and_test(crowd_path, test_path):
-    crowd_build = Path(crowd_path / "scripts/build_for_testing.py")
-    test_build = Path(test_path / "scripts/build_for_testing.py")
+    crowd_build = Path(crowd_path / "scripts/send_to_cin.py")
+    test_build = Path(test_path / "scripts/send_to_cin.py")
 
     try:
         r = threading.Thread(target=call_script, args=(crowd_build, "80x24+0+0", ))
