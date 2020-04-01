@@ -1,14 +1,20 @@
 import sys
 import os
 import subprocess
+from pathlib import Path
 
 def build_no_arg():
-    if os.path.exists("../build"):
-        command = ['cd ../build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
+    # find the path of the build folder
+    os.chdir(os.path.dirname(__file__))
+    build = Path(os.getcwd()).parent / "build"
+    
+    if os.path.exists(str(build)):
+        print(str(build))
+        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
         subprocess.call(command, shell=True)
     else:
-        os.makedirs("../build")
-        command = ['cd ../build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
+        os.makedirs(build)
+        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
         subprocess.call(command, shell=True)
 
 def build_one_arg(test_path, test_name):
