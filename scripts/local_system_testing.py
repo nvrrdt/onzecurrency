@@ -148,10 +148,10 @@ def main():
         print("Max 1 argument ...")
         exit()
     elif len(sys.argv) == 2:
-        print("Eén argument.")
+        print("One argument.")
         arg = str(sys.argv[1])
     elif len(sys.argv) == 1:
-        print("Geen argument!")
+        print("No argument!")
     else:
         print("There's something wrong!")
         exit()
