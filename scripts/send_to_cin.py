@@ -17,7 +17,6 @@ def expect_one_arg(test_path):
 
 
 def main():
-    print("erereer")
     if len(sys.argv) > 2:
         print("Max 1 argument ...")
     elif len(sys.argv) == 2:

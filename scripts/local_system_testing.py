@@ -10,11 +10,63 @@ from pathlib import Path
 from subprocess import call
 import threading
 import time
+import sys
 
 # make a copy of the crowd folder in the crowd folder
 def copy_source(crowd_path, test_path):
     try:
         shutil.copytree(crowd_path, test_path)
+    # Directories are the same
+    except shutil.Error as e:
+        print('Directory not copied. Error: %s' % e)
+    # Any error saying that the directory doesn't exist
+    except OSError as e:
+        print('Directory not copied. Error: %s' % e)
+
+# make a copy of the src folder in the crowd folder to the test folders
+def copy_src_folder(crowd_path, test_path):
+    try:
+        crowd_src_path = str(crowd_path) + "/src"
+        test_src_path = str(test_path) + "/src"
+
+        if os.path.exists(test_src_path):
+            shutil.rmtree(test_src_path)
+
+        shutil.copytree(crowd_src_path, test_src_path)
+    # Directories are the same
+    except shutil.Error as e:
+        print('Directory not copied. Error: %s' % e)
+    # Any error saying that the directory doesn't exist
+    except OSError as e:
+        print('Directory not copied. Error: %s' % e)
+
+# make a copy of the src folder in the crowd folder to the test folders
+def copy_include_folder(crowd_path, test_path):
+    try:
+        crowd_include_path = str(crowd_path) + "/include"
+        test_include_path = str(test_path) + "/include"
+
+        if os.path.exists(test_include_path):
+            shutil.rmtree(test_include_path)
+
+        shutil.copytree(crowd_include_path, test_include_path)
+    # Directories are the same
+    except shutil.Error as e:
+        print('Directory not copied. Error: %s' % e)
+    # Any error saying that the directory doesn't exist
+    except OSError as e:
+        print('Directory not copied. Error: %s' % e)
+
+# make a copy of the scripts folder in the crowd folder to the test folders
+def copy_scripts_folder(crowd_path, test_path):
+    try:
+        crowd_scripts_path = str(crowd_path) + "/scripts"
+        test_scripts_path = str(test_path) + "/scripts"
+
+        if os.path.exists(test_scripts_path):
+            shutil.rmtree(test_scripts_path)
+
+        shutil.copytree(crowd_scripts_path, test_scripts_path)
     # Directories are the same
     except shutil.Error as e:
         print('Directory not copied. Error: %s' % e)
@@ -90,6 +142,20 @@ def cleanup(test_path):
 def main():
     tests_folder = [["crowd_test1", "80x24+0+0"], ["crowd_test2", "80x24+660+0"]]
 
+    arg = ""
+
+    if len(sys.argv) > 2:
+        print("Max 1 argument ...")
+        exit()
+    elif len(sys.argv) == 2:
+        print("Eén argument.")
+        arg = str(sys.argv[1])
+    elif len(sys.argv) == 1:
+        print("Geen argument!")
+    else:
+        print("There's something wrong!")
+        exit()
+
     # find the path of the crowd and the test folder
     os.chdir(os.path.dirname(__file__))
     crowd_path = Path(os.getcwd()).parent
@@ -98,18 +164,21 @@ def main():
     for tf in tests_folder:
         test_path = Path(crowd_path / tf[0])
 
-        copy_source(crowd_path, test_path)
-        empty_blockchain_folder(test_path)
-        delete_build_folder(test_path)
-        adapt_cmakeliststxt(test_path, tf[0])
-        build_and_test(test_path, tf[1])
-    
-    input("type in enter ")
-
-    # cleanup
-    for tf in tests_folder:
-        test_path = Path(crowd_path / tf[0])
-
-        cleanup(test_path)
+        if arg == "cleanup":
+            cleanup(test_path)
+        elif arg == "copysrc":
+            print("copy src folder")
+            copy_src_folder(crowd_path, test_path)
+            copy_include_folder(crowd_path, test_path)
+            copy_scripts_folder(crowd_path, test_path)
+            empty_blockchain_folder(test_path)
+            build_and_test(test_path, tf[1])
+        else:
+            print("copy crowd folder")
+            copy_source(crowd_path, test_path)
+            empty_blockchain_folder(test_path)
+            delete_build_folder(test_path)
+            adapt_cmakeliststxt(test_path, tf[0])
+            build_and_test(test_path, tf[1])
 
 main()
