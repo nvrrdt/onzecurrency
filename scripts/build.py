@@ -30,12 +30,12 @@ def main():
     if len(sys.argv) > 2:
         print("Max 1 argument ...")
     elif len(sys.argv) == 2:
-        print("Eén argument.")
+        print("One argument.")
         test_path = str(sys.argv[1])
         test_name = os.path.basename(test_path)
         build_one_arg(test_path, test_name)
     elif len(sys.argv) == 1:
-        print("Geen argument.")
+        print("No argument.")
         build_no_arg()
     else:
         print("There's something wrong!")

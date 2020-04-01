@@ -20,11 +20,11 @@ def main():
     if len(sys.argv) > 2:
         print("Max 1 argument ...")
     elif len(sys.argv) == 2:
-        print("Eén argument.")
+        print("One argument.")
         test_path = str(sys.argv[1])
         expect_one_arg(test_path)
     elif len(sys.argv) == 1:
-        print("Minstens één argument!")
+        print("Aty least one argument!")
     else:
         print("There's something wrong!")
 
