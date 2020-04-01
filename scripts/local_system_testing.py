@@ -9,6 +9,7 @@ import shutil
 from pathlib import Path
 from subprocess import call
 import threading
+import time
 
 # make a copy of the crowd folder in the crowd folder
 def copy_source(crowd_path, test_path):
@@ -45,7 +46,7 @@ def delete_build_folder(test_path):
         print('Directory not deleted. Error: %s' % e)
 
 # CMakeLists.txt needs to be adapted to a new executable object, so that OS can run it
-def adapt_cmakeliststxt_test(test_path, test_folder):
+def adapt_cmakeliststxt(test_path, exe_name):
     clt = Path(test_path / "CMakeLists.txt")
 
     # Read in the file
@@ -53,35 +54,28 @@ def adapt_cmakeliststxt_test(test_path, test_folder):
         filedata = file.read()
 
     # Replace the target string
-    filedata = filedata.replace('crowd', test_folder)
+    filedata = filedata.replace('crowd', exe_name)
 
     # Write the file out again
     with open(clt, 'w') as file:
         file.write(filedata)
 
 # building and testing stage of 2 executable crowd objects
-def build_and_test(crowd_path, test_path):
-    crowd_build = Path(crowd_path / "scripts/send_to_cin.py")
-    test_build = Path(test_path / "scripts/send_to_cin.py")
-
+def build_and_test(test_path, position):
     try:
-        r = threading.Thread(target=call_script, args=(crowd_build, "80x24+0+0", ))
-        s = threading.Thread(target=call_script, args=(test_build, "80x24+660+0", ))
-        r.start()
+        s = threading.Thread(target=call_script, args=(test_path, position, ))
         s.start()
-        r.join()
+        time.sleep(2)
         s.join()
 
     except:
         print("Error: unable to start thread")
 
 # call_script used in building and testing stage
-def call_script(script_path, position):
-    #with open(script_path, 'rb') as file:
-    #    script = file.read()
+def call_script(test_path, position):
+    script_path = Path(test_path / "scripts/send_to_cin.py")
 
-    python_script = "python " + str(script_path)
-
+    python_script = "python " + str(script_path) + " " + str(test_path) + " && read"
     command = ['gnome-terminal', '--geometry', position, '--', 'bash', '-c', python_script]
     call(command, shell=False, env=os.environ.copy())
 
@@ -94,20 +88,28 @@ def cleanup(test_path):
         print('Directory not deleted. Error: %s' % e)
 
 def main():
-    test_folder = "crowd_test1"
+    tests_folder = [["crowd_test1", "80x24+0+0"], ["crowd_test2", "80x24+660+0"]]
 
     # find the path of the crowd and the test folder
     os.chdir(os.path.dirname(__file__))
     crowd_path = Path(os.getcwd()).parent
-    test_path = Path(crowd_path / test_folder)
 
     # tasks to do
-    copy_source(crowd_path, test_path)
-    empty_blockchain_folder(crowd_path)
-    empty_blockchain_folder(test_path)
-    delete_build_folder(test_path)
-    adapt_cmakeliststxt_test(test_path, test_folder)
-    build_and_test(crowd_path, test_path) # if there are more than 1 test directories, you need to introcude a variadic function
-    cleanup(test_path)
+    for tf in tests_folder:
+        test_path = Path(crowd_path / tf[0])
+
+        copy_source(crowd_path, test_path)
+        empty_blockchain_folder(test_path)
+        delete_build_folder(test_path)
+        adapt_cmakeliststxt(test_path, tf[0])
+        build_and_test(test_path, tf[1])
+    
+    input("type in enter ")
+
+    # cleanup
+    for tf in tests_folder:
+        test_path = Path(crowd_path / tf[0])
+
+        cleanup(test_path)
 
 main()
