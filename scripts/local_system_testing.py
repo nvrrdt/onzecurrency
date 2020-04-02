@@ -117,7 +117,7 @@ def build_and_test(test_path, position):
     try:
         s = threading.Thread(target=call_script, args=(test_path, position, ))
         s.start()
-        time.sleep(2)
+        time.sleep(5)
         s.join()
 
     except:
