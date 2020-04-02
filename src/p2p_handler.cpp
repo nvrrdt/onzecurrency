@@ -27,7 +27,7 @@ void p2p_handler::p2p_switch(string task_client, string ip_chosen_one)
         for (string& ip_adress : ip_list)
         {
             system_ping sp;
-            if (sp.test_connection(ip_adress, 1)) // ping ip_adress to see if it is online
+            if (sp.test_connection(ip_adress, 1) == 0) // ping ip_adress to see if it is online
             {
                 online_ip = ip_adress;
                 break;
