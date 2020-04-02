@@ -20,6 +20,7 @@
 - A mail should be sent to the newly created user in order to verify the emailadres (given at user creation). Don't know yet how to implement this, but you should limit the amount of possible users per person, so also a deleting function shoudl be immplemented, deleting the user after 1 year of not using crowd.
 - Do add a version to the various implementations and show this in the user interface.
 - Maybe use a mnemonic as password
+- When uploading the crowd object to amazon, libboost had to be installe on that server in order to execute the crowd object
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
