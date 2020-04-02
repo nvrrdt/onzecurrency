@@ -4,7 +4,7 @@ import time
 
 def expect_one_arg(test_path):
     command = "python ./build.py " + test_path
-    child = pexpect.spawn(command, encoding='utf-8')
+    child = pexpect.spawn(command, encoding='utf-8', timeout=None)
     child.logfile = sys.stdout
     child.setecho(False)
     child.expect("Network: ")

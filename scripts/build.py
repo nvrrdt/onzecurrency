@@ -10,20 +10,20 @@ def build_no_arg():
     
     if os.path.exists(str(build)):
         print(str(build))
-        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
+        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd']
         subprocess.call(command, shell=True)
     else:
         os.makedirs(build)
-        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd && read']
+        command = ['cd ' + str(build) + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./crowd']
         subprocess.call(command, shell=True)
 
 def build_one_arg(test_path, test_name):
     if os.path.exists(test_path + "/build"):
-        command = ['cd ' + test_path + '/build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./' + test_name + ' && read']
+        command = ['cd ' + test_path + '/build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./' + test_name]
         subprocess.call(command, shell=True)
     else:
         os.makedirs(test_path + "/build")
-        command = ['cd ' + test_path + '/build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./' + test_name + ' && read']
+        command = ['cd ' + test_path + '/build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./' + test_name]
         subprocess.call(command, shell=True)
 
 def main():
