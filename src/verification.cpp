@@ -28,7 +28,13 @@ void verification::verification_handler()
 {
     // verify if blockchain folder is empty and if it is download the blockchain, if it's not empty verify the files to verify the blockchain and the map
     boost::system::error_code c;
-    boost::filesystem::path path("../blockchain");
+    boost::filesystem::path path("./blockchain");
+
+    if (!boost::filesystem::exists(path))
+    {
+        boost::filesystem::create_directory(path);
+    }
+
     bool isDir = boost::filesystem::is_directory(path, c);
     bool isEmpty = boost::filesystem::is_empty(path);
 
@@ -75,7 +81,13 @@ void verification::update_map()
 
     // create map by reading the blocks in the blockchain map
     boost::system::error_code c;
-    boost::filesystem::path path("../blockchain");
+    boost::filesystem::path path("./blockchain");
+
+    if (!boost::filesystem::exists(path))
+    {
+        boost::filesystem::create_directory(path);
+    }
+    
     bool isDir = boost::filesystem::is_directory(path, c);
 
     if(!isDir)

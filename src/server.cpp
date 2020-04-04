@@ -29,7 +29,7 @@ int p2p_handler::server_main()
         {
             std::cout << "download initiated!!" << std::endl;
 
-            std::ifstream ifile("../blockchain/block0000000000.json", ios::in);
+            std::ifstream ifile("./blockchain/block0000000000.json", ios::in);
 
             if (ifile.is_open())
             {

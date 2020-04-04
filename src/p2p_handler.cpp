@@ -52,7 +52,7 @@ void p2p_handler::p2p_switch(string task_client, string ip_chosen_one)
 
 vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann/json
 {
-    ifstream file("../ip_peers.json");
+    ifstream file("./ip_peers.json");
 	nlohmann::json j;
 	
 	file >> j;
@@ -72,7 +72,7 @@ vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann
 void p2p_handler::save_blockchain(string response)
 {
     // create the block on disk
-    ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
+    ofstream ofile("./blockchain/block0000000000.json", ios::out | ios::trunc);
 
     ofile << response;
     ofile.close();

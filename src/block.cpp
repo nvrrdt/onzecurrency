@@ -85,13 +85,13 @@ bool merkle_tree::create_hash(const string& unhashed, string& hashed)
 
 void merkle_tree::save_new_user(string& hashed_email_new_user, string& hashed_password_new_user)
 {
-    ifstream ifile("../new_users_pool.json", ios::in);
+    ifstream ifile("./new_users_pool.json", ios::in);
 
     nlohmann::json j;
 
     if (merkle_tree::is_empty(ifile))
     {
-        ofstream ofile("../new_users_pool.json", ios::out);
+        ofstream ofile("./new_users_pool.json", ios::out);
         
         ofile.clear();
 
@@ -105,7 +105,7 @@ void merkle_tree::save_new_user(string& hashed_email_new_user, string& hashed_pa
     }
     else
     {
-        ofstream ofile("../new_users_pool.json", ios::out);
+        ofstream ofile("./new_users_pool.json", ios::out);
 
         ifile >> j;
         ofile.clear();
@@ -131,7 +131,7 @@ int merkle_tree::prep_block_creation()
     string datetime = merkle_tree::two_hours_timer();
 
     // parse new_users_pool.json
-    ifstream file("../new_users_pool.json");
+    ifstream file("./new_users_pool.json");
     nlohmann::json j;
 
     file >> j;
@@ -315,7 +315,13 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     // create genesis or add to blockchain
     boost::system::error_code c;
-    boost::filesystem::path path("../blockchain");
+    boost::filesystem::path path("./blockchain");
+
+    if (!boost::filesystem::exists(path))
+    {
+        boost::filesystem::create_directory(path);
+    }
+
     bool isDir = boost::filesystem::is_directory(path, c);
     bool isEmpty = boost::filesystem::is_empty(path);
 
@@ -349,7 +355,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     // delete contents of new_users_pool.json
     std::ofstream ofs;
-    ofs.open("../new_users_pool.json", std::ofstream::out | std::ofstream::trunc);
+    ofs.open("./new_users_pool.json", std::ofstream::out | std::ofstream::trunc);
     ofs.close();
  
     // TODO: dunno yet ... what to do with it
@@ -439,7 +445,7 @@ void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
     ph.p2p_switch(*m, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
 
     // create the block on disk
-    ofstream ofile("../blockchain/block0000000000.json", ios::out | ios::trunc);
+    ofstream ofile("./blockchain/block0000000000.json", ios::out | ios::trunc);
 
     ofile << block;
     ofile.close();
