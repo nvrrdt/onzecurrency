@@ -62,3 +62,15 @@ target_link_libraries(tests
                       ${CURL_LIBRARIES}
 )
 gtest_discover_tests(tests)
+
+# post_build: copy ip_peers.json to build directory
+add_custom_command(
+    TARGET crowd 
+    POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy  
+                     "${CMAKE_CURRENT_SOURCE_DIR}/ip_peers.json" 
+                     "$<TARGET_FILE_DIR:crowd>/ip_peers.json"
+        COMMAND ${CMAKE_COMMAND} -E copy  
+                     "${CMAKE_CURRENT_SOURCE_DIR}/new_users_pool.json" 
+                     "$<TARGET_FILE_DIR:crowd>/new_users_pool.json"
+)
