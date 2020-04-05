@@ -29,6 +29,13 @@ INSTALL(TARGETS login
         COMPONENT library
 )
 
+### enable CPack
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nico Verrijdt") #required
+
+INCLUDE(CPack)
+
 ### enable_testing:
 
 enable_testing()
