@@ -26,11 +26,12 @@ add_executable(onzehub-terminal ${all_SRCS})
 target_link_libraries(${PROJECT_NAME}
         /usr/local/lib/onzehub/liblogin.so # TODO: make this also work on windows
 )
-set_target_properties(onzehub-terminal PROPERTIES PUBLIC_HEADER ${all_HEADERS})
 INSTALL(TARGETS onzehub-terminal
         RUNTIME DESTINATION bin
         COMPONENT runtime
 )
+
+### enable CPack
 
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nico Verrijdt") #required
