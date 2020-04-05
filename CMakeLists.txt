@@ -20,7 +20,7 @@ file(GLOB all_HEADERS
         "${PROJECT_SOURCE_DIR}/include/*.hpp"
 )
 
-add_library(login ${all_SRCS})
+add_library(login SHARED ${all_SRCS})
 set_target_properties(login PROPERTIES PUBLIC_HEADER ${all_HEADERS})
 INSTALL(TARGETS login
         ARCHIVE DESTINATION lib/onzehub
