@@ -16,10 +16,26 @@ file(GLOB all_SRCS
         "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
+file(GLOB all_HEADERS
+        "${PROJECT_SOURCE_DIR}/include/*.hpp"
+)
+
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 add_executable(onzehub-terminal ${all_SRCS})
 target_link_libraries(${PROJECT_NAME}
-        /usr/local/lib/onzehub/liblogin.so
+        /usr/local/lib/onzehub/liblogin.so # TODO: make this also work on windows
 )
+set_target_properties(onzehub-terminal PROPERTIES PUBLIC_HEADER ${all_HEADERS})
+INSTALL(TARGETS onzehub-terminal
+        RUNTIME DESTINATION bin
+        COMPONENT runtime
+)
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nico Verrijdt") #required
+
+INCLUDE(CPack)
 
 ### enable_testing:
 
