@@ -62,6 +62,7 @@
 - file (service to share files)
 - survey
 - fairness (an open and fair prices policy to introduce to companies)
+- dns
 - monitor (for crowd and the apps)
 - ...
 
