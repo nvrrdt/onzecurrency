@@ -64,6 +64,7 @@
 - fairness (an open and fair prices policy to introduce to companies)
 - dns
 - monitor (for crowd and the apps)
+- hair (an ipfs or swarm alternative)
 - ...
 
 ### Amount of peers:
