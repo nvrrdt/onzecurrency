@@ -24,6 +24,11 @@
 - ip_adresses_peers.json should disappear, the ip_adresses of peers should be found in the map of online users
 - if the chosen_one distributes its result, the chosen_one's place in the map of online users is the starting point to communicate to peers, it goes up in the map until a response comes, those peers do the same for the next online users in the map, until 51% of it's respondends confirm and those peers let the chosen_one that 51% confirms and if 51% of total responders confirms the result, the chosen_one remains silent if 51% is reached otherwise that chosen_one launches a new chosen_one by including his/hers hash in the block that didn't work out, and the following DDOS prevention point should also be activated
 - preventing DDOS'ing: if there's no new user in the last second of the 2 hour timeframe for creating a block, then it's known who will be the chosen_one, and the ip of the chosen_one is known. To prevent DDOS multiple chosen_one's should be appointed by incorporating the previous chosen_one's hash in the block, which results in another chosen_one, and we keep creating chose_one's until 51% of online users has reacted positively to a certain chosen_one. A delay for appointing a new chosen_one may be included in order to not flood the network
+- New idea to prevent maliciousness:
+  + 10 chosen_ones [H((((data + chosen_one0) + chosen_one1) + chosen_one2) + ... + chosen_one9)] to lower the possibility of a malicious group to take over the blockchain, then >90% of users must be malicious
+  + First chosen_one diffuses requests for verification to 9 following chosen_ones, they all must respond to the first chosen_one
+  + Then, if all ok, the first chosen_one signs by adding a public key, and broadcasts the data to all online users
+  + Then te next block kan be calculated
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
