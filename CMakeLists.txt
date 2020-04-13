@@ -67,15 +67,15 @@ file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
 add_executable(tests ${all_TESTS})
 
 target_link_libraries(tests 
-                      GTest::GTest
-                      GTest::Main
-                      ${GMOCK_BOTH_LIBRARIES}
+                      gtest
+                      gmock
                       OpenSSL::SSL
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${CURL_LIBRARIES}
+                      "/usr/local/lib/libleveldb.a"
 )
 gtest_discover_tests(tests)
 
