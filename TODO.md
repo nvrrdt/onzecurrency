@@ -29,6 +29,7 @@
   + First chosen_one diffuses requests for verification to 9 following chosen_ones, they all must respond to the first chosen_one
   + Then, if all ok, the first chosen_one signs by adding a public key, and broadcasts the data to all online users
   + Then te next block kan be calculated
+- How to continue development: You have to make it hard for trolls to do harm in de development process, and that's why we'd like to obtain critic developers, both from mainstream and from the margins. And so we'd like to introduce a development reward scheme that resembles a hanging cable, in the middle of the cable you receive nothing while to the edges you'll gain one onze for every time there's a new pull request to the repository, while the edges represent being right about the outcome of the new piece of code and on the other side being always wrong on the outcome. Off course more than 50% of the votes determine the outcome and all developers should vote, unless ..., but the unless is for this voting board of developers to improve this process of development over time.
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
