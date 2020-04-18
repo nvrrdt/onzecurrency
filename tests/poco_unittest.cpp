@@ -18,77 +18,39 @@ class MockPoco : public Poco
         MOCK_METHOD1(FindChosenOne, uint32_t (uint32_t key));
 };
 
-TEST(PocoTest, Get)
+class MockPocoTest : public ::testing::Test
 {
-    MockPoco mp;
-    
-    EXPECT_CALL(mp, Get(1)).Times(1);
-    ON_CALL(mp, Get(1))
-        .WillByDefault(Return(""));
+    protected:
+        void SetUp() override
+        {
+            mp.Put(2, "test2");
+            mp.Put(4, "test4");
+            mp.Put(5, "test5");
+        }
 
-    mp.Get(1);    
+        // void TearDown() override {}
+
+        MockPoco mp;
+};
+
+TEST_F(MockPocoTest, GetAndPut)
+{
+    EXPECT_CALL(mp, Get(1)).WillOnce(Return(""));
+    EXPECT_CALL(mp, Get(2)).WillOnce(Return("test2"));
+    mp.Get(1);
+    mp.Get(2);
 }
 
-TEST(PocoTest, PutAndGet)
+TEST_F(MockPocoTest, Delete)
 {
-    MockPoco mp;
-    
-    EXPECT_CALL(mp, Put(1, "test")).Times(1);
-    EXPECT_CALL(mp, Get(1)).Times(1);
-    ON_CALL(mp, Put(1, "test"))
-        .WillByDefault(Return(0));
-    ON_CALL(mp, Get(1))
-        .WillByDefault(Return("test"));
-
-    mp.Put(1, "test");
-    mp.Get(1);    
+    EXPECT_CALL(mp, Delete(5)).WillOnce(Return(0));
+    mp.Delete(5);
 }
 
-TEST(PocoTest, PutAndDelete)
+TEST_F(MockPocoTest, FindChosenOne)
 {
-    MockPoco mp;
-
-    EXPECT_CALL(mp, Put(1, "test")).Times(1);
-    EXPECT_CALL(mp, Delete(1)).Times(1);
-    ON_CALL(mp, Put(1, "test"))
-        .WillByDefault(Return(0));
-    ON_CALL(mp, Delete(1))
-        .WillByDefault(Return(0));
-
-    mp.Put(1, "test");
-    mp.Delete(1); 
-}
-
-TEST(PocoTest, FindChosenOne1)
-{
-    MockPoco mp;
-
-    EXPECT_CALL(mp, FindChosenOne(2)).Times(1);
-    ON_CALL(mp, FindChosenOne(2))
-        .WillByDefault(Return(3));
-
-    mp.Put(1, "test1");
-    mp.Put(3, "test3");
-    mp.Put(4, "test4");
-    mp.FindChosenOne(2);
-}
-
-TEST(PocoTest, FindChosenOne2)
-{
-    MockPoco mp;
-
-    EXPECT_CALL(mp, FindChosenOne(2)).Times(1);
-    ON_CALL(mp, FindChosenOne(2))
-        .WillByDefault(Return(2));
-
-    mp.Put(1, "test1");
-    mp.Put(2, "test2");
-    mp.Put(3, "test3");
-    mp.Put(4, "test4");
-    mp.FindChosenOne(2);
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    EXPECT_CALL(mp, FindChosenOne(3)).WillOnce(Return(4));
+    EXPECT_CALL(mp, FindChosenOne(4)).WillOnce(Return(4));
+    mp.FindChosenOne(3);
+    mp.FindChosenOne(4);
 }
