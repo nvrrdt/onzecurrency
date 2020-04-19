@@ -39,9 +39,62 @@ namespace Crowd
             s = leveldb::DB::Open(options, onlineusersdb, &db);
             //std::cout << "s == ok: " << s.ok() << " " << onlineusersdb << std::endl;
         }
-        virtual std::string Get(uint32_t key) = 0;
-        virtual int Put(uint32_t key, std::string value) = 0;
-        virtual int Delete(uint32_t key) = 0;
-        virtual uint32_t FindChosenOne(uint32_t key) = 0;
+        virtual std::string Get(uint32_t key)
+        {
+            std::stringstream ss;
+            ss << key;
+            s = db->Get(leveldb::ReadOptions(), ss.str(), &value);
+            if (s.ok())
+            {
+                if (value == "test") return ""; // A hack, somehow leveldb's value is test when there is no entry
+                return value;
+            }
+            else
+            {
+                return "";
+            }
+        }
+        virtual int Put(uint32_t key, std::string value)
+        {
+            std::stringstream ss;
+            ss << key;
+            s = db->Put(leveldb::WriteOptions(), ss.str(), value);
+            if (s.ok()) return 0;
+
+            return 1;
+        }
+        virtual int Delete(uint32_t key)
+        {
+            std::stringstream ss;
+            ss << key;
+            leveldb::Status s = db->Delete(leveldb::WriteOptions(), ss.str());
+            if (s.ok()) return 0;
+
+            return 1;
+        }
+        virtual uint32_t FindChosenOne(uint32_t key)
+        {
+            std::stringstream ss;
+            ss << key;
+
+            std::string string_key_real_chosen_one;
+
+            leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+            for (it->Seek(ss.str()); it->Valid(); it->Next())
+            {
+                string_key_real_chosen_one = it->key().ToString();
+            }
+
+            std::istringstream iss (string_key_real_chosen_one);
+            uint32_t key_real_chosen_one;
+            iss >> key_real_chosen_one;
+            if (iss.fail())
+            {
+                std::cerr << "ERROR in creating the uint for the key_real_chosen_one!\n";
+                return 1;
+            }
+
+            return key_real_chosen_one;
+        }
     };
 }
