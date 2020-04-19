@@ -1,4 +1,5 @@
 ### What's next?
+- Take into account hex values!
 - Verification:
   + Download blockchain if no blockchain folder nor blockchain
   + Verify existing blockchain' latest block with peers + update
