@@ -8,12 +8,11 @@
 #include "json.hpp"
 
 #include "p2p.hpp"
-#include "ping.hpp"
 
 #include <future>
 #include <thread>
 
-using namespace crowd;
+using namespace Crowd;
 
 void p2p_handler::p2p_switch(string task_client, string ip_chosen_one)
 {

@@ -12,7 +12,7 @@ using namespace std;
 using namespace boost::asio; 
 using namespace boost::asio::ip;
 
-namespace crowd
+namespace Crowd
 {
     class p2p_handler
     {

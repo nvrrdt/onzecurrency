@@ -5,7 +5,7 @@
 #include "p2p.hpp"
   
 //using namespace std; 
-using namespace crowd;
+using namespace Crowd;
 
 int p2p_handler::server_main()
 {

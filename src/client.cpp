@@ -3,7 +3,7 @@
 
 #include "p2p.hpp"
 
-using namespace crowd;
+using namespace Crowd;
 
 std::string p2p_handler::client(string& ip_adress, string& task_client) 
 { 
