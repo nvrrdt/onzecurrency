@@ -10,7 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(OpenSSL REQUIRED)
 
 set(BOOST_INCLUDEDIR /usr/include)
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
 find_package(Threads)
 
@@ -47,6 +47,8 @@ INSTALL(TARGETS ${PROJECT_NAME}
 
 ### enable CPack
 
+find_package (Threads)
+
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nico Verrijdt") #required
 
@@ -54,21 +56,12 @@ INCLUDE(CPack)
 
 ### enable_testing
 
-enable_testing()
-find_package(GTest REQUIRED)
-include(GoogleTest)
-
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-find_package(GMock REQUIRED)
-include_directories(${GMOCK_INCLUDE_DIRS})
+include(CTest)
 
 file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
-
 add_executable(tests ${all_TESTS})
-
-target_link_libraries(tests 
-                      gtest
-                      gmock
+target_compile_definitions(tests PUBLIC BOOST_TEST_DYN_LINK)
+target_link_libraries(tests
                       OpenSSL::SSL
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
@@ -76,8 +69,11 @@ target_link_libraries(tests
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${CURL_LIBRARIES}
                       "/usr/local/lib/libleveldb.a"
+                      ${CMAKE_THREAD_LIBS_INIT}
 )
-gtest_discover_tests(tests)
+
+add_test(NAME tests COMMAND tests)
+enable_testing()
 
 # post_build: copy ip_adress_master_peer.json to build directory
 add_custom_command(
