@@ -39,7 +39,7 @@ namespace Crowd
             s = leveldb::DB::Open(options, onlineusersdb, &db);
             //std::cout << "s == ok: " << s.ok() << " " << onlineusersdb << std::endl;
         }
-        virtual std::string Get(uint32_t key)
+        std::string Get(uint32_t key)
         {
             std::stringstream ss;
             ss << key;
@@ -54,7 +54,7 @@ namespace Crowd
                 return "";
             }
         }
-        virtual int Put(uint32_t key, std::string value)
+        int Put(uint32_t key, std::string value)
         {
             std::stringstream ss;
             ss << key;
@@ -63,7 +63,7 @@ namespace Crowd
 
             return 1;
         }
-        virtual int Delete(uint32_t key)
+        int Delete(uint32_t key)
         {
             std::stringstream ss;
             ss << key;
@@ -72,7 +72,7 @@ namespace Crowd
 
             return 1;
         }
-        virtual uint32_t FindChosenOne(uint32_t key)
+        uint32_t FindChosenOne(uint32_t key)
         {
             std::stringstream ss;
             ss << key;
