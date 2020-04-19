@@ -8,7 +8,7 @@ BOOST_AUTO_TEST_SUITE(ConfigDirTest)
 
 ConfigDir cd;
 
-BOOST_AUTO_TEST_CASE(Get)
+BOOST_AUTO_TEST_CASE(GetConfigDir)
 {
     BOOST_CHECK(boost::algorithm::ends_with(cd.GetConfigDir(), ".config/onzehub/"));
 }
