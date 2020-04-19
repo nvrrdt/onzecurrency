@@ -59,7 +59,7 @@ INCLUDE(CPack)
 include(CTest)
 
 file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
-add_executable(tests ${all_TESTS})
+add_executable(tests ${all_TESTS} ${all_SRCS})
 target_compile_definitions(tests PUBLIC BOOST_TEST_DYN_LINK)
 target_link_libraries(tests
                       OpenSSL::SSL
