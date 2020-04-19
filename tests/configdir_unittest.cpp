@@ -1,19 +1,16 @@
-#include <gtest/gtest.h>
-#include "gmock/gmock.h"
+#include <boost/test/unit_test.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include "configdir.hpp"
-
-#define GTEST_COUT std::cerr << "[ INFO ] "
-
-using ::testing::Return;
-using ::testing::_;
-using ::testing::EndsWith;
-
 using namespace Crowd;
 
-TEST(ConfigDirTest, GetConfigDir)
+BOOST_AUTO_TEST_SUITE(ConfigDirTest)
+
+ConfigDir cd;
+
+BOOST_AUTO_TEST_CASE(Get)
 {
-    ConfigDir cd;
-    EXPECT_THAT(cd.GetConfigDir(), EndsWith(".config/onzehub/"));
+    BOOST_CHECK(boost::algorithm::ends_with(cd.GetConfigDir(), ".config/onzehub/"));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
