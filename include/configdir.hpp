@@ -27,7 +27,7 @@ namespace Crowd
             
             configdir = homedir;
         }
-        virtual std::string GetConfigDir()
+        std::string GetConfigDir()
         {
             configdir += "/.config/onzehub/";
 
