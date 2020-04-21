@@ -32,23 +32,21 @@ std::string Poco::Get(uint32_t key)
         return "";
     }
 }
-int Poco::Put(uint32_t key, std::string value)
+bool Poco::Put(uint32_t key, std::string value)
 {
     std::stringstream ss;
     ss << key;
     s = db->Put(leveldb::WriteOptions(), ss.str(), value);
-    if (s.ok()) return 0;
-
-    return 1;
+    if (s.ok()) return true;
+    else return false;    
 }
-int Poco::Delete(uint32_t key)
+bool Poco::Delete(uint32_t key)
 {
     std::stringstream ss;
     ss << key;
     leveldb::Status s = db->Delete(leveldb::WriteOptions(), ss.str());
-    if (s.ok()) return 0;
-
-    return 1;
+    if (s.ok()) return true;
+    else return false;
 }
 uint32_t Poco::FindChosenOne(uint32_t key)
 {

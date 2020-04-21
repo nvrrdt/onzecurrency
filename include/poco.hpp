@@ -27,8 +27,8 @@ namespace Crowd
     public:
         Poco();
         std::string Get(uint32_t key);
-        int Put(uint32_t key, std::string value);
-        int Delete(uint32_t key);
+        bool Put(uint32_t key, std::string value);
+        bool Delete(uint32_t key);
         uint32_t FindChosenOne(uint32_t key);
     };
 }
