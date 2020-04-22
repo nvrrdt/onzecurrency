@@ -1,9 +1,24 @@
 #include <boost/test/unit_test.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include "poco.hpp"
 using namespace Crowd;
 
+class PocoT : public Poco {};
+
+BOOST_FIXTURE_TEST_SUITE(DbFolderPath, PocoT)
+
+// use any protected methods inside your tests
+BOOST_AUTO_TEST_CASE(PathTest)
+{
+    BOOST_CHECK(boost::algorithm::ends_with(usersdb_folder_path, ".config/onzehub/usersdb"));
+}
+BOOST_AUTO_TEST_SUITE_END()
+
+
 BOOST_AUTO_TEST_SUITE(PocoTest)
+
+
 
 Poco p;
 

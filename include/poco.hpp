@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include "configdir.hpp"
+
 #include "leveldb/db.h"
 
 namespace Crowd
@@ -24,6 +26,9 @@ namespace Crowd
         leveldb::DB* db;
         leveldb::Status s;
         std::string value;
+    protected:
+        ConfigDir cd;
+        std::string usersdb_folder_path = cd.GetConfigDir() + "usersdb";
     public:
         Poco();
         std::string Get(uint32_t key);

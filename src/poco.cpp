@@ -4,18 +4,10 @@ using namespace Crowd;
 
 Poco::Poco()
 {
-    const char *homedir;
-    if ((homedir = getenv("HOME")) == NULL) {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    std::string home, onlineusersdb;
-    home = homedir;
-    onlineusersdb = home  + "/.config/onzehub/onlineusersdb";
-
     leveldb::Options options;
     options.create_if_missing = true;
-    s = leveldb::DB::Open(options, onlineusersdb, &db);
-    //std::cout << "s == ok: " << s.ok() << " " << onlineusersdb << std::endl;
+    s = leveldb::DB::Open(options, usersdb_folder_path, &db);
+    std::cout << "s == ok: " << s.ok() << " " << usersdb_folder_path << std::endl;
 }
 std::string Poco::Get(uint32_t key)
 {
