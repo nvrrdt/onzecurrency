@@ -6,13 +6,7 @@
 
 using namespace Crowd;
 
-struct P2p::client
-{
-    boost::asio::ip::address host;
-    short port;
-};
-
-bool P2p::udp_client()
+bool P2p::udp_server()
 {
     struct P2p::client clients[512];
     int n = 0;
