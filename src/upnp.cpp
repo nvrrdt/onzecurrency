@@ -124,7 +124,7 @@ int main()
     int i;
     char lanaddr[64] = "unset";	/* my ip address on the LAN */
 	int retcode = 0;
-	const char * proto = "TCP";
+	const char * proto = "UDP";
 	const char * description = 0;
 
     if (devlist = upnpDiscover(2000, multicastif, minissdpdpath, localport, ipv6, ttl, &error))
