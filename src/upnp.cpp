@@ -11,9 +11,13 @@ extern "C" {
 }
 #endif
 
+#include "p2p.hpp"
+
+using namespace Crowd;
+
 /* protofix() checks if protocol is "UDP" or "TCP"
  * returns NULL if not */
-const char * protofix(const char * proto)
+const char * Upnp::protofix(const char * proto)
 {
 	static const char proto_tcp[4] = { 'T', 'C', 'P', 0};
 	static const char proto_udp[4] = { 'U', 'D', 'P', 0};
@@ -36,7 +40,7 @@ const char * protofix(const char * proto)
  * 2 - get extenal ip address
  * 3 - Add port mapping
  * 4 - get this port mapping from the IGD */
-static int SetRedirectAndTest(struct UPNPUrls * urls,
+int Upnp::SetRedirectAndTest(struct UPNPUrls * urls,
 			       struct IGDdatas * data,
 			       const char * iaddr,
 			       const char * iport,
@@ -59,7 +63,8 @@ static int SetRedirectAndTest(struct UPNPUrls * urls,
 		fprintf(stderr, "Wrong arguments\n");
 		return -1;
 	}
-	proto = protofix(proto);
+	Upnp u;
+	proto = u.protofix(proto);
 	if(!proto)
 	{
 		fprintf(stderr, "invalid protocol\n");
@@ -111,7 +116,7 @@ static int SetRedirectAndTest(struct UPNPUrls * urls,
 	return 0;
 }
 
-int main()
+int Upnp::Upnp_main()
 {
     struct UPNPDev * devlist = 0;
     unsigned char ttl = 2;
@@ -171,7 +176,7 @@ int main()
 			}
 			#endif
 
-			if (SetRedirectAndTest(&urls, &data,
+			if (Upnp::SetRedirectAndTest(&urls, &data,
 						   lanaddr, port,
 						   port, proto,
 						   "0",

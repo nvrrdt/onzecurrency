@@ -3,10 +3,9 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <iostream>
+#include <sstream>
 
 #include <boost/array.hpp>
-
-using boost::asio::ip::tcp;
 
 using namespace std; 
 using namespace boost::asio; 
@@ -17,28 +16,43 @@ namespace Crowd
     class P2p
     {
     public:
-        void p2p_switch(string, string);
-        vector<string> parse_ip_adress_master_peer_json();
-    private:
-        //std::string client(string&, string&);
-        //string getDataServer(tcp::socket&);
-        //void sendDataServer(tcp::socket&, const string&);
-        //string getDataClient(tcp::socket&);
-        //void sendDataClient(tcp::socket&, const string&);
-        //void save_blockchain(string);
-
+        P2p();
+    };
+    
+    class Udp
+    {
+    public:
+        bool udp_server();
+        bool udp_client();
+    protected:
         struct client
         {
             boost::asio::ip::address host;
-            short port;
+            unsigned short port;
         };
+    private:
         int die() // kill client/server if there's an error
         {
             std::cerr << "Error: " << strerror(errno) << std::endl;
             return errno;
         }
-        bool udp_server();
-    protected:
-        int server_main();
+    };
+
+    class Upnp
+    {
+    public:
+        int Upnp_main();
+    private:
+        const char * protofix(const char * proto);
+        static int SetRedirectAndTest(struct UPNPUrls * urls,
+			       struct IGDdatas * data,
+			       const char * iaddr,
+			       const char * iport,
+			       const char * eport,
+			       const char * proto,
+			       const char * leaseDuration,
+			       const char * remoteHost,
+			       const char * description,
+			       int addAny);
     };
 }

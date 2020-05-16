@@ -6,14 +6,15 @@
 
 using namespace Crowd;
 
-bool P2p::udp_server()
+#define PORT 1975
+
+bool Udp::udp_server()
 {
-    struct P2p::client clients[512];
+    struct Udp::client clients[512];
     int n = 0;
 
-    unsigned short port_num = 1975;
     ip::address ip_address = ip::address_v4::any();
-    ip::udp::endpoint ep_me(ip_address, port_num), ep_other;
+    ip::udp::endpoint ep_me(ip_address, PORT), ep_other;
     
     boost::asio::io_service io_service;
     ip::udp::socket socket(io_service);
@@ -23,7 +24,8 @@ bool P2p::udp_server()
     if (ec)
     {
         // An error occurred.
-        P2p::die();
+        Udp p;
+        p.die();
     }
 
     while (true)
@@ -39,16 +41,23 @@ bool P2p::udp_server()
         clients[n].port = ep_other.port();
         n++;
 
+        std::cout << "test " << recv_buf.data() << "te" << std::endl;
+        boost::array<char, 32> msg = {"Hi"};
+        if (recv_buf == msg)
+        {
+            std::cout << "Great!" << std::endl;
+        }
+
         for (int i = 0; i < n; i++)
         {
             ep_other.address() = clients[i].host;
-            strncpy((char *) ep_other.port(), (char *) clients[i].port, sizeof(short int));
-            
+            ep_other.port(clients[i].port);
+                        
             for (int j = 0; j < n; j++)
             {
                 std::cout << "Sending to " << ep_other.address() << ":" << ep_other.port() << std::endl;
 
-                std::string msg = "Message arrived!";
+                std::string msg = "Message arrived!\n";
                 boost::system::error_code ignored_error;
                 socket.send_to(boost::asio::buffer(msg),
                     ep_other, 0, ignored_error);

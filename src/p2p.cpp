@@ -14,42 +14,47 @@
 
 using namespace Crowd;
 
-void p2p_handler::p2p_switch(string task_client, string ip_chosen_one)
+P2p::P2p()
 {
-    //p2p_handler peers;
-    //vector<string> ip_list = peers.parse_ip_adress_master_peer_json();
+    /**
+     * check upnp
+     * if upnp = udp_server in thread
+     * if not upnp = udp_client in thread
+     * do some tests with timeout
+     */
 
-    string online_ip;
-
-    /*if (ip_chosen_one == "")
+    Upnp u;
+    if (u.Upnp_main() == 0)
     {
-        for (string& ip_adress : ip_list)
-        {
-            system_ping sp;
-            if (sp.test_connection(ip_adress, 1) == 0) // ping ip_adress to see if it is online
-            {
-                online_ip = ip_adress;
-                break;
-            }
-        }
+        // Upnp possible
+        std::packaged_task<void()> task1([] {
+            Udp u;
+            u.udp_server();
+        });
+        
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+
+        t1.join();
     }
     else
-    {*/
-        online_ip == ip_chosen_one;
-    //}
+    {
+        // Upnp NOT possible
+        std::packaged_task<void()> task2([] {
+            Udp u;
+            u.udp_client();
+        });
+        
+        // Run task on new thread.
+        std::thread t2(std::move(task2));
+
+        t2.join();
+    }
     
-
-    p2p_handler cl;
-    string response = cl.client(online_ip, task_client);
-
-    // TODO: save response to a file
-    //p2p_handler::save_blockchain(response);
-
-    p2p_handler se;
-    se.server_main();
 }
 
-vector<string> p2p_handler::parse_ip_adress_master_peer_json() // https://github.com/nlohmann/json
+/*
+vector<string> P2p::parse_ip_adress_master_peer_json() // https://github.com/nlohmann/json
 {
     ifstream file("./ip_adress_master_peer.json");
 	nlohmann::json j;
@@ -68,7 +73,7 @@ vector<string> p2p_handler::parse_ip_adress_master_peer_json() // https://github
 	}
 }
 
-void p2p_handler::save_blockchain(string response)
+void P2p::save_blockchain(string response)
 {
     // create the block on disk
     ofstream ofile("./blockchain/block0000000000.json", ios::out | ios::trunc);
@@ -76,3 +81,4 @@ void p2p_handler::save_blockchain(string response)
     ofile << response;
     ofile.close();
 }
+*/
