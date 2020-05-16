@@ -22,6 +22,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/src
         ${Boost_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIR}
+        "/usr/include/miniupnpc"
 )
 link_directories(${OPENSSL_LIBRARIES})
 
@@ -69,6 +70,7 @@ target_link_libraries(tests
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${CURL_LIBRARIES}
                       "/usr/local/lib/libleveldb.a"
+                      "/usr/lib/libminiupnpc.a"
                       ${CMAKE_THREAD_LIBS_INIT}
 )
 
