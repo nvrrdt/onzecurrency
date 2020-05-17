@@ -10,7 +10,7 @@ bool Udp::udp_client()
     short port = 1975;
     std::string srv_ip = "127.0.0.1";
 
-    struct Udp::client buf;
+    struct Udp::client buf[1];
     struct Udp::client server;
     struct Udp::client peers[512];
     int n = 0;
@@ -40,29 +40,29 @@ bool Udp::udp_client()
 
     while (true)
     {
-        boost::array<char, 32> recv_buf;
-        size_t len = socket.receive_from(boost::asio::buffer(recv_buf), ep_me);
+        auto recv_buf = boost::asio::buffer(buf);
+        size_t len = socket.receive_from(recv_buf, ep_me);
 
-        std::cout.write(recv_buf.data(), len);
+        std::cout << buf->host << ":" << buf->port << std::endl;
 
         if (server.host == ep_other.address() && server.port == ep_other.port())
         {
             int f = 0;
             for (int i = 0; i < n && f == 0; i++)
             {
-                if (peers[i].host == buf.host && peers[i].port == buf.port)
+                if (peers[i].host == buf->host && peers[i].port == buf->port)
                 {
                     f = 1;
                 }
             }
             if (f == 0)
             {
-                peers[n].host = buf.host;
-                peers[n].port = buf.port;
+                peers[n].host = buf->host;
+                peers[n].port = buf->port;
                 n++;
             }
-            ep_other.address() = buf.host;
-            ep_other.port(buf.port);
+            ep_other.address() = buf->host;
+            ep_other.port(buf->port);
             std::cout << "Added peer " << ep_other.address() << ":" << ep_other.port() << std::endl;
             std::cout << "Now we have " << n << " peers" << std::endl;
             for (int k = 0; k < 10; k++)
@@ -84,8 +84,7 @@ bool Udp::udp_client()
             for (int i = 0; i < n; i++)
             {
                 // Identify which peer it came from
-                if (peers[i].host == buf.host && peers[i].port == (short)(buf.port))
-                {
+                if (peers[i].host == buf->host && peers[i].port == (short)(buf->port))                {
                     // And do something useful with the received payload
                     std::cout << "Received from peer " << i << std::endl;
                     break;
