@@ -55,4 +55,11 @@ namespace Crowd
 			       const char * description,
 			       int addAny);
     };
+
+    class Protocol
+    {
+    public:
+        boost::array<char, 32> Request(boost::array<char, 32> r);
+        boost::array<char, 32> Response(boost::array<char, 32> r);
+    };
 }
