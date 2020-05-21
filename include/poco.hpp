@@ -10,6 +10,7 @@
 #include "configdir.hpp"
 
 #include "leveldb/db.h"
+#include <array>
 
 namespace Crowd
 {
@@ -35,5 +36,7 @@ namespace Crowd
         bool Put(uint32_t key, std::string value);
         bool Delete(uint32_t key);
         uint32_t FindChosenOne(uint32_t key);
+        uint32_t FindNextPeer(uint32_t key);
+        uint32_t FindUpnpPeer(uint32_t key);
     };
 }

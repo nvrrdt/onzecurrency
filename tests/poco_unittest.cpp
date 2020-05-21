@@ -41,6 +41,22 @@ BOOST_AUTO_TEST_CASE(FindChosenOne)
     BOOST_CHECK(p.Put(2, "test2") == true);
     BOOST_CHECK(p.FindChosenOne(1) == 2);
     BOOST_CHECK(p.FindChosenOne(2) == 2);
+    BOOST_CHECK(p.FindChosenOne(3) == 2);
+}
+
+BOOST_AUTO_TEST_CASE(FindNextPeer)
+{
+    BOOST_CHECK(p.Put(2, "test2") == true);
+    BOOST_CHECK(p.Put(5, "test5") == true);
+    BOOST_CHECK(p.FindNextPeer(1) == 2);
+    BOOST_CHECK(p.FindNextPeer(2) == 5);
+}
+
+BOOST_AUTO_TEST_CASE(FindUpnpPeer)
+{
+    /*BOOST_CHECK(p.Put(2, "test2") == true);
+    BOOST_CHECK(p.FindChosenOne(1) == 2);
+    BOOST_CHECK(p.FindChosenOne(2) == 2);*/
 }
 
 BOOST_AUTO_TEST_SUITE_END()
