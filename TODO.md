@@ -1,4 +1,7 @@
 ### What's next?
+- update the map with the new user in protocol.cpp when server receives new online user request
+- communicate to all peers that there's an new online peer, so they can update their map
+
 - The communication protocol between peers
 - Take into account hex values!
 - Verification:
