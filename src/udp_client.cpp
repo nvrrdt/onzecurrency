@@ -5,10 +5,10 @@ using namespace Crowd;
 //#define PORT "1975"
 //#define SRV_IP "127.0.0.1" //"141.135.77.90"
 
-bool Udp::udp_client()
+int Udp::udp_client(std::string ip_adress, std::string message)
 {
     short port = 1975;
-    std::string srv_ip = "127.0.0.1";
+    std::string srv_ip = ip_adress;
 
     struct Udp::client buf[1];
     struct Udp::client server;
@@ -94,5 +94,5 @@ bool Udp::udp_client()
         
     }
 
-    return true;
+    return 0;
 }

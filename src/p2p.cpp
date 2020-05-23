@@ -10,15 +10,15 @@
 
 using namespace Crowd;
 
-P2p::P2p()
-{
+//bool P2p::IsUpnp()
+//{
     /**
      * check upnp
      * if upnp = udp_server in thread
      * if not upnp = udp_client in thread
      * do some tests with timeout
      */
-
+/*
     Upnp u;
     if (u.Upnp_main() == 0)
     {
@@ -32,6 +32,8 @@ P2p::P2p()
         std::thread t1(std::move(task1));
 
         t1.join();
+
+        return true;
     }
     else
     {
@@ -45,9 +47,11 @@ P2p::P2p()
         std::thread t2(std::move(task2));
 
         t2.join();
+
+        return false;
     }
     
-}
+}*/
 
 /*
 vector<string> P2p::parse_ip_adress_master_peer_json() // https://github.com/nlohmann/json

@@ -16,14 +16,14 @@ namespace Crowd
     class P2p
     {
     public:
-        P2p();
+        bool IsUpnp();
     };
     
     class Udp
     {
     public:
-        bool udp_server();
-        bool udp_client();
+        int udp_server();
+        int udp_client(std::string ip_adress, std::string message);
     protected:
         struct client
         {

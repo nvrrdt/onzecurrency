@@ -8,7 +8,7 @@ using namespace Crowd;
 
 #define PORT 1975
 
-bool Udp::udp_server()
+int Udp::udp_server()
 {
     struct Udp::client clients[512];
     int n = 0;
@@ -66,5 +66,5 @@ bool Udp::udp_server()
         std::cout << "Now we have " << n << " clients" << std::endl;
     }
     
-    return true;
+    return 0;
 }

@@ -2,9 +2,12 @@
 
 Verification::Verification()
 {
-    // blockchain folder is_empty; download
-    // blockchain folder not_empty; what is latest block
-    // latest block not_latest; update
+    // - hello network!
+    // - blockchain folder is_empty; download
+    // - blockchain folder not_empty; what is latest block
+    // - latest block not_latest; update
+    // - new user in network
+    // - goodbye network
     
     //std::cout << "blockchain_folder_path: " << blockchain_folder_path << std::endl;
     boost::system::error_code c;
