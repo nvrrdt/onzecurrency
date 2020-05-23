@@ -18,14 +18,14 @@ Interface::Interface(std::string& my_user_login_hash)
      */
 
     Poco poco;
-    uint32_t upnp_peer = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
-    nlohmann::json leveldb_value = nlohmann::json::parse(poco.Get(upnp_peer));
+    uint32_t upnp_peer_key = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
+    nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
     Upnp upnp;
     Udp udp;
     if(upnp.Upnp_main() == 0) // upnp possible?
     {
-        if (udp.udp_client(leveldb_value["ip"].dump(), "helloupnpenabled") == true)
+        if (udp.udp_client(upnp_peer_value["ip"].dump(), "helloupnpenabled") == true)
         {
             // set as upnp server
         }
@@ -37,7 +37,7 @@ Interface::Interface(std::string& my_user_login_hash)
     }
     else
     {
-        if (udp.udp_client(leveldb_value["ip"].dump(), "helloupnpdisabled") == true)
+        if (udp.udp_client(upnp_peer_value["ip"].dump(), "helloupnpdisabled") == true)
         {
             // set as upnp client
         }
