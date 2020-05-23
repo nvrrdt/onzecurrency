@@ -38,5 +38,6 @@ namespace Crowd
         uint32_t FindChosenOne(uint32_t key);
         uint32_t FindNextPeer(uint32_t key);
         uint32_t FindUpnpPeer(uint32_t key);
+        uint32_t FindNextUpnpPeer(uint32_t key);
     };
 }

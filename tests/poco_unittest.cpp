@@ -1,3 +1,5 @@
+#include "json.hpp"
+
 #include <boost/test/unit_test.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -49,14 +51,25 @@ BOOST_AUTO_TEST_CASE(FindNextPeer)
     BOOST_CHECK(p.Put(2, "test2") == true);
     BOOST_CHECK(p.Put(5, "test5") == true);
     BOOST_CHECK(p.FindNextPeer(1) == 2);
-    BOOST_CHECK(p.FindNextPeer(2) == 5);
+    BOOST_CHECK(p.FindNextPeer(3) == 5);
 }
+
+nlohmann::json j = nlohmann::json::parse("{ \"upnp\": true }");
 
 BOOST_AUTO_TEST_CASE(FindUpnpPeer)
 {
-    /*BOOST_CHECK(p.Put(2, "test2") == true);
-    BOOST_CHECK(p.FindChosenOne(1) == 2);
-    BOOST_CHECK(p.FindChosenOne(2) == 2);*/
+    BOOST_CHECK(p.Put(2, j.dump()) == true);
+    BOOST_CHECK(p.FindUpnpPeer(1) == 2);
+    BOOST_CHECK(p.FindUpnpPeer(2) == 2);
+}
+
+BOOST_AUTO_TEST_CASE(FindNextUpnpPeer)
+{
+    BOOST_CHECK(p.Put(3, j.dump()) == true);
+    BOOST_CHECK(p.FindNextUpnpPeer(0) == 2);
+    BOOST_CHECK(p.FindNextUpnpPeer(2) == 3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+// TODO: reorder these tests --> after every test the entries should be deleted, which is not the case

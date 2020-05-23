@@ -1,3 +1,5 @@
+#include "json.hpp"
+
 #include "poco.hpp"
 
 using namespace Crowd;
@@ -50,12 +52,12 @@ uint32_t Poco::FindChosenOne(uint32_t key)
     leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        if (it->key().ToString() == ss.str())
+        if (it->key().ToString() >= ss.str())
         {
             string_key_real_chosen_one = it->key().ToString();
             break;
         }
-        else if (it->key().ToString() > ss.str())
+        else
         {
             for (it->SeekToFirst(); it->Valid(); it->Next())
             {
@@ -81,17 +83,22 @@ uint32_t Poco::FindChosenOne(uint32_t key)
 uint32_t Poco::FindNextPeer(uint32_t key)
 {
     std::stringstream ss;
-    ss << (key + 1);
+    ss << key;
 
     std::string string_key_next_peer;
 
     leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        if (it->key().ToString() >= ss.str())
+        std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
+        if (it->key().ToString() > ss.str())
         {
             string_key_next_peer = it->key().ToString();
             break;
+        }
+        else
+        {
+            // if next peer is the first in whole level db, go search from start
         }
     }
     delete it;
@@ -110,6 +117,45 @@ uint32_t Poco::FindNextPeer(uint32_t key)
 uint32_t Poco::FindUpnpPeer(uint32_t key)
 {
     std::stringstream ss;
+    ss << (key);
+
+    std::string string_key_upnp_peer;
+
+    leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next())
+    {
+        if (it->key().ToString() >= ss.str())
+        {
+            // Search in it->value for upnp enabledness
+            nlohmann::json j = nlohmann::json::parse(it->value().ToString());
+            if (j["upnp"] == true)
+            {
+                string_key_upnp_peer = it->key().ToString();
+                break;
+            }
+        }
+        else if (false)
+        {
+            // TODO: what if you are at the and of leveldb and need to restart searching from the beginning
+            // see FindChosenOne()
+        }
+    }
+    delete it;
+
+    std::istringstream iss (string_key_upnp_peer);
+    uint32_t key_upnp_peer;
+    iss >> key_upnp_peer;
+    if (iss.fail())
+    {
+        std::cerr << "ERROR in creating the uint for the key_upnp_peer!\n";
+        return 1;
+    }
+
+    return key_upnp_peer;
+}
+uint32_t Poco::FindNextUpnpPeer(uint32_t key)
+{
+    std::stringstream ss;
     ss << (key + 1);
 
     std::string string_key_upnp_peer;
@@ -117,9 +163,20 @@ uint32_t Poco::FindUpnpPeer(uint32_t key)
     leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        if (it->key().ToString() >= string_key_upnp_peer)
+        if (it->key().ToString() >= ss.str())
         {
-            // TODO: search in it->value for upnp enabledness, see FindChosenOne or FindNextPeer functions
+            // Search in it->value for next one's upnp enabledness
+            nlohmann::json j = nlohmann::json::parse(it->value().ToString());
+            if (j["upnp"] == true)
+            {
+                string_key_upnp_peer = it->key().ToString();
+                break;
+            }
+        }
+        else if (false)
+        {
+            // TODO: what if you are at the and of leveldb and need to restart searching from the beginning
+            // see FindChosenOne()
         }
     }
     delete it;
