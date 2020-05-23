@@ -1,6 +1,4 @@
 ### What's next?
-- create FindUpnpPeer in poco.cpp
-
 - update the leveldb with the new user in protocol.cpp when server receives new online user request
 - communicate to all peers that there's an new online peer, so they can update their leveldb
 
