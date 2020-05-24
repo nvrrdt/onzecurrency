@@ -23,7 +23,7 @@ namespace Crowd
     {
     public:
         int udp_server();
-        int udp_client(std::string ip_adress, std::string message);
+        int udp_client(std::string ip_adress, std::string message, std::string& latest_hash_blockchain);
     protected:
         struct client
         {
@@ -59,7 +59,6 @@ namespace Crowd
     class Protocol
     {
     public:
-        boost::array<char, 32> Request(boost::array<char, 32> r);
-        boost::array<char, 32> Response(boost::array<char, 32> r);
+        int hello_and_setup(std::string& my_user_login_hash, std::string& latest_hash_blockchain);
     };
 }
