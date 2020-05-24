@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -26,12 +27,22 @@ namespace Crowd
             }
             
             configdir = homedir;
+            configdir += "/.config/onzehub/";
         }
         std::string GetConfigDir()
         {
-            configdir += "/.config/onzehub/";
-
             return configdir;
+        }
+        int CreateFileInConfigDir(std::string filename, std::string content)
+        {
+            std::ofstream ofs;
+            ofs.open (configdir + filename, std::ofstream::out | std::ofstream::app);
+
+            ofs << content;
+
+            ofs.close();
+
+            return 0;
         }
     };
 }

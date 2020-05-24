@@ -1,5 +1,4 @@
 ### What's next?
-- create file function in configdir.hpp
 - a test for the response_hello function in protocol
 - in verification.cpp you need to clean up
 

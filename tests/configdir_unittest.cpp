@@ -12,5 +12,9 @@ BOOST_AUTO_TEST_CASE(GetConfigDir)
 {
     BOOST_CHECK(boost::algorithm::ends_with(cd.GetConfigDir(), ".config/onzehub/"));
 }
+BOOST_AUTO_TEST_CASE(CreateFileInConfigDir)
+{
+    BOOST_CHECK(cd.CreateFileInConfigDir("test.txt", "test") == 0);
+}
 
 BOOST_AUTO_TEST_SUITE_END()
