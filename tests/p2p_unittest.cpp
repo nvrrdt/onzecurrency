@@ -14,8 +14,7 @@ BOOST_FIXTURE_TEST_SUITE(UdpSuite, UdpT)
 // use any protected methods inside your tests
 BOOST_AUTO_TEST_CASE(TimeoutUdpClient, * utf::timeout(5))
 {
-    std::string test = "test";
-    udp_client("127.0.0.1", "test", test); // Must fail!
+    udp_client("127.0.0.1", "test"); // Must fail!
 }
 BOOST_AUTO_TEST_CASE(TimeoutUdpServer, * utf::timeout(5))
 {

@@ -23,7 +23,7 @@ namespace Crowd
     {
     public:
         int udp_server();
-        int udp_client(std::string ip_adress, std::string message, std::string& latest_hash_blockchain);
+        int udp_client(std::string ip_adress, std::string message); // TODO: add a reference & to these strings
     protected:
         struct client
         {
@@ -59,6 +59,8 @@ namespace Crowd
     class Protocol
     {
     public:
-        int hello_and_setup(std::string& my_user_login_hash, std::string& latest_hash_blockchain);
+        int hello_and_setup(std::string& my_user_login_hash);
+    private:
+        std::string response_hello();
     };
 }
