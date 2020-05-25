@@ -12,3 +12,5 @@
   + Verify existing blockchain' latest block with peers + update
   + Create + update leveldb
 - Continue setting up the p2p system
+
+- What should be in the json value of a leveldb entry? {"version": "1.0", "ip": ip_of_peer, "upnp": "true", "fullnode": "true"}
