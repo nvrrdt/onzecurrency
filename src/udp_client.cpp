@@ -10,9 +10,9 @@ int Udp::udp_client(std::string ip_adress, std::string message)
     short port = 1975;
     std::string srv_ip = ip_adress;
 
-    struct Udp::client buf[1];
-    struct Udp::client server;
-    struct Udp::client peers[512];
+    vector<Udp::client> buf;
+    vector<Udp::client> server;
+    vector<Udp::client> peers;
     int n = 0;
 
     ip::address ip_address_me = ip::address_v4::any();
@@ -32,37 +32,40 @@ int Udp::udp_client(std::string ip_adress, std::string message)
     udp::socket socket(io_service);
     socket.open(udp::v4());
 
-    server.host = ep_other.address();
-    server.port = ep_other.port();
+    server.push_back(Udp::client());
+    server[0].host = ep_other.address();
+    server[0].port = ep_other.port();
 
     boost::array<char, 32> send_buf  = {"Hi"};
     socket.send_to(boost::asio::buffer(send_buf), ep_other);
 
     while (true)
     {
+        buf.push_back(Udp::client());
         auto recv_buf = boost::asio::buffer(buf);
         size_t len = socket.receive_from(recv_buf, ep_me);
 
-        std::cout << buf->host << ":" << buf->port << std::endl;
+        std::cout << buf[0].host << ":" << buf[0].port << std::endl;
 
-        if (server.host == ep_other.address() && server.port == ep_other.port())
+        if (server[0].host == ep_other.address() && server[0].port == ep_other.port())
         {
             int f = 0;
             for (int i = 0; i < n && f == 0; i++)
             {
-                if (peers[i].host == buf->host && peers[i].port == buf->port)
+                if (peers[i].host == buf[0].host && peers[i].port == buf[0].port)
                 {
                     f = 1;
                 }
             }
             if (f == 0)
             {
-                peers[n].host = buf->host;
-                peers[n].port = buf->port;
+                peers.push_back(Udp::client());
+                peers[n].host = buf[0].host;
+                peers[n].port = buf[0].port;
                 n++;
             }
-            ep_other.address() = buf->host;
-            ep_other.port(buf->port);
+            ep_other.address() = buf[0].host;
+            ep_other.port(buf[0].port);
             std::cout << "Added peer " << ep_other.address() << ":" << ep_other.port() << std::endl;
             std::cout << "Now we have " << n << " peers" << std::endl;
             for (int k = 0; k < 10; k++)
@@ -84,7 +87,7 @@ int Udp::udp_client(std::string ip_adress, std::string message)
             for (int i = 0; i < n; i++)
             {
                 // Identify which peer it came from
-                if (peers[i].host == buf->host && peers[i].port == (short)(buf->port))                {
+                if (peers[i].host == buf[0].host && peers[i].port == (short)(buf[0].port))                {
                     // And do something useful with the received payload
                     std::cout << "Received from peer " << i << std::endl;
                     break;

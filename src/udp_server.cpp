@@ -10,7 +10,7 @@ using namespace Crowd;
 
 int Udp::udp_server()
 {
-    struct Udp::client clients[512];
+    vector<Udp::client> clients;
     int n = 0;
 
     ip::address ip_address = ip::address_v4::any();
@@ -37,6 +37,7 @@ int Udp::udp_server()
         
         std::cout << "Received packet from " << ep_other.address() << ":" << ep_other.port() << std::endl;
 
+        clients.push_back(Udp::client());
         clients[n].host = ep_other.address();
         clients[n].port = ep_other.port();
         n++;
