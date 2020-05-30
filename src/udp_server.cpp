@@ -6,15 +6,15 @@
 
 using namespace Crowd;
 
-#define PORT 1975
-
 int Udp::udp_server()
 {
+    short port = 1975;
+
     vector<Udp::client> clients;
     int n = 0;
 
     ip::address ip_address = ip::address_v4::any();
-    ip::udp::endpoint ep_me(ip_address, PORT), ep_other;
+    ip::udp::endpoint ep_me(ip_address, port), ep_other;
     
     boost::asio::io_service io_service;
     ip::udp::socket socket(io_service);
@@ -42,7 +42,7 @@ int Udp::udp_server()
         clients[n].port = ep_other.port();
         n++;
 
-        std::cout << "test " << recv_buf.data() << "te" << std::endl;
+        std::cout << "test " << recv_buf.data() << "te" << std::endl; // TODO: parse ip address here
         boost::array<char, 32> msg = {"Hi"};
         if (recv_buf == msg)
         {
@@ -60,8 +60,7 @@ int Udp::udp_server()
 
                 std::string msg = "Message arrived!\n";
                 boost::system::error_code ignored_error;
-                socket.send_to(boost::asio::buffer(msg),
-                    ep_other, 0, ignored_error);
+                socket.send_to(boost::asio::buffer(msg), ep_other, 0, ignored_error);
             }
         }
         std::cout << "Now we have " << n << " clients" << std::endl;

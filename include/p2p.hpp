@@ -23,7 +23,7 @@ namespace Crowd
     {
     public:
         int udp_server();
-        int udp_client(std::string ip_adress, std::string message); // TODO: add a reference & to these strings
+        int udp_client(std::string srv_ip, std::string message); // TODO: add a reference & to these strings
     protected:
         struct client
         {
@@ -62,5 +62,11 @@ namespace Crowd
         int hello_and_setup(std::string& my_user_login_hash);
     private:
         std::string response_hello();
+        int communicate_to_all(std::string msg);
     };
+}
+
+extern "C"
+{
+    int ParseIPv4OrIPv6 ( const char** ppszText, unsigned char* abyAddr, int* pnPort, int* pbIsIPv6 );
 }

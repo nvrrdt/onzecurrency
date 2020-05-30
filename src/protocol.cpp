@@ -187,3 +187,13 @@ std::string Protocol::response_hello()
     
     return latest_block; // TODO: also verify latest hash
 }
+
+int Protocol::communicate_to_all(std::string msg)
+{
+    /**
+     * Partition leveldb (size = uint32_t) in equal partitions
+     * Let the online peers know the update
+     * Roundup(amount_of_online_peers^(1/3)) or Roundup(100^(1/3)) = Roundup(~4.6) = 5 partitions and Roundup(4.1) = 5 partitions
+     * It is known who may signal you!
+     */
+}
