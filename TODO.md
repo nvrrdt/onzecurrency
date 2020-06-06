@@ -10,7 +10,7 @@
   + Create + update leveldb
 - Continue setting up the p2p system
 
-- What should be in the json value of a leveldb entry? {"version": "1.0", "ip": ip_of_peer, "upnp": "true", "fullnode": "true"}
+- What should be in the json value of a leveldb entry? {"version": "1.0", "ip": ip_of_peer, "upnp": "true", "fullnode": "true"}, the key is the peer's hash
 
 - a test for the response_hello function in protocol.cpp (needs a block creation function)
 - (in verification.cpp you need to clean up --> use this function in blockchain_update function in protocol.cpp)
