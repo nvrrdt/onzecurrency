@@ -188,6 +188,61 @@ std::string Protocol::response_hello()
     return latest_block; // TODO: also verify latest hash
 }
 
+int Protocol::verify_latest_block(std::string latest_block_peer)
+{
+    /**
+     * Verify that the latest block response (response_hello) from the peer equals your latest block
+     * If not, download all the latest blocks from FindNextPeer(your_hash)
+     * If too many blocks then request more peers
+     */
+
+    ConfigDir cd;
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
+    boost::system::error_code c;
+    boost::filesystem::path path(blockchain_folder_path);
+
+    std::string latest_block = "0";
+
+    if (!boost::filesystem::exists(path))
+    {
+        std::cout << "no blockchain present in folder" << std::endl;
+        return 1;
+    }
+    else
+    {
+        boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
+        for ( boost::filesystem::directory_iterator itr( path ); itr != end_itr; ++itr )
+        {
+            if (itr->path().string() > latest_block)
+            {
+                latest_block = itr->path().string();
+            }
+        }
+
+        if (latest_block_peer > latest_block)
+        {
+            // Download or update blockchain, ask peer via FindNextPeer(key)
+            Poco p;
+            uint32_t next_peer = p.FindNextPeer(/*my_key from liblogin*/ 1);
+            // send next_peer message to download/update blockchain
+            return 0;
+        }
+        else if (latest_block_peer == latest_block)
+        {
+            // Should be latest block
+            return 0;
+        }
+        else /* latest_block_peer < latest_block */
+        {
+            std::cout << "Something went wrong, you're blockchain is more to date then your peer" << std::endl;
+            // TODO: ping other peer to know the latest block
+
+            return 1; // temporary
+        }
+        
+    }
+}
+
 int Protocol::communicate_to_all(std::string msg)
 {
     /**
@@ -196,4 +251,7 @@ int Protocol::communicate_to_all(std::string msg)
      * Roundup(amount_of_online_peers^(1/3)) or Roundup(100^(1/3)) = Roundup(~4.6) = 5 partitions and Roundup(4.1) = 5 partitions
      * It is known who may signal you!
      */
+
+    // #include <limits>
+    // std::numeric_limits<uint32_t>::max(); // should be 2^32!
 }

@@ -62,6 +62,7 @@ namespace Crowd
         int hello_and_setup(std::string& my_user_login_hash);
     private:
         std::string response_hello();
+        int verify_latest_block(std::string latest_block_peer);
         int communicate_to_all(std::string msg);
     };
 }
