@@ -15,8 +15,17 @@ Verification::Verification()
 
     if (!boost::filesystem::exists(path))
     {
-        boost::filesystem::create_directory(path);
-        Verification::Download();
+        try
+        {
+            if (boost::filesystem::create_directory(path))
+            {
+                Verification::Download();
+            }
+        }
+        catch (boost::filesystem::filesystem_error &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     }
     else
     {

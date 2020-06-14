@@ -25,6 +25,11 @@ namespace Crowd
             {
                 homedir = getpwuid(getuid())->pw_dir;
             }
+            else
+            {
+                homedir = "";
+            }
+            
             
             configdir = homedir;
             configdir += "/.config/onzehub/";
