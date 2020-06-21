@@ -157,10 +157,16 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     return 0;
 }
 
-std::string Protocol::response_hello()
+std::string Protocol::response_hello(boost::array<char, 32> recv_buf)
 {
     // get the latest hash of the server's blockchain
     // read latest block in blockchain folder ... and communicate
+
+    /**
+     * TODO:
+     * - communicate to everyone that the new peer is upnp or not
+     * - communicate to the new peer the latest block (partly implemented below)
+     */
 
     ConfigDir cd;
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
@@ -254,4 +260,6 @@ int Protocol::communicate_to_all(std::string msg)
 
     // #include <limits>
     // std::numeric_limits<uint32_t>::max(); // should be 2^32!
+
+    return 0;
 }

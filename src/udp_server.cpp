@@ -42,12 +42,15 @@ int Udp::udp_server()
         clients[n].port = ep_other.port();
         n++;
 
-        std::cout << "test " << recv_buf.data() << "te" << std::endl; // TODO: parse ip address here
-        boost::array<char, 32> msg = {"Hi"};
-        if (recv_buf == msg)
-        {
-            std::cout << "Great!" << std::endl;
-        }
+        // std::cout << "test " << recv_buf.data() << "te" << std::endl; // TODO: parse ip address here
+        // boost::array<char, 32> msg = {"Hi"};
+        // if (recv_buf == msg)
+        // {
+        //     std::cout << "Great!" << std::endl;
+        // }
+
+        Protocol p;
+        p.response_hello(recv_buf);
 
         for (int i = 0; i < n; i++)
         {

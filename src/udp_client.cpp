@@ -35,8 +35,9 @@ int Udp::udp_client(std::string srv_ip, std::string message)
     server[0].host = ep_other.address();
     server[0].port = ep_other.port();
 
-    boost::array<char, 32> send_buf  = {"Hi"};
-    socket.send_to(boost::asio::buffer(send_buf), ep_other);
+    boost::array<char, 32> send_buf;
+    std::copy(message.begin(), message.end(), send_buf.data());
+    socket.send_to(boost::asio::buffer(send_buf), ep_other); // send message to upnp_peer
 
     while (true)
     {
