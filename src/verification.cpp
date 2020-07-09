@@ -41,9 +41,13 @@ Verification::Verification()
 bool Verification::Download()
 {
     // Add 1 to own user_id and search for next chosen_one in leveldb that is online
+
+    return false;
 }
 bool Verification::Update()
 {
     // check for the latest block in blockchain folder and verify if that's the latest in the chain
     // if not the latest: update
+
+    return false;
 }
