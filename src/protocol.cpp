@@ -58,11 +58,13 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     uint32_t upnp_peer_key = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
     nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
+    nlohmann::json msg = {{"version", "1.0"}, {"upnp", "true"}, {"fullnode", "true"}};
+
     Upnp upnp;
     Udp udp;
     if(upnp.Upnp_main() == 0) // upnp possible
     {
-        if (udp.udp_client(upnp_peer_value["ip"].dump(), "helloupnpenabled") == 0)
+        if (udp.udp_client(upnp_peer_value["ip"].dump(), msg.dump()) == 0)
         {
             // set as upnp server in thread
             std::packaged_task<void()> task1([&] {
@@ -167,6 +169,8 @@ std::string Protocol::response_hello(boost::array<char, 32> recv_buf)
      * - communicate to everyone that the new peer is upnp or not
      * - communicate to the new peer the latest block (partly implemented below)
      */
+
+    // std::string UpnpOrNot(recv_buf.begin(), recv_buf.end());
 
     ConfigDir cd;
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";

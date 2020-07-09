@@ -1,3 +1,5 @@
+#include "json.hpp"
+
 #include "p2p.hpp"
 
 using namespace Crowd;
@@ -38,6 +40,12 @@ int Udp::udp_client(std::string srv_ip, std::string message)
     boost::array<char, 32> send_buf;
     std::copy(message.begin(), message.end(), send_buf.data());
     socket.send_to(boost::asio::buffer(send_buf), ep_other); // send message to upnp_peer
+
+    nlohmann::json message_json = nlohmann::json::parse(message.data());
+    if (message_json["upnp"] == "true")
+    {
+        return 0;
+    }
 
     while (true)
     {
