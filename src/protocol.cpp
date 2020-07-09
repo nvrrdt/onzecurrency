@@ -58,12 +58,14 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     uint32_t upnp_peer_key = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
     nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-    nlohmann::json msg = {{"version", "1.0"}, {"upnp", "true"}, {"fullnode", "true"}};
+    nlohmann::json msg = {{"version", "1.0"}, {"fullnode", "true"}};
 
     Upnp upnp;
     Udp udp;
     if(upnp.Upnp_main() == 0) // upnp possible
     {
+        msg["upnp"] = "true";
+
         if (udp.udp_client(upnp_peer_value["ip"].dump(), msg.dump()) == 0)
         {
             // set as upnp server in thread
@@ -111,6 +113,8 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     }
     else // upnp not possible
     {
+        msg["upnp"] = "false";
+
         if (udp.udp_client(upnp_peer_value["ip"].dump(), "helloupnpdisabled") == true)
         {
             // set as upnp client in thread
