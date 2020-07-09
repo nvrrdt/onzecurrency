@@ -16,7 +16,7 @@ namespace Crowd
 
     class ConfigDir
     {
-        char *homedir;
+        const char *homedir;
         std::string configdir;
     public:
         ConfigDir()
@@ -27,7 +27,8 @@ namespace Crowd
             }
             else
             {
-                homedir = "";
+                std::string hd = "";
+                homedir = hd.c_str();
             }
             
             
