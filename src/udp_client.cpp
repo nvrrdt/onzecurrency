@@ -41,8 +41,8 @@ int Udp::udp_client(std::string srv_ip, std::string message)
     std::copy(message.begin(), message.end(), send_buf.data());
     socket.send_to(boost::asio::buffer(send_buf), ep_other); // send message to upnp_peer
 
-    nlohmann::json message_json = nlohmann::json::parse(message.data());
-    if (message_json["upnp"] == "true")
+    nlohmann::json message_json = nlohmann::json::parse(message);
+    if (message_json["upnp"] == true)
     {
         return 0;
     }
