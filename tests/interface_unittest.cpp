@@ -1,16 +1,16 @@
-#include <boost/test/unit_test.hpp>
+// #include <boost/test/unit_test.hpp>
 
-#include "interface.hpp"
-using namespace Crowd;
+// #include "interface.hpp"
+// using namespace Crowd;
 
-BOOST_AUTO_TEST_SUITE(InterfaceTest)
+// BOOST_AUTO_TEST_SUITE(InterfaceTest)
 
-//Interface i;
+// //Interface i;
 
-BOOST_AUTO_TEST_CASE(Get)
-{
-    //BOOST_TEST_MESSAGE("Get: " << p.Get(1)); // ./build/tests --log_level=message
-    //BOOST_CHECK(p.Get(1) == "");
-}
+// BOOST_AUTO_TEST_CASE(Get)
+// {
+//     //BOOST_TEST_MESSAGE("Get: " << p.Get(1)); // ./build/tests --log_level=message
+//     //BOOST_CHECK(p.Get(1) == "");
+// }
 
-BOOST_AUTO_TEST_SUITE_END()
+// BOOST_AUTO_TEST_SUITE_END()

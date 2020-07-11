@@ -69,7 +69,7 @@ target_link_libraries(tests
                       ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                       ${CMAKE_THREAD_LIBS_INIT}
                       ${CURL_LIBRARIES}
-                      "/usr/lib/x86_64-linux-gnu/libleveldb.a"
+                      "/usr/lib/librocksdb.so"
                       "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
                       "/usr/lib/x86_64-linux-gnu/libsnappy.a"
                       ${CMAKE_THREAD_LIBS_INIT}

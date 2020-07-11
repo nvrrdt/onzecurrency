@@ -40,7 +40,7 @@ Verification::Verification()
 }
 bool Verification::Download()
 {
-    // Add 1 to own user_id and search for next chosen_one in leveldb that is online
+    // Add 1 to own user_id and search for next chosen_one in rocksdb that is online
 
     return false;
 }

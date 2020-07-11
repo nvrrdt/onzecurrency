@@ -10,20 +10,20 @@ def build_no_arg():
     
     if os.path.exists(str(build)):
         print(str(build))
-        command = ['cd ' + str(build) + ' && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests']
+        command = ['cd ' + str(build) + ' && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
         subprocess.call(command, shell=True)
     else:
         os.makedirs(build)
-        command = ['cd ' + str(build) + ' && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests']
+        command = ['cd ' + str(build) + ' && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
         subprocess.call(command, shell=True)
 
 def build_one_arg(test_path, test_name):
     if os.path.exists(test_path + "/build"):
-        command = ['cd ' + test_path + '/build && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests']
+        command = ['cd ' + test_path + '/build && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
         subprocess.call(command, shell=True)
     else:
         os.makedirs(test_path + "/build")
-        command = ['cd ' + test_path + '/build && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests']
+        command = ['cd ' + test_path + '/build && rm CMakeCache.txt && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
         subprocess.call(command, shell=True)
 
 def main():

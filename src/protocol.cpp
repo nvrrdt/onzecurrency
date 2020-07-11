@@ -81,7 +81,7 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
         }
         else
         {
-            // find next upnp provider in leveldb and set as new upnp server in thread
+            // find next upnp provider in rocksdb and set as new upnp server in thread
             while (true)
             {
                 uint32_t next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
@@ -130,7 +130,7 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
         }
         else
         {
-            // find next upnp provider in leveldb and set as upnp client in thread
+            // find next upnp provider in rocksdb and set as upnp client in thread
             while (true)
             {
                 uint32_t next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
@@ -260,7 +260,7 @@ int Protocol::verify_latest_block(std::string latest_block_peer)
 int Protocol::communicate_to_all(std::string msg)
 {
     /**
-     * Partition leveldb (size = uint32_t) in equal partitions
+     * Partition rocksdb (size = uint32_t) in equal partitions
      * Let the online peers know the update
      * Roundup(amount_of_online_peers^(1/3)) or Roundup(100^(1/3)) = Roundup(~4.6) = 5 partitions and Roundup(4.1) = 5 partitions
      * It is known who may signal you!
