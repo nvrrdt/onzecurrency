@@ -68,6 +68,7 @@
         "random": "cpp",
         "regex": "cpp",
         "cfenv": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "bit": "cpp"
     }
 }
