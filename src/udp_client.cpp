@@ -1,4 +1,5 @@
 #include "json.hpp"
+#include "poco.hpp"
 
 #include "p2p.hpp"
 
@@ -49,11 +50,16 @@ int Udp::udp_client(std::string srv_ip, std::string message)
 
     while (true)
     {
-        buf.push_back(Udp::client());
-        auto recv_buf = boost::asio::buffer(buf);
-        size_t len = socket.receive_from(recv_buf, ep_me);
+        boost::array<char, 128> recv_buf;
+        boost::system::error_code ec;
+        size_t len = socket.receive_from(boost::asio::buffer(recv_buf), ep_me, 0, ec);
+        if (ec && ec != boost::asio::error::message_size)
+            throw boost::system::system_error(ec);
 
-        std::cout << buf[0].host << ":" << buf[0].port << std::endl;
+        std::cout << "Received packet from " << ep_me.address() << ":" << ep_me.port() << std::endl;
+
+        buf[0].host = ep_me.address();
+        buf[0].port = ep_me.port();
 
         if (server[0].host == ep_other.address() && server[0].port == ep_other.port())
         {
@@ -91,6 +97,23 @@ int Udp::udp_client(std::string srv_ip, std::string message)
         }
         else
         {
+            /**
+             * Read the message from the peer
+             * If hello: hash, upnp, ip and update rocksdb
+             */
+
+            std::string message = recv_buf.data();
+            nlohmann::json message_j = nlohmann::json::parse(message);
+            std::string hash_of_new_peer = message_j["hash_of_new_peer"];
+            //std::string ip_of_new_peer = message_j["ip"];
+            //std::string upnp_of_new_peer = message_j["upnp"];
+            message_j.erase("hash_of_new_peer");
+
+            Poco p;
+            p.Put(static_cast<uint32_t>(std::stoul(hash_of_new_peer)), message_j.dump());
+
+
+
             // The datagram came from a peer
             for (int i = 0; i < n; i++)
             {
