@@ -88,7 +88,6 @@ int Udp::udp_server()
             ep_other.address() = ip::address_v4::from_string(ip_address);
             ep_other.port(port);
             socket.send_to(boost::asio::buffer(message), ep_other, 0, ignored_error);
-            hash_of_new_peer = next_peer;
         }
 
 
