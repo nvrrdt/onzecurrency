@@ -34,7 +34,7 @@ int Udp::udp_server()
 
     while (true)
     {
-        boost::array<char, 32> recv_buf;
+        boost::array<char, 128> recv_buf;
         socket.receive_from(boost::asio::buffer(recv_buf), ep_other, 0, ec);
         if (ec && ec != boost::asio::error::message_size)
             throw boost::system::system_error(ec);
@@ -47,7 +47,7 @@ int Udp::udp_server()
         n++;
 
         // // std::cout << "test " << recv_buf.data() << "te" << std::endl; // TODO: parse ip address here
-        // // boost::array<char, 32> msg = {"Hi"};
+        // // boost::array<char, 128> msg = {"Hi"};
         // // if (recv_buf == msg)
         // // {
         // //     std::cout << "Great!" << std::endl;

@@ -37,7 +37,7 @@ int Udp::udp_client(std::string srv_ip, std::string message)
     server[0].host = ep_other.address();
     server[0].port = ep_other.port();
 
-    boost::array<char, 32> send_buf;
+    boost::array<char, 128> send_buf;
     std::copy(message.begin(), message.end(), send_buf.data());
     socket.send_to(boost::asio::buffer(send_buf), ep_other); // send message to upnp_peer
 
@@ -83,7 +83,7 @@ int Udp::udp_client(std::string srv_ip, std::string message)
                     ep_other.address() = peers[i].host;
                     ep_other.port(peers[i].port);
                     // Payload irrelevant
-                    boost::array<char, 32> send_buf  = { "Hi" };
+                    boost::array<char, 128> send_buf  = { "Hi" };
                     boost::system::error_code ignored_error;
                     socket.send_to(boost::asio::buffer(send_buf), ep_other, 0, ignored_error);
                 }

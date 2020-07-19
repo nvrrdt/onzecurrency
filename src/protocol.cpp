@@ -246,7 +246,7 @@ std::string Protocol::latest_block()
 //     }
 // }
 
-// int Protocol::communicate_to_all(boost::array<char, 32> msg)
+// int Protocol::communicate_to_all(boost::array<char, 128> msg)
 // {
 //     /**
 //      * Partition rocksdb (size = uint32_t) in equal partitions
