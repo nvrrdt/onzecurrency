@@ -192,3 +192,19 @@ uint32_t Poco::FindNextUpnpPeer(uint32_t key)
 
     return key_upnp_peer;
 }
+uint32_t Poco::TotalAmountOfPeers()
+{
+    std::string string_num;
+    db->GetProperty("rocksdb.estimate-num-keys", &string_num);
+
+    std::istringstream iss (string_num);
+    uint32_t num;
+    iss >> num;
+    if (iss.fail())
+    {
+        std::cerr << "ERROR in creating the uint for the total_amount_of_peers!\n";
+        return 1;
+    }
+
+    return num;
+}

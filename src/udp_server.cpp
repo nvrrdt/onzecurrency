@@ -2,6 +2,9 @@
 #include <string.h>
 #include <errno.h>
 #include <json.hpp>
+#include <poco.hpp>
+#include "hash.hpp"
+#include <limits>
 
 #include "p2p.hpp"
 
@@ -59,29 +62,34 @@ int Udp::udp_server()
         // // Protocol p;
         // // p.response_hello(recv_buf);
 
-        /**
-         * - make a list of upnp_peer's clients, that might come in handy, but maybe not necessary -- DONE
-         * - response_hello: communicate to new_peer the latest block && communicate_to_all new_peer
-         *   --> (create new hash from peer and repeat rehashing until Roundup(amount_of_online_peers^(1/3)))
-         * 
-         * #include <limits>
-         * std::numeric_limits<uint32_t>::max(); // should be 2^32!
-         * 
-         * #include <math.h>
-         * ceil(2.3)
-         * pow (7.0, 3.0)
-         */
-
         // communicate latest_block to new_peer
-        Protocol p;
-        std::string latest_block = p.latest_block();
+        Protocol pr;
         boost::system::error_code ignored_error;
-        socket.send_to(boost::asio::buffer(latest_block), ep_other, 0, ignored_error);
+        socket.send_to(boost::asio::buffer(pr.latest_block()), ep_other, 0, ignored_error);
 
         // communicate_to_all presence of new_peer
-        // - hash Roundup(amount_of_online_peers^(1/3)) times the hash_of_new_peer
+        // - divide uint32::max into total_amount_of_peers^(1/3) parts and send the peer above those 5 partstarts a message
         // - FindNextPeer(hash) for those resulting hashes
         // - send_to() those peers the message
+        std::string message = recv_buf.data();
+        nlohmann::json message_j = nlohmann::json::parse(message);
+        std::string hash_of_new_peer = message_j["hash_of_new_peer"];
+        Poco po;
+        Hash h;
+        for (uint32_t i = static_cast<uint32_t>(std::stoul(hash_of_new_peer));
+             i < (static_cast<uint32_t>(std::stoul(hash_of_new_peer)) + std::numeric_limits<uint32_t>::max());
+             i = i + ceil(std::numeric_limits<uint32_t>::max()/pow(po.TotalAmountOfPeers(), (1.0/3.0))))
+        {
+            // FindNextPeer()--> get ip address --> send_to message --> hash_of_new_peer = next_peer
+            uint32_t next_peer = po.FindNextPeer(i);
+            std::string db_value_next_peer = po.Get(next_peer);
+            nlohmann::json db_value_next_peer_j = nlohmann::json::parse(db_value_next_peer);
+            std::string ip_address = db_value_next_peer_j["ip"];
+            ep_other.address() = ip::address_v4::from_string(ip_address);
+            ep_other.port(port);
+            socket.send_to(boost::asio::buffer(message), ep_other, 0, ignored_error);
+            hash_of_new_peer = next_peer;
+        }
 
 
 
