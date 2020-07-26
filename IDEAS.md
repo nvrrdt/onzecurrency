@@ -37,6 +37,7 @@
   + When dividing the blockchain each partial blockchain starts with a certain range of characters given in hex. Every tx with payer and payee will be hashed, the first character of that hash decides in which partial blockchain the tx will be included. All tx's form a block and sealing of the block is as follows: the block will be hashed including the nonce (the random number creation of all the peers in that partial blockchain leading to a unique nonce) and if the first character of the resulting hash is not in the range for the first character of that partial blockchain then 1 will be added to the nonce, if that doesn't give a correct range then 2 will added and so further. Then the block is sealed, the transactions done and on-chain sharding done. I don't really believe in off-chain sharding.
   + The dividing and merging blocks consists of: ...
 - There should be a confirmation when a transaction is waiting in a preliminary block, maybe the peer above the hash from the tx with payer and payee, is able to give an ok or nok.
+- In the case of the random number proposals of everyone for creating a random nonce: proof-of-verifiers should be introduced, the total uint32 spcae divided by total_online_peers^1/3 and they should ok everyone up to the next verifier if and only if all verifiers are ok.
 
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
