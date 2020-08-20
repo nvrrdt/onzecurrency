@@ -39,6 +39,46 @@
 - There should be a confirmation when a transaction is waiting in a preliminary block, maybe the peer above the hash from the tx with payer and payee, is able to give an ok or nok.
 - In the case of the random number proposals of everyone for creating a random nonce: proof-of-verifiers should be introduced, the total uint32 spcae divided by total_online_peers^1/3 and they should ok everyone up to the next verifier if and only if all verifiers are ok.
 
+### IOHK proposal
+2.1.	Proof-of-chosen-ones:
+All the peers in the network have a certain id which is produced by hashing (sha256 e.g.) some data. If there are 1.000.000 peers in a (e.g.) 3 layered network, then the first layer divides the network/peers in 1.000.000^⅓ = 100 equal parts, one of those 100 parts will also be divided in 100 parts in the second layer and the third layer divides again one part of layer 2 in 100 parts/peers. 
+For now let’s consider the first layer and start at the beginning, for this we need a starting point for choosing the 100 peers of layer 1 (the chosen ones!) and we do that by taking the last previous_hash (for inclusion into the next block) as the starting point. And so we’re able to divide the sha256 space (=uint32) into 100 (approx.) equal parts. The peer closest to this 1/100th is seen as a layer 1 peer.
+If all these peers create a pseudo random number and communicate them to each other, add all those numbers up (still uint32), then the result is a (I think true) random number. If this resulting number is then being verified by all the layer 1 peers, and if ok for all peers then this resulting number can be seen as a nonce for creating/sealing the next block.
+The next step is to communicate this nonce from layer 1 to layer 2 and from layer 2 to layer 3.
+
+If an issue should arise with ddos’ing the layer 1 peers, the first hash from the first starting point could be rehashed to create a new starting point (and so on if necessary).
+In the ideal world all layer 1 peers should communicate an ok, maybe a threshold percentage of ok’s could suffice.
+If in layer 1 there’s only 1 random number present (of 100 in this case, so 99 malicious peers) then a random number will be produced.
+The only computation that is needed is producing a random number, which is not so difficult or intensive.
+
+There is no mining and thus no mining fees.
+
+Validation of this proposal can initially only be done in a testing environment where as many peers as  possible are created that are able to create blocks enabling measurement of maximum throughput. Although I don’t have an idea what’s realistically possible when setting up a test environment.
+
+2.2.	Sharding and local sharding:
+All the peers’ id’s consist of a hash of some data. Based on the first character of the hash you’re able to divide the peers into buckets which could present a partial blockchain.
+In case of a financial transaction and block creation the following procedure is in place: the transaction will be hashed and the first character of that hash will decide the partial blockchain where this transaction will be included. Many transactions form a block, but it’s not sure that the first character of the hash of the block will be in the same blockchain as the transaction, which is why a simple structured nonce is introduced to create a correspondence between the transaction and the block (equal first character).
+This correspondence enables the usage of multiple partial blockchains.
+Every partial blockchain should also be able to shrink or expand based on the needs of the users. To enable this it might be needed to create extra blocks to announce the beginning and/or the end of an expanding/shrinking process.
+
+Local sharding is what I like to introduce. The idea is that the network latency will become much better if you group partial blockchains geographically, right now network communication is performed globally. May be of less importance but local sharding has also improved energy efficiency.
+Also most transactions happen in the same (overlapping) geographical region in my unmeasured opinion.
+
+For validating this proposal a test environment should be set up. The goal is to test the shrinkability and expandability of the partial blockchains and to verify the correctness of all resulting hashes.
+
+2.3.	Almost zero knowledge:
+When sealing a block all transactions are verified by the chosen ones and to enable almost zero knowledge the (non hashed) data of every last transaction should then also be redundantly distributed over a few peers.
+
+For every new transaction the first chosen one looks up at least two (for comparison) previous transactions (non hashed) from the distributed and redundant previous transactions and so she/he can verify the ability to e.g. fulfil a payment correctly.
+A chain of next chosen ones should also exist to verify the (hashed) transactions and to prevent malicious peers from interfering with the blockchain, but that’s another story.
+
+The last two transactions are there to be compared, older transactions should be deleted.
+
+In a network of 1.000.000 peers there aren’t many peers who are knowledgeable about your latest transaction, just the first chosen one and the redundancy peers.
+
+Also a testing environment should set up where the demanded functionality is tested.
+
+
 ### The blueprint:
 - check peers / assemble a peers list / update the peers list / kademlia
 - | check de blockchain's integrity or download the blockchain if none existent
