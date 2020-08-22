@@ -27,10 +27,11 @@ namespace Crowd
             }
             else
             {
-                char cwd[1024];
+                /* char cwd[1024];
                 getcwd(cwd, sizeof(cwd));
                 std::string hd = cwd;
-                homedir = hd.c_str();
+                homedir = hd.c_str(); */
+                homedir = "."; // use git clone onzehub-dev-setup with docker
             }
             
             
