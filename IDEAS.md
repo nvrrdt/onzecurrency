@@ -79,7 +79,7 @@ In a network of 1.000.000 peers there aren’t many peers who are knowledgeable 
 Also a testing environment should set up where the demanded functionality is tested.
 
 ### On a side note:
-- futurewise: the os in the blockchain: couldn't installed programs or perhaps an entire operating system be hashed part by part in order to be compared with what peers have installed. The goal is to figure out if someone's system has been tampered with by someone else, a hacker perhaps. Cofiguration files remain an issue in this setup, how do you compare configuration files. Also software that isn't distributed or very scarce won't be comparable in this setup. The Compared Web - CW.
+- futurewise: the os in the blockchain: couldn't installed programs or perhaps an entire operating system be hashed part by part in order to be compared with what peers have installed. The goal is to figure out if someone's system has been tampered with by someone else, a hacker perhaps. Cofiguration files remain an issue in this setup, how do you compare configuration files. Also software that isn't distributed or very scarce won't be comparable in this setup. The Compared Web - CW. To introduce entropy when hashing a whole computer a by consensus determined nonce-like number can create instantanious hashes of the whole system to be compared by peers, this to obstruct already fixed hashes made by a malicious peer.
 - responsability for what's being communicated, like a registered letter, should be trivial in the blockchain world. Only privacy remains an issue.
 
 ### The blueprint:
