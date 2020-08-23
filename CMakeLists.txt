@@ -38,21 +38,21 @@ INCLUDE(CPack)
 
 ### enable_testing:
 
-enable_testing()
-find_package(GTest REQUIRED)
-include(GoogleTest)
+#enable_testing()
+#find_package(GTest REQUIRED)
+#include(GoogleTest)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-find_package(GMock REQUIRED)
-include_directories(${GMOCK_INCLUDE_DIRS})
+#set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+#find_package(GMock REQUIRED)
+#include_directories(${GMOCK_INCLUDE_DIRS})
 
-file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+#file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
 
-add_executable(tests ${all_TESTS})
+#add_executable(tests ${all_TESTS})
 
-target_link_libraries(tests 
-                      GTest::GTest
-                      GTest::Main
-                      ${GMOCK_BOTH_LIBRARIES}
-)
-gtest_discover_tests(tests)
+#target_link_libraries(tests 
+#                      GTest::GTest
+#                      GTest::Main
+#                      ${GMOCK_BOTH_LIBRARIES}
+#)
+#gtest_discover_tests(tests)
