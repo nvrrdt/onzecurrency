@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(BOOST_INCLUDEDIR /usr/include)
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
@@ -25,6 +28,9 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_executable(onzehub-terminal ${all_SRCS})
 target_link_libraries(${PROJECT_NAME}
         /usr/local/lib/onzehub/liblogin.so # TODO: make this also work on windows
+        /usr/local/lib/onzehub/libcrowd.so
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
 )
 INSTALL(TARGETS onzehub-terminal
         RUNTIME DESTINATION bin
@@ -40,21 +46,21 @@ INCLUDE(CPack)
 
 ### enable_testing:
 
-enable_testing()
-find_package(GTest REQUIRED)
-include(GoogleTest)
+#enable_testing()
+#find_package(GTest REQUIRED)
+#include(GoogleTest)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-find_package(GMock REQUIRED)
-include_directories(${GMOCK_INCLUDE_DIRS})
+#set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+#find_package(GMock REQUIRED)
+#include_directories(${GMOCK_INCLUDE_DIRS})
 
-file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
+#file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/*.cpp")
 
-add_executable(tests ${all_TESTS})
+#add_executable(tests ${all_TESTS})
 
-target_link_libraries(tests 
-                      GTest::GTest
-                      GTest::Main
-                      ${GMOCK_BOTH_LIBRARIES}
-)
-gtest_discover_tests(tests)
+#target_link_libraries(tests 
+#                      GTest::GTest
+#                      GTest::Main
+#                      ${GMOCK_BOTH_LIBRARIES}
+#)
+#gtest_discover_tests(tests)
