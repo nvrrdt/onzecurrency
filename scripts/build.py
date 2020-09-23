@@ -3,42 +3,25 @@ import os
 import subprocess
 from pathlib import Path
 
-def build_no_arg():
+def main():
     # find the path of the build folder
     os.chdir(os.path.dirname(__file__))
-    build = Path(os.getcwd()).parent / "build"
-    
-    if os.path.exists(str(build)):
-        print(str(build))
-        command = ['cd ' + str(build) + ' && [ -f ./CMakeCache.txt ] && rm CMakeCache.txt || cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
-        subprocess.call(command, shell=True)
-    else:
-        os.makedirs(build)
-        command = ['cd ' + str(build) + ' && [ -f ./CMakeCache.txt ] && rm CMakeCache.txt || cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
-        subprocess.call(command, shell=True)
+    build_path = str(Path(os.getcwd()).parent / "build")
 
-def build_one_arg(test_path, test_name):
-    if os.path.exists(test_path + "/build"):
-        command = ['cd ' + test_path + '/build && [ -f ./CMakeCache.txt ] && rm CMakeCache.txt || cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
-        subprocess.call(command, shell=True)
-    else:
-        os.makedirs(test_path + "/build")
-        command = ['cd ' + test_path + '/build && [ -f ./CMakeCache.txt ] && rm CMakeCache.txt || cmake -DCMAKE_BUILD_TYPE=Debug .. && make && ./tests --log_level=message']
-        subprocess.call(command, shell=True)
+    command = ['cd ' + build_path + ' \
+            && [ -f ./CMakeCache.txt ] \
+            && rm CMakeCache.txt \
+            || cmake -DCMAKE_BUILD_TYPE=Debug .. \
+            && make \
+            && ./src/libcrowd/tests --log_level=message \
+            && ./src/liblogin/tests --log_level=message \
+            && ./src/ui/terminal/onzehub-terminal']
 
-def main():
-    if len(sys.argv) > 2:
-        print("Max 1 argument ...")
-    elif len(sys.argv) == 2:
-        print("One argument.")
-        test_path = str(sys.argv[1])
-        test_name = os.path.basename(test_path)
-        build_one_arg(test_path, test_name)
-    elif len(sys.argv) == 1:
-        print("No argument.")
-        build_no_arg()
+    if os.path.exists(build_path):
+        subprocess.call(command, shell=True)
     else:
-        print("There's something wrong!")
+        os.makedirs(build_path)
+        subprocess.call(command, shell=True)
 
 if __name__ == '__main__':
     try:
