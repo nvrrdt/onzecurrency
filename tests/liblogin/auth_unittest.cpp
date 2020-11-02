@@ -1,16 +1,21 @@
-/*#include "gtest/gtest.h"
-#include "gmock/gmock.h"
+/*#include <boost/test/unit_test.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include "auth.hpp"
+using namespace Crowd;
 
-using ::testing::Return;
-using ::testing::_;
+BOOST_AUTO_TEST_SUITE(AuthTest)
 
-using namespace crowd;
+ConfigDir cd;
 
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleMock(&argc, argv);
-    return RUN_ALL_TESTS();
+BOOST_AUTO_TEST_CASE(GetConfigDir)
+{
+    BOOST_CHECK(boost::algorithm::ends_with(cd.GetConfigDir(), ".config/onzehub/"));
 }
+BOOST_AUTO_TEST_CASE(CreateFileInConfigDir)
+{
+    BOOST_CHECK(cd.CreateFileInConfigDir("test.txt", "test") == 0);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 */

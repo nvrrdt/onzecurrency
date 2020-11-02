@@ -1,17 +1,21 @@
-#include <onzehub/auth.hpp>
-#include <onzehub/p2p.hpp>
+#include <string>
 
-#include "main.hpp"
+#include "liblogin/auth.hpp"
+#include "libcrowd/p2p.hpp"
 
-using namespace crowd;
+#include "ui/terminal/main.hpp"
+
+using namespace Crowd;
 
 int main(int argc, char *argv[])
 {
     auth a;
     a.authentication();
 
-    p2p_handler ph;
-    ph.p2p_switch("download", "172.31.24.198");
+    std::string s = "1";
+    std::string& ss = s;
+    Protocol p;
+    p.hello_and_setup(ss);
 
     return 0;
 }

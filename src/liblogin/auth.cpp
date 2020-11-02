@@ -4,7 +4,7 @@
 
 #include "auth.hpp"
 
-using namespace crowd;
+using namespace Crowd;
 
 std::vector<std::string> auth::authentication()
 {

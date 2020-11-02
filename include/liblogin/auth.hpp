@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace crowd
+namespace Crowd
 {
     class auth
     {

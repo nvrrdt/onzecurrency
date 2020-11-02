@@ -20,13 +20,14 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_executable(onzehub-terminal "${all_SRCS}")
 target_link_libraries(onzehub-terminal
-        #/usr/local/lib/onzehub/liblogin.so # TODO: make this also work on windows
         LINK_PUBLIC crowd
-        #/usr/local/lib/onzehub/libcrowd.so
         LINK_PUBLIC login
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT}
+        "/usr/lib/librocksdb.so"
+        "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
+        "/usr/lib/x86_64-linux-gnu/libsnappy.a"
 )
 #INSTALL(TARGETS onzehub-terminal
 #        RUNTIME DESTINATION bin

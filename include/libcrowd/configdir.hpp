@@ -8,6 +8,9 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
+
 namespace Crowd
 {
     /**
@@ -18,6 +21,7 @@ namespace Crowd
     {
         const char *homedir;
         std::string configdir;
+        std::string configdir1;
     public:
         ConfigDir()
         {
@@ -36,16 +40,34 @@ namespace Crowd
             
             
             configdir = homedir;
-            configdir += "/.config/onzehub/";
+            configdir += "/.config/";
+            configdir1 = configdir + "onzehub/";
+
+            boost::system::error_code c;
+            boost::filesystem::path path(configdir);
+            boost::filesystem::path path1(configdir1);
+
+            if (!boost::filesystem::exists(path1))
+            {
+                try
+                {
+                    boost::filesystem::create_directory(path);
+                    boost::filesystem::create_directory(path1);
+                }
+                catch (boost::filesystem::filesystem_error &e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+            }
         }
         std::string GetConfigDir()
         {
-            return configdir;
+            return configdir1;
         }
         int CreateFileInConfigDir(std::string filename, std::string content)
         {
             std::ofstream ofs;
-            ofs.open (configdir + filename, std::ofstream::out | std::ofstream::app);
+            ofs.open (configdir1 + filename, std::ofstream::out | std::ofstream::app);
 
             ofs << content;
 

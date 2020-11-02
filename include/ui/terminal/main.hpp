@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-namespace crowd
+namespace Crowd
 {
     class main
     {
