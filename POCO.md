@@ -22,3 +22,10 @@ h(h(f)+h(g)) && h(f) == peer_id
 h(g) && f-->1peer-->h(f)-->rest van de peers == proof  
 f == enkele rules == email  
 h(g) moet met verschillende passes gemaakt worden, op te zoeken, mss f conc g
+
+### Number of peers per layer:
+
+peers layer 0 = peers^(1/3)  
+peers layer 1 = peers^(1/2)  
+peers layer 2 =(peers – peers^(1/2) – peers^(1/3)) / peers^(1/2)  
+
