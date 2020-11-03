@@ -27,15 +27,13 @@ file(GLOB all_HEADERS
 
 add_library(crowd SHARED ${all_SRCS})
 set_target_properties(crowd PROPERTIES PUBLIC_HEADER "${all_HEADERS}")
-target_include_directories(crowd PUBLIC include)
-target_include_directories(crowd PUBLIC src)
+target_include_directories(crowd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-#INSTALL(TARGETS crowd
-#        ARCHIVE DESTINATION lib/onzehub
-#        LIBRARY DESTINATION lib/onzehub
-#        PUBLIC_HEADER DESTINATION include/onzehub
-#        COMPONENT library
-#)
+### install:
+
+INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcrowd/libcrowd.so DESTINATION lib/onzehub)
+INSTALL(FILES ${all_HEADERS} DESTINATION include/onzehub)
+
 
 ### enable_testing
 

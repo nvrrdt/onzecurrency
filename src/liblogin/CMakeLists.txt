@@ -14,15 +14,13 @@ file(GLOB all_HEADERS
 
 add_library(login SHARED "${all_SRCS}")
 set_target_properties(login PROPERTIES PUBLIC_HEADER "${all_HEADERS}")
-target_include_directories(login PUBLIC include)
-target_include_directories(login PUBLIC src)
+target_include_directories(login PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-#INSTALL(TARGETS login
-#        ARCHIVE DESTINATION lib/onzehub
-#        LIBRARY DESTINATION lib/onzehub
-#        PUBLIC_HEADER DESTINATION include/onzehub
-#        COMPONENT library
-#)
+### install:
+
+INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/liblogin/liblogin.so DESTINATION lib/onzehub)
+INSTALL(FILES ${all_HEADERS} DESTINATION include/onzehub)
+
 
 ### enable_testing:
 

@@ -16,12 +16,13 @@ file(GLOB all_HEADERS
         "${PROJECT_SOURCE_DIR}/include/ui/terminal/*"
 )
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/onzehub")
 
 add_executable(onzehub-terminal "${all_SRCS}")
+set_target_properties(onzehub-terminal PROPERTIES PUBLIC_HEADER "${all_HEADERS}")
 target_link_libraries(onzehub-terminal
-        LINK_PUBLIC crowd
         LINK_PUBLIC login
+        LINK_PUBLIC crowd
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT}
@@ -29,10 +30,11 @@ target_link_libraries(onzehub-terminal
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
 )
-#INSTALL(TARGETS onzehub-terminal
-#        RUNTIME DESTINATION bin
-#        COMPONENT runtime
-#)
+
+### install:
+
+install(FILES ${PROJECT_SOURCE_DIR}/build/src/ui/terminal/onzehub-terminal DESTINATION bin)
+
 
 ### enable_testing:
 
