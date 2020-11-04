@@ -1,4 +1,9 @@
 ### What's next?
+- switch from udp to tcp
+- connect all layer 0 peers, taking into account the upnp_peers
+
+- setup the hello to the network with the login procedure described in LOGIN.md
+
 - communicate to all peers that there's an new online peer, so they can update their rocksdb
   --> in udp_server.cpp update the message with an request value
   --> in udp_client and udp_server: when hello is received and the rquest is to inform your peers, inform your peers

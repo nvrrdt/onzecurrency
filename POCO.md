@@ -14,15 +14,6 @@ when peer layer 2 receives nonce0, it needs to verify in layer 1 next peer and l
 add layer if layer 0 become > 128 == 128 tcp connections for a server  
 in a network of 5 peers: s1 == server 1 to cl2 == client 2 and to cl 3 and to cl4 and cl5, s2 to cl3 and to cl4 and to cl5, s3 to cl4 and to cl5, s4 to cl5 --> draw a circle with 5 dots
 
-### How login works:
-
-f=login, h(f)  
-g=pass, h(g)  
-h(h(f)+h(g)) && h(f) == peer_id  
-h(g) && f-->1peer-->h(f)-->rest van de peers == proof  
-f == enkele rules == email  
-h(g) moet met verschillende passes gemaakt worden, op te zoeken, mss f conc g
-
 ### Number of peers per layer:
 
 peers layer 0 = peers^(1/3)  
