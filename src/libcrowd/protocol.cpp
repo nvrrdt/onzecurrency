@@ -55,7 +55,7 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
      */
 
     Poco poco;
-    uint32_t upnp_peer_key = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
+    std::string upnp_peer_key = poco.FindUpnpPeer(my_user_login_hash);
     nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
     nlohmann::json msg = {{"version", 1.0}, {"hash_of_new_peer", my_user_login_hash}, {"fullnode", true}};
@@ -84,7 +84,7 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
             // find next upnp provider in rocksdb and set as new upnp server in thread
             while (true)
             {
-                uint32_t next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
+                std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
                 if (udp.udp_client(next_upnp_peer_value["ip"].dump(), "helloupnpenabled") == 0)
@@ -133,7 +133,7 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
             // find next upnp provider in rocksdb and set as upnp client in thread
             while (true)
             {
-                uint32_t next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
+                std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
                 if (udp.udp_client(next_upnp_peer_value["ip"].dump(), "helloupnpenabled") == 0)

@@ -110,7 +110,7 @@ int Udp::udp_client(std::string srv_ip, std::string message)
             message_j.erase("hash_of_new_peer");
 
             Poco p;
-            p.Put(static_cast<uint32_t>(std::stoul(hash_of_new_peer)), message_j.dump());
+            p.Put(hash_of_new_peer, message_j.dump());
 
 
 

@@ -32,13 +32,13 @@ namespace Crowd
         std::string usersdb_folder_path = cd.GetConfigDir() + "usersdb";
     public:
         Poco();
-        std::string Get(uint32_t key);
-        bool Put(uint32_t key, std::string value);
-        bool Delete(uint32_t key);
-        uint32_t FindChosenOne(uint32_t key);
-        uint32_t FindNextPeer(uint32_t key);
-        uint32_t FindUpnpPeer(uint32_t key);
-        uint32_t FindNextUpnpPeer(uint32_t key);
+        std::string Get(std::string key);
+        bool Put(std::string key, std::string value);
+        bool Delete(std::string key);
+        std::string FindChosenOne(std::string key);
+        std::string FindNextPeer(std::string key);
+        std::string FindUpnpPeer(std::string key);
+        std::string FindNextUpnpPeer(std::string key);
         uint32_t TotalAmountOfPeers();
     };
 }

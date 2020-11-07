@@ -81,7 +81,7 @@ int Udp::udp_server()
              i = i + ceil(std::numeric_limits<uint32_t>::max()/pow(po.TotalAmountOfPeers(), (1.0/3.0))))
         {
             // FindNextPeer()--> get ip address --> send_to message --> hash_of_new_peer = next_peer
-            uint32_t next_peer = po.FindNextPeer(i);
+            std::string next_peer = po.FindNextPeer(std::to_string(i));
             std::string db_value_next_peer = po.Get(next_peer);
             nlohmann::json db_value_next_peer_j = nlohmann::json::parse(db_value_next_peer);
             std::string ip_address = db_value_next_peer_j["ip"];
