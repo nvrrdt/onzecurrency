@@ -13,6 +13,7 @@ def main():
     
     # Adding optional arguments
     parser.add_argument("-r", "--remove-build-dir", help = "Remove build directory", action="store_true")
+    parser.add_argument("-m", "--make", help = "Make", action="store_true")
     parser.add_argument("-i", "--install", help = "Make install", action="store_true")
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
     parser.add_argument("-t", "--tests", help = "Run tests", action="store_true")
@@ -25,9 +26,10 @@ def main():
     if args.remove_build_dir:
         if os.path.exists(project_path("build")):
             subprocess.call('rm -r ' + project_path("build"), shell=True)  # suppose we're in ./scripts directory
+    if args.make:
+        subprocess.call('cd ' + project_path("build") + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make', shell=True)
     if args.install:
-        subprocess.call('cd ' + project_path("build") + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. \
-            && make && make install && chmod +x /usr/local/bin/onzehub-terminal', shell=True)
+        subprocess.call('cd ' + project_path("build") + ' && make install && chmod +x /usr/local/bin/onzehub-terminal', shell=True)
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
