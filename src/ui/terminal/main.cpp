@@ -1,15 +1,15 @@
 #include <string>
 
-#include "liblogin/auth.hpp"
-#include "libcrowd/p2p.hpp"
+#include "auth.hpp"
+#include "p2p.hpp"
 
-#include "ui/terminal/main.hpp"
+#include "main.hpp"
 
 using namespace Crowd;
 
 int main(int argc, char *argv[])
 {
-    auth a;
+    Auth a;
     a.authentication();
 
     std::string s = "1";
