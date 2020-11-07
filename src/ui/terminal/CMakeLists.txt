@@ -1,3 +1,5 @@
+find_package(OpenSSL REQUIRED)
+
 set(BOOST_INCLUDEDIR /usr/include)
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Threads)
@@ -8,6 +10,8 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/include/liblogin
         ${PROJECT_SOURCE_DIR}/src/ui/terminal
 )
+
+link_directories(${OPENSSL_LIBRARIES})
 
 file(GLOB all_SRCS
         "${PROJECT_SOURCE_DIR}/include/ui/terminal/*.hpp"
@@ -25,6 +29,7 @@ set_target_properties(onzehub-terminal PROPERTIES PUBLIC_HEADER "${all_HEADERS}"
 target_link_libraries(onzehub-terminal
         LINK_PUBLIC login
         LINK_PUBLIC crowd
+        OpenSSL::SSL
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT}

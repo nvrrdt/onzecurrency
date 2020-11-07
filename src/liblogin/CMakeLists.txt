@@ -7,13 +7,11 @@ include_directories(
 
 file(GLOB all_SRCS
         "${PROJECT_SOURCE_DIR}/include/liblogin/*.hpp"
-        "${PROJECT_SOURCE_DIR}/include/libcrowd/*.hpp"
         "${PROJECT_SOURCE_DIR}/src/liblogin/*.cpp"
 )
 
 file(GLOB all_HEADERS
         "${PROJECT_SOURCE_DIR}/include/liblogin/*.hpp"
-        "${PROJECT_SOURCE_DIR}/include/libcrowd/*.hpp"
 )
 
 add_library(login SHARED "${all_SRCS}")
