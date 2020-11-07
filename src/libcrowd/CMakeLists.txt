@@ -10,6 +10,8 @@ find_package(CURL REQUIRED)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/libcrowd
+        ${PROJECT_SOURCE_DIR}/include/liblogin
+        ${PROJECT_SOURCE_DIR}/include/ui/terminal
         ${PROJECT_SOURCE_DIR}/src/libcrowd
         ${Boost_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIR}

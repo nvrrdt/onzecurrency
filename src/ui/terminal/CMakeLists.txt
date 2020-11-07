@@ -3,7 +3,9 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Threads)
 
 include_directories(
-        ${PROJECT_SOURCE_DIR}/include/
+        ${PROJECT_SOURCE_DIR}/include/ui/terminal
+        ${PROJECT_SOURCE_DIR}/include/libcrowd
+        ${PROJECT_SOURCE_DIR}/include/liblogin
         ${PROJECT_SOURCE_DIR}/src/ui/terminal
 )
 
@@ -13,7 +15,7 @@ file(GLOB all_SRCS
 )
 
 file(GLOB all_HEADERS
-        "${PROJECT_SOURCE_DIR}/include/ui/terminal/*"
+        "${PROJECT_SOURCE_DIR}/include/**.hpp"
 )
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/onzehub")
