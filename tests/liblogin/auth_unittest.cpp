@@ -1,21 +1,24 @@
-/*#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
+#include "configdir.hpp"
 #include "auth.hpp"
 using namespace Crowd;
 
 BOOST_AUTO_TEST_SUITE(AuthTest)
 
-ConfigDir cd;
+Auth a;
 
-BOOST_AUTO_TEST_CASE(GetConfigDir)
+BOOST_AUTO_TEST_CASE(SetNetwork)
 {
-    BOOST_CHECK(boost::algorithm::ends_with(cd.GetConfigDir(), ".config/onzehub/"));
+    BOOST_CHECK(a.setNetwork("Default") == 0);
 }
-BOOST_AUTO_TEST_CASE(CreateFileInConfigDir)
+BOOST_AUTO_TEST_CASE(validateEmail)
 {
-    BOOST_CHECK(cd.CreateFileInConfigDir("test.txt", "test") == 0);
+    std::string email1 = "test@test.com";
+    std::string email2 = "testtest.com";
+    BOOST_CHECK(a.validateEmail(email1) == 0);
+    BOOST_CHECK(a.validateEmail(email2) == 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-*/
