@@ -45,7 +45,7 @@ int Auth::setNetwork(std::string network)
 {
     if (network != "Default")
     {
-        printf("Network must be 'Default'");
+        printf("Network must be 'Default'\n");
         return 1;
     }
 
@@ -90,7 +90,7 @@ int Auth::verifyCredentials(std::string email, std::string string_password)
 
     if (json_poco_response.is_null()) // TODO: test this for when a key is nonexistant in rocksdb, not sure if this works
     {
-        printf("A new user will be created!");
+        printf("A new user will be created!\n");
         Auth::createNewUser(email_hashed_from_input, string_full_hash_from_input);
     }
 
