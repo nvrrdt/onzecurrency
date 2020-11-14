@@ -2,6 +2,7 @@
 #include <thread>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
+#include <vector>
 
 #include "json.hpp"
 
@@ -41,6 +42,25 @@ using namespace Crowd;
  *               or download the latest blocks from 13 users who are the hashes of your hash
  * - new_user: - just a few hardcoded and upnp enabled peers will are used for this case
  *             - the hardcoded peer above the hash of the new user will communicate the new user to all the peers
+ * 
+ * The json message might contain:
+ * - full hash = fh [uint32]
+ * - hash of email = em [uint32]
+ * - salt = sa [uint32]
+ * - version = ve [major.minor.micro]
+ * - ip adress = ip [ip]
+ * - full node = fn [true | false]
+ * - upnp = up [true | false]
+ * !! last login datetime must be in block
+ * 
+ * A block in the blockchain must contain:
+ * - full hash = fh [uint32] of every peer in basket
+ * - hash of email = em [uint32] of every peer in basket
+ * - full hash = sa [uint32] of every peer in basket
+ * - timestamp = ts [datetime]
+ * - previous hash = ph [uint32]
+ * - counter value = co [uint]
+ * - ...
  */
 
 // - hello network!
@@ -264,6 +284,64 @@ std::string Protocol::latest_block()
 
 //     // find all peers to communciate to ...
 
-
 //     return 0;
 // }
+
+std::map<std::string, uint32_t> Protocol::layer_management(std::string string_total_amount_of_peers)
+{
+    const int nmax = 100;   // max number of peers per section
+    uint32_t i;                  // number of layers
+    uint64_t tmaxmax = 0, tmaxmin = 0, overshoot = 0, tlayer = 0;
+    uint32_t total_amount_of_peers = static_cast<uint32_t>(std::stoul(string_total_amount_of_peers)); // real number of peers
+
+    std::vector<uint64_t> layercontents;
+
+    for (i = 1; i <= 20; i++)
+    {
+        
+        tlayer = pow(nmax, i);  // max number of peers in a layer
+        tmaxmax += tlayer;      // max number of peers in all layers
+
+        layercontents.push_back(tlayer);
+
+        if (total_amount_of_peers <= tmaxmax)
+        {
+            printf("t(last)layer: %ld and tmaxmax: %ld\n", tlayer, tmaxmax);
+            printf("total_amount_of_peers: %d\n", total_amount_of_peers);
+            printf("layers i: %d\n", i);
+            break;
+        }
+    }
+
+    tmaxmin = tmaxmax - layercontents.at(i-1);      // max number of peers in all layers minus last layer
+    printf("tmaxmin: %ld\n", tmaxmin);
+    overshoot = total_amount_of_peers - tmaxmin;    // number of real peers in last layer
+    printf("overshoot: %ld\n", overshoot);
+    
+    // partitioning of last layer:
+    // explantation: remainder peers (layer before last) connect to (quotient + 1) in last layer
+    //               (layercont - remainder) peers (layer before last) connect to (quotient) in last layer
+    uint32_t quotient, remainder;
+    if (i == 1) // only 1 layer == layer 0
+    {
+        quotient = 0;
+        remainder = overshoot;
+        printf("quotient: %d\n", quotient);
+    }
+    else
+    {
+        quotient = total_amount_of_peers / layercontents.at(i-2);
+        remainder = total_amount_of_peers % layercontents.at(i-2);
+        printf("quotient: %d and remainder: %d and layercont: %ld\n", quotient, remainder, layercontents.at(i-2));
+    }
+
+    std::map<std::string, uint32_t> result;
+    result["layers"] = i;
+    result["remainder"] = remainder;
+    result["peersinremainder"] = quotient+1;
+    result["overshoot"] = overshoot;
+
+    return result;
+    
+    // return map ... {"layers", i; "remainder", quotient+1}
+}

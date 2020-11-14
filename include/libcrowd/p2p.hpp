@@ -61,6 +61,7 @@ namespace Crowd
     public:
         int hello_and_setup(std::string& my_user_login_hash);
         std::string latest_block();
+        std::map<std::string, uint32_t> layer_management(std::string total_amount_of_peers);
     private:
         int verify_latest_block(std::string latest_block_peer);
         int communicate_to_all(boost::array<char, 128> msg);
