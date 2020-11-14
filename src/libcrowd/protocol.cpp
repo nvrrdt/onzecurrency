@@ -341,7 +341,10 @@ std::map<std::string, uint32_t> Protocol::layer_management(std::string string_to
     result["peersinremainder"] = quotient+1;
     result["overshoot"] = overshoot;
 
+    printf("\nlayers: %d\n", result["layers"]);
+    printf("remainder: %d\n", result["remainder"]);
+    printf("peersinremainder: %d\n", result["peersinremainder"]);
+    printf("overshoot: %d\n", result["overshoot"]);
+
     return result;
-    
-    // return map ... {"layers", i; "remainder", quotient+1}
 }

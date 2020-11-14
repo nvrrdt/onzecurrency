@@ -12,9 +12,9 @@ namespace Crowd
     class Auth
     {
     public:
-        std::vector<std::string> authentication();
+        std::string authentication();
         int setNetwork(std::string network);
-        int verifyCredentials(std::string email, std::string password);
+        std::string verifyCredentials(std::string email, std::string password);
         bool validateEmail(const std::string& email);
         int createNewUser(std::string email_hashed_from_input, std::string string_full_hash_from_input);
         uint32_t changeExistingFullHash(std::string email, std::string string_password);

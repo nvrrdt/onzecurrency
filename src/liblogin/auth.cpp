@@ -12,7 +12,7 @@
 
 using namespace Crowd;
 
-std::vector<std::string> Auth::authentication()
+std::string Auth::authentication()
 {
     std::string network, email, password;
 
@@ -23,18 +23,20 @@ std::vector<std::string> Auth::authentication()
     std::cout << "Password: ";
     std::cin >> password;
 
-    std::vector<std::string> cred;
-    cred.push_back(network);
-    cred.push_back(email);
-    cred.push_back(password);
-
-    if (Auth::setNetwork(network) && Auth::verifyCredentials(email, password) == 0)
+    if (!Auth::validateEmail(email))
     {
-        return cred;
+        return "1";
+    }
+
+    std::string string_full_hash = Auth::verifyCredentials(email, password);
+
+    if (Auth::setNetwork(network) == 0 && string_full_hash != "0")
+    {
+        return string_full_hash;
     }
     else
     {
-        return cred;
+        return "1";
     }
 }
 
@@ -59,13 +61,8 @@ int Auth::setNetwork(std::string network)
  * get email, H(H(email)+H(H(password+salt))) and salt from blockchain in rocksdb
  * if no data from blockchain: create new user
  */
-int Auth::verifyCredentials(std::string email, std::string string_password)
+std::string Auth::verifyCredentials(std::string email, std::string string_password)
 {
-    if (!Auth::validateEmail(email))
-    {
-        return 1;
-    }
-
     Hash h;
     std::string email_hashed_from_input;
     h.create_hash(email, email_hashed_from_input);
@@ -85,27 +82,27 @@ int Auth::verifyCredentials(std::string email, std::string string_password)
     // create full_hash from the input
     std::string full_hash_and_salt_hashed, full_hash_and_salt_hashed_again, string_full_hash_from_input;
     h.create_hash(string_password + string_salt_from_blockchain, full_hash_and_salt_hashed);
-    h.create_hash(full_hash_and_salt_hashed, full_hash_and_salt_hashed_again);
-    h.create_hash(email_hashed_from_input + full_hash_and_salt_hashed_again, string_full_hash_from_input);
+    h.create_hash(full_hash_and_salt_hashed + string_salt_from_blockchain, full_hash_and_salt_hashed_again);
+    h.create_hash(email_hashed_from_input + full_hash_and_salt_hashed_again + string_salt_from_blockchain, string_full_hash_from_input);
 
     if (json_poco_response.is_null()) // TODO: test this for when a key is nonexistant in rocksdb, not sure if this works
-    {
+    {   
+        // TODO: set new salt, set full hash, email: communicate those three to the next_upnp_peer of the full hash
+        // put also the full_hash creation procedure in a function
         printf("A new user will be created!\n");
-        Auth::createNewUser(email_hashed_from_input, string_full_hash_from_input);
+        Auth::createNewUser(email, string_full_hash_from_input);
     }
 
     // compare input with blockchain
     if (string_full_hash_from_input == string_full_hash_from_blockchain
         && email_hashed_from_input == string_email_hash_from_blockchain)
     {
-        // TODO: communicate email and H(H(password+salt)) and salt to chosen_one
-        // chosen_one validates communicates and sends H(email) and H(H(email)+H(H(password+salt))) to layer 0
-        return 0;
+        return string_full_hash_from_input;
     }
     else
     {
         std::cerr << "ERROR in comparing email and full_hash between input and blockchain!\n";
-        return 1;
+        return "0";
     } 
 }
 
