@@ -5,9 +5,7 @@
 
 using namespace Crowd;
 
-//#define PORT "1975"
-//#define SRV_IP "127.0.0.1" //"141.135.77.90"
-
+// https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1
 int Udp::udp_client(std::string srv_ip, std::string message)
 {
     short port = 1975;
@@ -52,14 +50,14 @@ int Udp::udp_client(std::string srv_ip, std::string message)
     {
         boost::array<char, 128> recv_buf;
         boost::system::error_code ec;
-        size_t len = socket.receive_from(boost::asio::buffer(recv_buf), ep_me, 0, ec);
+        size_t len = socket.receive_from(boost::asio::buffer(recv_buf), ep_other, 0, ec);
         if (ec && ec != boost::asio::error::message_size)
             throw boost::system::system_error(ec);
 
-        std::cout << "Received packet from " << ep_me.address() << ":" << ep_me.port() << std::endl;
+        std::cout << "Received packet from " << ep_other.address() << ":" << ep_other.port() << std::endl;
 
-        buf[0].host = ep_me.address();
-        buf[0].port = ep_me.port();
+        buf[0].host = ep_other.address();
+        buf[0].port = ep_other.port();
 
         if (server[0].host == ep_other.address() && server[0].port == ep_other.port())
         {
@@ -82,18 +80,22 @@ int Udp::udp_client(std::string srv_ip, std::string message)
             ep_other.port(buf[0].port);
             std::cout << "Added peer " << ep_other.address() << ":" << ep_other.port() << std::endl;
             std::cout << "Now we have " << n << " peers" << std::endl;
-            for (int k = 0; k < 10; k++)
-            {
+
+            // for (int k = 0; k < 10; k++)
+            // {
                 for (int i = 0; i < n; i++)
                 {
                     ep_other.address() = peers[i].host;
                     ep_other.port(peers[i].port);
                     // Payload irrelevant
-                    boost::array<char, 128> send_buf  = { "Hi" };
-                    boost::system::error_code ignored_error;
-                    socket.send_to(boost::asio::buffer(send_buf), ep_other, 0, ignored_error);
+
+                    Udp::tcp_peer(ep_other.address().to_string());
+
+                    // boost::array<char, 128> send_buf  = { "Hi" };
+                    // boost::system::error_code ignored_error;
+                    // socket.send_to(boost::asio::buffer(send_buf), ep_other, 0, ignored_error);
                 }
-            }
+            // }
         }
         else
         {

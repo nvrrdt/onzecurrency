@@ -10,6 +10,7 @@
 
 using namespace Crowd;
 
+// https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1
 int Udp::udp_server()
 {
     short port = 1975;
@@ -29,7 +30,7 @@ int Udp::udp_server()
     {
         // An error occurred.
         Udp p;
-        p.die();
+        p.die("");
     }
 
     while (true)
@@ -45,6 +46,28 @@ int Udp::udp_server()
         clients[n].host = ep_other.address();
         clients[n].port = ep_other.port();
         n++;
+
+        for (int i = 0; i < n; i++)
+        {
+            ep_other.address() = clients[i].host;
+            ep_other.port(clients[i].port);
+                        
+            for (int j = 0; j < n; j++)
+            {
+                std::cout << "Sending to " << ep_other.address() << ":" << ep_other.port() << std::endl;
+
+                std::string msg = "Message arrived!\n";
+                boost::system::error_code ignored_error;
+                socket.send_to(boost::asio::buffer(msg), ep_other, 0, ignored_error);
+            }
+        }
+        std::cout << "Now we have " << n << " clients" << std::endl;
+    }
+    
+    return 0;
+}
+
+
 
         // // std::cout << "test " << recv_buf.data() << "te" << std::endl; // TODO: parse ip address here
         // // boost::array<char, 128> msg = {"Hi"};
@@ -63,51 +86,29 @@ int Udp::udp_server()
         // // p.response_hello(recv_buf);
 
         // communicate latest_block to new_peer
-        Protocol pr;
-        boost::system::error_code ignored_error;
-        socket.send_to(boost::asio::buffer(pr.latest_block()), ep_other, 0, ignored_error);
+        // Protocol pr;
+        // boost::system::error_code ignored_error;
+        // socket.send_to(boost::asio::buffer(pr.latest_block()), ep_other, 0, ignored_error);
 
         // communicate_to_all presence of new_peer
         // - divide uint32::max into total_amount_of_peers^(1/3) parts and send the peer above those 5 partstarts a message
         // - FindNextPeer(hash) for those resulting hashes
         // - send_to() those peers the message
-        std::string message = recv_buf.data();
-        nlohmann::json message_j = nlohmann::json::parse(message);
-        std::string hash_of_new_peer = message_j["hash_of_new_peer"];
-        Poco po;
-        Hash h;
-        for (uint32_t i = static_cast<uint32_t>(std::stoul(hash_of_new_peer));
-             i < (static_cast<uint32_t>(std::stoul(hash_of_new_peer)) + std::numeric_limits<uint32_t>::max());
-             i = i + ceil(std::numeric_limits<uint32_t>::max()/pow(po.TotalAmountOfPeers(), (1.0/3.0))))
-        {
-            // FindNextPeer()--> get ip address --> send_to message --> hash_of_new_peer = next_peer
-            std::string next_peer = po.FindNextPeer(std::to_string(i));
-            std::string db_value_next_peer = po.Get(next_peer);
-            nlohmann::json db_value_next_peer_j = nlohmann::json::parse(db_value_next_peer);
-            std::string ip_address = db_value_next_peer_j["ip"];
-            ep_other.address() = ip::address_v4::from_string(ip_address);
-            ep_other.port(port);
-            socket.send_to(boost::asio::buffer(message), ep_other, 0, ignored_error);
-        }
-
-
-
-        // // for (int i = 0; i < n; i++)
-        // // {
-        // //     ep_other.address() = clients[i].host;
-        // //     ep_other.port(clients[i].port);
-                        
-        // //     for (int j = 0; j < n; j++)
-        // //     {
-        // //         std::cout << "Sending to " << ep_other.address() << ":" << ep_other.port() << std::endl;
-
-        // //         std::string msg = "Message arrived!\n";
-        // //         boost::system::error_code ignored_error;
-        // //         socket.send_to(boost::asio::buffer(msg), ep_other, 0, ignored_error);
-        // //     }
-        // // }
-        // // std::cout << "Now we have " << n << " clients" << std::endl;
-    }
-    
-    return 0;
-}
+        // std::string message = recv_buf.data();
+        // nlohmann::json message_j = nlohmann::json::parse(message);
+        // std::string hash_of_new_peer = message_j["hash_of_new_peer"];
+        // Poco po;
+        // Hash h;
+        // for (uint32_t i = static_cast<uint32_t>(std::stoul(hash_of_new_peer));
+        //      i < (static_cast<uint32_t>(std::stoul(hash_of_new_peer)) + std::numeric_limits<uint32_t>::max());
+        //      i = i + ceil(std::numeric_limits<uint32_t>::max()/pow(po.TotalAmountOfPeers(), (1.0/3.0))))
+        // {
+        //     // FindNextPeer()--> get ip address --> send_to message --> hash_of_new_peer = next_peer
+        //     std::string next_peer = po.FindNextPeer(std::to_string(i));
+        //     std::string db_value_next_peer = po.Get(next_peer);
+        //     nlohmann::json db_value_next_peer_j = nlohmann::json::parse(db_value_next_peer);
+        //     std::string ip_address = db_value_next_peer_j["ip"];
+        //     ep_other.address() = ip::address_v4::from_string(ip_address);
+        //     ep_other.port(port);
+        //     socket.send_to(boost::asio::buffer(message), ep_other, 0, ignored_error);
+        // }

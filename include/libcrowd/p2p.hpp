@@ -24,6 +24,7 @@ namespace Crowd
     public:
         int udp_server();
         int udp_client(std::string srv_ip, std::string message); // TODO: add a reference & to these strings
+        int tcp_peer(std::string remotehost);
     protected:
         struct client
         {
@@ -31,9 +32,9 @@ namespace Crowd
             unsigned short port;
         };
     private:
-        int die() // kill client/server if there's an error
+        int die(std::string msg) // kill client/server if there's an error
         {
-            std::cerr << "Error: " << strerror(errno) << std::endl;
+            std::cerr << "Error: " << strerror(errno) << " : " << msg << std::endl;
             return errno;
         }
     };
