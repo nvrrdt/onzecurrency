@@ -12,12 +12,12 @@ namespace Crowd
     class Auth
     {
     public:
-        std::string authentication();
-        int setNetwork(std::string network);
-        std::string verifyCredentials(std::string email, std::string password);
+        std::map<std::string, std::string> authentication();
+        bool setNetwork(std::string network);
+        std::map<std::string, std::string> verifyCredentials(std::string email, std::string password);
         bool validateEmail(const std::string& email);
-        int createNewUser(std::string email_hashed_from_input, std::string string_full_hash_from_input);
-        uint32_t changeExistingFullHash(std::string email, std::string string_password);
+        std::map<std::string, std::string> generateFullHash(std::string email, std::string salt, std::string password);
+        uint32_t changeExistingFullHash(std::string email, std::string password);
     };
 
     class Random {

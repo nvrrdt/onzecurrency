@@ -1,4 +1,5 @@
 #include <string>
+#include <map>
 
 #include "auth.hpp"
 #include "p2p.hpp"
@@ -10,11 +11,13 @@ using namespace Crowd;
 int main(int argc, char *argv[])
 {
     Auth a;
-    std::string full_hash = a.authentication();
+    std::map<std::string, std::string> cred = a.authentication();
+
+    if (cred["error"] == "true") return 1;
 
     Protocol p;
-    p.hello_and_setup(full_hash);
-    std::map<std::string, uint32_t> x = p.layer_management(full_hash);
+    p.hello_and_setup(cred["full_hash"]);
+    std::map<std::string, uint32_t> x = p.layer_management(cred["full_hash"]);
 
 
     return 0;
