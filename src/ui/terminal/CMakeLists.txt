@@ -4,11 +4,15 @@ set(BOOST_INCLUDEDIR /usr/include)
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(Threads)
 
+set(CURL_LIBRARY "-lcurl") 
+find_package(CURL REQUIRED)
+
 include_directories(
         ${PROJECT_SOURCE_DIR}/include/ui/terminal
         ${PROJECT_SOURCE_DIR}/include/libcrowd
         ${PROJECT_SOURCE_DIR}/include/liblogin
         ${PROJECT_SOURCE_DIR}/src/ui/terminal
+        ${CURL_INCLUDE_DIR}
 )
 
 link_directories(${OPENSSL_LIBRARIES})
@@ -36,6 +40,7 @@ target_link_libraries(onzehub-terminal
         "/usr/lib/librocksdb.so"
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
+        ${CURL_LIBRARIES}
 )
 
 ### install:
