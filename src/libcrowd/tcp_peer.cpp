@@ -16,18 +16,19 @@
 using namespace Crowd;
 
 // https://wuyongzheng.wordpress.com/2013/01/31/experiment-on-tcp-hole-punching/
-int Udp::tcp_peer (std::string s_remotehost)
+int Udp::tcp_peer (std::string s_remotehost, std::string message)
 {
     char* c_remotehost;
     c_remotehost = &s_remotehost[0];
 
-    int sock, port = 975;
+    int sock;
+    const int port = 1975;
     struct sockaddr_in addr;
     char buff[256];
  
     sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock < 0)
-        die("socket() failed");
+        Udp::die("socket() failed");
  
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -50,13 +51,15 @@ int Udp::tcp_peer (std::string s_remotehost)
         }
     }
  
+    // TODO incorporate message eg for a new_user
+
     snprintf(buff, sizeof(buff), "Hi, I'm %d.", getpid());
     printf("sending \"%s\"\n", buff);
     if (send(sock, buff, strlen(buff) + 1, 0) != strlen(buff) + 1)
-        die("send() failed.");
+        Udp::die("send() failed.");
  
     if (recv(sock, buff, sizeof(buff), 0) <= 0)
-        die("recv() failed.");
+        Udp::die("recv() failed.");
     printf("received \"%s\"\n", buff);
  
     return 0;

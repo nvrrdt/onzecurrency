@@ -6,31 +6,22 @@
 using namespace Crowd;
 
 // https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1
-int Udp::udp_client(std::string srv_ip, std::string message)
+int Udp::udp_client(std::string srv_ip, std::string peer_ip, std::string message)
 {
-    short port = 1975;
+    const int port = 1975;
 
     vector<Udp::client> buf;
     vector<Udp::client> server;
     vector<Udp::client> peers;
     int n = 0;
 
-    ip::address ip_address_me = ip::address_v4::any();
-    //ip::address ip_address_other = ip::address_v4::from_string(SRV_IP);
-    ip::udp::endpoint ep_me(ip_address_me, port/*, ep_other(ip_address_other, PORT*/);
-    
-    /*boost::asio::io_service io_service;
-    ip::udp::socket socket(io_service);
-    boost::system::error_code ec;
-    socket.open(ip::udp::v4(), ec);*/
-
     boost::asio::io_service io_service;
     udp::resolver resolver(io_service);
-    udp::resolver::query query(udp::v4(), srv_ip, to_string(port));
+    udp::resolver::query query(srv_ip, to_string(port), boost::asio::ip::resolver_query_base::numeric_service);
     udp::endpoint ep_other = *resolver.resolve(query);
 
     udp::socket socket(io_service);
-    socket.open(udp::v4());
+    socket.open(udp::v6());
 
     server.push_back(Udp::client());
     server[0].host = ep_other.address();
@@ -38,13 +29,14 @@ int Udp::udp_client(std::string srv_ip, std::string message)
 
     boost::array<char, 128> send_buf;
     std::copy(message.begin(), message.end(), send_buf.data());
+    std::cout << "ip: " << srv_ip << ", msg: " << send_buf.data() << std::endl;
     socket.send_to(boost::asio::buffer(send_buf), ep_other); // send message to upnp_peer
 
-    nlohmann::json message_json = nlohmann::json::parse(message);
-    if (message_json["upnp"] == true)
-    {
-        return 0;
-    }
+    // nlohmann::json message_json = nlohmann::json::parse(message);
+    // if (!message_json.is_null() && message_json["upnp"] == true)
+    // {
+    //     return 0;
+    // }
 
     while (true)
     {
@@ -81,20 +73,25 @@ int Udp::udp_client(std::string srv_ip, std::string message)
             std::cout << "Added peer " << ep_other.address() << ":" << ep_other.port() << std::endl;
             std::cout << "Now we have " << n << " peers" << std::endl;
 
+            if (recv_buf.data() == "new_peer")
+            {
+                Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
+            }
+
             // for (int k = 0; k < 10; k++)
             // {
-                for (int i = 0; i < n; i++)
-                {
-                    ep_other.address() = peers[i].host;
-                    ep_other.port(peers[i].port);
-                    // Payload irrelevant
+                // for (int i = 0; i < n; i++)
+                // {
+                //     ep_other.address() = peers[i].host;
+                //     ep_other.port(peers[i].port);
+                //     // Payload irrelevant
 
-                    Udp::tcp_peer(ep_other.address().to_string());
+                //     Udp::tcp_peer(ep_other.address().to_string());
 
-                    // boost::array<char, 128> send_buf  = { "Hi" };
-                    // boost::system::error_code ignored_error;
-                    // socket.send_to(boost::asio::buffer(send_buf), ep_other, 0, ignored_error);
-                }
+                //     // boost::array<char, 128> send_buf  = { "Hi" };
+                //     // boost::system::error_code ignored_error;
+                //     // socket.send_to(boost::asio::buffer(send_buf), ep_other, 0, ignored_error);
+                // }
             // }
         }
         else

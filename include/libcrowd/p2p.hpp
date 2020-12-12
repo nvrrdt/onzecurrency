@@ -23,8 +23,8 @@ namespace Crowd
     {
     public:
         int udp_server();
-        int udp_client(std::string srv_ip, std::string message); // TODO: add a reference & to these strings
-        int tcp_peer(std::string remotehost);
+        int udp_client(std::string srv_ip, std::string peer_ip, std::string message); // TODO: add a reference & to these strings
+        int tcp_peer(std::string remotehost, std::string message);
     protected:
         struct client
         {

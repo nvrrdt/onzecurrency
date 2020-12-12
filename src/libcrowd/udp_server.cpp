@@ -13,7 +13,7 @@ using namespace Crowd;
 // https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1
 int Udp::udp_server()
 {
-    short port = 1975;
+    const int port = 1975;
 
     vector<Udp::client> clients;
     int n = 0;
@@ -51,20 +51,86 @@ int Udp::udp_server()
         {
             ep_other.address() = clients[i].host;
             ep_other.port(clients[i].port);
-                        
-            for (int j = 0; j < n; j++)
-            {
-                std::cout << "Sending to " << ep_other.address() << ":" << ep_other.port() << std::endl;
 
-                std::string msg = "Message arrived!\n";
-                boost::system::error_code ignored_error;
-                socket.send_to(boost::asio::buffer(msg), ep_other, 0, ignored_error);
-            }
+            nlohmann::json message = nlohmann::json::parse(recv_buf.data());
+
+            if (message["new_peer"] == "true") // reply with ip of next_peer(requesting_peer)
+            {
+                std::cout << "Going for tcp now ..." << std::endl;
+                Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
+            }       
+
+            // for (int j = 0; j < n; j++)
+            // {
+            //     std::cout << "Sending to " << ep_other.address() << ":" << ep_other.port() << std::endl;
+
+            //     std::string msg = "Message arrived!\n";
+            //     boost::system::error_code ignored_error;
+            //     socket.send_to(boost::asio::buffer(msg), ep_other, 0, ignored_error);
+            // }
         }
         std::cout << "Now we have " << n << " clients" << std::endl;
     }
     
     return 0;
+
+
+    // try
+    // {
+    //     const int port = 1975;
+
+    //     vector<Udp::client> clients;
+    //     int n = 0;
+
+    //     boost::asio::io_service io_service;
+
+    //     udp::socket socket(io_service, udp::endpoint(ip::address_v4::any(), port));
+
+    //     for (;;)
+    //     {
+    //         boost::array<char, 128> recv_buf;
+    //         udp::endpoint remote_endpoint;
+    //         boost::system::error_code error;
+    //         socket.receive_from(boost::asio::buffer(recv_buf),
+    //             remote_endpoint, 0, error);
+
+    //         if (error && error != boost::asio::error::message_size)
+    //             throw boost::system::system_error(error);
+
+    //         std::cout << "Received packet from " << remote_endpoint.address() << ":" << remote_endpoint.port() << std::endl;
+
+    //         clients.push_back(Udp::client());
+    //         clients[n].host = remote_endpoint.address();
+    //         clients[n].port = remote_endpoint.port();
+    //         n++;
+
+    //         for (int i = 0; i < n; i++)
+    //         {
+    //             remote_endpoint.address() = clients[i].host;
+    //             remote_endpoint.port(clients[i].port);
+
+    //             nlohmann::json message = nlohmann::json::parse(recv_buf.data());
+
+    //             if (message["new_peer"] == "true") // reply with ip of next_peer(requesting_peer)
+    //             {
+    //                 std::cout << "Going for tcp now ..." << std::endl;
+    //                 Udp::tcp_peer(remote_endpoint.address().to_string(), recv_buf.data());
+    //             }
+
+    //         // std::string message = make_daytime_string();
+
+    //         // boost::system::error_code ignored_error;
+    //         // socket.send_to(boost::asio::buffer(message),
+    //         //     remote_endpoint, 0, ignored_error);
+    //         }
+    //     }
+    // }
+    // catch (std::exception& e)
+    // {
+    //     std::cerr << e.what() << std::endl;
+    // }
+
+    // return 0;
 }
 
 

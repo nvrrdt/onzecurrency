@@ -46,11 +46,13 @@ bool Auth::setNetwork(std::string network)
 {
     if (network == "Default")
     {
-        printf("Network must be 'Default'\n");
         return true;
     }
-
-    return false;
+    else
+    {
+        printf("Network must be 'Default'\n");
+        return false;
+    }
 }
 
 /**
@@ -66,13 +68,13 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     Hash h;
     std::string email_hashed_from_input;
     h.create_hash(email, email_hashed_from_input);
+    std::cout << "email hash: " << email_hashed_from_input << std::endl;
     Poco p;
     std::string string_poco_response = p.Get(email_hashed_from_input);
 
-    // get email, full_hash and salt from the blockchain
-    nlohmann::json json_poco_response = nlohmann::json::parse(string_poco_response);
+    
 
-    if (json_poco_response.is_null()) // TODO: test this for when a key is nonexistant in rocksdb, not sure if this works
+    if (string_poco_response == "")
     {   
         printf("A new user will be created!\n");
 
@@ -88,6 +90,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     }
     else
     {
+        // get email, full_hash and salt from the blockchain
+        nlohmann::json json_poco_response = nlohmann::json::parse(string_poco_response);
+
         // get data from rocksdb
         std::string string_email_hash_from_blockchain = json_poco_response["em"].dump();
         std::string string_full_hash_from_blockchain = json_poco_response["fh"].dump();

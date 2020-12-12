@@ -14,11 +14,11 @@ BOOST_FIXTURE_TEST_SUITE(UdpSuite, UdpT)
 // use any protected methods inside your tests
 BOOST_AUTO_TEST_CASE(TimeoutUdpClientTrue, * utf::timeout(5))
 {
-    udp_client("127.0.0.1", "{ \"upnp\": true }"); // Returns!
+    udp_client("127.0.0.1", "None", "{ \"upnp\": true }"); // Returns!
 }
 BOOST_AUTO_TEST_CASE(TimeoutUdpClientFalse, * utf::timeout(5))
 {
-    udp_client("127.0.0.1", "{ \"upnp\": false }"); // Must fail!
+    udp_client("127.0.0.1", "None", "{ \"upnp\": false }"); // Must fail!
 }
 BOOST_AUTO_TEST_CASE(TimeoutUdpServer, * utf::timeout(5))
 {
