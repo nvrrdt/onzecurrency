@@ -81,17 +81,17 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     nlohmann::json msg = {{"version", 1.0}, {"hash_of_new_peer", my_user_login_hash}, {"fullnode", true}};
 
     Upnp upnp;
-    Udp udp;
+    Tcp tcp;
     if(upnp.Upnp_main() == 0) // upnp possible
     {
         msg["upnp"] = true;
 
-        if (udp.udp_client(upnp_peer_value["ip"].dump(), "None", msg.dump()) == 0)
+        if (tcp.client(upnp_peer_value["ip"].dump(), "None", msg.dump(), "") == 0)
         {
             // set as upnp server in thread
             std::packaged_task<void()> task1([&] {
-                Udp udp;
-                udp.udp_server();
+                Tcp tcp;
+                tcp.server();
             });
         
             // Run task on new thread.
@@ -107,12 +107,12 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
                 std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-                if (udp.udp_client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled") == 0)
+                if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
                 {
                     // set as upnp server in thread
                     std::packaged_task<void()> task1([&] {
-                        Udp udp;
-                        udp.udp_server();
+                        Tcp tcp;
+                        tcp.server();
                     });
                 
                     // Run task on new thread.
@@ -135,12 +135,12 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
     {
         msg["upnp"] = false;
 
-        if (udp.udp_client(upnp_peer_value["ip"].dump(), "None", "helloupnpdisabled") == true)
+        if (tcp.client(upnp_peer_value["ip"].dump(), "None", "helloupnpdisabled", "") == true)
         {
             // set as upnp client in thread
             std::packaged_task<void()> task1([&] {
-                Udp udp;
-                udp.udp_client(upnp_peer_value["ip"].dump(), "None", "wait");
+                Tcp tcp;
+                tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
             });
         
             // Run task on new thread.
@@ -156,12 +156,12 @@ int Protocol::hello_and_setup(std::string& my_user_login_hash)
                 std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-                if (udp.udp_client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled") == 0)
+                if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
                 {
                     // set as upnp server in thread
                     std::packaged_task<void()> task1([&] {
-                        Udp udp;
-                        udp.udp_client(upnp_peer_value["ip"].dump(), "None", "wait");
+                        Tcp tcp;
+                        tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
                     });
                 
                     // Run task on new thread.

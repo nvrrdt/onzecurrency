@@ -19,12 +19,11 @@ namespace Crowd
         bool StartP2p();
     };
     
-    class Udp
+    class Tcp
     {
     public:
-        int udp_server();
-        int udp_client(std::string srv_ip, std::string peer_ip, std::string message); // TODO: add a reference & to these strings
-        int tcp_peer(std::string remotehost, std::string message);
+        int server();
+        int client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
     protected:
         struct client
         {

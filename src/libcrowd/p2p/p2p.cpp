@@ -21,19 +21,19 @@ bool P2p::StartP2p()
     const std::string ip_mother_peer = "13.58.174.105"; // TODO: should be later taken from rocketdb or a pre-defined list
 
     // be a client to the mother server, if a reaction then you are a server
-    Udp u;
-    nlohmann::json response = u.udp_client(ip_mother_peer, "", "my_id"/*, "pubKey"*/);
+    Tcp t;
+    nlohmann::json response = t.client(ip_mother_peer, "", "my_id", "pubKey");
 
     // response["ip_upnp_peer"] is "" of een ip, om naar H(my_id) alles te downloaden
 
     if (response["message"] == "true") {
-        u.udp_server();
+        t.server();
     } else {
         // try upnp
     };
 
     if (response["ip_upnp_peer"] != "") {
-        u.udp_client(response["ip_upnp_peer"], response["ip_peer"], "update");
+        t.client(response["ip_upnp_peer"], response["ip_peer"], "update", "pubKey");
     }
 
     return true;
