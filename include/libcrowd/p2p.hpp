@@ -16,7 +16,7 @@ namespace Crowd
     class P2p
     {
     public:
-        bool IsUpnp();
+        bool StartP2p();
     };
     
     class Udp

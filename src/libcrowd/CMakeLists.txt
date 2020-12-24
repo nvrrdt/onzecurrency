@@ -13,6 +13,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/include/liblogin
         ${PROJECT_SOURCE_DIR}/include/ui/terminal
         ${PROJECT_SOURCE_DIR}/src/libcrowd
+        ${PROJECT_SOURCE_DIR}/src/libcrowd/p2p
         ${Boost_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIR}
         "/usr/include/miniupnpc"
@@ -21,6 +22,7 @@ link_directories(${OPENSSL_LIBRARIES})
 
 file(GLOB all_SRCS
         "${PROJECT_SOURCE_DIR}/src/libcrowd/*.cpp"
+        "${PROJECT_SOURCE_DIR}/src/libcrowd/p2p/*.cpp"
 )
 
 file(GLOB all_HEADERS

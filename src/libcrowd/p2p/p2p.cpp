@@ -10,6 +10,38 @@
 
 using namespace Crowd;
 
+// TODO TODAY:
+// Procedure: start in client, connect ip_mother_peer, recv or not recv for continue server
+// if not then try upnp, if not then client, ask mother my_upnp_peer
+
+// update the blockchain too, update rocksdb too
+
+bool P2p::StartP2p()
+{
+    const std::string ip_mother_peer = "13.58.174.105"; // TODO: should be later taken from rocketdb or a pre-defined list
+
+    // be a client to the mother server, if a reaction then you are a server
+    Udp u;
+    nlohmann::json response = u.udp_client(ip_mother_peer, "", "my_id"/*, "pubKey"*/);
+
+    // response["ip_upnp_peer"] is "" of een ip, om naar H(my_id) alles te downloaden
+
+    if (response["message"] == "true") {
+        u.udp_server();
+    } else {
+        // try upnp
+    };
+
+    if (response["ip_upnp_peer"] != "") {
+        u.udp_client(response["ip_upnp_peer"], response["ip_peer"], "update");
+    }
+
+    return true;
+}
+
+
+
+
 //bool P2p::IsUpnp()
 //{
     /**

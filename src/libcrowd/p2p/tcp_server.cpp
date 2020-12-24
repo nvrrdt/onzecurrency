@@ -57,7 +57,7 @@ int Udp::udp_server()
             if (message["new_peer"] == "true") // reply with ip of next_peer(requesting_peer)
             {
                 std::cout << "Going for tcp now ..." << std::endl;
-                Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
+                //Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
             }       
 
             // for (int j = 0; j < n; j++)

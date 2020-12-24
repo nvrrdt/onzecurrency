@@ -75,7 +75,7 @@ int Udp::udp_client(std::string srv_ip, std::string peer_ip, std::string message
 
             if (recv_buf.data() == "new_peer")
             {
-                Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
+                //Udp::tcp_peer(ep_other.address().to_string(), recv_buf.data());
             }
 
             // for (int k = 0; k < 10; k++)
