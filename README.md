@@ -16,3 +16,8 @@
 - git rm --cached -r . # prepare a reset
 - git reset --hard HEAD~13 # reset last 13 commmits || git reset –hard <commit-hash>
 - git push origin master --force # post reset
+
+#### blocked port
+- sudo docker-compose down
+- sudo lsof -i -P -n | grep 1975
+- sudo kill -9 <process_id>
