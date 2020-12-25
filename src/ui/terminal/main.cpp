@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
         return 1;
     } else {
         P2p p;
-        p.StartP2p();
+        p.StartP2p(cred["full_hash"]);
     }
 
 //     const std::string ip_mother_peer = "13.58.174.105"; // should be later taken from rocksdb or a pre-defined list

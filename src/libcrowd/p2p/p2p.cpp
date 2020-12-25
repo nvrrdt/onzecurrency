@@ -1,89 +1,84 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "json.hpp"
 
+#include "json.hpp"
 #include "p2p.hpp"
+#include "poco.hpp"
 
 #include <future>
 #include <thread>
 
 using namespace Crowd;
 
-// TODO TODAY:
-// Procedure: start in client, connect ip_mother_peer, recv or not recv for continue server
-// if not then try upnp, if not then client, ask mother my_upnp_peer
-
-// update the blockchain too, update rocksdb too
-
-bool P2p::StartP2p()
+bool P2p::StartP2p(std::string my_id)
 {
-    const std::string ip_mother_peer = "13.58.174.105"; // TODO: should be later taken from rocketdb or a pre-defined list
+    const std::string ip_mother_peer = "13.58.174.105"; // TODO: ip should later be taken from rocksdb or a pre-defined list
 
-    // be a client to the mother server, if a reaction then you are a server
+    // get ip_peer from mother_peer
     Tcp t;
-    nlohmann::json response = t.client(ip_mother_peer, "", "my_id", "pubKey");
+    nlohmann::json response = t.client("", ip_mother_peer, "ip_peer", "pubKey"); // mother server must respond with ip_peer and ip_upnp_peer
 
-    // response["ip_upnp_peer"] is "" of een ip, om naar H(my_id) alles te downloaden
-
-    if (response["message"] == "true") {
-        t.server();
+    // update your blockchain and rocksdb
+    if (response["ip_peer"] != "") {
+        if (response["ip_upnp_peer"] != "") {
+            t.client(response["ip_upnp_peer"], response["ip_peer"], "update", "pubKey"); // server must respond with packets updating rocksdb and blockchain
+        } else {
+            t.client("", response["ip_peer"], "update", "pubKey"); // server must respond with packets updating rocksdb and blockchain
+        }
     } else {
-        // try upnp
-    };
-
-    if (response["ip_upnp_peer"] != "") {
-        t.client(response["ip_upnp_peer"], response["ip_peer"], "update", "pubKey");
-    }
-
-    return true;
-}
-
-
-
-
-//bool P2p::IsUpnp()
-//{
-    /**
-     * check upnp
-     * if upnp = udp_server in thread
-     * if not upnp = udp_client in thread
-     * do some tests with timeout
-     */
-/*
-    Upnp u;
-    if (u.Upnp_main() == 0)
-    {
-        // Upnp possible
-        std::packaged_task<void()> task1([] {
-            Udp u;
-            u.udp_server();
-        });
-        
-        // Run task on new thread.
-        std::thread t1(std::move(task1));
-
-        t1.join();
-
-        return true;
-    }
-    else
-    {
-        // Upnp NOT possible
-        std::packaged_task<void()> task2([] {
-            Udp u;
-            u.udp_client();
-        });
-        
-        // Run task on new thread.
-        std::thread t2(std::move(task2));
-
-        t2.join();
-
         return false;
     }
     
-}*/
+    // prepare for becoming a peer and update the rocksdb of all peers with my presence
+    if (t.server("try") == 0) { // wait 5 seconds, mother_peer tries to connect
+        if (response["ip_upnp_peer"] != "") {
+            t.client(response["ip_upnp_peer"], response["ip_peer"], "server", "pubKey"); // server must update all peers with my ip, my id, my server being
+        } else {        
+            t.client("", response["ip_peer"], "server", "pubKey"); // server must update all peers with my ip, my id, my server being
+        }
+
+        std::packaged_task<void()> task1([] {
+            Tcp t;
+            t.server("");
+        });
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+        t1.join();
+    } else if (Upnp u; u.Upnp_main() == 0) { // try upnp to become a server or else
+        if (response["ip_upnp_peer"] != "") {
+            t.client(response["ip_upnp_peer"], response["ip_peer"], "server", "pubKey"); // server must update all peers with my ip, my id, my server being
+        } else {
+            t.client("", response["ip_peer"], "server", "pubKey"); // server must update all peers with my ip, my id, my server being
+        }
+
+        std::packaged_task<void()> task1([] {
+            Tcp t;
+            t.server("");
+        });
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+        t1.join();
+    } else {
+        if (response["ip_upnp_peer"] != "") {
+            t.client(response["ip_upnp_peer"], response["ip_peer"], "client", "pubKey"); // server must update all peers with my ip, my id, my client being
+        } else {
+            t.client("", response["ip_peer"], "client", "pubKey"); // server must update all peers with my ip, my id, my client being
+        }
+
+        std::packaged_task<void()> task1([my_id] {
+            Poco p;
+            std::string upnp_peer = p.FindUpnpPeer(my_id);
+            Tcp t;
+            t.client(upnp_peer, "", "register", "pubKey"); // server should keep connection open to be able to communicate
+        });
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+        t1.join();
+    }
+     
+    return true;
+}
 
 /*
 vector<string> P2p::parse_ip_adress_master_peer_json() // https://github.com/nlohmann/json

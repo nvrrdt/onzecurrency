@@ -96,7 +96,7 @@ private:
   tcp::acceptor acceptor_;
 };
 
-int Tcp::server()
+int Tcp::server(std::string msg)
 {
   try
   {

@@ -68,120 +68,120 @@ using namespace Crowd;
 // - new user in network
 // - goodbye network
 
-int Protocol::hello_and_setup(std::string& my_user_login_hash)
-{
-    /**
-     * - search your upnp provider and say hello to the network
-     */
+// int Protocol::hello_and_setup(std::string& my_user_login_hash)
+// {
+//     /**
+//      * - search your upnp provider and say hello to the network
+//      */
 
-    Poco poco;
-    std::string upnp_peer_key = poco.FindUpnpPeer(my_user_login_hash);
-    nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
+//     Poco poco;
+//     std::string upnp_peer_key = poco.FindUpnpPeer(my_user_login_hash);
+//     nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-    nlohmann::json msg = {{"version", 1.0}, {"hash_of_new_peer", my_user_login_hash}, {"fullnode", true}};
+//     nlohmann::json msg = {{"version", 1.0}, {"hash_of_new_peer", my_user_login_hash}, {"fullnode", true}};
 
-    Upnp upnp;
-    Tcp tcp;
-    if(upnp.Upnp_main() == 0) // upnp possible
-    {
-        msg["upnp"] = true;
+//     Upnp upnp;
+//     Tcp tcp;
+//     if(upnp.Upnp_main() == 0) // upnp possible
+//     {
+//         msg["upnp"] = true;
 
-        if (tcp.client(upnp_peer_value["ip"].dump(), "None", msg.dump(), "") == 0)
-        {
-            // set as upnp server in thread
-            std::packaged_task<void()> task1([&] {
-                Tcp tcp;
-                tcp.server();
-            });
+//         if (tcp.client(upnp_peer_value["ip"].dump(), "None", msg.dump(), "") == 0)
+//         {
+//             // set as upnp server in thread
+//             std::packaged_task<void()> task1([&] {
+//                 Tcp tcp;
+//                 tcp.server();
+//             });
         
-            // Run task on new thread.
-            std::thread t1(std::move(task1));
+//             // Run task on new thread.
+//             std::thread t1(std::move(task1));
 
-            t1.join();
-        }
-        else
-        {
-            // find next upnp provider in rocksdb and set as new upnp server in thread
-            while (true)
-            {
-                std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
-                nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
+//             t1.join();
+//         }
+//         else
+//         {
+//             // find next upnp provider in rocksdb and set as new upnp server in thread
+//             while (true)
+//             {
+//                 std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
+//                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-                if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
-                {
-                    // set as upnp server in thread
-                    std::packaged_task<void()> task1([&] {
-                        Tcp tcp;
-                        tcp.server();
-                    });
+//                 if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
+//                 {
+//                     // set as upnp server in thread
+//                     std::packaged_task<void()> task1([&] {
+//                         Tcp tcp;
+//                         tcp.server();
+//                     });
                 
-                    // Run task on new thread.
-                    std::thread t1(std::move(task1));
+//                     // Run task on new thread.
+//                     std::thread t1(std::move(task1));
 
-                    t1.join();
+//                     t1.join();
 
-                    break;
-                }
-                else
-                {
-                    upnp_peer_key = next_upnp_peer_key;
-                }
-                // TODO: create fallback for when no upnp peer is found, foresee a hardcoded fallback
-            }
-        }
+//                     break;
+//                 }
+//                 else
+//                 {
+//                     upnp_peer_key = next_upnp_peer_key;
+//                 }
+//                 // TODO: create fallback for when no upnp peer is found, foresee a hardcoded fallback
+//             }
+//         }
         
-    }
-    else // upnp not possible
-    {
-        msg["upnp"] = false;
+//     }
+//     else // upnp not possible
+//     {
+//         msg["upnp"] = false;
 
-        if (tcp.client(upnp_peer_value["ip"].dump(), "None", "helloupnpdisabled", "") == true)
-        {
-            // set as upnp client in thread
-            std::packaged_task<void()> task1([&] {
-                Tcp tcp;
-                tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
-            });
+//         if (tcp.client(upnp_peer_value["ip"].dump(), "None", "helloupnpdisabled", "") == true)
+//         {
+//             // set as upnp client in thread
+//             std::packaged_task<void()> task1([&] {
+//                 Tcp tcp;
+//                 tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
+//             });
         
-            // Run task on new thread.
-            std::thread t1(std::move(task1));
+//             // Run task on new thread.
+//             std::thread t1(std::move(task1));
 
-            t1.join();
-        }
-        else
-        {
-            // find next upnp provider in rocksdb and set as upnp client in thread
-            while (true)
-            {
-                std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
-                nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
+//             t1.join();
+//         }
+//         else
+//         {
+//             // find next upnp provider in rocksdb and set as upnp client in thread
+//             while (true)
+//             {
+//                 std::string next_upnp_peer_key = poco.FindNextUpnpPeer(upnp_peer_key);
+//                 nlohmann::json next_upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
 
-                if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
-                {
-                    // set as upnp server in thread
-                    std::packaged_task<void()> task1([&] {
-                        Tcp tcp;
-                        tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
-                    });
+//                 if (tcp.client(next_upnp_peer_value["ip"].dump(), "None", "helloupnpenabled", "") == 0)
+//                 {
+//                     // set as upnp server in thread
+//                     std::packaged_task<void()> task1([&] {
+//                         Tcp tcp;
+//                         tcp.client(upnp_peer_value["ip"].dump(), "None", "wait", "");
+//                     });
                 
-                    // Run task on new thread.
-                    std::thread t1(std::move(task1));
+//                     // Run task on new thread.
+//                     std::thread t1(std::move(task1));
 
-                    t1.join();
+//                     t1.join();
 
-                    break;
-                }
-                else
-                {
-                    upnp_peer_key = next_upnp_peer_key;
-                }
-                // TODO: create fallback for when no upnp peer is found, foresee a hardcoded fallback
-            }
-        }
-    }
+//                     break;
+//                 }
+//                 else
+//                 {
+//                     upnp_peer_key = next_upnp_peer_key;
+//                 }
+//                 // TODO: create fallback for when no upnp peer is found, foresee a hardcoded fallback
+//             }
+//         }
+//     }
     
-    return 0;
-}
+//     return 0;
+// }
 
 std::string Protocol::latest_block()
 {
