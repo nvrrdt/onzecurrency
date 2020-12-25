@@ -17,7 +17,7 @@ bool P2p::StartP2p(std::string my_id)
 
     // get ip_peer from mother_peer
     Tcp t;
-    nlohmann::json response = t.client("", ip_mother_peer, "ip_peer", "pubKey"); // mother server must respond with ip_peer and ip_upnp_peer
+    nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "ip_peer", "pubKey")); // mother server must respond with ip_peer and ip_upnp_peer
 
     // update your blockchain and rocksdb
     if (response["ip_peer"] != "") {

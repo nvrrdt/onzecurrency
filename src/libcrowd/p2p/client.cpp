@@ -10,8 +10,10 @@ using namespace Crowd;
 
 using boost::asio::ip::tcp;
 
-int Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key)
+std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key)
 {
+  std::string msg = "";
+
   try
   {
     boost::asio::io_context io_context;
@@ -36,6 +38,8 @@ int Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, st
         throw boost::system::system_error(error); // Some other error.
 
       std::cout.write(buf.data(), len);
+
+      msg += buf.data();
     }
   }
   catch (std::exception& e)
@@ -43,7 +47,7 @@ int Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, st
     std::cerr << e.what() << std::endl;
   }
 
-  return 0;
+  return msg;
 }
 
 

@@ -23,7 +23,7 @@ namespace Crowd
     {
     public:
         int server(std::string msg);
-        int client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
+        std::string client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
     protected:
         struct client
         {
