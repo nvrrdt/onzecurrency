@@ -31,11 +31,11 @@ namespace Crowd
             unsigned short port;
         };
     private:
-        int die(std::string msg) // kill client/server if there's an error
-        {
-            std::cerr << "Error: " << strerror(errno) << " : " << msg << std::endl;
-            return errno;
-        }
+        // int die(std::string msg) // kill client/server if there's an error
+        // {
+        //     std::cerr << "Error: " << strerror(errno) << " : " << msg << std::endl;
+        //     return errno;
+        // }
     };
 
     class Upnp

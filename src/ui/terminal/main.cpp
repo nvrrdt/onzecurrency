@@ -22,8 +22,11 @@ int main(int argc, char *argv[])
         std::cerr << "Error with authenticating" << std::endl;
         return 1;
     } else {
-        P2p p;
-        p.StartP2p(cred["full_hash"]);
+        //P2p p;
+        // p.StartP2p(cred["full_hash"]);
+        Tcp t;
+        //t.server("test");
+        t.client("", "", "testology", "");
     }
 
 //     const std::string ip_mother_peer = "13.58.174.105"; // should be later taken from rocksdb or a pre-defined list

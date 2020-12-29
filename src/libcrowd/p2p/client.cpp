@@ -10,45 +10,56 @@ using namespace Crowd;
 
 using boost::asio::ip::tcp;
 
-std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key)
-{
-  std::string msg = "";
+std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key) {
+    std::string msg = "";
 
-  try
-  {
-    boost::asio::io_context io_context;
-
-    tcp::resolver resolver(io_context);
-    tcp::resolver::results_type endpoints =
-      resolver.resolve("127.0.0.1", "daytime");
-
-    tcp::socket socket(io_context);
-    boost::asio::connect(socket, endpoints);
-
-    for (;;)
+    try
     {
-      boost::array<char, 128> buf;
-      boost::system::error_code error;
+        boost::asio::io_context io_context;
 
-      size_t len = socket.read_some(boost::asio::buffer(buf), error);
+        tcp::resolver resolver(io_context);
+        tcp::resolver::results_type endpoints =
+          resolver.resolve("13.58.174.105", "1975");
 
-      if (error == boost::asio::error::eof)
-        break; // Connection closed cleanly by peer.
-      else if (error)
-        throw boost::system::system_error(error); // Some other error.
+        tcp::socket socket(io_context);
+        boost::asio::connect(socket, endpoints);
 
-      std::cout.write(buf.data(), len);
+        boost::system::error_code error;
+        socket.write_some(boost::asio::buffer(message), error);
 
-      msg += buf.data();
+        boost::array<char, 128> response;
+        size_t len = socket.read_some(boost::asio::buffer(response), error);
+
+        if (error)
+            throw boost::system::system_error(error);
+      
+        std::cout.write(response.data(), len);
     }
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 
-  return msg;
+    return msg;
 }
+
+
+// for (;;)
+// {
+//   boost::array<char, 128> buf;
+//   boost::system::error_code error;
+
+//   size_t len = socket.read_some(boost::asio::buffer(buf), error);
+
+//   if (error == boost::asio::error::eof)
+//     break; // Connection closed cleanly by peer.
+//   else if (error)
+//     throw boost::system::system_error(error); // Some other error.
+
+//   std::cout.write(buf.data(), len);
+
+//   msg += buf.data();
+// }
 
 
 // // https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1

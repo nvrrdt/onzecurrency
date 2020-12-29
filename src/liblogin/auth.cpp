@@ -17,12 +17,15 @@ std::map<std::string, std::string> Auth::authentication()
 {
     std::string network, email, password;
 
-    std::cout << "Network: ";
-    std::cin >> network;
+    std::cout << "Network [Default]: ";
+    std::getline(std::cin, network);
+    // std::cin >> network;
     std::cout << "Email adress: ";
     std::cin >> email;
     std::cout << "Password: ";
     std::cin >> password;
+
+    if (network == "") network = "Default";
 
     std::map<std::string, std::string> cred = Auth::verifyCredentials(email, password);
 

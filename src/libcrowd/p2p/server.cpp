@@ -12,13 +12,6 @@ using namespace Crowd;
 
 using boost::asio::ip::tcp;
 
-std::string make_daytime_string()
-{
-  using namespace std; // For time_t, time and ctime;
-  time_t now = time(0);
-  return ctime(&now);
-}
-
 class tcp_connection
   : public boost::enable_shared_from_this<tcp_connection>
 {
@@ -37,12 +30,7 @@ public:
 
   void start()
   {
-    message_ = make_daytime_string();
-
-    boost::asio::async_write(socket_, boost::asio::buffer(message_),
-        boost::bind(&tcp_connection::handle_write, shared_from_this(),
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
+    do_read();
   }
 
 private:
@@ -51,13 +39,35 @@ private:
   {
   }
 
-  void handle_write(const boost::system::error_code& /*error*/,
-      size_t /*bytes_transferred*/)
+  void do_read()
   {
+    auto self(shared_from_this());
+    socket_.async_read_some(boost::asio::buffer(data_, max_length),
+        [this, self](boost::system::error_code ec, std::size_t length)
+        {
+          if (!ec)
+          {
+            do_write(length);
+          }
+        });
+  }
+
+  void do_write(std::size_t length)
+  {
+    auto self(shared_from_this());
+    boost::asio::async_write(socket_, boost::asio::buffer(data_, length),
+        [this, self](boost::system::error_code ec, std::size_t /*length*/)
+        {
+          if (!ec)
+          {
+            do_read();
+          }
+        });
   }
 
   tcp::socket socket_;
-  std::string message_;
+  enum { max_length = 128 };
+  char data_[max_length];
 };
 
 class tcp_server
@@ -65,7 +75,7 @@ class tcp_server
 public:
   tcp_server(boost::asio::io_context& io_context)
     : io_context_(io_context),
-      acceptor_(io_context, tcp::endpoint(tcp::v4(), 13))
+      acceptor_(io_context, tcp::endpoint(tcp::v4(), 1975))
   {
     start_accept();
   }
@@ -100,6 +110,7 @@ int Tcp::server(std::string msg)
 {
   try
   {
+    std::cout << "11111" << std::endl;
     boost::asio::io_context io_context;
     tcp_server server(io_context);
     io_context.run();
