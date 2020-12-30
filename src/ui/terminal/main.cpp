@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
         // p.StartP2p(cred["full_hash"]);
         Tcp t;
         //t.server("test");
-        t.client("", "", "testology", "");
+        std::string message = "{'1': 'testology', '2': 'testology', '3': 'testology', '4': 'testology', '5': 'testology', '6': 'testology', '7': 'testology', '8': 'testology', '9': 'testology', '10': 'testology', '11': 'testology', '12': 'testology'}";
+        t.client("", "", message, "");
     }
 
 //     const std::string ip_mother_peer = "13.58.174.105"; // should be later taken from rocksdb or a pre-defined list
