@@ -49,26 +49,27 @@ private:
             {
                 if (!ec) {
                     std::cout << "1: " << data_ << std::endl;
-
-                    std::string str_data_(data_);
-                    memset(data_, 0, sizeof(data_)); // empty data_ array
-                    nlohmann::json data_j = nlohmann::json::parse(str_data_);
-                    if (data_j["msg"] == "register")
-                    {
-                        nlohmann::json data_resp_j;
-                        data_resp_j["register"] = "ack";
-                        std::string data_str_j = data_resp_j.dump();
-                        strncpy(data_, data_str_j.c_str(), sizeof(data_));
-                        data_[sizeof(data_) - 1] = 0;
-                    }
-
+                    handle_read();
                     std::cout << "2: " << data_ << std::endl;
-
                     do_write(length);
                 }
                 std::fill_n(data_, length, 0);
             });
 
+    }
+
+    void handle_read()
+    {
+        std::string str_data_(data_);
+        nlohmann::json data_j = nlohmann::json::parse(str_data_);
+        if (data_j["msg"] == "register")
+        {
+            nlohmann::json data_resp_j;
+            data_resp_j["register"] = "ack";
+            std::string data_str_j = data_resp_j.dump();
+            strncpy(data_, data_str_j.c_str(), sizeof(data_));
+            data_[sizeof(data_) - 1] = 0;
+        }
     }
 
     void do_write(std::size_t length)
