@@ -31,6 +31,7 @@ namespace Crowd
             unsigned short port;
         };
     private:
+        std::string remove_trailing_characters(std::string buf);
         // int die(std::string msg) // kill client/server if there's an error
         // {
         //     std::cerr << "Error: " << strerror(errno) << " : " << msg << std::endl;

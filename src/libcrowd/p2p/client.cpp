@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "json.hpp"
 #include "poco.hpp"
@@ -31,8 +32,20 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
         char buf[max_length];
         size_t len = socket.read_some(boost::asio::buffer(buf), error);
 
+        std::string str_buf = Tcp::remove_trailing_characters(buf);
+
+        nlohmann::json buf_j = nlohmann::json::parse(str_buf);
         if (error)
             throw boost::system::system_error(error); // Some other error.
+        else if (buf_j["register"] == "ack")
+        {
+            for (;;)
+            {
+                std::cout << "Reading after ack" << std::endl;
+                size_t len = socket.read_some(boost::asio::buffer(buf), error);
+                // next step is to read a request for accepting a peer's request if you're not a server
+            }
+        }
 
         std::cout << buf << std::endl;
     }
@@ -42,6 +55,16 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
     }
 
     return msg;
+}
+
+std::string Tcp::remove_trailing_characters(std::string buf)
+{
+    // there are trailing chartacters that need to be trimmed,
+    // working with an header for comunicating the length of the body is probably a solution
+    std::string str_buf(buf);
+    std::size_t found = str_buf.find_last_of("}");
+    
+    return str_buf.erase(found+1, sizeof(str_buf));
 }
 
 // Example for udp hole punching: https://github.com/mwarning/UDP-hole-punching-examples/tree/master/example1

@@ -7,6 +7,7 @@
 #include <boost/asio.hpp>
 
 #include "p2p.hpp"
+#include "json.hpp"
 
 using namespace Crowd;
 
@@ -47,7 +48,22 @@ private:
             [this, self](boost::system::error_code ec, std::size_t length)
             {
                 if (!ec) {
-                    std::cout << data_ << std::endl; 
+                    std::cout << "1: " << data_ << std::endl;
+
+                    std::string str_data_(data_);
+                    memset(data_, 0, sizeof(data_)); // empty data_ array
+                    nlohmann::json data_j = nlohmann::json::parse(str_data_);
+                    if (data_j["msg"] == "register")
+                    {
+                        nlohmann::json data_resp_j;
+                        data_resp_j["register"] = "ack";
+                        std::string data_str_j = data_resp_j.dump();
+                        strncpy(data_, data_str_j.c_str(), sizeof(data_));
+                        data_[sizeof(data_) - 1] = 0;
+                    }
+
+                    std::cout << "2: " << data_ << std::endl;
+
                     do_write(length);
                 }
                 std::fill_n(data_, length, 0);
