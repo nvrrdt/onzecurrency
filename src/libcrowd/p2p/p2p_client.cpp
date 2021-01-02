@@ -77,7 +77,15 @@ private:
                                     {
                                         std::cout.write(read_msg_.body(), read_msg_.body_length());
                                         std::cout << "\n";
-                                        do_read_header();
+                                        if (read_msg_.get_eom_flag())
+                                        {
+                                            // process json message
+                                            std::cout << "vriendelijk" << std::endl;
+                                        }
+                                        else
+                                        {
+                                            do_read_header();
+                                        }
                                     }
                                     else
                                     {
@@ -155,7 +163,15 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
             p2p_message msg;
             msg.body_length(std::strlen(s));
             std::memcpy(msg.body(), s, msg.body_length());
-            msg.encode_header();
+            if (i == splitted.size() - 1)
+            {
+                msg.encode_header(1); // 1 indicates end of message eom
+            }
+            else
+            {
+                msg.encode_header(0);
+            }
+            
             c.write(msg);
 
         }
