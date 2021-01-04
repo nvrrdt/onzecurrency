@@ -77,13 +77,10 @@ private:
                                     {
                                         std::cout.write(read_msg_.body(), read_msg_.body_length());
                                         std::cout << "\n";
-                                        if (read_msg_.get_eom_flag())
-                                        {
+                                        if (read_msg_.get_eom_flag()) {
                                             // process json message
-                                            std::cout << "vriendelijk" << std::endl;
-                                        }
-                                        else
-                                        {
+                                            std::cout << "vriendelijk: " << read_msg_.body() << std::endl;
+                                        } else {
                                             do_read_header();
                                         }
                                     }
