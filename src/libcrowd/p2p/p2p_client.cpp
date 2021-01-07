@@ -123,8 +123,10 @@ private:
                     nlohmann::json message_j;
                     message_j["connect"] = "true";
 
+                    // Establishing NAT Traversal
+                    // TODO: needs to be tested that there is really a connection between the two peers
                     Tcp t;
-                    if (buf_j["id_from"] == "nvrrdt_from") // change nvrrdt to my_id/my_hash/my_ip
+                    if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
                     {
                         std::cout << "message send to id_to from id_from" << std::endl;
                         t.client("", buf_j["ip_to"], message_j.dump(), "pub_key");
