@@ -34,8 +34,15 @@ public:
     std::string get_id() {
         return id_;
     }
+    void set_find_id(std::string id) {
+        find_id_ = id;
+    }
+    std::string get_find_id() {
+        return find_id_;
+    }
 private:
     std::string id_;
+    std::string find_id_;
 };
 
 typedef std::shared_ptr<p2p_participant> p2p_participant_ptr;
@@ -65,11 +72,10 @@ public:
             recent_msgs_.pop_front();
 
         for (auto participant : participants_)
-            if (participant->get_id() == "nvrrdt")
+            if (participant->get_id() == participant->get_find_id())
             {
                 participant->deliver(msg);
             }
-            std::cout << "jeej" << std::endl;
     }
 
 private:
@@ -136,7 +142,6 @@ private:
                                     if (!ec)
                                     {
                                         handle_read(ec);
-                                        room_.deliver(read_msg_);
                                         do_read_header();
                                     }
                                     else
@@ -155,11 +160,13 @@ private:
             //room_.deliver(read_msg_);
             handle_read(ec);
         } else {
-            std::cout << "Reading after else" << std::endl;
             // process json message
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
-            //std::string str_buf = Tcp::remove_trailing_characters(buf_);
+            Tcp t;
+            buf_ = t.remove_trailing_characters(buf_);
+
+            std::cout << "Reading after else server: " << buf_ << std::endl;
 
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
@@ -169,22 +176,48 @@ private:
                 // read id, set id, place in handle_read function
 
                 shared_from_this()->set_id(buf_j["id"]);
+                shared_from_this()->set_find_id(buf_j["id"]);
                 room_.join(shared_from_this());
 
                 nlohmann::json resp_j;
                 resp_j["register"] = "ack";
                 std::string resp_str_j = resp_j.dump();
-                char resp[p2p_message::max_body_length];
-                strncpy(resp, resp_str_j.c_str(), sizeof(resp));
-                msg.body_length(std::strlen(resp));
-                std::memcpy(msg.body(), resp, msg.body_length());
-                msg.encode_header(1);
- 
-                room_.deliver(msg);
+                
+                set_resp_msg(resp_j.dump());
+                room_.deliver(resp_msg_);
+
 
                 std::cout << "Reading after ack" << std::endl;
+            } else if (buf_j["req"] == "connect")
+            {
+                std::cout << "connect" << std::endl;
+                
+                //send back to peer who wants to connect
+                room_.join(shared_from_this());
+
+                nlohmann::json resp_j;
+                resp_j["req"] = "connect";
+                resp_j["connect"] = "ok";
+                resp_j["id_to"] = buf_j["id_to"];
+                resp_j["ip_to"] = buf_j["ip_to"];
+                resp_j["id_from"] = buf_j["id_from"];
+                resp_j["ip_from"] = buf_j["ip_from"];
+
+                set_resp_msg(resp_j.dump()); 
+                room_.deliver(resp_msg_);
+ 
+                room_.leave(shared_from_this());
             }
         }
+    }
+
+    void set_resp_msg(std::string str_msg)
+    {
+        char char_msg[p2p_message::max_body_length];
+        strncpy(char_msg, str_msg.c_str(), sizeof(char_msg));
+        resp_msg_.body_length(std::strlen(char_msg));
+        std::memcpy(resp_msg_.body(), char_msg, resp_msg_.body_length());
+        resp_msg_.encode_header(1); // a 0, not eom, should maybe also implemented
     }
 
     void do_write()
@@ -214,8 +247,8 @@ private:
     p2p_room &room_;
     p2p_message read_msg_;
     p2p_message_queue write_msgs_;
-    std::string buf_ = "";
-    p2p_message msg;
+    std::string buf_;
+    p2p_message resp_msg_;
 };
 
 //----------------------------------------------------------------------

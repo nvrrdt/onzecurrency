@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include "p2p_message.hpp"
 #include "p2p.hpp"
+#include "json.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -77,18 +78,72 @@ private:
                                     {
                                         std::cout.write(read_msg_.body(), read_msg_.body_length());
                                         std::cout << "\n";
-                                        if (read_msg_.get_eom_flag()) {
-                                            // process json message
-                                            std::cout << "vriendelijk: " << read_msg_.body() << std::endl;
-                                        } else {
-                                            do_read_header();
-                                        }
+                                        handle_read(ec);
+                                        do_read_header();
                                     }
                                     else
                                     {
                                         socket_.close();
                                     }
                                 });
+    }
+
+    void handle_read(boost::system::error_code ec)
+    {
+        if ( !read_msg_.get_eom_flag()) {
+            std::cout << "Reading after if" << std::endl;
+            std::string str_read_msg(read_msg_.body());
+            buf_ += str_read_msg;
+            //room_.deliver(read_msg_);
+            handle_read(ec);
+            buf_ = "";
+        } else {
+            // process json message
+            std::string str_read_msg(read_msg_.body());
+            buf_ += str_read_msg;
+            Tcp t;
+            buf_ = t.remove_trailing_characters(buf_);
+            
+            std::cout << "Reading after else client: " << buf_ << std::endl;
+
+            nlohmann::json buf_j = nlohmann::json::parse(buf_);
+            if (ec)
+                throw boost::system::system_error(ec); // Some other error.
+            else if (buf_j["register"] == "ack")
+            {
+                // TODO: what if there was no response from the server?
+
+                std::cout << "Reading after ack" << std::endl;
+            } else if (buf_j["req"] == "connect") // TODO change to connect
+            {
+                std::cout << "connect_from_everyone" << std::endl;
+                if (buf_j["connect"] == "ok")
+                {
+                    std::cout << "connect = ok" << std::endl;
+                    nlohmann::json message_j;
+                    message_j["connect"] = "true";
+
+                    Tcp t;
+                    if (buf_j["id_from"] == "nvrrdt_from") // change nvrrdt to my_id/my_hash/my_ip
+                    {
+                        std::cout << "message send to id_to from id_from" << std::endl;
+                        t.client("", buf_j["ip_to"], message_j.dump(), "pub_key");
+                        t.server("test");
+                    }
+                    else
+                    {
+                        std::cout << "message send to id_from from id_to" << std::endl;
+                        t.client("", buf_j["ip_from"], message_j.dump(), "pub_key");
+                        t.server("test");
+                    }
+                }
+            } else if (buf_j["connect"] == "true")
+            {
+                std::cout << "connection established" << std::endl;
+            }
+
+            buf_ = "";
+        }
     }
 
     void do_write()
@@ -117,6 +172,8 @@ private:
     tcp::socket socket_;
     p2p_message read_msg_;
     p2p_message_queue write_msgs_;
+    std::string buf_;
+    p2p_message resp_msg_;
 };
 
 std::vector<std::string> split(const std::string& str, int splitLength)
@@ -139,6 +196,11 @@ std::vector<std::string> split(const std::string& str, int splitLength)
    return ret;
 }
 
+bool Tcp::set_close_client(bool close)
+{
+    return close;
+}
+
 std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key)
 {
     try
@@ -146,7 +208,15 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
         boost::asio::io_context io_context;
 
         tcp::resolver resolver(io_context);
-        auto endpoints = resolver.resolve("13.58.174.105", "1975");
+        tcp::resolver::results_type endpoints;
+        if (peer_ip == "")
+        {
+            endpoints = resolver.resolve("13.58.174.105", "1975");
+        }
+        else
+        {
+            endpoints = resolver.resolve(peer_ip, "1975");
+        }
         p2p_client c(io_context, endpoints);
 
         std::thread t([&io_context]() { io_context.run(); });
@@ -173,19 +243,15 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
 
         }
 
-        for (;;){}
-        // char line[p2p_message::max_body_length + 1];
-        // while (std::cin.getline(line, p2p_message::max_body_length + 1))
-        // {
-        //     p2p_message msg;
-        //     msg.body_length(std::strlen(line));
-        //     std::memcpy(msg.body(), line, msg.body_length());
-        //     msg.encode_header();
-        //     c.write(msg);
-        // }
-
-        c.close();
-        t.join();
+        for (;;)
+        {
+            if (close_client_ == true)
+            {
+                c.close();
+                t.join();
+                break;
+            }
+        }
     }
     catch (std::exception &e)
     {

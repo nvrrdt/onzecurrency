@@ -24,6 +24,8 @@ namespace Crowd
     public:
         int server(std::string msg);
         std::string client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
+        bool set_close_client(bool close);
+        std::string remove_trailing_characters(std::string buf);
     protected:
         struct client
         {
@@ -31,12 +33,7 @@ namespace Crowd
             unsigned short port;
         };
     private:
-        std::string remove_trailing_characters(std::string buf);
-        // int die(std::string msg) // kill client/server if there's an error
-        // {
-        //     std::cerr << "Error: " << strerror(errno) << " : " << msg << std::endl;
-        //     return errno;
-        // }
+        bool close_client_ = false;
     };
 
     class Upnp
