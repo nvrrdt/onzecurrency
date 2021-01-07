@@ -10,7 +10,7 @@
 - sudo docker-compose up --build
 - sudo docker image ls
 - sudo docker run -it libcrowd_libcrowd /bin/bash  # doesn't see files, see next
-- sudo docker-compose run onzecurrency bash  # to see files in docker-compose volume
+- sudo docker-compose run -p 1975:1975/tcp -p 1975:1975/udp onzecurrency bash  # to see files in docker-compose volume
 
 #### git
 - git rm --cached -r . # prepare a reset
