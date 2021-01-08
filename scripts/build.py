@@ -33,8 +33,8 @@ def main():
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
-        subprocess.call('cd ' + project_path("build") + ' && ./src/libcrowd/tests --log_level=message \
-            && ./src/liblogin/tests --log_level=message', shell=True)
+        subprocess.call('cd ' + project_path("build") + ' && ./src/libcrowd/testscrowd --log_level=message \
+            && ./src/liblogin/testslogin --log_level=message', shell=True)
     if args.execute:
         subprocess.call('onzehub-terminal', shell=True)
 
