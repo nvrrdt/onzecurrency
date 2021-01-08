@@ -167,7 +167,7 @@ private:
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
                 throw boost::system::system_error(ec); // Some other error.
-            else if (buf_j["msg"] == "register")
+            else if (buf_j["req"] == "register")
             {
                 shared_from_this()->set_id(buf_j["id"]);        // needs to be worked out, it's possible that all peers get all messages
                 shared_from_this()->set_find_id(buf_j["id"]);   // while the two connecting peers should only get their messages

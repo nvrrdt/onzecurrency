@@ -187,7 +187,6 @@ std::vector<std::string> split(const std::string& str, int splitLength)
         ret.push_back(str.substr(splitLength * NumSubstrings));
    }
 
-
    return ret;
 }
 
