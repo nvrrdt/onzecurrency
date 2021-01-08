@@ -91,20 +91,15 @@ private:
     void handle_read(boost::system::error_code ec)
     {
         if ( !read_msg_.get_eom_flag()) {
-            std::cout << "Reading after if" << std::endl;
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
-            //room_.deliver(read_msg_);
             handle_read(ec);
-            buf_ = "";
         } else {
             // process json message
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
             Tcp t;
             buf_ = t.remove_trailing_characters(buf_);
-            
-            std::cout << "Reading after else client: " << buf_ << std::endl;
 
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
@@ -113,10 +108,9 @@ private:
             {
                 // TODO: what if there was no response from the server?
 
-                std::cout << "Reading after ack" << std::endl;
-            } else if (buf_j["req"] == "connect") // TODO change to connect
+                std::cout << "Ack for registering this client to a server" << std::endl;
+            } else if (buf_j["req"] == "connect")
             {
-                std::cout << "connect_from_everyone" << std::endl;
                 if (buf_j["connect"] == "ok")
                 {
                     std::cout << "connect = ok" << std::endl;
@@ -125,7 +119,6 @@ private:
 
                     // Establishing NAT Traversal
                     // TODO: needs to be tested that there is really a connection between the two peers
-                    Tcp t;
                     if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
                     {
                         std::cout << "message send to id_to from id_from" << std::endl;
@@ -144,7 +137,7 @@ private:
                 std::cout << "connection established" << std::endl;
             }
 
-            buf_ = "";
+            buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }
     }
 
@@ -198,7 +191,7 @@ std::vector<std::string> split(const std::string& str, int splitLength)
    return ret;
 }
 
-bool Tcp::set_close_client(bool close)
+bool Tcp::set_close_client(bool close) // preparation for closing the client should still be used somewhere
 {
     return close;
 }
@@ -229,18 +222,12 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
         {
             char s[p2p_message::max_body_length + 1];
             strncpy(s, splitted[i].c_str(), sizeof(s));
+
             p2p_message msg;
             msg.body_length(std::strlen(s));
             std::memcpy(msg.body(), s, msg.body_length());
-            if (i == splitted.size() - 1)
-            {
-                msg.encode_header(1); // 1 indicates end of message eom
-            }
-            else
-            {
-                msg.encode_header(0);
-            }
-            
+            i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
             c.write(msg);
 
         }

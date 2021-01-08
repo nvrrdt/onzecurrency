@@ -154,10 +154,8 @@ private:
     void handle_read(boost::system::error_code ec)
     {
         if ( !read_msg_.get_eom_flag()) {
-            std::cout << "Reading after if" << std::endl;
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
-            //room_.deliver(read_msg_);
             handle_read(ec);
         } else {
             // process json message
@@ -166,31 +164,25 @@ private:
             Tcp t;
             buf_ = t.remove_trailing_characters(buf_);
 
-            std::cout << "Reading after else server: " << buf_ << std::endl;
-
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
                 throw boost::system::system_error(ec); // Some other error.
             else if (buf_j["msg"] == "register")
             {
-                // read id, set id, place in handle_read function
-
-                shared_from_this()->set_id(buf_j["id"]);
-                shared_from_this()->set_find_id(buf_j["id"]);
+                shared_from_this()->set_id(buf_j["id"]);        // needs to be worked out, it's possible that all peers get all messages
+                shared_from_this()->set_find_id(buf_j["id"]);   // while the two connecting peers should only get their messages
                 room_.join(shared_from_this());
 
                 nlohmann::json resp_j;
                 resp_j["register"] = "ack";
-                std::string resp_str_j = resp_j.dump();
-                
+
                 set_resp_msg(resp_j.dump());
                 room_.deliver(resp_msg_);
 
-
-                std::cout << "Reading after ack" << std::endl;
+                std::cout << "Ack for registering client is confirmed" << std::endl;
             } else if (buf_j["req"] == "connect")
             {
-                std::cout << "connect" << std::endl;
+                std::cout << "connection request for a peer behind a nat" << std::endl;
                 
                 //send back to peer who wants to connect
                 room_.join(shared_from_this());
@@ -211,13 +203,13 @@ private:
         }
     }
 
-    void set_resp_msg(std::string str_msg)
+    void set_resp_msg(std::string msg)
     {
-        char char_msg[p2p_message::max_body_length];
-        strncpy(char_msg, str_msg.c_str(), sizeof(char_msg));
-        resp_msg_.body_length(std::strlen(char_msg));
-        std::memcpy(resp_msg_.body(), char_msg, resp_msg_.body_length());
-        resp_msg_.encode_header(1); // a 0, not eom, should maybe also implemented
+        char c[p2p_message::max_body_length];
+        strncpy(c, msg.c_str(), sizeof(c));
+        resp_msg_.body_length(std::strlen(c));
+        std::memcpy(resp_msg_.body(), c, resp_msg_.body_length());
+        resp_msg_.encode_header(1); // TODO a 0 arg = not eom, should also be implemented for when > max_body_length, see ?: in p2p_client
     }
 
     void do_write()
