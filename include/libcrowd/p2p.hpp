@@ -26,12 +26,6 @@ namespace Crowd
         std::string client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
         bool set_close_client(bool close);
         std::string remove_trailing_characters(std::string buf);
-    protected:
-        struct client
-        {
-            boost::asio::ip::address host;
-            unsigned short port;
-        };
     private:
         bool close_client_ = false;
     };
