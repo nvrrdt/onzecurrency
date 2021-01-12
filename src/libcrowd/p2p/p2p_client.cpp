@@ -6,6 +6,9 @@
 #include "p2p_message.hpp"
 #include "p2p.hpp"
 #include "json.hpp"
+#include "crypto.h"
+#include "base64.h"
+#include "poco.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -34,6 +37,11 @@ public:
                                   do_write();
                               }
                           });
+    }
+
+    void set_peer_hash(std::string peer_hash)
+    {
+        peer_hash_ = peer_hash;
     }
 
     void close()
@@ -122,13 +130,13 @@ private:
                     if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
                     {
                         std::cout << "message send to id_to from id_from" << std::endl;
-                        t.client("", buf_j["ip_to"], message_j.dump(), "pub_key");
+                        t.client("", buf_j["ip_to"], buf_j["hash_to"], message_j.dump(), "pub_key");
                         t.server("test");
                     }
                     else
                     {
                         std::cout << "message send to id_from from id_to" << std::endl;
-                        t.client("", buf_j["ip_from"], message_j.dump(), "pub_key");
+                        t.client("", buf_j["ip_from"], buf_j["hash_from"], message_j.dump(), "pub_key");
                         t.server("test");
                     }
                 }
@@ -169,6 +177,7 @@ private:
     p2p_message_queue write_msgs_;
     std::string buf_;
     p2p_message resp_msg_;
+    std::string peer_hash_;
 };
 
 std::vector<std::string> split(const std::string& str, int splitLength)
@@ -195,7 +204,7 @@ bool Tcp::set_close_client(bool close) // preparation for closing the client sho
     return close;
 }
 
-std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key)
+std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key)
 {
     try
     {
@@ -227,6 +236,7 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string mes
             std::memcpy(msg.body(), s, msg.body_length());
             i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
+            if (peer_hash != "") c.set_peer_hash(peer_hash);
             c.write(msg);
 
         }

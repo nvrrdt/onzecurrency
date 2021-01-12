@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         message_j["ip_from"] = "141.135.77.90";
         message_j["id_to"] = "nvrrdt_to";
         message_j["ip_to"] = "13.58.2.29";
-        t.client("", "", message_j.dump(), "");
+        t.client("", "", "", message_j.dump(), "");
     }
 
 //     const std::string ip_mother_peer = "13.58.174.105"; // should be later taken from rocksdb or a pre-defined list

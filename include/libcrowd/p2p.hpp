@@ -7,6 +7,9 @@
 
 #include <boost/array.hpp>
 
+#include "poco.hpp"
+#include "json.hpp"
+
 using namespace std; 
 using namespace boost::asio; 
 using namespace boost::asio::ip;
@@ -23,7 +26,7 @@ namespace Crowd
     {
     public:
         int server(std::string msg);
-        std::string client(std::string srv_ip, std::string peer_ip, std::string message, std::string pub_key); // TODO: add a reference & to these strings
+        std::string client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key); // TODO: add a reference & to these strings
         bool set_close_client(bool close);
         std::string remove_trailing_characters(std::string buf);
     private:
@@ -57,6 +60,79 @@ namespace Crowd
     private:
         int verify_latest_block(std::string latest_block_peer);
         int communicate_to_all(boost::array<char, 128> msg);
+    };
+
+    class LookupPeer
+    {
+    public:
+        LookupPeer(std::string peer_hash)
+        {
+            key_ = poco_.FindChosenOne(peer_hash);
+            value_j_ = nlohmann::json::parse(poco_.Get(key_));
+            id_ = value_j_["id"];
+            ip_ = value_j_["ip"];
+            server_ = value_j_["server"];
+            pub_key_ = value_j_["pub_key"];
+        }
+        std::string GetIpPeer()
+        {
+            return ip_;
+        }
+        std::string GetIdPeer()
+        {
+            return id_;
+        }
+        std::string GetPubKeyPeer()
+        {
+            return pub_key_;
+        }
+        bool IsServer() // not behind NAT
+        {
+            return server_ == "true" ? true : false;
+        }
+    private:
+        Poco poco_;
+        std::string key_;
+        nlohmann::json value_j_;
+        std::string ip_;
+        std::string id_;
+        std::string server_;
+        std::string pub_key_;
+    };
+
+    // if Class LookupPeer is behind NAT, is client, then you can call this to find the server in order to do NAT traversal
+    class LookupPeerIsServer
+    {
+    public:
+        LookupPeerIsServer(std::string peer_hash)
+        {
+            key_ = poco_.FindUpnpPeer(peer_hash);
+            value_j_ = nlohmann::json::parse(poco_.Get(key_));
+            id_ = value_j_["id"];
+            ip_ = value_j_["ip"];
+            server_ = value_j_["server"];
+            pub_key_ = value_j_["pub_key"];
+        }
+        std::string GetIpPeer()
+        {
+            return ip_;
+        }
+        std::string GetIdPeer()
+        {
+            return id_;
+        }
+        std::string GetPubKeyPeer()
+        {
+            return pub_key_;
+        }
+    private:
+        Poco poco_;
+        std::string key_;
+        nlohmann::json value_j_;
+        std::string ip_;
+        std::string id_;
+        std::string server_;
+        std::string pub_key_;
     };
 }
 
