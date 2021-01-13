@@ -43,7 +43,7 @@ bool P2p::StartP2p(std::string my_id)
     }
     
     // prepare for becoming a peer and update the rocksdb of all peers with my presence
-    if (t.server("try") == 0) { // wait 5 seconds, mother_peer tries to connect
+    if (t.server() == 0) { // wait 5 seconds, mother_peer tries to connect
         if (response["ip_upnp_peer"] != "") {
             t.client(response["ip_upnp_peer"], response["ip_peer"], response["hash_peer"], "server", "pub_key"); // server must update all peers with my ip, my id, my server being
         } else {        
@@ -52,7 +52,7 @@ bool P2p::StartP2p(std::string my_id)
 
         std::packaged_task<void()> task1([] {
             Tcp t;
-            t.server("");
+            t.server();
         });
         // Run task on new thread.
         std::thread t1(std::move(task1));
@@ -66,7 +66,7 @@ bool P2p::StartP2p(std::string my_id)
 
         std::packaged_task<void()> task1([] {
             Tcp t;
-            t.server("");
+            t.server();
         });
         // Run task on new thread.
         std::thread t1(std::move(task1));

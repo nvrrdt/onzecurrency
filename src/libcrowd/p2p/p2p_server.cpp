@@ -275,7 +275,7 @@ private:
 
 //----------------------------------------------------------------------
 
-int Tcp::server(std::string msg)
+int Tcp::server()
 {
     try
     {

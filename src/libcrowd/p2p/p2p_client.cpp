@@ -129,13 +129,13 @@ private:
                     {
                         std::cout << "message send to id_to from id_from" << std::endl;
                         t.client("", buf_j["ip_to"], buf_j["hash_to"], message_j.dump(), "pub_key");
-                        t.server("test");
+                        t.server();
                     }
                     else
                     {
                         std::cout << "message send to id_from from id_to" << std::endl;
                         t.client("", buf_j["ip_from"], buf_j["hash_from"], message_j.dump(), "pub_key");
-                        t.server("test");
+                        t.server();
                     }
                 }
             } else if (buf_j["connect"] == "true")

@@ -25,7 +25,7 @@ namespace Crowd
     class Tcp
     {
     public:
-        int server(std::string msg);
+        int server();
         std::string client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key); // TODO: add a reference & to these strings
         bool set_close_client(bool close);
         std::string remove_trailing_characters(std::string buf);
