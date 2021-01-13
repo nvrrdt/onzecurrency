@@ -6,8 +6,6 @@
 #include "p2p_message.hpp"
 #include "p2p.hpp"
 #include "json.hpp"
-#include "crypto.h"
-#include "base64.h"
 #include "poco.hpp"
 
 using namespace Crowd;
