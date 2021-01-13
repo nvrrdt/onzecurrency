@@ -176,6 +176,8 @@ private:
     std::string buf_;
     p2p_message resp_msg_;
     std::string peer_hash_;
+
+    friend struct ::unit_test::FooTester;
 };
 
 std::vector<std::string> split(const std::string& str, int splitLength)

@@ -2,27 +2,37 @@
 // #include <boost/algorithm/string/predicate.hpp>
 
 // #include "p2p.hpp"
+// #include "p2p_client.cpp"
 // using namespace Crowd;
 
 // namespace utf = boost::unit_test;
 
+// https://stackoverflow.com/questions/6778496/how-to-do-unit-testing-on-private-members-and-methods-of-c-classes
 
-// class UdpT : public Udp {};
-
-// BOOST_FIXTURE_TEST_SUITE(UdpSuite, UdpT)
-
-// // use any protected methods inside your tests
-// BOOST_AUTO_TEST_CASE(TimeoutUdpClientTrue, * utf::timeout(5))
+// namespace unit_test {
+// struct FooTester
 // {
-//     udp_client("127.0.0.1", "None", "{ \"upnp\": true }"); // Returns!
-// }
-// BOOST_AUTO_TEST_CASE(TimeoutUdpClientFalse, * utf::timeout(5))
-// {
-//     udp_client("127.0.0.1", "None", "{ \"upnp\": false }"); // Must fail!
-// }
-// BOOST_AUTO_TEST_CASE(TimeoutUdpServer, * utf::timeout(5))
-// {
-//     udp_server(); // Must fail!
+//   static void somePrivateMethod(p2p_client& p2p, boost::system::error_code ec)
+//   {
+//     p2p.handle_read(ec);
+//   }
+// };
 // }
 
-// BOOST_AUTO_TEST_SUITE_END()
+// BOOST_AUTO_TEST_SUITE(FooTest);
+// BOOST_AUTO_TEST_CASE(TestSomePrivateMethod)
+// {
+//     boost::asio::io_context io_context;
+//     tcp::resolver resolver(io_context);
+//     tcp::resolver::results_type endpoints;
+//     endpoints = resolver.resolve("13.58.174.105", "1975");
+//     p2p_client p2p(io_context, endpoints);
+
+//     boost::system::error_code ec;
+//     ec.message() = boost::system::errc::success;
+
+//     BOOST_CHECK_EQUAL(unit_test::FooTester::somePrivateMethod(p2p, ec), true);
+
+// }
+// BOOST_AUTO_TEST_SUITE_END();
+

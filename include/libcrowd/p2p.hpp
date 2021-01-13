@@ -14,6 +14,10 @@ using namespace std;
 using namespace boost::asio; 
 using namespace boost::asio::ip;
 
+namespace unit_test {
+struct FooTester;
+}
+
 namespace Crowd
 {
     class P2p
