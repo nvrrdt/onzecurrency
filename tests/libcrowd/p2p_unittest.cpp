@@ -31,7 +31,8 @@
 //     boost::system::error_code ec;
 //     ec.message() = boost::system::errc::success;
 
-//     BOOST_CHECK_EQUAL(unit_test::FooTester::somePrivateMethod(p2p, ec), true);
+//     BOOST_CHECK_EQUAL(unit_test::FooTester::somePrivateMethod(p2p, ec), true); // maybe it didn't compile because of a circular reference
+                                                                                  // try to comment #include "p2p.hpp"
 
 // }
 // BOOST_AUTO_TEST_SUITE_END();
