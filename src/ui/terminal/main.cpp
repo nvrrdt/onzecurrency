@@ -38,6 +38,10 @@ int main(int argc, char *argv[])
         message_j["id_to"] = "nvrrdt_to";
         message_j["ip_to"] = "13.58.2.29";
         t.client("", "", "", message_j.dump(), "");
+
+        // dummy code:
+        // merkle_tree mt;
+        // mt.prep_block_creation();
     }
 
 //     const std::string ip_mother_peer = "13.58.174.105"; // should be later taken from rocksdb or a pre-defined list
