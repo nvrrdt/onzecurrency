@@ -11,6 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_subdirectory (src/libcrowd)
 add_subdirectory (src/liblogin)
 add_subdirectory (src/ui/terminal)
+add_subdirectory (3rd_party/ecdsa_cxx)
 
 ### enable CPack
 
