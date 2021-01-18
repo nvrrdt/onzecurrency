@@ -41,6 +41,7 @@ target_link_libraries(onzehub-terminal
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
         ${CURL_LIBRARIES}
+        "/usr/local/lib/libecdsa++.so"
 )
 
 ### install:

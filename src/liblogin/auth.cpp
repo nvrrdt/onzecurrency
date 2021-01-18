@@ -10,6 +10,7 @@
 #include "poco.hpp"
 #include "hash.hpp"
 #include "json.hpp"
+#include "keypair.hpp"
 
 using namespace Crowd;
 
@@ -80,6 +81,10 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     if (string_poco_response == "")
     {   
         printf("A new user will be created!\n");
+
+        // generate a new keypair for the signature
+        Keypair kp;
+        kp.generate_and_save_keypair();
 
         Random r;
         uint32 salt = r.createSalt();

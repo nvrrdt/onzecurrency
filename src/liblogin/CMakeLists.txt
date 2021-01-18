@@ -13,6 +13,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/include/liblogin
         ${PROJECT_SOURCE_DIR}/include/ui/terminal
         ${PROJECT_SOURCE_DIR}/src/liblogin
+        ${PROJECT_SOURCE_DIR}/3rd_party/ecdsa_cxx/src
         ${Boost_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIR}
         "/usr/include/miniupnpc"
@@ -58,6 +59,7 @@ target_link_libraries(testslogin
                 "/usr/lib/librocksdb.so"
                 "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
                 "/usr/lib/x86_64-linux-gnu/libsnappy.a"
+                "/usr/local/lib/libecdsa++.so"
 )
 
 add_test(NAME testslogin COMMAND testslogin)
