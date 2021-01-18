@@ -87,8 +87,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         // generate a new keypair for the signature
         Keypair kp;
         kp.generate_and_save_keypair();
-
         auto pub_key = kp.get_pub_key();
+
         cred["pub_key"] = pub_key;
 
         cred["new_peer"] = "true";
@@ -100,7 +100,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     {
         // user is existant:
         Keypair kp;
+        kp.get_existing_keypair();
         auto pub_key = kp.get_pub_key();
+
         cred["pub_key"] = pub_key;
 
         nlohmann::json json_poco_response = nlohmann::json::parse(string_poco_response);

@@ -37,6 +37,51 @@ void Keypair::generate_and_save_keypair()
     }
 }
 
+void Keypair::get_existing_keypair()
+{
+    std::vector<uint8_t> priv_key;
+
+    // read priv_key file
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "priv_key"))
+    {
+        // get priv_key
+        std::ifstream stream(cd.GetConfigDir() + "priv_key", std::ios::in | std::ios::binary);
+        std::vector<uint8_t> contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+        for(auto i: contents) {
+            int value = i;
+            std::cout << "data: " << value << std::endl;
+        }
+
+        priv_key = contents;
+    }
+    else
+    {
+        std::cout << "Priv_key existed already!!" << std::endl;
+    }
+
+    if (boost::filesystem::exists(cd.GetConfigDir() + "pub_key"))
+    {
+        // get pub_key
+        std::ifstream stream(cd.GetConfigDir() + "pub_key", std::ios::in | std::ios::binary);
+        std::vector<uint8_t> contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+        for(auto i: contents) {
+            int value = i;
+            std::cout << "data: " << value << std::endl;
+        }
+
+        pub_key_ = contents;
+    }
+    else
+    {
+        std::cout << "Pub_key existed already!!" << std::endl;
+    }
+
+    ecdsa::Key key(priv_key);
+}
+
 std::string Keypair::get_pub_key()
 {
     return base58::EncodeBase58(pub_key_);
