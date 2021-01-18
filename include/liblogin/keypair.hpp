@@ -15,6 +15,8 @@ namespace Crowd
     {
     public:
         void generate_and_save_keypair();
+        std::string get_pub_key();
     private:
+        std::vector<uint8_t> pub_key_;
     };
 }

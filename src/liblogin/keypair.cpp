@@ -13,8 +13,8 @@ void Keypair::generate_and_save_keypair()
 
     auto priv_key = key.get_priv_key_data();
     key.CreatePubKey();
-    auto pub_key = key.get_pub_key_data();
-    //std::cout << "priv_key: " << base58::EncodeBase58(priv_key) << ", pub_key: " << base58::EncodeBase58(pub_key) << std::endl;
+    pub_key_ = key.get_pub_key_data();
+    //std::cout << "priv_key: " << base58::EncodeBase58(priv_key) << ", pub_key: " << base58::EncodeBase58(pub_key_) << std::endl;
 
     // save keys:
     ConfigDir cd;
@@ -29,10 +29,15 @@ void Keypair::generate_and_save_keypair()
     
     if (!boost::filesystem::exists(cd.GetConfigDir() + "pub_key"))
     {
-        cd.CreateFileInConfigDir("pub_key", base58::EncodeBase58(pub_key));
+        cd.CreateFileInConfigDir("pub_key", base58::EncodeBase58(pub_key_));
     }
     else
     {
         std::cout << "Pub_key existed already!!" << std::endl;
     }
+}
+
+std::string Keypair::get_pub_key()
+{
+    return base58::EncodeBase58(pub_key_);
 }

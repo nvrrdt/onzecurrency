@@ -19,16 +19,4 @@ namespace Crowd
         std::map<std::string, std::string> generateFullHash(std::string email, std::string salt, std::string password);
         uint32_t changeExistingFullHash(std::string email, std::string password);
     };
-
-    class Random {
-    public:
-        Random() = default;
-        Random(std::mt19937::result_type seed) : eng(seed) {}
-
-        uint32 createSalt();
-
-    private:
-        std::mt19937 eng{std::random_device{}()};
-        std::uniform_int_distribution<uint32> uniform_dist{0, UINT32_MAX};
-    };
 }

@@ -76,7 +76,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     Poco p;
     std::string string_poco_response = p.Get(email_hashed_from_input);
 
-    
+    std::map<std::string, std::string> cred;
+    cred["email"] = email;
+    cred["email_hashed"] = email_hashed_from_input;
 
     if (string_poco_response == "")
     {   
@@ -86,11 +88,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         Keypair kp;
         kp.generate_and_save_keypair();
 
-        Random r;
-        uint32 salt = r.createSalt();
-        std::string strsalt = std::to_string(salt);
+        auto pub_key = kp.get_pub_key();
+        cred["pub_key"] = pub_key;
 
-        std::map<std::string, std::string> cred = Auth::generateFullHash(email, strsalt, password);
         cred["new_peer"] = "true";
         cred["error"] = "false";
 
@@ -98,20 +98,18 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     }
     else
     {
-        // get email, full_hash and salt from the blockchain
+        // user is existant:
+        Keypair kp;
+        auto pub_key = kp.get_pub_key();
+        cred["pub_key"] = pub_key;
+
         nlohmann::json json_poco_response = nlohmann::json::parse(string_poco_response);
 
         // get data from rocksdb
-        std::string string_email_hash_from_blockchain = json_poco_response["em"].dump();
-        std::string string_full_hash_from_blockchain = json_poco_response["fh"].dump();
-        std::string string_salt_from_blockchain = json_poco_response["sa"].dump();
+        std::string pub_key_from_blockchain = json_poco_response["pub_key"].dump();
 
-        // get data from input
-        std::map<std::string, std::string> cred = Auth::generateFullHash(email, string_salt_from_blockchain, password);
-
-        // compare input with blockchain
-        if (cred["full_hash"] == string_full_hash_from_blockchain
-            && cred["email_hashed"] == string_email_hash_from_blockchain)
+        // compare pub_key with blockchain
+        if (pub_key == pub_key_from_blockchain)
         {
             cred["new_peer"] = "false";
             cred["error"] = "false";
@@ -136,48 +134,4 @@ bool Auth::validateEmail(const std::string& email)
 
    // try to match the string with the regular expression
    return std::regex_match(email, pattern);
-}
-
-uint32 Random::createSalt()
-{
-    uint32 salt = uniform_dist(eng);
-
-    return salt;
-}
-
-std::map<std::string, std::string> Auth::generateFullHash(std::string email, std::string salt, std::string password)
-{
-    Hash h;
-    std::string hps, h_hps_s, he, full_hash;
-    h.create_hash(password + salt, hps);
-    h.create_hash(hps + salt, h_hps_s);
-    h.create_hash(email, he);
-    h.create_hash(he + h_hps_s + salt, full_hash);
-
-    std::map<std::string, std::string> cred;
-    cred["email"] = email;
-    cred["email_hashed"] = he;
-    cred["salt"] = salt;
-    cred["full_hash"] = full_hash;
-
-    return cred;
-}
-
-uint32_t Auth::changeExistingFullHash(std::string email, std::string password)
-{
-    Random r;
-    std::string string_new_salt = std::to_string(r.createSalt());
-
-    Hash h;
-    std::string email_hashed_from_input;
-    h.create_hash(email, email_hashed_from_input);
-    
-    // create full_hash from the input !!! above is a better example for this hashing !!!
-    std::string full_hash_and_salt_hashed, full_hash_and_salt_hashed_again, string_full_hash_from_input;
-    h.create_hash(password + string_new_salt, full_hash_and_salt_hashed);
-    h.create_hash(full_hash_and_salt_hashed, full_hash_and_salt_hashed_again);
-    h.create_hash(email_hashed_from_input + full_hash_and_salt_hashed_again, string_full_hash_from_input);
-
-    // TODO: doesn't work yet!!!!!
-    return 0;
 }
