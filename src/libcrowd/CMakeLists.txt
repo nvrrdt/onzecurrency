@@ -15,6 +15,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/include/ui/terminal
         ${PROJECT_SOURCE_DIR}/src/libcrowd
         ${PROJECT_SOURCE_DIR}/src/libcrowd/p2p
+        ${PROJECT_SOURCE_DIR}/3rd_party/ecdsa_cxx/src
         ${Boost_INCLUDE_DIRS}
         ${CURL_INCLUDE_DIR}
         "/usr/include/miniupnpc"
@@ -57,6 +58,7 @@ target_link_libraries(testscrowd
                       "/usr/lib/librocksdb.so"
                       "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
                       "/usr/lib/x86_64-linux-gnu/libsnappy.a"
+                      ${PROJECT_SOURCE_DIR}/build/3rd_party/ecdsa_cxx/libecdsa++.so
 )
 
 add_test(NAME testscrowd COMMAND testscrowd)

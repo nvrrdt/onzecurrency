@@ -59,7 +59,7 @@ target_link_libraries(testslogin
                 "/usr/lib/librocksdb.so"
                 "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
                 "/usr/lib/x86_64-linux-gnu/libsnappy.a"
-                "/usr/local/lib/libecdsa++.so"
+                ${PROJECT_SOURCE_DIR}/build/3rd_party/ecdsa_cxx/libecdsa++.so
 )
 
 add_test(NAME testslogin COMMAND testslogin)
