@@ -5,27 +5,24 @@
 #include "json.hpp"
 #include "p2p.hpp"
 #include "poco.hpp"
+#include "ip_peers.hpp"
+#include <vector>
 
 #include <future>
 #include <thread>
 
 using namespace Crowd;
 
-// struct message_contents {
-//     std::string my_id;
-//     std::string peer_id;
-//     std::string server_peer_id;
-//     std::string ip_peer;
-//     std::string ip_server_peer;
-//     std::string version;
-//     bool fullnode;
-//     std::string pub_key;
-//     bool server;    
-// } message;
-
-bool P2p::StartP2p(std::string my_id)
+bool P2p::start_p2p(std::string my_id)
 {
-    const std::string ip_mother_peer = "13.58.174.105"; // TODO: ip should later be taken from rocksdb or a pre-defined list
+    // get ip from ip_peers.json
+    IpPeers ip;
+    std::vector<std::string> ip_s = ip.get_ip_s();
+    nlohmann::json json;
+    to_json(json, ip_s);
+    std::cout << "ip_s: " << json["ip_list"] << std::endl;
+
+    const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
     // get ip_peer from mother_peer
     Tcp t;

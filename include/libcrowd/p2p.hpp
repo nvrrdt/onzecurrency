@@ -23,7 +23,10 @@ namespace Crowd
     class P2p
     {
     public:
-        bool StartP2p(std::string my_id);
+        bool start_p2p(std::string my_id);
+        void to_json(nlohmann::json& j, const std::vector<std::string>& str) {
+            j = nlohmann::json{{"ip_list", str}};
+        }
     };
     
     class Tcp
