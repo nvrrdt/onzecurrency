@@ -13,9 +13,9 @@
 
 using namespace Crowd;
 
-bool P2p::start_p2p(std::string my_id)
+bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
-    // get ip from ip_peers.json
+    // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
     IpPeers ip;
     std::vector<std::string> ip_s = ip.get_ip_s();
     nlohmann::json json;
@@ -24,9 +24,33 @@ bool P2p::start_p2p(std::string my_id)
 
     const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
+    if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
+    {
+        // start server
+        std::packaged_task<void()> task1([] {
+            Tcp t;
+            t.server();
+        });
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+        t1.join();
+
+        Tcp t;
+        nlohmann::json message_j;
+        message_j["req"] = "intro_peer";
+        message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
+        message_j["email_of_req"] = cred["email"];
+        nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key")); // mother server must respond with ip_peer and ip_upnp_peer
+
+        return true;
+    }
+
     // get ip_peer from mother_peer
     Tcp t;
-    nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", "ip_peer", "pub_key")); // mother server must respond with ip_peer and ip_upnp_peer
+    nlohmann::json message_j;
+    message_j["req"] = "ip_peer";
+    message_j["hash_of_req"] = cred["email_hashed"];
+    nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key")); // mother server must respond with ip_peer and ip_upnp_peer
 
     // update your blockchain and rocksdb
     if (response["ip_peer"] != "") {
@@ -75,9 +99,10 @@ bool P2p::start_p2p(std::string my_id)
             t.client("", response["ip_peer"], response["hash_peer"], "client", "pub_key"); // server must update all peers with my ip, my id, my client being
         }
 
-        std::packaged_task<void()> task1([my_id] {
+        std::string email_hashed = cred["email_hashed"];
+        std::packaged_task<void()> task1([email_hashed] {
             Poco p;
-            std::string upnp_peer = p.FindUpnpPeer(my_id);
+            std::string upnp_peer = p.FindUpnpPeer(email_hashed);
             Tcp t;
             t.client(upnp_peer, "", "", "register", "pub_key"); // server should keep connection open to be able to communicate
         });

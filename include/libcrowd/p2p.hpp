@@ -10,6 +10,12 @@
 #include "poco.hpp"
 #include "json.hpp"
 
+#include <atomic>
+#include <condition_variable>
+#include <thread>
+#include <chrono>
+using namespace std::chrono_literals;
+
 using namespace std; 
 using namespace boost::asio; 
 using namespace boost::asio::ip;
@@ -23,7 +29,7 @@ namespace Crowd
     class P2p
     {
     public:
-        bool start_p2p(std::string my_id);
+        bool start_p2p(std::map<std::string, std::string> cred);
         void to_json(nlohmann::json& j, const std::vector<std::string>& str) {
             j = nlohmann::json{{"ip_list", str}};
         }
@@ -140,6 +146,58 @@ namespace Crowd
         std::string id_;
         std::string server_;
         std::string pub_key_;
+    };
+
+    class CreateBlock
+    {
+    public:
+        CreateBlock(std::string email_of_req, std::string hash_of_req)
+        {
+            list_of_new_peers_.push_back(hash_of_req);
+
+            if (list_of_new_peers_.size() > 2048) // 2048x 512 bit hashes
+            {
+                std::thread t1(signals);
+                t1.join();
+            }
+            else
+            {
+                std::thread t1(waits, 1); // TODO: maybe when adding two peers within 30 seconds doesn't work because of this
+                t1.join();                // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
+            }
+        }
+        bool get_ready_to_create_block()
+        {
+            return ready_to_create_block_;
+        }
+    private:
+        void waits(int idx)
+        {
+            std::unique_lock<std::mutex> lk(cv_m);
+            auto now = std::chrono::system_clock::now();
+            if(cv.wait_until(lk, now + 30s, [](){return i == 1;}))
+                std::cerr << "Thread " << idx << " finished waiting. i == " << i << '\n';
+            else
+                std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
+                // TODO: create block here ... somewhere
+        }
+        void signals()
+        {
+            std::this_thread::sleep_for(10ms);
+            std::cerr << "Notifying...\n";
+            cv.notify_all();
+            std::this_thread::sleep_for(10ms);
+            i = 1;
+            std::cerr << "Notifying again...\n";
+            cv.notify_all();
+        }
+    private:
+        std::vector<std::string> list_of_new_peers_;
+        bool ready_to_create_block_;
+
+        std::condition_variable cv;
+        std::mutex cv_m;
+        std::atomic<int> i{0};
     };
 }
 

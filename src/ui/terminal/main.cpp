@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
         return 1;
     } else {
         P2p p;
-        p.start_p2p(cred["email_hashed"]);             // get ip en start server .....
+        p.start_p2p(cred);             // get ip en start server .....
 
         // Tcp t;
 

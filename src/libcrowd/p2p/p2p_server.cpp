@@ -13,6 +13,7 @@
 #include "p2p_message.hpp"
 #include "p2p.hpp"
 #include "json.hpp"
+#include "ip_peers.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -180,7 +181,8 @@ private:
                 room_.deliver(resp_msg_);
 
                 std::cout << "Ack for registering client is confirmed" << std::endl;
-            } else if (buf_j["req"] == "connect")
+            }
+            else if (buf_j["req"] == "connect")
             {
                 std::cout << "connection request for a peer behind a nat" << std::endl;
                 
@@ -199,6 +201,40 @@ private:
                 room_.deliver(resp_msg_);
  
                 room_.leave(shared_from_this());
+            } 
+            else if (buf_j["req"] == "intro_peer")
+            {
+                // process buf_j["hash_of_req"] to find ip of the peer who should update you
+                std::string hash_of_peer = buf_j["hash_of_req"];
+                std::string email_of_peer = buf_j["email_of_req"];
+
+                // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
+                IpPeers ip;
+                std::vector<std::string> ip_s = ip.get_ip_s();
+                nlohmann::json json;
+                P2p p;
+                p.to_json(json, ip_s);
+                std::cout << "ip_s: " << json["ip_list"] << std::endl;
+
+                const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+
+                if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
+                {
+                    // 1) Communicate new peer to all
+                    // 2) Wait 30 seconds or till 1 MB of "intro_peer"'s is reached and then to create a block
+                    // 3) If ok: create block with final hash
+                    // 4) then: update the network with room_.deliver(msg)
+
+                    CreateBlock cb; 
+                    // if cb ok: update blockchain and update rocksdb
+                }
+                else
+                {
+                    // 1) verify if it's you and/or communicate the ip of the requester's needed peer 
+                    // 2) if it's you: verify the email and communicate_to_al
+                    // 3) get all waiting intro_peer's and wait 30 seconds or till 1 MB create a block
+                    // ...
+                }
             }
         }
     }
