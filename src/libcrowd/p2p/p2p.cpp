@@ -35,14 +35,14 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
         t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
 
-        p2p_client p2pc;
-        if (p2pc.get_close_client())
+        if (t.get_tcp_closed_client())
         {
-            std::cout << "Connection was closed, probably no server" << std::endl;
+            std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
         }
         else
         {
+            std::cout << "elseelse" << std::endl;
             // you are not alone and your ip_list, blockchain, rochksdb must be updated, you must connect a peer's ip you get from mother_peer
         }
         return true;

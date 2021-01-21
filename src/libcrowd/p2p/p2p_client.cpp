@@ -245,8 +245,14 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
             c.write(msg);
         }
 
-        while (!c.get_close_client()) {} // ugly, but this client should be able to receive and send messages, it doesn't work without this while
-
+        while (true) // ugly, but this client should be able to receive and send messages, it doesn't work without this while
+        {
+            if (!c.get_close_client())
+            {
+                set_tcp_closed_client(true);
+                break;
+            }
+        }
         c.close();
         t.join();
     }
