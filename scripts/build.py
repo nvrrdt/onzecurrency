@@ -27,9 +27,9 @@ def main():
         if os.path.exists(project_path("build")):
             subprocess.call('rm -r ' + project_path("build"), shell=True)  # suppose we're in ./scripts directory
     if args.make:
-        subprocess.call('cd ' + project_path("build") + ' && cmake -DCMAKE_BUILD_TYPE=Debug .. && make', shell=True)
+        subprocess.call('cd ' + project_path("build") + ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja', shell=True)
     if args.install:
-        subprocess.call('cd ' + project_path("build") + ' && make install && chmod +x /usr/local/bin/onzehub-terminal', shell=True)
+        subprocess.call('cd ' + project_path("build") + ' && ninja install && chmod +x /usr/local/bin/onzehub-terminal', shell=True)
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
