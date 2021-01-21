@@ -220,20 +220,18 @@ private:
 
                 if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
                 {
-                    // 1) Communicate new peer to all
-                    // 2) Wait 30 seconds or till 1 MB of "intro_peer"'s is reached and then to create a block
-                    // 3) If ok: create block with final hash
-                    // 4) then: update the network with room_.deliver(msg)
+                    // 1) Wait 30 seconds or till 1 MB of "intro_peer"'s is reached and then to create a block
+                    // 2) If ok: create block with final hash
+                    // 3) then: update the network with room_.deliver(msg)
+                    // 4) add peer to ip_list
 
-                    CreateBlock cb; 
-                    // if cb ok: update blockchain and update rocksdb
+                    CreateBlock cb(email_of_peer, hash_of_peer);
+                    std::cout << "Is this reached? " << hash_of_peer << std::endl;
+                    // if cb ok: update blockchain and update rocksdb will be received through the chosen one's
                 }
                 else
                 {
-                    // 1) verify if it's you and/or communicate the ip of the requester's needed peer 
-                    // 2) if it's you: verify the email and communicate_to_al
-                    // 3) get all waiting intro_peer's and wait 30 seconds or till 1 MB create a block
-                    // ...
+                    // If there are more peers in the ip_list ...
                 }
             }
         }

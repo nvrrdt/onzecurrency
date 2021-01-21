@@ -40,6 +40,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         message_j["req"] = "intro_peer";
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
+        // TODO: sign email_hashed and also send pub_key
         nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key")); // mother server must respond with ip_peer and ip_upnp_peer
 
         return true;

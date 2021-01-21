@@ -166,10 +166,6 @@ namespace Crowd
                 t1.join();                // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
             }
         }
-        bool get_ready_to_create_block()
-        {
-            return ready_to_create_block_;
-        }
     private:
         void waits(int idx)
         {
@@ -177,23 +173,25 @@ namespace Crowd
             auto now = std::chrono::system_clock::now();
             if(cv.wait_until(lk, now + 30s, [](){return i == 1;}))
                 std::cerr << "Thread " << idx << " finished waiting. i == " << i << '\n';
+                // TODO: create block here ...
+                // include prev_hash, hash of merkle tree of list_of_new_peers_, the list_of_new_peers_ and calculate but exclude the final hash
+                // rocksdb.get(final_hash) to get the chosen_one of chosen_one's
             else
                 std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
-                // TODO: create block here ... somewhere
+                // TODO: create block here ...
         }
         void signals()
         {
-            std::this_thread::sleep_for(10ms);
-            std::cerr << "Notifying...\n";
-            cv.notify_all();
-            std::this_thread::sleep_for(10ms);
+            // std::this_thread::sleep_for(10ms);
+            // std::cerr << "Notifying...\n";
+            // cv.notify_all();
+            // std::this_thread::sleep_for(10ms);
             i = 1;
             std::cerr << "Notifying again...\n";
             cv.notify_all();
         }
     private:
         std::vector<std::string> list_of_new_peers_;
-        bool ready_to_create_block_;
 
         std::condition_variable cv;
         std::mutex cv_m;
