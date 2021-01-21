@@ -214,7 +214,7 @@ private:
                 nlohmann::json json;
                 P2p p;
                 p.to_json(json, ip_s);
-                std::cout << "ip_s: " << json["ip_list"] << std::endl;
+                std::cout << "ip_s_server: " << json["ip_list"] << std::endl;
 
                 const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 

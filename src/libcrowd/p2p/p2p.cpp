@@ -20,29 +20,31 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     std::vector<std::string> ip_s = ip.get_ip_s();
     nlohmann::json json;
     to_json(json, ip_s);
-    std::cout << "ip_s: " << json["ip_list"] << std::endl;
+    std::cout << "ip_s_client: " << json["ip_list"].size() << std::endl;
 
     const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
-        // start server
-        std::packaged_task<void()> task1([] {
-            Tcp t;
-            t.server();
-        });
-        // Run task on new thread.
-        std::thread t1(std::move(task1));
-        t1.join();
-
         Tcp t;
         nlohmann::json message_j;
         message_j["req"] = "intro_peer";
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
         // TODO: sign email_hashed and also send pub_key
-        nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key")); // mother server must respond with ip_peer and ip_upnp_peer
 
+        t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
+
+        p2p_client p2pc;
+        if (p2pc.get_close_client())
+        {
+            std::cout << "Connection was closed, probably no server" << std::endl;
+            // you are the only peer and can create a block
+        }
+        else
+        {
+            // you are not alone and your ip_list, blockchain, rochksdb must be updated, you must connect a peer's ip you get from mother_peer
+        }
         return true;
     }
 

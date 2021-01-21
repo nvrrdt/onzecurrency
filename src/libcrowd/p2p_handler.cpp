@@ -57,16 +57,20 @@ vector<string> p2p_handler::parse_ip_peers_json() // https://github.com/nlohmann
 	
 	file >> j;
 
+    vector<string> ip_list;
+
 	if (j.is_object()) {
-        vector<string> ip_list;
+        
 
         for (auto& element : j["ip_list"])
         {
             ip_list.push_back(element);
         }
 
-        return ip_list;
+        
 	}
+
+    return ip_list;
 }
 
 void p2p_handler::save_blockchain(string response)

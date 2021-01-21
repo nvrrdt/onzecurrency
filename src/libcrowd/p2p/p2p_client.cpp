@@ -47,6 +47,16 @@ public:
         boost::asio::post(io_context_, [this]() { socket_.close(); });
     }
 
+    void set_close_client(bool close) // preparation for closing the client should still be used somewhere
+    {
+        close_client_ = close;
+    }
+
+    bool get_close_client()
+    {
+        return close_client_;
+    }
+
 private:
     void do_connect(const tcp::resolver::results_type &endpoints)
     {
@@ -154,7 +164,7 @@ private:
                                                      write_msgs_.front().length()),
                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
                                      if (!ec)
-                                     {
+                                     {std::cout << "ec1: " << ec << std::endl;
                                          write_msgs_.pop_front();
                                          if (!write_msgs_.empty())
                                          {
@@ -164,6 +174,8 @@ private:
                                      else
                                      {
                                          socket_.close();
+                                         set_close_client(true);
+                                         std::cout << "Connection closed!" << std::endl;
                                      }
                                  });
     }
@@ -176,6 +188,8 @@ private:
     std::string buf_;
     p2p_message resp_msg_;
     std::string peer_hash_;
+
+    bool close_client_;
 
     friend struct ::unit_test::FooTester;
 };
@@ -199,11 +213,6 @@ std::vector<std::string> split(const std::string& str, int splitLength)
    return ret;
 }
 
-bool Tcp::set_close_client(bool close) // preparation for closing the client should still be used somewhere
-{
-    return close;
-}
-
 std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key)
 {
     try
@@ -212,19 +221,15 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
 
         tcp::resolver resolver(io_context);
         tcp::resolver::results_type endpoints;
-        if (peer_ip == "")
-        {
-            endpoints = resolver.resolve("13.58.174.105", "1975");
-        }
-        else
-        {
-            endpoints = resolver.resolve(peer_ip, "1975");
-        }
+        endpoints = resolver.resolve(peer_ip, "1975");
+        
         p2p_client c(io_context, endpoints);
 
         std::thread t([&io_context]() { io_context.run(); });
 
         std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
+
+        
 
         for (int i = 0; i < splitted.size(); i++)
         {
@@ -238,18 +243,12 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
 
             if (peer_hash != "") c.set_peer_hash(peer_hash);
             c.write(msg);
-
         }
 
-        for (;;)
-        {
-            if (close_client_ == true)
-            {
-                c.close();
-                t.join();
-                break;
-            }
-        }
+        while (!c.get_close_client()) {} // ugly, but this client should be able to receive and send messages, it doesn't work without this while
+
+        c.close();
+        t.join();
     }
     catch (std::exception &e)
     {

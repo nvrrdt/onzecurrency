@@ -40,10 +40,8 @@ namespace Crowd
     public:
         int server();
         std::string client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key); // TODO: add a reference & to these strings
-        bool set_close_client(bool close);
         std::string remove_trailing_characters(std::string buf);
     private:
-        bool close_client_ = false;
     };
 
     class Upnp
@@ -157,12 +155,12 @@ namespace Crowd
 
             if (list_of_new_peers_.size() > 2048) // 2048x 512 bit hashes
             {
-                std::thread t1(signals);
+                std::thread t1(&CreateBlock::signals, this);
                 t1.join();
             }
             else
             {
-                std::thread t1(waits, 1); // TODO: maybe when adding two peers within 30 seconds doesn't work because of this
+                std::thread t1(&CreateBlock::waits, this, 1); // TODO: maybe when adding two peers within 30 seconds doesn't work because of this
                 t1.join();                // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
             }
         }
@@ -171,7 +169,7 @@ namespace Crowd
         {
             std::unique_lock<std::mutex> lk(cv_m);
             auto now = std::chrono::system_clock::now();
-            if(cv.wait_until(lk, now + 30s, [](){return i == 1;}))
+            if(cv.wait_until(lk, now + 30s, [=](){return i == 1;}))
                 std::cerr << "Thread " << idx << " finished waiting. i == " << i << '\n';
                 // TODO: create block here ...
                 // include prev_hash, hash of merkle tree of list_of_new_peers_, the list_of_new_peers_ and calculate but exclude the final hash
