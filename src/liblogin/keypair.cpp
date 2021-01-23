@@ -37,7 +37,7 @@ void Keypair::generate_and_save_keypair()
     }
 }
 
-void Keypair::get_existing_keypair()
+std::tuple<std::vector<uint8_t>, std::vector<uint8_t>> Keypair::get_existing_keypair()
 {
     std::vector<uint8_t> priv_key;
 
@@ -79,7 +79,7 @@ void Keypair::get_existing_keypair()
         std::cout << "Pub_key existed already!!" << std::endl;
     }
 
-    ecdsa::Key key(priv_key);
+    return std::tie(priv_key, pub_key_);
 }
 
 std::string Keypair::get_pub_key()

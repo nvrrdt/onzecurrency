@@ -6,6 +6,9 @@
 #include "p2p.hpp"
 #include "poco.hpp"
 #include "ip_peers.hpp"
+#include "signature.hpp"
+#include "keypair.hpp"
+
 #include <vector>
 
 #include <future>
@@ -32,6 +35,11 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
         // TODO: sign email_hashed and also send pub_key
+        Signature s;
+        message_j["signature"] = s.sign(message_j["hash_of_req"]); // TODO: needs to be base58 still
+        Keypair kp;
+        kp.get_existing_keypair(); // TODO: ugly, doesn't need to be twice the work
+        message_j["pub_key"] = kp.get_pub_key(); // this is twice
 
         t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
 
@@ -39,6 +47,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         {
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
+            // + timestamp for the block
         }
         else
         {
