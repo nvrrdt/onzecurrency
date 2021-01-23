@@ -49,6 +49,8 @@ file(GLOB all_TESTS "${PROJECT_SOURCE_DIR}/tests/libcrowd/*.cpp")
 add_executable(testscrowd ${all_TESTS} ${all_SRCS})
 target_compile_definitions(testscrowd PUBLIC BOOST_TEST_DYN_LINK)
 target_link_libraries(testscrowd
+                      LINK_PUBLIC crowd
+                      LINK_PUBLIC login
                       OpenSSL::SSL
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}

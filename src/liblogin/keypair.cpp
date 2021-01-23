@@ -79,7 +79,7 @@ std::tuple<std::vector<uint8_t>, std::vector<uint8_t>> Keypair::get_existing_key
         std::cout << "Pub_key existed already!!" << std::endl;
     }
 
-    return std::tie(priv_key, pub_key_);
+    return std::make_tuple(priv_key, pub_key_);
 }
 
 std::string Keypair::get_pub_key()

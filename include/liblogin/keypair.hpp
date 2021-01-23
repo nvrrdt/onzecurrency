@@ -4,6 +4,7 @@
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
+#include <tuple>
 
 #include <openssl/sha.h>
 #include "key.h"

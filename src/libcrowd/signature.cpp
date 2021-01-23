@@ -14,8 +14,7 @@ std::vector<uint8_t> Signature::create_hash(const std::string &str)
 
 std::tuple<std::vector<uint8_t>, bool> Signature::sign(const std::string string)
 {
-    std::tie(signature_, succ_) = key_.Sign(create_hash(string));
-    return std::tie(signature_, succ_);
+    return key_.Sign(create_hash(string));
 }
 
 bool Signature::verify(const std::string string, std::vector<uint8_t> signature)
