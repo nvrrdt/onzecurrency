@@ -39,9 +39,9 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         auto [signature, succ] = s.sign(message_j["hash_of_req"]);
         if (succ)
         {
-            message_j["signature"] = base58::EncodeBase58(signature); // TODO: needs to be base58 still
+            message_j["signature"] = base58::EncodeBase58(signature);
         }
-        message_j["pub_key"] = base58::EncodeBase58(s.get_pub_key()); // TODO: needs to be base58 still
+        message_j["pub_key"] = base58::EncodeBase58(s.get_pub_key());
 
         t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
 
