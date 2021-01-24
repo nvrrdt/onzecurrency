@@ -50,6 +50,7 @@ target_compile_definitions(testslogin PUBLIC BOOST_TEST_DYN_LINK)
 target_link_libraries(testslogin
                 LINK_PUBLIC login
                 LINK_PUBLIC crowd
+                LINK_PUBLIC ecdsa++
                 OpenSSL::SSL
                 ${Boost_FILESYSTEM_LIBRARY}
                 ${Boost_SYSTEM_LIBRARY}
@@ -59,7 +60,6 @@ target_link_libraries(testslogin
                 "/usr/lib/librocksdb.so"
                 "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
                 "/usr/lib/x86_64-linux-gnu/libsnappy.a"
-                ${PROJECT_SOURCE_DIR}/build/3rd_party/ecdsa_cxx/libecdsa++.so
 )
 
 add_test(NAME testslogin COMMAND testslogin)
