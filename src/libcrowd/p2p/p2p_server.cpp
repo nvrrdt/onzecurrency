@@ -18,6 +18,9 @@
 using namespace Crowd;
 using boost::asio::ip::tcp;
 
+// https://stackoverflow.com/questions/19856665/how-to-use-vector-of-objects-in-different-files
+std::vector<std::string> CreateBlock::list_of_new_peers_;
+
 //----------------------------------------------------------------------
 
 typedef std::deque<p2p_message> p2p_message_queue;

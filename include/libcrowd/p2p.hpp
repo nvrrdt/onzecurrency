@@ -198,7 +198,7 @@ namespace Crowd
             cv.notify_all();
         }
     private:
-        std::vector<std::string> list_of_new_peers_;
+        static std::vector<std::string> list_of_new_peers_;
 
         std::condition_variable cv;
         std::mutex cv_m;
