@@ -10,7 +10,7 @@
 #include "poco.hpp"
 #include "hash.hpp"
 #include "json.hpp"
-#include "keypair.hpp"
+#include "crypto.hpp"
 
 using namespace Crowd;
 
@@ -85,9 +85,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         printf("A new user will be created!\n");
 
         // generate a new keypair for the signature
-        Keypair kp;
-        kp.generate_and_save_keypair();
-        auto pub_key = kp.get_pub_key();
+        Crypto c;
+        c.generate_and_save_keypair();
+        auto pub_key = c.get_pub_key();
 
         cred["pub_key"] = pub_key;
 
@@ -99,9 +99,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     else
     {
         // user is existant:
-        Keypair kp;
-        kp.get_existing_keypair();
-        auto pub_key = kp.get_pub_key();
+        Crypto c;
+        auto pub_key = c.get_pub_key();
 
         cred["pub_key"] = pub_key;
 

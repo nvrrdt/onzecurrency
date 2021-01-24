@@ -7,7 +7,7 @@
 #include "poco.hpp"
 #include "ip_peers.hpp"
 #include "signature.hpp"
-#include "keypair.hpp"
+#include "crypto.hpp"
 
 #include <vector>
 
@@ -37,14 +37,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         message_j["req"] = "intro_peer";
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
-        // TODO: sign email_hashed and also send pub_key
-        Signature s;
-        auto [signature, succ] = s.sign(message_j["hash_of_req"]);
+        Crypto c;
+        auto [signature, succ] = c.sign(message_j["hash_of_req"]); //TODO: add also the pub key to the message to sign
         if (succ)
         {
             message_j["signature"] = base58::EncodeBase58(signature);
         }
-        message_j["pub_key"] = base58::EncodeBase58(s.get_pub_key());
+        message_j["pub_key"] = c.get_pub_key();
 
         t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
 
@@ -53,7 +52,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
             // + timestamp for the block
-            std::cout << "dump: " << message_j.dump() << std::endl; // test this first ...
+            std::cout << "dump: " << "message_j.dump()" << std::endl; // test this first ...
         }
         else
         {
