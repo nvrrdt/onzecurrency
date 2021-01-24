@@ -33,17 +33,21 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
         Tcp t;
-        nlohmann::json message_j;
+        nlohmann::json message_j, to_sign_j;
         message_j["req"] = "intro_peer";
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
         Crypto c;
-        auto [signature, succ] = c.sign(message_j["hash_of_req"]); //TODO: add also the pub key to the message to sign
+        message_j["pub_key"] = c.get_pub_key();
+
+        to_sign_j["pub_key"] = message_j["pub_key"];
+        to_sign_j["hash_of_req"] = message_j["hash_of_req"];
+
+        auto [signature, succ] = c.sign(to_sign_j.dump());
         if (succ)
         {
             message_j["signature"] = base58::EncodeBase58(signature);
         }
-        message_j["pub_key"] = c.get_pub_key();
 
         t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key"); // mother server must respond with ip_peer and ip_upnp_peer
 
@@ -52,7 +56,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
             // + timestamp for the block
-            std::cout << "dump: " << "message_j.dump()" << std::endl; // test this first ...
+            std::cout << "dump: " << message_j.dump() << std::endl; // test this first ...
         }
         else
         {
