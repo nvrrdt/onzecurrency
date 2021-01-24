@@ -16,6 +16,9 @@
 
 using namespace Crowd;
 
+// https://stackoverflow.com/questions/19856665/how-to-use-vector-of-objects-in-different-files
+std::vector<std::string> CreateBlock::list_of_new_peers_;
+
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
     // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
@@ -50,6 +53,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
             // + timestamp for the block
+            std::cout << "dump: " << message_j.dump() << std::endl; // test this first ...
         }
         else
         {
