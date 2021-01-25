@@ -13,7 +13,7 @@ using namespace std;
 
 extern bool break_server_loop;
 
-namespace crowd
+namespace Crowd
 {
     class merkle_tree
     {
@@ -21,13 +21,14 @@ namespace crowd
         void create_user(string email, string password);
         int prep_block_creation();
         bool create_hash(const string& unhashed, string& hashed);
+        void create_block(string&, string, nlohmann::json);
+        string two_hours_timer();
+        std::string time_now();
+        shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
     private:
         void save_new_user(string&, string&);
-        string two_hours_timer();
         bool is_empty(std::ifstream&);
-        shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
         shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
-        void create_block(string&, string, nlohmann::json);
         void create_genesis_block(string, nlohmann::json);
         void add_block_to_blockchain(string);
     };

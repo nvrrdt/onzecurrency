@@ -23,7 +23,7 @@
 #include "verification.hpp"
 #include "p2p_handler.hpp"
 
-using namespace crowd;
+using namespace Crowd;
 
 /**
  * a block consists of a timestamp hashed just before the root hash and a merkle tree of users
@@ -213,6 +213,23 @@ string merkle_tree::two_hours_timer()
     return datetime;
 }
 
+std::string merkle_tree::time_now()
+{
+    using namespace std::chrono;
+
+    std::string datetime;
+
+    system_clock::time_point now = system_clock::now();
+
+    time_t tt = system_clock::to_time_t(now);
+    tm utc_tm = *gmtime(&tt);
+
+    datetime = to_string(utc_tm.tm_hour) + ":" + to_string(utc_tm.tm_min) + ":" + to_string(utc_tm.tm_sec) + " " \
+                       + to_string(utc_tm.tm_mday) + "/" + to_string(utc_tm.tm_mon + 1) + "/" + to_string(utc_tm.tm_year + 1900);
+
+    return datetime;
+}
+
 shared_ptr<stack<string>> merkle_tree::calculate_root_hash(shared_ptr<stack<string>> s_shptr)
 {
     size_t n; // 2^n
@@ -295,13 +312,13 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     int user_count = 0;
     for (auto& element : user_data_j) {
-        string email_hashed, password_hashed;
+        string email_hashed, pub_key;
 
-        email_hashed = element[0];
-        password_hashed = element[1];
+        email_hashed = element["hash_of_req"];
+        pub_key = element["pub_key"];
 
         j["data"][user_count]["email_h"].push_back(email_hashed);
-        j["data"][user_count]["passw_h"].push_back(password_hashed);
+        j["data"][user_count]["passw_h"].push_back(pub_key);
 
         user_count++;
     }
@@ -315,15 +332,16 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     // create genesis or add to blockchain
     boost::system::error_code c;
-    boost::filesystem::path path("./blockchain");
+    ConfigDir cd;
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
 
-    if (!boost::filesystem::exists(path))
+    if (!boost::filesystem::exists(blockchain_folder_path))
     {
-        boost::filesystem::create_directory(path);
+        boost::filesystem::create_directory(blockchain_folder_path);
     }
 
-    bool isDir = boost::filesystem::is_directory(path, c);
-    bool isEmpty = boost::filesystem::is_empty(path);
+    bool isDir = boost::filesystem::is_directory(blockchain_folder_path, c);
+    bool isEmpty = boost::filesystem::is_empty(blockchain_folder_path);
 
     if(!isDir)
     {
@@ -336,7 +354,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             std::cout << "Directory not empty" << std::endl;
             j["prev_hash"].push_back("prev_hash by chosen one"); // prev_hash by chosen one
             block_j = to_string(j);
-            merkle_tree::add_block_to_blockchain(block_j);
+            cd.CreateFileInConfigDir("blockchain/block_000000000001.json", block_j); // TODO: make it count
         }
         else
         {
@@ -348,110 +366,110 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             {
                 j["prev_hash"].push_back(genesis_prev_hash_hashed);
                 block_j = to_string(j);
-                merkle_tree::create_genesis_block(block_j, user_data_j);
+                cd.CreateFileInConfigDir("blockchain/block_00000000000.json", block_j);
             }
         }
     }
 
-    // delete contents of new_users_pool.json
-    std::ofstream ofs;
-    ofs.open("./new_users_pool.json", std::ofstream::out | std::ofstream::trunc);
-    ofs.close();
+    // // delete contents of new_users_pool.json
+    // std::ofstream ofs;
+    // ofs.open("./new_users_pool.json", std::ofstream::out | std::ofstream::trunc);
+    // ofs.close();
  
-    // TODO: dunno yet ... what to do with it
-    if (merkle_tree::create_hash(block_j, block_hashed) == true)
-    {
-        // TODO:
-        // search and find the hash or the hash_above in binary search tree (map) of users, that's the chosen_one
-        // (there need to be already a blockchain, so eventually you're working in the dark (hypothetically!))
-        // thus, create a hash table first
-        // then let the chosen_one hash it, and distribute and confirm the block_hashed of his/hers peers^1 and peers^2
-        // then save the json to the blockchain folder as previously described above
-        // inception or genesis user or bootstrapping this is another thing
+    // // TODO: dunno yet ... what to do with it
+    // if (merkle_tree::create_hash(block_j, block_hashed) == true)
+    // {
+    //     // TODO:
+    //     // search and find the hash or the hash_above in binary search tree (map) of users, that's the chosen_one
+    //     // (there need to be already a blockchain, so eventually you're working in the dark (hypothetically!))
+    //     // thus, create a hash table first
+    //     // then let the chosen_one hash it, and distribute and confirm the block_hashed of his/hers peers^1 and peers^2
+    //     // then save the json to the blockchain folder as previously described above
+    //     // inception or genesis user or bootstrapping this is another thing
 
-        // FOR NOW:
-        // if new_users_pool.json !empty, check if blockchain folder is empty
-        // if empty create genesis block and genesis user(-s)
-        // if not empty add new block to blockchain
+    //     // FOR NOW:
+    //     // if new_users_pool.json !empty, check if blockchain folder is empty
+    //     // if empty create genesis block and genesis user(-s)
+    //     // if not empty add new block to blockchain
 
-        // TODO: do something with block_hashed
-    }
+    //     // TODO: do something with block_hashed
+    // }
 }
 
-void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
-{
-    /**
-     * REMARQUE: the users of the genesis block need to be online for 2 hours after logging in
-     */
+// void merkle_tree::create_genesis_block(string block, nlohmann::json user_data_j)
+// {
+//     /**
+//      * REMARQUE: the users of the genesis block need to be online for 2 hours after logging in
+//      */
 
-    //cout << "create genesis block " << block << endl;
+//     //cout << "create genesis block " << block << endl;
 
-    string block_hashed; // block_hashed is the hash as base for finding the chosen one
-    std::map<std::string, std::string> map_of_users;
-    if (merkle_tree::create_hash(block, block_hashed) == true)
-    {
-        // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
-        // --> Use block to create the hashes from the users and the map to find the chosen_one
+//     string block_hashed; // block_hashed is the hash as base for finding the chosen one
+//     std::map<std::string, std::string> map_of_users;
+//     if (merkle_tree::create_hash(block, block_hashed) == true)
+//     {
+//         // TODO: create map first, find upper_bound in map, that's the chosen one, let him/her communicate block_hashed to his/hers peers^1 en peers^2
+//         // --> Use block to create the hashes from the users and the map to find the chosen_one
 
-        //cout << "heel " << to_string(user_data_j) << endl;
-        for (auto& element : user_data_j)
-        {
-            //cout << "hele " << element << endl;
-            //cout << "hele1 " << element[0] << endl;
-            //cout << "hele2 " << element[1] << endl;
-            string user_conc = string(element[0]) + string(element[1]), user_conc_hashed;
-            if (merkle_tree::create_hash(user_conc, user_conc_hashed) == true)
-            {
-                //cout << "heleconc " << user_conc << " " << user_conc_hashed << endl;
-                map_of_users.insert(std::make_pair(user_conc_hashed, "not_online"));
-            }
-        }
-    }
+//         //cout << "heel " << to_string(user_data_j) << endl;
+//         for (auto& element : user_data_j)
+//         {
+//             //cout << "hele " << element << endl;
+//             //cout << "hele1 " << element[0] << endl;
+//             //cout << "hele2 " << element[1] << endl;
+//             string user_conc = string(element[0]) + string(element[1]), user_conc_hashed;
+//             if (merkle_tree::create_hash(user_conc, user_conc_hashed) == true)
+//             {
+//                 //cout << "heleconc " << user_conc << " " << user_conc_hashed << endl;
+//                 map_of_users.insert(std::make_pair(user_conc_hashed, "not_online"));
+//             }
+//         }
+//     }
 
-    string chosen_one, ip_chosen_one;
+//     string chosen_one, ip_chosen_one;
 
-    // find the chosen_one or poco
-    for (std::map<std::string, std::string>::iterator it=map_of_users.begin(); it!=map_of_users.end(); ++it)
-    {
-        if (block_hashed >= it->first)
-        {
-            // jeej chosen_one found
-            //cout << "chosen_one is " << it->first << endl;
-            chosen_one = it->first;
-            ip_chosen_one = it->second;
-        }
-        else if (it == --map_of_users.end() && block_hashed != it->first)
-        {
-            //cout << "end of genesis map" << it->first << endl;
-            // chosen_one is the first entry of the map
-            //cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
-            chosen_one = map_of_users.begin()->first;
-            ip_chosen_one = map_of_users.begin()->second;
-        }
-    }
+//     // find the chosen_one or poco
+//     for (std::map<std::string, std::string>::iterator it=map_of_users.begin(); it!=map_of_users.end(); ++it)
+//     {
+//         if (block_hashed >= it->first)
+//         {
+//             // jeej chosen_one found
+//             //cout << "chosen_one is " << it->first << endl;
+//             chosen_one = it->first;
+//             ip_chosen_one = it->second;
+//         }
+//         else if (it == --map_of_users.end() && block_hashed != it->first)
+//         {
+//             //cout << "end of genesis map" << it->first << endl;
+//             // chosen_one is the first entry of the map
+//             //cout << "chosen_one in begin of map " << map_of_users.begin()->first << endl;
+//             chosen_one = map_of_users.begin()->first;
+//             ip_chosen_one = map_of_users.begin()->second;
+//         }
+//     }
 
-    /**
-     * TODO: let the chosen_one verify the genesis block's hash, if true, communicate to your peers and create the block on disk if 51% of online users confirms
-     *       if not true, stop genesis block creation
-     * 
-     * - put ip_adress in map instead of ONLINE in the value
-     * - 51% of all online users must confirm the block's hash to the chosen_one
-     */
+//     /**
+//      * TODO: let the chosen_one verify the genesis block's hash, if true, communicate to your peers and create the block on disk if 51% of online users confirms
+//      *       if not true, stop genesis block creation
+//      * 
+//      * - put ip_adress in map instead of ONLINE in the value
+//      * - 51% of all online users must confirm the block's hash to the chosen_one
+//      */
 
-    //::break_server_loop = true; // break the server loop to enable the client again
-    p2p_handler ph;
-    string msg = "verify"; // verify by chosen_one
-    string * m = &msg;
-    ph.p2p_switch(*m, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
+//     //::break_server_loop = true; // break the server loop to enable the client again
+//     p2p_handler ph;
+//     string msg = "verify"; // verify by chosen_one
+//     string * m = &msg;
+//     ph.p2p_switch(*m, ip_chosen_one); // TODO: overload this function in p2p_handler.cpp, false should disappear
 
-    // create the block on disk
-    ofstream ofile("./blockchain/block0000000000.json", ios::out | ios::trunc);
+//     // create the block on disk
+//     ofstream ofile("./blockchain/block0000000000.json", ios::out | ios::trunc);
 
-    ofile << block;
-    ofile.close();
-}
+//     ofile << block;
+//     ofile.close();
+// }
 
-void merkle_tree::add_block_to_blockchain(string block)
-{
-    cout << "add block to blockchain" << endl;
-}
+// void merkle_tree::add_block_to_blockchain(string block)
+// {
+//     cout << "add block to blockchain" << endl;
+// }

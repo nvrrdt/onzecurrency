@@ -16,7 +16,7 @@ using namespace boost::asio::ip;
 
 extern bool break_server_loop;
 
-namespace crowd
+namespace Crowd
 {
     class p2p_handler
     {

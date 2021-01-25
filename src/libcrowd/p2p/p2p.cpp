@@ -8,6 +8,7 @@
 #include "ip_peers.hpp"
 #include "signature.hpp"
 #include "crypto.hpp"
+#include "merkle_tree.hpp"
 
 #include <vector>
 
@@ -33,7 +34,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
         Tcp t;
-        nlohmann::json message_j, to_sign_j;
+        nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j;
         message_j["req"] = "intro_peer";
         message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
         message_j["email_of_req"] = cred["email"];
@@ -57,6 +58,18 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             // you are the only peer and can create a block
             // + timestamp for the block
             std::cout << "dump: " << message_j.dump() << std::endl; // test this first ...
+
+            std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+            s_shptr->push(to_sign_j.dump());
+            merkle_tree mt;
+            s_shptr = mt.calculate_root_hash(s_shptr);
+            transaction_j["hash_of_req"] = message_j["hash_of_req"];
+            transaction_j["pub_key"] = message_j["pub_key"];
+            list_of_transactions_j.push_back(transaction_j);
+            std::string datetime = mt.time_now();
+            mt.create_block(datetime, s_shptr->top(), list_of_transactions_j);
+
+            std::cout << "zijn we hier? " << std::endl;
         }
         else
         {

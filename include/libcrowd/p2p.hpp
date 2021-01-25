@@ -14,6 +14,10 @@
 #include <condition_variable>
 #include <thread>
 #include <chrono>
+
+#include <stack>
+#include <memory>
+
 using namespace std::chrono_literals;
 
 using namespace std; 
