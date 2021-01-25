@@ -111,6 +111,11 @@ std::vector<uint8_t> Crypto::create_hash(const std::string &str)
   return md;
 }
 
+std::string Crypto::create_base58_hash(const std::string &str)
+{
+    return base58::EncodeBase58(create_hash(str));
+}
+
 std::tuple<std::vector<uint8_t>, bool> Crypto::sign(const std::string string)
 {
     auto key = Crypto::get_keypair_with_priv_key(Crypto::get_priv_key());
