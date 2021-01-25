@@ -36,17 +36,17 @@ using namespace Crowd;
 
 
 
-void merkle_tree::create_user(string email, string password)
-{
-    string email_hashed, password_hashed, user_conc, user_hashed;
+// void merkle_tree::create_user(string email, string password)
+// {
+//     string email_hashed, password_hashed, user_conc, user_hashed;
 
-    if (merkle_tree::create_hash(email, email_hashed) &&
-        merkle_tree::create_hash(password, password_hashed) == true)
-    {
-        // Add new user's credentials to pool:
-        merkle_tree::save_new_user(email_hashed, password_hashed);
-    }
-}
+//     if (merkle_tree::create_hash(email, email_hashed) &&
+//         merkle_tree::create_hash(password, password_hashed) == true)
+//     {
+//         // Add new user's credentials to pool:
+//         merkle_tree::save_new_user(email_hashed, password_hashed);
+//     }
+// }
 
 bool merkle_tree::create_hash(const string& unhashed, string& hashed)
 {
@@ -83,135 +83,135 @@ bool merkle_tree::create_hash(const string& unhashed, string& hashed)
     return success;
 }
 
-void merkle_tree::save_new_user(string& hashed_email_new_user, string& hashed_password_new_user)
-{
-    ifstream ifile("./new_users_pool.json", ios::in);
+// void merkle_tree::save_new_user(string& hashed_email_new_user, string& hashed_password_new_user)
+// {
+//     ifstream ifile("./new_users_pool.json", ios::in);
 
-    nlohmann::json j;
+//     nlohmann::json j;
 
-    if (merkle_tree::is_empty(ifile))
-    {
-        ofstream ofile("./new_users_pool.json", ios::out);
+//     if (merkle_tree::is_empty(ifile))
+//     {
+//         ofstream ofile("./new_users_pool.json", ios::out);
         
-        ofile.clear();
+//         ofile.clear();
 
-        nlohmann::json i;
-        i.push_back(hashed_email_new_user);
-        i.push_back(hashed_password_new_user);
+//         nlohmann::json i;
+//         i.push_back(hashed_email_new_user);
+//         i.push_back(hashed_password_new_user);
 
-        j.push_back(i);
+//         j.push_back(i);
 
-        ofile << j;
-    }
-    else
-    {
-        ofstream ofile("./new_users_pool.json", ios::out);
+//         ofile << j;
+//     }
+//     else
+//     {
+//         ofstream ofile("./new_users_pool.json", ios::out);
 
-        ifile >> j;
-        ofile.clear();
+//         ifile >> j;
+//         ofile.clear();
 
-        nlohmann::json i;
+//         nlohmann::json i;
 
-        i.push_back(hashed_email_new_user);
-        i.push_back(hashed_password_new_user);
+//         i.push_back(hashed_email_new_user);
+//         i.push_back(hashed_password_new_user);
     
-        j += i;
+//         j += i;
 
-        ofile << j;
-    }
-}
+//         ofile << j;
+//     }
+// }
 
-bool merkle_tree::is_empty(std::ifstream& pFile)
-{
-    return pFile.peek() == std::ifstream::traits_type::eof();
-}
+// bool merkle_tree::is_empty(std::ifstream& pFile)
+// {
+//     return pFile.peek() == std::ifstream::traits_type::eof();
+// }
 
-int merkle_tree::prep_block_creation()
-{
-    string datetime = merkle_tree::two_hours_timer();
+// int merkle_tree::prep_block_creation()
+// {
+//     string datetime = merkle_tree::two_hours_timer();
 
-    // parse new_users_pool.json
-    ifstream file("./new_users_pool.json");
-    nlohmann::json j;
+//     // parse new_users_pool.json
+//     ifstream file("./new_users_pool.json");
+//     nlohmann::json j;
 
-    file >> j;
+//     file >> j;
     
-    // return if new_users_pool.json is empty
-    if (j.empty()) {
-        return 1;
-    }
+//     // return if new_users_pool.json is empty
+//     if (j.empty()) {
+//         return 1;
+//     }
 
-    shared_ptr<stack<string>> s_shptr = make_shared<stack<string>>();
+//     shared_ptr<stack<string>> s_shptr = make_shared<stack<string>>();
 
-    for (auto& element : j) {
-        //std::cout << std::setw(4) << element << '\n';
+//     for (auto& element : j) {
+//         //std::cout << std::setw(4) << element << '\n';
 
-        // sort email_hashed and password_hashed alphabetically for consistency in concatenating these two hashes
-        string email_hashed, password_hashed, user_conc, user_hashed;
-        // TODO: the user's of the block, only hashed email and hashed password, need also to be stored in a json with block number
-        // but there's block arithmetic needed when the winning block is smaller and bigger than this one calculated here ...
-        email_hashed = element[0];
-        password_hashed = element[1];
-        if (email_hashed <= password_hashed)
-        {
-            user_conc = email_hashed + password_hashed;
-        }
-        else 
-        {
-            user_conc = password_hashed + email_hashed;
-        }
+//         // sort email_hashed and password_hashed alphabetically for consistency in concatenating these two hashes
+//         string email_hashed, password_hashed, user_conc, user_hashed;
+//         // TODO: the user's of the block, only hashed email and hashed password, need also to be stored in a json with block number
+//         // but there's block arithmetic needed when the winning block is smaller and bigger than this one calculated here ...
+//         email_hashed = element[0];
+//         password_hashed = element[1];
+//         if (email_hashed <= password_hashed)
+//         {
+//             user_conc = email_hashed + password_hashed;
+//         }
+//         else 
+//         {
+//             user_conc = password_hashed + email_hashed;
+//         }
 
-        if (merkle_tree::create_hash(user_conc, user_hashed) == true)
-        {
-            //std::cout << "root: " << string(user_hashed) << endl;
+//         if (merkle_tree::create_hash(user_conc, user_hashed) == true)
+//         {
+//             //std::cout << "root: " << string(user_hashed) << endl;
 
-            s_shptr->push(user_hashed);
-        }
-    }
+//             s_shptr->push(user_hashed);
+//         }
+//     }
 
-    s_shptr = merkle_tree::calculate_root_hash(s_shptr);
+//     s_shptr = merkle_tree::calculate_root_hash(s_shptr);
 
-    //std::cout << "root hash block: " << s_shptr->top() << endl;
+//     //std::cout << "root hash block: " << s_shptr->top() << endl;
 
-    merkle_tree::create_block(datetime, s_shptr->top(), j);
+//     merkle_tree::create_block(datetime, s_shptr->top(), j);
 
-    // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
+//     // TODO: setup the block and and add to the blockchain, see the text in the beginning of this file for missing information
 
-    return 0;
-}
+//     return 0;
+// }
 
-string merkle_tree::two_hours_timer()
-{
-    using namespace std::chrono;
+// string merkle_tree::two_hours_timer()
+// {
+//     using namespace std::chrono;
 
-    string datetime;
+//     string datetime;
 
-    while (1)
-    {
-        system_clock::time_point now = system_clock::now();
+//     while (1)
+//     {
+//         system_clock::time_point now = system_clock::now();
 
-        time_t tt = system_clock::to_time_t(now);
-        tm utc_tm = *gmtime(&tt);
+//         time_t tt = system_clock::to_time_t(now);
+//         tm utc_tm = *gmtime(&tt);
         
-        /** TODO: remove this comment in production
-        if (utc_tm.tm_sec % 60 == 0 &&
-            utc_tm.tm_min % 60 == 0 &&
-            utc_tm.tm_hour % 2 == 0) // == 2 hours */
-        if (utc_tm.tm_sec % 60 == 0 ||
-            utc_tm.tm_sec % 60 == 20 ||
-            utc_tm.tm_sec % 60 == 40)
-        {
-            datetime = to_string(utc_tm.tm_hour) + ":" + to_string(utc_tm.tm_min) + ":" + to_string(utc_tm.tm_sec) + " " \
-                       + to_string(utc_tm.tm_mday) + "/" + to_string(utc_tm.tm_mon + 1) + "/" + to_string(utc_tm.tm_year + 1900);
+//         /** TODO: remove this comment in production
+//         if (utc_tm.tm_sec % 60 == 0 &&
+//             utc_tm.tm_min % 60 == 0 &&
+//             utc_tm.tm_hour % 2 == 0) // == 2 hours */
+//         if (utc_tm.tm_sec % 60 == 0 ||
+//             utc_tm.tm_sec % 60 == 20 ||
+//             utc_tm.tm_sec % 60 == 40)
+//         {
+//             datetime = to_string(utc_tm.tm_hour) + ":" + to_string(utc_tm.tm_min) + ":" + to_string(utc_tm.tm_sec) + " " \
+//                        + to_string(utc_tm.tm_mday) + "/" + to_string(utc_tm.tm_mon + 1) + "/" + to_string(utc_tm.tm_year + 1900);
 
-            break;
-        }
-    }
+//             break;
+//         }
+//     }
 
-    sleep(1);
+//     sleep(1);
 
-    return datetime;
-}
+//     return datetime;
+// }
 
 std::string merkle_tree::time_now()
 {
@@ -366,7 +366,7 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             {
                 j["prev_hash"].push_back(genesis_prev_hash_hashed);
                 block_j = to_string(j);
-                cd.CreateFileInConfigDir("blockchain/block_00000000000.json", block_j);
+                cd.CreateFileInConfigDir("blockchain/block_000000000000.json", block_j);
             }
         }
     }
