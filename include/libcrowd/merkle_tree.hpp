@@ -20,7 +20,6 @@ namespace Crowd
     public:
         void create_user(string email, string password);
         int prep_block_creation();
-        bool create_hash(const string& unhashed, string& hashed);
         void create_block(string&, string, nlohmann::json);
         string two_hours_timer();
         std::string time_now();

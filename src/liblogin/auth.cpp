@@ -8,7 +8,6 @@
 #include "auth.hpp"
 #include "configdir.hpp"
 #include "poco.hpp"
-#include "hash.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
 #include "salt.hpp"
