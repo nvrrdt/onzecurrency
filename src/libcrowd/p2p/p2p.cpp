@@ -8,6 +8,7 @@
 #include "ip_peers.hpp"
 #include "signature.hpp"
 #include "crypto.hpp"
+#include "base58.h"
 #include "merkle_tree.hpp"
 
 #include <vector>
@@ -34,15 +35,18 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
         Tcp t;
-        nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j;
-        message_j["req"] = "intro_peer";
-        message_j["hash_of_req"] = cred["email_hashed"]; // = id requester
-        message_j["email_of_req"] = cred["email"];
         Crypto c;
+        nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j, rocksdb_j;
+        message_j["req"] = "intro_peer";
+        message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
+        message_j["salt_of_req"] = cred["salt"]; // TODO: is the salt and the full_hash done in liblogin?
+        message_j["full_hash"] = cred["full_hash"]; // TODO control fullhash
+        message_j["email_of_req"] = cred["email"];
+        
         message_j["pub_key"] = c.get_pub_key();
 
         to_sign_j["pub_key"] = message_j["pub_key"];
-        to_sign_j["hash_of_req"] = message_j["hash_of_req"];
+        to_sign_j["full_hash"] = message_j["full_hash"];
 
         auto [signature, succ] = c.sign(to_sign_j.dump());
         if (succ)
@@ -63,12 +67,25 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             s_shptr->push(to_sign_j.dump());
             merkle_tree mt;
             s_shptr = mt.calculate_root_hash(s_shptr);
-            transaction_j["hash_of_req"] = message_j["hash_of_req"];
+            transaction_j["full_hash"] = message_j["full_hash"];
             transaction_j["pub_key"] = message_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();
             mt.create_block(datetime, s_shptr->top(), list_of_transactions_j);
 
+            // Update rocksdb
+            Poco p;
+            rocksdb_j["version"] = "O.1";
+            rocksdb_j["ip"] = ip_mother_peer;
+            rocksdb_j["server"] = true;
+            rocksdb_j["fullnode"] = true;
+            rocksdb_j["hashemail"] = message_j["hash_of_email"];
+            rocksdb_j["salt"] = message_j["salt_of_req"];
+            rocksdb_j["block"] = 0;
+            std::string hashemail = rocksdb_j["hashemail"];
+            std::string salt = rocksdb_j["salt"];
+            std::string fullhash =  c.create_base58_hash(hashemail + salt);
+            p.Put(fullhash, rocksdb_j.dump());
             std::cout << "zijn we hier? " << std::endl;
         }
         else
