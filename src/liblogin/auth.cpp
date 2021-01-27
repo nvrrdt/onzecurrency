@@ -11,6 +11,7 @@
 #include "hash.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
+#include "random.hpp"
 
 using namespace Crowd;
 
@@ -68,6 +69,9 @@ bool Auth::setNetwork(std::string network)
 std::map<std::string, std::string> Auth::verifyCredentials(std::string email, std::string password)
 {
     //updateBlockchain(); !!!!! TODO: important: blockchain must be up-to-date
+
+    std::string test = Auth::createSalt();
+    std::cout << "test " << test << std::endl;
 
     Hash h;
     std::string email_hashed_from_input;
@@ -135,4 +139,10 @@ bool Auth::validateEmail(const std::string& email)
 
    // try to match the string with the regular expression
    return std::regex_match(email, pattern);
+}
+
+std::string Auth::createSalt()
+{
+    Random r;
+    return r.get_random_number();
 }
