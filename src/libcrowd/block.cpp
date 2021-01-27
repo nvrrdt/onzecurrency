@@ -21,7 +21,6 @@
 #include <boost/system/error_code.hpp>
 
 #include "verification.hpp"
-#include "p2p_handler.hpp"
 
 #include "crypto.hpp"
 
