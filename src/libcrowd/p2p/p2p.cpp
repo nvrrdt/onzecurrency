@@ -71,6 +71,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             transaction_j["pub_key"] = message_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();
+            std::cout << "jep: " << list_of_transactions_j.dump() << std::endl;
             mt.create_block(datetime, s_shptr->top(), list_of_transactions_j);
 
             // Update rocksdb
@@ -79,12 +80,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             rocksdb_j["ip"] = ip_mother_peer;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
-            rocksdb_j["hashemail"] = message_j["hash_of_email"];
+            rocksdb_j["hash_email"] = message_j["hash_of_email"];
             rocksdb_j["salt"] = message_j["salt_of_req"];
             rocksdb_j["block"] = 0;
-            std::string hashemail = rocksdb_j["hashemail"];
+            rocksdb_j["pub_key"] = message_j["pub_key"];
+            std::string hash_email = rocksdb_j["hash_email"];
             std::string salt = rocksdb_j["salt"];
-            std::string fullhash =  c.create_base58_hash(hashemail + salt);
+            std::string fullhash =  c.create_base58_hash(hash_email + salt);
             p.Put(fullhash, rocksdb_j.dump());
             std::cout << "zijn we hier? " << std::endl;
         }

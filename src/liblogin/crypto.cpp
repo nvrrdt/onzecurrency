@@ -61,7 +61,7 @@ std::string Crypto::get_priv_key()
 
         for(auto i: contents) {
             int value = i;
-            std::cout << "data: " << value << std::endl;
+            //std::cout << "data: " << value << std::endl;
         }
 
         priv_key = contents;
@@ -88,7 +88,7 @@ std::string Crypto::get_pub_key()
 
         for(auto i: contents) {
             int value = i;
-            std::cout << "data: " << value << std::endl;
+            //std::cout << "data: " << value << std::endl;
         }
 
         pub_key = contents;

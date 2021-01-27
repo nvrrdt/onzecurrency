@@ -312,12 +312,12 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
 
     int user_count = 0;
     for (auto& element : user_data_j) {
-        string email_hashed, pub_key;
+        string full_hash, pub_key;
 
-        email_hashed = element["hash_of_req"];
+        full_hash = element["full_hash"];
         pub_key = element["pub_key"];
 
-        j["data"][user_count]["email_h"].push_back(email_hashed);
+        j["data"][user_count]["email_h"].push_back(full_hash);
         j["data"][user_count]["passw_h"].push_back(pub_key);
 
         user_count++;

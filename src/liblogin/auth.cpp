@@ -11,7 +11,7 @@
 #include "hash.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
-#include "random.hpp"
+#include "salt.hpp"
 
 using namespace Crowd;
 
@@ -29,7 +29,10 @@ std::map<std::string, std::string> Auth::authentication()
 
     if (network == "") network = "Default";
 
-    std::map<std::string, std::string> cred = Auth::verifyCredentials(email, password);
+    Salt s;
+    std::string salt = s.get_salt_from_file();
+
+    std::map<std::string, std::string> cred = Auth::verifyCredentials(email, salt, password);
 
     if (Auth::validateEmail(email) == true && Auth::setNetwork(network) == true && cred["error"] == "false")
     {
@@ -66,30 +69,30 @@ bool Auth::setNetwork(std::string network)
  * then login is ok
  * if no data from blockchain: create new user
  */
-std::map<std::string, std::string> Auth::verifyCredentials(std::string email, std::string password)
+std::map<std::string, std::string> Auth::verifyCredentials(std::string email, std::string salt, std::string password)
 {
-    //updateBlockchain(); !!!!! TODO: important: blockchain must be up-to-date
-
-    std::string test = Auth::createSalt();
-    std::cout << "test " << test << std::endl;
-
-    Hash h;
-    std::string email_hashed_from_input;
-    h.create_hash(email, email_hashed_from_input);
-    std::cout << "email hash: " << email_hashed_from_input << std::endl;
+    Crypto c;
+    Salt s;
+    std::string hash_email = c.create_base58_hash(email);
+    std::string salt1 = s.get_salt_from_file();
+    std::string full_hash =  c.create_base58_hash(hash_email + salt1);
     Poco p;
-    std::string string_poco_response = p.Get(email_hashed_from_input);
-
+    std::string database_response = p.Get(full_hash);
+std::cout << "salt" << salt1 << " database_response " << database_response << std::endl;
     std::map<std::string, std::string> cred;
-    cred["email"] = email;
-    cred["email_hashed"] = email_hashed_from_input;
-
-    if (string_poco_response == "")
-    {   
+    if (salt1 == "" && database_response == "")
+    {
+        // new user is created
         printf("A new user will be created!\n");
 
+        salt1 = s.create_and_save_salt_to_file();
+std::cout << "salt" << salt1 << std::endl;
+        cred["email"] = email;
+        cred["email_hashed"] = hash_email;
+        cred["salt"] = salt1;
+        cred["full_hash"] = full_hash;
+
         // generate a new keypair for the signature
-        Crypto c;
         c.generate_and_save_keypair();
         auto pub_key = c.get_pub_key();
 
@@ -100,21 +103,26 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
 
         return cred;
     }
-    else
+    else if (database_response != "")
     {
         // user is existant:
-        Crypto c;
-        auto pub_key = c.get_pub_key();
+        printf("The user exists!\n");
+        cred["email"] = email;
+        cred["email_hashed"] = hash_email;
+        cred["salt"] = salt1;
+        cred["full_hash"] = full_hash;
 
-        cred["pub_key"] = pub_key;
+        std::string pub_key_from_file = c.get_pub_key();
 
-        nlohmann::json json_poco_response = nlohmann::json::parse(string_poco_response);
+        cred["pub_key"] = pub_key_from_file;
+
+        nlohmann::json json_response = nlohmann::json::parse(database_response);
 
         // get data from rocksdb
-        std::string pub_key_from_blockchain = json_poco_response["pub_key"].dump();
-
+        std::string pub_key_from_blockchain = json_response["pub_key"];
+std::cout << "file: " << pub_key_from_file << " blockchain: " << pub_key_from_blockchain << std::endl;
         // compare pub_key with blockchain
-        if (pub_key == pub_key_from_blockchain)
+        if (pub_key_from_file == pub_key_from_blockchain)
         {
             cred["new_peer"] = "false";
             cred["error"] = "false";
@@ -129,6 +137,14 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
             return cred;
         }
     }
+    else
+    {
+        std::cerr << "Wrong user for this software!\n"; // TODO: multiple persons should be able to login
+                                                        // Salt, priv_key and pub_key should be in 1 file containing a json
+
+        cred["error"] = "true";
+        return cred;
+    }
 }
 
 bool Auth::validateEmail(const std::string& email)
@@ -139,10 +155,4 @@ bool Auth::validateEmail(const std::string& email)
 
    // try to match the string with the regular expression
    return std::regex_match(email, pattern);
-}
-
-std::string Auth::createSalt()
-{
-    Random r;
-    return r.get_random_number();
 }
