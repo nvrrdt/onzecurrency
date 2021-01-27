@@ -6,7 +6,6 @@
 #include "p2p.hpp"
 #include "poco.hpp"
 #include "ip_peers.hpp"
-#include "signature.hpp"
 #include "crypto.hpp"
 #include "base58.h"
 #include "merkle_tree.hpp"
