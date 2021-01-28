@@ -205,34 +205,41 @@ private:
             else if (buf_j["req"] == "intro_peer")
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
-                std::string hash_of_peer = buf_j["hash_of_req"];
-                std::string email_of_peer = buf_j["email_of_req"];
+                std::string hash_of_peer = buf_j["full_hash"];
+                std::string email_of_peer = buf_j["email"];
 
-                // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
-                IpPeers ip;
-                std::vector<std::string> ip_s = ip.get_ip_s();
-                nlohmann::json json;
-                P2p p;
-                p.to_json(json, ip_s);
-                std::cout << "ip_s_server: " << json["ip_list"] << std::endl;
+                std::cout << "hashop: " << hash_of_peer << " email: " << email_of_peer << std::endl;
 
-                const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+                // verify message, lookup peer in rocksdb and verify that you are the chose_one,
+                // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
 
-                if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
-                {
-                    // 1) Wait 30 seconds or till 1 MB of "intro_peer"'s is reached and then to create a block
-                    // 2) If ok: create block with final hash
-                    // 3) then: update the network with room_.deliver(msg)
-                    // 4) add peer to ip_list
 
-                    CreateBlock cb(email_of_peer, hash_of_peer);
-                    std::cout << "Is this reached? " << hash_of_peer << std::endl;
-                    // if cb ok: update blockchain and update rocksdb will be received through the chosen one's
-                }
-                else
-                {
-                    // If there are more peers in the ip_list ...
-                }
+
+                // // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
+                // IpPeers ip;
+                // std::vector<std::string> ip_s = ip.get_ip_s();
+                // nlohmann::json json;
+                // P2p p;
+                // p.to_json(json, ip_s);
+                // std::cout << "ip_s_server: " << json["ip_list"] << std::endl;
+
+                // const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+
+                // if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
+                // {
+                //     // 1) Wait 30 seconds or till 1 MB of "intro_peer"'s is reached and then to create a block
+                //     // 2) If ok: create block with final hash
+                //     // 3) then: update the network with room_.deliver(msg)
+                //     // 4) add peer to ip_list
+
+                //     CreateBlock cb(email_of_peer, hash_of_peer);
+                //     std::cout << "Is this reached? " << hash_of_peer << std::endl;
+                //     // if cb ok: update blockchain and update rocksdb will be received through the chosen one's
+                // }
+                // else
+                // {
+                //     // If there are more peers in the ip_list ...
+                // }
             }
         }
     }

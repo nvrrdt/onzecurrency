@@ -209,8 +209,3 @@ namespace Crowd
         std::atomic<int> i{0};
     };
 }
-
-extern "C"
-{
-    int ParseIPv4OrIPv6 ( const char** ppszText, unsigned char* abyAddr, int* pnPort, int* pbIsIPv6 );
-}

@@ -29,14 +29,14 @@ def main():
     if args.make:
         subprocess.call('cd ' + project_path("build") + ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja', shell=True)
     if args.install:
-        subprocess.call('cd ' + project_path("build") + ' && ninja install && chmod +x /usr/local/bin/onzehub-terminal', shell=True)
+        subprocess.call('cd ' + project_path("build") + ' && ninja install && chmod +x /usr/local/bin/onze-terminal', shell=True)
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
         subprocess.call('cd ' + project_path("build") + ' && ./src/libcrowd/testscrowd --log_level=message \
             && ./src/liblogin/testslogin --log_level=message', shell=True)
     if args.execute:
-        subprocess.call('onzehub-terminal', shell=True)
+        subprocess.call('onze-terminal', shell=True)
 
 def project_path(sub_dir):
     # find the path of the build folder
