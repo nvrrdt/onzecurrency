@@ -73,22 +73,22 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     Crypto c;
     Salt s;
     std::string hash_email = c.create_base58_hash(email);
-    std::string salt1 = s.get_salt_from_file();
-    std::string full_hash =  c.create_base58_hash(hash_email + salt1);
+    std::string full_hash =  c.create_base58_hash(hash_email + salt);
     Poco p;
     std::string database_response = p.Get(full_hash);
 
     std::map<std::string, std::string> cred;
-    if (salt1 == "" && database_response == "")
+    if (salt == "")
     {
         // new user is created
         printf("A new user will be created!\n");
 
-        salt1 = s.create_and_save_salt_to_file();
+        salt = s.create_and_save_salt_to_file();
 
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
-        cred["salt"] = salt1;
+        cred["salt"] = salt;
+        full_hash =  c.create_base58_hash(hash_email + salt);
         cred["full_hash"] = full_hash;
 
         // generate a new keypair for the signature
@@ -108,7 +108,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         printf("The user exists!\n");
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
-        cred["salt"] = salt1;
+        cred["salt"] = salt;
         cred["full_hash"] = full_hash;
 
         std::string pub_key_from_file = c.get_pub_key();
@@ -119,7 +119,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
 
         // get data from rocksdb
         std::string pub_key_from_blockchain = json_response["pub_key"];
-std::cout << "file: " << pub_key_from_file << " blockchain: " << pub_key_from_blockchain << std::endl;
+
         // compare pub_key with blockchain
         if (pub_key_from_file == pub_key_from_blockchain)
         {
