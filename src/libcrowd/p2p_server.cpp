@@ -157,11 +157,12 @@ private:
         if ( !read_msg_.get_eom_flag()) {
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
-            handle_read(ec);
+            
         } else {
             // process json message
             std::string str_read_msg(read_msg_.body());
-            buf_ += str_read_msg;
+            buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+            
             Tcp t;
             buf_ = t.remove_trailing_characters(buf_);
 
@@ -206,7 +207,7 @@ private:
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
                 std::string hash_of_peer = buf_j["full_hash"];
-                std::string email_of_peer = buf_j["email"];
+                std::string email_of_peer = buf_j["email_of_req"];
 
                 std::cout << "hashop: " << hash_of_peer << " email: " << email_of_peer << std::endl;
 

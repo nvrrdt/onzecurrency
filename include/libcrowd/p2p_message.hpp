@@ -64,12 +64,12 @@ public:
         char header[header_length + 1] = "";
         std::strncat(header, data_, header_length);
 
-        char body_l[4];
+        char body_l[4 + 1] = "";
         body_l[0] = header[0];
         body_l[1] = header[1];
         body_l[2] = header[2];
         body_l[3] = header[3];
-        char eom_f[1];
+        char eom_f[1 + 1] = "";
         eom_f[0] = header[4];
 
         body_length_ = std::atoi(body_l);
@@ -86,21 +86,18 @@ public:
 
     bool get_eom_flag()
     {
-        if (eom_flag_ == 1)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-        
+        return eom_flag_ ? true : false;        
+    }
+
+    int get_body_length()
+    {
+        return body_length_;
     }
 
     void encode_header(int eom_flag)
     {
         char header[header_length + 1] = "";
-        std::sprintf(header, "%4d%1d", static_cast<int>(body_length_), eom_flag);
+        std::sprintf(header, "%04d%1d", static_cast<int>(body_length_), eom_flag);
         std::memcpy(data_, header, header_length);
     }
 

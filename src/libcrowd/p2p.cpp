@@ -29,7 +29,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     to_json(json, ip_s);
     std::cout << "ip_s_client: " << json["ip_list"].size() << std::endl;
 
-    const std::string ip_mother_peer = json["ip_list"][0]; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+    std::string ip_mother_peer = json["ip_list"][0].get<std::string>(); // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
@@ -60,7 +60,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
             // you are the only peer and can create a block
             // + timestamp for the block
-            std::cout << "dump: " << message_j.dump() << std::endl; // test this first ...
+
 
             std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
             s_shptr->push(to_sign_j.dump());
@@ -70,7 +70,6 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             transaction_j["pub_key"] = message_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();
-            std::cout << "jep: " << list_of_transactions_j.dump() << std::endl;
             mt.create_block(datetime, s_shptr->top(), list_of_transactions_j);
 
             // Update rocksdb
@@ -88,6 +87,14 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::string fullhash =  c.create_base58_hash(hash_email + salt);
             p.Put(fullhash, rocksdb_j.dump());
             std::cout << "zijn we hier? " << std::endl;
+
+            std::packaged_task<void()> task1([] {
+                Tcp t;
+                t.server();
+            });
+            // Run task on new thread.
+            std::thread t1(std::move(task1));
+            t1.join();
         }
         else
         {

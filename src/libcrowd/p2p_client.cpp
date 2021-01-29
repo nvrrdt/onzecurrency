@@ -228,9 +228,6 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
         std::thread t([&io_context]() { io_context.run(); });
 
         std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
-
-        
-
         for (int i = 0; i < splitted.size(); i++)
         {
             char s[p2p_message::max_body_length + 1];
@@ -247,7 +244,7 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
 
         while (true) // ugly, but this client should be able to receive and send messages, it doesn't work without this while
         {
-            if (!c.get_close_client())
+            if (c.get_close_client())
             {
                 set_tcp_closed_client(true);
                 break;
