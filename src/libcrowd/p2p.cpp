@@ -173,16 +173,6 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     return true;
 }
 
-std::string Tcp::remove_trailing_characters(std::string buf)
-{
-    // there are trailing chartacters that need to be trimmed,
-    // working with an header for comunicating the length of the body is probably a solution
-    std::string str_buf(buf);
-    std::size_t found = str_buf.find_last_of("}");
-
-    return str_buf.erase(found+1, sizeof(str_buf));
-}
-
 /*
 vector<string> P2p::parse_ip_adress_master_peer_json() // https://github.com/nlohmann/json
 {

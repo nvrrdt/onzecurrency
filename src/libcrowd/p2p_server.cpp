@@ -163,9 +163,6 @@ private:
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
             
-            Tcp t;
-            buf_ = t.remove_trailing_characters(buf_);
-
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
                 throw boost::system::system_error(ec); // Some other error.

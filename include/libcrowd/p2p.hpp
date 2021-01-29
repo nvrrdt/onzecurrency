@@ -52,7 +52,6 @@ namespace Crowd
         {
             return close_client_;
         }
-        std::string remove_trailing_characters(std::string buf);
     private:
         bool close_client_;
     };

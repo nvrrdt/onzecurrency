@@ -113,9 +113,9 @@ private:
         } else {
             // process json message
             std::string str_read_msg(read_msg_.body());
-            buf_ += str_read_msg;
+            buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+
             Tcp t;
-            buf_ = t.remove_trailing_characters(buf_);
 
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
