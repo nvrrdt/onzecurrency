@@ -11,7 +11,7 @@ IpPeers::IpPeers()
         // not existant: create json
         nlohmann::json json;
         json["_comment"] = "DON'T MODIFY THIS FILE YOURSELF";
-        json["ip_list"] = {"13.58.174.105"};
+        json["ip_list"].push_back("13.58.174.105");
         cd.CreateFileInConfigDir("ip_peers.json", json.dump());
 
         ip_s_ = json["ip_list"].get<std::vector<std::string>>();
