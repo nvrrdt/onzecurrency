@@ -14,6 +14,7 @@
 #include "p2p.hpp"
 #include "json.hpp"
 #include "ip_peers.hpp"
+#include "crypto.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -207,6 +208,22 @@ private:
                 std::string email_of_peer = buf_j["email_of_req"];
 
                 std::cout << "hashop: " << hash_of_peer << " email: " << email_of_peer << std::endl;
+
+                nlohmann::json to_verify_j;
+                to_verify_j["pub_key"] = buf_j["pub_key"];
+                to_verify_j["full_hash"] = buf_j["full_hash"];
+                std::string signature = buf_j["signature"];
+                std::string pub_key = buf_j["pub_key"];
+
+                Crypto c;
+                if (c.verify(to_verify_j.dump(), signature, pub_key))
+                {
+                    std::cout << "verified" << std::endl;
+                }
+                else
+                {
+                    std::cout << "failed verification" << std::endl;
+                }
 
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
                 // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
