@@ -77,7 +77,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     std::string full_hash =  c.create_base58_hash(hash_email + salt1);
     Poco p;
     std::string database_response = p.Get(full_hash);
-std::cout << "salt" << salt1 << " database_response " << database_response << std::endl;
+
     std::map<std::string, std::string> cred;
     if (salt1 == "" && database_response == "")
     {
@@ -85,7 +85,7 @@ std::cout << "salt" << salt1 << " database_response " << database_response << st
         printf("A new user will be created!\n");
 
         salt1 = s.create_and_save_salt_to_file();
-std::cout << "salt" << salt1 << std::endl;
+
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["salt"] = salt1;
