@@ -83,25 +83,17 @@ Also a testing environment should set up where the demanded functionality is tes
 - responsability for what's being communicated, like a registered letter, should be trivial in the blockchain world. Only privacy remains an issue.
 
 ### The blueprint:
-- check peers / assemble a peers list / update the peers list / kademlia
+- check peers / assemble a peers list / update the peers list
 - | check de blockchain's integrity or download the blockchain if none existent
 - if all ok: create/login
-- search in all the blocks users (email and password!)
---> first search for a users (!, not block) root hash
+- search in all the blocks users (Hemailsalt and pub_keys!)
 --> if no email then create
 --> if email existent check the password
 - create is assembling in an hour all the new users
 - the upper user seen from the root hash of this block of new users is the user who communicates the final hash of the block
-( timestamp/timeframe (see below) + root hash block + hash chosen one + previous hash + the hashes from the user's credentials (data = email_hashed and password_hashed)) ==> hash communicated by the chosen one
+( timestamp/timeframe (see below) + root hash block + hash chosen one + previous hash + the hashes from the user's credentials (data = email_hashed and pub_keys)) ==> hash communicated by the chosen one
 - 51% of the currently online users should give their ok as assembled by the chosen one, the ok sayers communicate their ok to their list of ip's an expect a returned ok in 51% of their ip's / first layer peers, so a delayed ok towards the chosen one ...
-- when ok for chosen one, the block is mined
---> racing between blocks: a certain amount of blocks must be copied from peers, until the hour has passes or the block size exceeds 1MB
 - here derived apps can pick in, like for instance a coin or a smart contract system, later more ...
-
-#### What's the genesis hourly timeframe's name? That's '0.0' an hour later then '1.0' ... , if divided in blocks of 1MB it's '34.1' followed by '34.2'
-
-- communicating being online in the network, and leaving the network ... a hash table besides the blockchain to keep track of online presences
-- what to do in the beginning when there are low online user presences? should 1 user be able to make the final hash without verifying peers? I think at least 2 online users ...
 
 ### What apps/tools to make?
 - interface (main user interface for all apps)
@@ -124,7 +116,3 @@ Also a testing environment should set up where the demanded functionality is tes
 - hair (an ipfs or swarm alternative)
 - ...
 
-### Amount of peers:
-- (4^4)^4 = ~4 billion
-- (5^5)^5 = a lot more
-So 4 peers is too low en 5 is the right number. That is 5 peers and 5 peers^1 and 5 peers^2, o r every peer communicates with 5 other peers. Coincident peers is normal business?!
