@@ -122,9 +122,11 @@ std::tuple<std::vector<uint8_t>, bool> Crypto::sign(const std::string string)
     return key.Sign(create_hash(string));
 }
 
-bool Crypto::verify(const std::string string, std::vector<uint8_t> signature)
+bool Crypto::verify(const std::string string, std::string signature_base58, std::string pub_key_base58)
 {
-    // auto pub_key = get_pub_key(); // TODO get_pub_key from blockchain
-    // pub_key.Verify(Hash(string) == signature ? true : false;
-    return true;
+    std::vector<uint8_t> pub_key_data, signature;
+    base58::DecodeBase58(pub_key_base58, pub_key_data);
+    ecdsa::PubKey pub_key(pub_key_data);
+    base58::DecodeBase58(signature_base58, signature);
+    return pub_key.Verify(create_hash(string), signature);
 }

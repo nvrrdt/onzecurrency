@@ -22,7 +22,7 @@ namespace Crowd
         std::vector<uint8_t> create_hash(const std::string &str);
         std::string create_base58_hash(const std::string &str);
         std::tuple<std::vector<uint8_t>, bool> sign(const std::string string);
-        bool verify(const std::string string, std::vector<uint8_t> signature);
+        bool verify(const std::string string, std::string signature_base58, std::string pub_key_base58);
     private:
     };
 }
