@@ -36,13 +36,13 @@ namespace Crowd
         {
             s = db->Close();
         }
-        std::string Get(std::string key);
-        bool Put(std::string key, std::string value);
-        bool Delete(std::string key);
-        std::string FindChosenOne(std::string key);
-        std::string FindNextPeer(std::string key);
-        std::string FindServerPeer(std::string key);
-        std::string FindNextServerPeer(std::string key);
+        std::string Get(std::string &key);
+        bool Put(std::string &key, std::string &value);
+        bool Delete(std::string &key);
+        std::string FindChosenOne(std::string &key);
+        std::string FindNextPeer(std::string &key);
+        std::string FindServerPeer(std::string &key);
+        std::string FindNextServerPeer(std::string &key);
         uint32_t TotalAmountOfPeers();
     };
 }

@@ -91,7 +91,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::string hash_email = rocksdb_j["hash_email"];
             std::string salt = rocksdb_j["salt"];
             std::string fullhash =  c.create_base58_hash(hash_email + salt);
-            p.Put(fullhash, rocksdb_j.dump());
+            std::string rocksdb_s = rocksdb_j.dump();
+            p.Put(fullhash, rocksdb_s);
             std::cout << "zijn we hier? " << std::endl;
 
             std::packaged_task<void()> task1([] {

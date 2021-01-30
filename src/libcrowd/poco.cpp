@@ -11,7 +11,7 @@ Poco::Poco()
     rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
     std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
 }
-std::string Poco::Get(std::string key)
+std::string Poco::Get(std::string &key)
 {
     s = db->Get(rocksdb::ReadOptions(), key, &value);
     if (s.ok())
@@ -24,19 +24,19 @@ std::string Poco::Get(std::string key)
         return "";
     }
 }
-bool Poco::Put(std::string key, std::string value) // TODO: value must be json!!
+bool Poco::Put(std::string &key, std::string &value) // TODO: value must be json!!
 {
     s = db->Put(rocksdb::WriteOptions(), key, value);
     if (s.ok()) return true;
     else return false;    
 }
-bool Poco::Delete(std::string key)
+bool Poco::Delete(std::string &key)
 {
     rocksdb::Status s = db->Delete(rocksdb::WriteOptions(), key);
     if (s.ok()) return true;
     else return false;
 }
-std::string Poco::FindChosenOne(std::string key)
+std::string Poco::FindChosenOne(std::string &key)
 {
     std::string string_key_real_chosen_one;
 
@@ -62,7 +62,7 @@ std::string Poco::FindChosenOne(std::string key)
 
     return string_key_real_chosen_one;
 }
-std::string Poco::FindNextPeer(std::string key)
+std::string Poco::FindNextPeer(std::string &key)
 {
     std::string string_key_next_peer;
 
@@ -84,7 +84,7 @@ std::string Poco::FindNextPeer(std::string key)
 
     return string_key_next_peer;
 }
-std::string Poco::FindServerPeer(std::string key)
+std::string Poco::FindServerPeer(std::string &key)
 {
     std::string string_key_server_peer;
 
@@ -111,7 +111,7 @@ std::string Poco::FindServerPeer(std::string key)
 
     return string_key_server_peer;
 }
-std::string Poco::FindNextServerPeer(std::string string_key)
+std::string Poco::FindNextServerPeer(std::string &string_key)
 {
     std::istringstream iss (string_key);
     uint32_t key;
