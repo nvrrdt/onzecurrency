@@ -20,7 +20,9 @@ ecdsa::Key Crypto::generate_and_save_keypair()
     ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "priv_key"))
     {
-        cd.CreateFileInConfigDir("priv_key", base58::EncodeBase58(priv_key));
+        std::string file = "priv_key";
+        std::string contents = base58::EncodeBase58(priv_key);
+        cd.CreateFileInConfigDir(file, contents);
     }
     else
     {
@@ -29,7 +31,9 @@ ecdsa::Key Crypto::generate_and_save_keypair()
     
     if (!boost::filesystem::exists(cd.GetConfigDir() + "pub_key"))
     {
-        cd.CreateFileInConfigDir("pub_key", base58::EncodeBase58(pub_key));
+        std::string file = "pub_key";
+        std::string contents = base58::EncodeBase58(pub_key);
+        cd.CreateFileInConfigDir(file, contents);
     }
     else
     {

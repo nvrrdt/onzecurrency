@@ -153,7 +153,8 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             std::cout << "Directory not empty" << std::endl;
             j["prev_hash"].push_back("prev_hash by chosen one"); // prev_hash by chosen one
             block_j = to_string(j);
-            cd.CreateFileInConfigDir("blockchain/block_000000000001.json", block_j); // TODO: make it count
+            std::string block_file = "blockchain/block_000000000001.json";
+            cd.CreateFileInConfigDir(block_file, block_j); // TODO: make it count
         }
         else
         {
@@ -165,7 +166,8 @@ void merkle_tree::create_block(string& datetime, string root_hash_data, nlohmann
             genesis_prev_hash_hashed = c.create_base58_hash(genesis_prev_hash);
             j["prev_hash"].push_back(genesis_prev_hash_hashed);
             block_j = to_string(j);
-            cd.CreateFileInConfigDir("blockchain/block_000000000000.json", block_j);
+            std::string block_file = "blockchain/block_000000000000.json";
+            cd.CreateFileInConfigDir(block_file, block_j);
         }
     }
 }

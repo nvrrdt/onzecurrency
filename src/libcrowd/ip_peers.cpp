@@ -12,7 +12,9 @@ IpPeers::IpPeers()
         nlohmann::json json;
         json["_comment"] = "DON'T MODIFY THIS FILE YOURSELF";
         json["ip_list"].push_back("13.58.174.105");
-        cd.CreateFileInConfigDir("ip_peers.json", json.dump());
+        std::string jd = json.dump();
+        std::string file = "ip_peers.json";
+        cd.CreateFileInConfigDir(file, jd);
 
         ip_s_ = json["ip_list"].get<std::vector<std::string>>();
     }

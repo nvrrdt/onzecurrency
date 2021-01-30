@@ -16,7 +16,8 @@ std::string Salt::create_and_save_salt_to_file()
 
     // read salt file
     ConfigDir cd;
-    cd.CreateFileInConfigDir("salt", salt_);
+    std::string file = "salt";
+    cd.CreateFileInConfigDir(file, salt_);
 
     return salt_;
 }

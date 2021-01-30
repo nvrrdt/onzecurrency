@@ -14,7 +14,9 @@ BOOST_AUTO_TEST_CASE(GetConfigDir)
 }
 BOOST_AUTO_TEST_CASE(CreateFileInConfigDir)
 {
-    BOOST_CHECK(cd.CreateFileInConfigDir("test.txt", "test") == 0);
+    std::string file = "test.txt";
+    std::string contents = "test";
+    BOOST_CHECK(cd.CreateFileInConfigDir(file, contents) == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -5,7 +5,8 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
 find_package(Threads)
 
-add_library(crowd SHARED 
+add_library(crowd SHARED
+                     configdir.cpp
                      block.cpp
                      interface.cpp
                      ip_peers.cpp
