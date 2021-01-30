@@ -72,7 +72,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             transaction_j["pub_key"] = message_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();
-            mt.create_block(datetime, s_shptr->top(), list_of_transactions_j);
+            std::string root_hash_data = s_shptr->top();
+            mt.create_block(datetime, root_hash_data, list_of_transactions_j);
 
             // Update rocksdb
             Poco p;

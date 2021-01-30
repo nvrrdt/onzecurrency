@@ -1,5 +1,4 @@
-#ifndef MERKLE_TREE_H
-#define MERKLE_TREE_H
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -9,8 +8,6 @@
 
 #include "json.hpp"
 
-using namespace std;
-
 extern bool break_server_loop;
 
 namespace Crowd
@@ -18,19 +15,11 @@ namespace Crowd
     class merkle_tree
     {
     public:
-        void create_user(string email, string password);
         int prep_block_creation();
-        void create_block(string&, string, nlohmann::json);
-        string two_hours_timer();
+        void create_block(std::string &datetim, std::string &root_hash_data, nlohmann::json &user_data_j);
         std::string time_now();
-        shared_ptr<stack<string>> calculate_root_hash(shared_ptr<stack<string>>);
+        std::shared_ptr<std::stack<std::string>> calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
     private:
-        void save_new_user(string&, string&);
-        bool is_empty(std::ifstream&);
-        shared_ptr<stack<string>> pop_two_and_hash(shared_ptr<stack<string>>);
-        void create_genesis_block(string, nlohmann::json);
-        void add_block_to_blockchain(string);
+        std::shared_ptr<std::stack<std::string>> pop_two_and_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
     };
 }
-
-#endif /* MERKLE_TREE_H */
