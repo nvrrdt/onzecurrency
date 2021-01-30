@@ -48,8 +48,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
         to_sign_j["pub_key"] = message_j["pub_key"];
         to_sign_j["full_hash_peer"] = message_j["full_hash_peer"];
-
-        auto [signature, succ] = c.sign(to_sign_j.dump());
+        std::string to_sign_s = to_sign_j.dump();
+        auto [signature, succ] = c.sign(to_sign_s);
         if (succ)
         {
             message_j["signature"] = base58::EncodeBase58(signature);

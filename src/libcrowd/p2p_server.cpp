@@ -218,7 +218,8 @@ private:
                 std::string pub_key = buf_j["pub_key"];
 
                 Crypto c;
-                if (c.verify(to_verify_j.dump(), signature, pub_key))
+                std::string to_verify_s = to_verify_j.dump();
+                if (c.verify(to_verify_s, signature, pub_key))
                 {
                     std::cout << "verified" << std::endl;
                     Poco p;

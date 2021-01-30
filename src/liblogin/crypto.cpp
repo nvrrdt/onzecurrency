@@ -43,7 +43,7 @@ ecdsa::Key Crypto::generate_and_save_keypair()
     return key;
 }
 
-ecdsa::Key Crypto::get_keypair_with_priv_key(std::string priv_key)
+ecdsa::Key Crypto::get_keypair_with_priv_key(std::string &priv_key)
 {
     std::vector<uint8_t> priv_key_data;
     base58::DecodeBase58(priv_key, priv_key_data);
@@ -120,13 +120,14 @@ std::string Crypto::create_base58_hash(const std::string &str)
     return base58::EncodeBase58(create_hash(str));
 }
 
-std::tuple<std::vector<uint8_t>, bool> Crypto::sign(const std::string string)
+std::tuple<std::vector<uint8_t>, bool> Crypto::sign(const std::string &string)
 {
-    auto key = Crypto::get_keypair_with_priv_key(Crypto::get_priv_key());
+    auto priv_key = Crypto::get_priv_key();
+    auto key = Crypto::get_keypair_with_priv_key(priv_key);
     return key.Sign(create_hash(string));
 }
 
-bool Crypto::verify(const std::string string, std::string signature_base58, std::string pub_key_base58)
+bool Crypto::verify(const std::string &string, std::string &signature_base58, std::string &pub_key_base58)
 {
     std::vector<uint8_t> pub_key_data, signature;
     base58::DecodeBase58(pub_key_base58, pub_key_data);
