@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 // // Udp udp;
 // // udp.udp_server();
 
-//     std::cout << "upnp_peer: " << ip_mother_peer << ", my_ip: " << my_public_ip << std::endl;
+//     std::cout << "server_peer: " << ip_mother_peer << ", my_ip: " << my_public_ip << std::endl;
 //     if (ip_mother_peer == my_public_ip)
 //     {
 //         Upnp upnp;

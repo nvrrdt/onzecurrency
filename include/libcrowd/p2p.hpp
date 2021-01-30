@@ -129,7 +129,7 @@ namespace Crowd
     public:
         LookupPeerIsServer(std::string peer_hash)
         {
-            key_ = poco_.FindUpnpPeer(peer_hash);
+            key_ = poco_.FindServerPeer(peer_hash);
             value_j_ = nlohmann::json::parse(poco_.Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];

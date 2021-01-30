@@ -84,20 +84,20 @@ std::string Poco::FindNextPeer(std::string key)
 
     return string_key_next_peer;
 }
-std::string Poco::FindUpnpPeer(std::string key)
+std::string Poco::FindServerPeer(std::string key)
 {
-    std::string string_key_upnp_peer;
+    std::string string_key_server_peer;
 
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
         if (it->key().ToString() >= key)
         {
-            // Search in it->value for upnp enabledness
+            // Search in it->value for server enabledness
             nlohmann::json j = nlohmann::json::parse(it->value().ToString());
-            if (j["upnp"] == true)
+            if (j["server"] == true)
             {
-                string_key_upnp_peer = it->key().ToString();
+                string_key_server_peer = it->key().ToString();
                 break;
             }
         }
@@ -109,9 +109,9 @@ std::string Poco::FindUpnpPeer(std::string key)
     }
     delete it;
 
-    return string_key_upnp_peer;
+    return string_key_server_peer;
 }
-std::string Poco::FindNextUpnpPeer(std::string string_key)
+std::string Poco::FindNextServerPeer(std::string string_key)
 {
     std::istringstream iss (string_key);
     uint32_t key;
@@ -124,18 +124,18 @@ std::string Poco::FindNextUpnpPeer(std::string string_key)
 
     key++;
 
-    std::string string_key_upnp_peer;
+    std::string string_key_server_peer;
 
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
         if (it->key().ToString() >= std::to_string(key))
         {
-            // Search in it->value for next one's upnp enabledness
+            // Search in it->value for next one's server enabledness
             nlohmann::json j = nlohmann::json::parse(it->value().ToString());
-            if (j["upnp"] == true)
+            if (j["server"] == true)
             {
-                string_key_upnp_peer = it->key().ToString();
+                string_key_server_peer = it->key().ToString();
                 break;
             }
         }

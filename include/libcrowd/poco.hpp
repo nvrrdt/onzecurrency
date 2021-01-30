@@ -41,8 +41,8 @@ namespace Crowd
         bool Delete(std::string key);
         std::string FindChosenOne(std::string key);
         std::string FindNextPeer(std::string key);
-        std::string FindUpnpPeer(std::string key);
-        std::string FindNextUpnpPeer(std::string key);
+        std::string FindServerPeer(std::string key);
+        std::string FindNextServerPeer(std::string key);
         uint32_t TotalAmountOfPeers();
     };
 }
