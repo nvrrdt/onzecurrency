@@ -138,13 +138,23 @@ private:
                     if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
                     {
                         std::cout << "message send to id_to from id_from" << std::endl;
-                        t.client("", buf_j["ip_to"], buf_j["hash_to"], message_j.dump(), "pub_key");
+                        std::string srv_ip = "";
+                        std::string peer_ip = buf_j["ip_to"];
+                        std::string peer_hash = buf_j["hash_to"];
+                        std::string message = message_j.dump();
+                        std::string pub_key = "pub_key";
+                        t.client(srv_ip, peer_ip, peer_hash, message, pub_key);
                         t.server();
                     }
                     else
                     {
                         std::cout << "message send to id_from from id_to" << std::endl;
-                        t.client("", buf_j["ip_from"], buf_j["hash_from"], message_j.dump(), "pub_key");
+                        std::string srv_ip = "";
+                        std::string peer_ip = buf_j["ip_from"];
+                        std::string peer_hash = buf_j["hash_from"];
+                        std::string message = message_j.dump();
+                        std::string pub_key = "pub_key";
+                        t.client(srv_ip, peer_ip, peer_hash, message, pub_key);
                         t.server();
                     }
                 }
@@ -213,7 +223,7 @@ std::vector<std::string> split(const std::string& str, int splitLength)
    return ret;
 }
 
-std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key)
+std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message, std::string &pub_key)
 {
     try
     {
@@ -246,7 +256,8 @@ std::string Tcp::client(std::string srv_ip, std::string peer_ip, std::string pee
         {
             if (c.get_close_client())
             {
-                set_tcp_closed_client(true);
+                bool t = true;
+                set_tcp_closed_client(t);
                 break;
             }
         }

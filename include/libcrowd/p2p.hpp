@@ -43,8 +43,8 @@ namespace Crowd
     {
     public:
         int server();
-        std::string client(std::string srv_ip, std::string peer_ip, std::string peer_hash, std::string message, std::string pub_key); // TODO: add a reference & to these strings
-        void set_tcp_closed_client(bool close)
+        std::string client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message, std::string &pub_key); // TODO: add a reference & to these strings
+        void set_tcp_closed_client(bool &close)
         {
             close_client_ = close;
         }
@@ -79,16 +79,16 @@ namespace Crowd
     public:
         int hello_and_setup(std::string& my_user_login_hash);
         std::string latest_block();
-        std::map<std::string, uint32_t> layer_management(std::string total_amount_of_peers);
+        std::map<std::string, uint32_t> layer_management(std::string &total_amount_of_peers);
     private:
-        int verify_latest_block(std::string latest_block_peer);
-        int communicate_to_all(boost::array<char, 128> msg);
+        int verify_latest_block(std::string &latest_block_peer);
+        int communicate_to_all(boost::array<char, 128> &msg);
     };
 
     class LookupPeer
     {
     public:
-        LookupPeer(std::string peer_hash)
+        LookupPeer(std::string &peer_hash)
         {
             key_ = poco_.FindChosenOne(peer_hash);
             value_j_ = nlohmann::json::parse(poco_.Get(key_));
@@ -127,7 +127,7 @@ namespace Crowd
     class LookupPeerIsServer
     {
     public:
-        LookupPeerIsServer(std::string peer_hash)
+        LookupPeerIsServer(std::string &peer_hash)
         {
             key_ = poco_.FindServerPeer(peer_hash);
             value_j_ = nlohmann::json::parse(poco_.Get(key_));
@@ -161,7 +161,7 @@ namespace Crowd
     class CreateBlock
     {
     public:
-        CreateBlock(std::string email_of_req, std::string hash_of_req)
+        CreateBlock(std::string &email_of_req, std::string &hash_of_req)
         {
             list_of_new_peers_.push_back(hash_of_req);
 

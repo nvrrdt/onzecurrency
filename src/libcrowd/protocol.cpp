@@ -211,7 +211,7 @@ std::string Protocol::latest_block()
     return latest_block; // TODO: also verify latest hash
 }
 
-// int Protocol::verify_latest_block(std::string latest_block_peer)
+// int Protocol::verify_latest_block(std::string &latest_block_peer)
 // {
 //     /**
 //      * Verify that the latest block response (response_hello) from the peer equals your latest block
@@ -266,7 +266,7 @@ std::string Protocol::latest_block()
 //     }
 // }
 
-// int Protocol::communicate_to_all(boost::array<char, 128> msg)
+// int Protocol::communicate_to_all(boost::array<char, 128> &msg)
 // {
 //     /**
 //      * Partition rocksdb (size = uint32_t) in equal partitions
@@ -287,7 +287,7 @@ std::string Protocol::latest_block()
 //     return 0;
 // }
 
-std::map<std::string, uint32_t> Protocol::layer_management(std::string string_total_amount_of_peers)
+std::map<std::string, uint32_t> Protocol::layer_management(std::string &string_total_amount_of_peers)
 {
     const int nmax = 100;   // max number of peers per section
     uint32_t i;                  // number of layers
