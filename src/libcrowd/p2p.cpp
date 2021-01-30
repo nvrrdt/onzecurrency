@@ -35,17 +35,19 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     {
         Tcp t;
         Crypto c;
+        Poco p;
         nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j, rocksdb_j;
         message_j["req"] = "intro_peer";
         message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
         message_j["salt_of_req"] = cred["salt"]; // TODO: is the salt and the full_hash done in liblogin?
-        message_j["full_hash"] = cred["full_hash"]; // TODO control fullhash
+        message_j["full_hash_peer"] = cred["full_hash"]; // TODO control fullhash
+        message_j["full_hash_co"] = p.FindChosenOne(cred["full_hash"]);
         message_j["email_of_req"] = cred["email"];
         
         message_j["pub_key"] = c.get_pub_key();
 
         to_sign_j["pub_key"] = message_j["pub_key"];
-        to_sign_j["full_hash"] = message_j["full_hash"];
+        to_sign_j["full_hash_peer"] = message_j["full_hash_peer"];
 
         auto [signature, succ] = c.sign(to_sign_j.dump());
         if (succ)
@@ -66,7 +68,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             s_shptr->push(to_sign_j.dump());
             merkle_tree mt;
             s_shptr = mt.calculate_root_hash(s_shptr);
-            transaction_j["full_hash"] = message_j["full_hash"];
+            transaction_j["full_hash"] = message_j["full_hash_peer"];
             transaction_j["pub_key"] = message_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();

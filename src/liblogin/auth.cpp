@@ -73,9 +73,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
     Crypto c;
     Salt s;
     std::string hash_email = c.create_base58_hash(email);
-    std::string full_hash =  c.create_base58_hash(hash_email + salt);
+    my_full_hash_ =  c.create_base58_hash(hash_email + salt);
     Poco p;
-    std::string database_response = p.Get(full_hash);
+    std::string database_response = p.Get(my_full_hash_);
 
     std::map<std::string, std::string> cred;
     if (salt == "")
@@ -88,8 +88,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["salt"] = salt;
-        full_hash =  c.create_base58_hash(hash_email + salt);
-        cred["full_hash"] = full_hash;
+        my_full_hash_ =  c.create_base58_hash(hash_email + salt);
+        cred["full_hash"] = my_full_hash_;
 
         // generate a new keypair for the signature
         c.generate_and_save_keypair();
@@ -109,7 +109,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string email, st
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["salt"] = salt;
-        cred["full_hash"] = full_hash;
+        cred["full_hash"] = my_full_hash_;
 
         std::string pub_key_from_file = c.get_pub_key();
 
@@ -154,4 +154,9 @@ bool Auth::validateEmail(const std::string& email)
 
    // try to match the string with the regular expression
    return std::regex_match(email, pattern);
+}
+
+std::string Auth::get_my_full_hash()
+{
+    return my_full_hash_;
 }

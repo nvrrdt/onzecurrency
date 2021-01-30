@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "ip_peers.hpp"
 #include "crypto.hpp"
+#include "auth.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -204,10 +205,11 @@ private:
             else if (buf_j["req"] == "intro_peer")
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
-                std::string hash_of_peer = buf_j["full_hash"];
+                std::string full_hash_peer = buf_j["full_hash_peer"];
+                std::string full_hash_co = buf_j["full_hash_co"];
                 std::string email_of_peer = buf_j["email_of_req"];
 
-                std::cout << "hashop: " << hash_of_peer << " email: " << email_of_peer << std::endl;
+                std::cout << "hashop: " << full_hash_peer << " email: " << email_of_peer << std::endl;
 
                 nlohmann::json to_verify_j;
                 to_verify_j["pub_key"] = buf_j["pub_key"];
@@ -219,10 +221,37 @@ private:
                 if (c.verify(to_verify_j.dump(), signature, pub_key))
                 {
                     std::cout << "verified" << std::endl;
+                    Poco p;
+                    std::string value_co = p.Get(full_hash_co);
+                    std::string chosen_one = p.FindChosenOne(full_hash_peer);
+                    if (value_co != "" && chosen_one == full_hash_co) // TODO: && chosen_one is online
+                    {
+                        Auth a;
+                        std::string my_full_hash = a.get_my_full_hash();
+                        if (full_hash_co == my_full_hash)
+                        {
+                            // I'm the chosen one
+                            std::cout << "I'm the chosen one!" << std::endl;
+
+                            // layer_management needed: assemble all  the chosen ones in rocksdb,
+                            // then create clients to them all with new_peer message
+                        }
+                        else
+                        {
+                            // I'm not the chosen one, reply with get_new_co
+                            std::cout << "I'm the NOT the chosen one!" << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        // Peer does't yet exist in rocksdb or there's another chosen one, reply with error
+                        std::cerr << "ERROR: no full_hash_peer was sent or chosen_one is someone else!" << std::endl;
+                    }
                 }
                 else
                 {
                     std::cout << "failed verification" << std::endl;
+                    room_.leave(shared_from_this());
                 }
 
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
