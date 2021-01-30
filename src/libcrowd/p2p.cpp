@@ -76,7 +76,6 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             mt.create_block(datetime, root_hash_data, list_of_transactions_j);
 
             // Update rocksdb
-            Poco p;
             rocksdb_j["version"] = "O.1";
             rocksdb_j["ip"] = ip_mother_peer;
             rocksdb_j["server"] = true;
