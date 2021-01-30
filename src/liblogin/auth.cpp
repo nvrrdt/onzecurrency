@@ -49,7 +49,7 @@ std::map<std::string, std::string> Auth::authentication()
 /**
  * setNetwork: Should be implemented later
  */
-bool Auth::setNetwork(std::string network)
+bool Auth::setNetwork(std::string &network)
 {
     if (network == "Default")
     {
@@ -68,7 +68,7 @@ bool Auth::setNetwork(std::string network)
  * then login is ok
  * if no data from blockchain: create new user
  */
-std::map<std::string, std::string> Auth::verifyCredentials(std::string email, std::string salt, std::string password)
+std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &salt, std::string &password)
 {
     Crypto c;
     Salt s;

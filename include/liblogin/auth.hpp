@@ -13,9 +13,9 @@ namespace Crowd
     {
     public:
         std::map<std::string, std::string> authentication();
-        bool setNetwork(std::string network);
-        std::map<std::string, std::string> verifyCredentials(std::string email, std::string salt, std::string password);
-        bool validateEmail(const std::string& email);
+        bool setNetwork(std::string &network);
+        std::map<std::string, std::string> verifyCredentials(std::string &email, std::string &salt, std::string &password);
+        bool validateEmail(const std::string &email);
         std::string get_my_full_hash();
     private:
         std::string my_full_hash_;

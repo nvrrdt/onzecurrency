@@ -11,8 +11,10 @@ Auth a;
 
 BOOST_AUTO_TEST_CASE(SetNetwork)
 {
-    BOOST_CHECK(a.setNetwork("Default") == 0);
-    BOOST_CHECK(a.setNetwork("error") == 1);
+    std::string d = "Default";
+    std::string err = "error";
+    BOOST_CHECK(a.setNetwork(d) == 0);
+    BOOST_CHECK(a.setNetwork(err) == 1);
 }
 BOOST_AUTO_TEST_CASE(ValidateEmail)
 {
