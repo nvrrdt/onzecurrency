@@ -234,13 +234,14 @@ private:
                             // I'm the chosen one
                             std::cout << "I'm the chosen one!" << std::endl;
 
-                            // layer_management needed: assemble all  the chosen ones in rocksdb,
+                            // upload blockchain to the requesting peer,
+                            // for the server: layer_management needed: assemble all  the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
                         }
                         else
                         {
                             // I'm not the chosen one, reply with get_new_co
-                            std::cout << "I'm the NOT the chosen one!" << std::endl;
+                            std::cout << "I'm NOT the chosen one!" << std::endl;
                         }
                     }
                     else
