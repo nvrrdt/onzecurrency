@@ -205,17 +205,18 @@ private:
             else if (buf_j["req"] == "intro_peer")
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
-                std::string full_hash_peer = buf_j["full_hash_peer"];
+                std::string full_hash_peer = buf_j["full_hash_req"];
                 std::string full_hash_co = buf_j["full_hash_co"];
                 std::string email_of_peer = buf_j["email_of_req"];
+                std::string prev_hash_peer = buf_j["prev_hash"];
+                std::string pub_key = buf_j["pub_key"];
+                std::string signature = buf_j["signature"];
 
-                std::cout << "hashop: " << full_hash_peer << " email: " << email_of_peer << std::endl;
+                std::cout << " email: " << email_of_peer << std::endl;
 
                 nlohmann::json to_verify_j;
-                to_verify_j["pub_key"] = buf_j["pub_key"];
-                to_verify_j["full_hash"] = buf_j["full_hash"];
-                std::string signature = buf_j["signature"];
-                std::string pub_key = buf_j["pub_key"];
+                to_verify_j["pub_key"] = pub_key;
+                to_verify_j["email"] = email_of_peer;
 
                 Ecdsa e;
                 std::string to_verify_s = to_verify_j.dump();

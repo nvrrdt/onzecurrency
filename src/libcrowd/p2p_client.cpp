@@ -143,7 +143,7 @@ private:
                         std::string peer_hash = buf_j["hash_to"];
                         std::string message = message_j.dump();
                         std::string pub_key = "pub_key";
-                        t.client(srv_ip, peer_ip, peer_hash, message, pub_key);
+                        t.client(srv_ip, peer_ip, peer_hash, message);
                         t.server();
                     }
                     else
@@ -154,7 +154,7 @@ private:
                         std::string peer_hash = buf_j["hash_from"];
                         std::string message = message_j.dump();
                         std::string pub_key = "pub_key";
-                        t.client(srv_ip, peer_ip, peer_hash, message, pub_key);
+                        t.client(srv_ip, peer_ip, peer_hash, message);
                         t.server();
                     }
                 }
@@ -223,7 +223,7 @@ std::vector<std::string> split(const std::string& str, int splitLength)
    return ret;
 }
 
-std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message, std::string &pub_key)
+std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message)
 {
     try
     {

@@ -11,28 +11,25 @@
 #include "json.hpp"
 #include "crypto_shab58.hpp"
 #include "crypto_ecdsa.hpp"
-#include "salt.hpp"
+#include "prev_hash.hpp"
 
 using namespace Crowd;
 
 std::map<std::string, std::string> Auth::authentication()
 {
-    std::string network, email, password;
+    std::string network = "Default", email = "", password = "";
 
-    std::cout << "Network [Default]: ";
-    std::getline(std::cin, network);
+    // std::cout << "Network [Default]: ";
+    // std::getline(std::cin, network);
     // std::cin >> network;
     std::cout << "Email adress: ";
     std::cin >> email;
-    std::cout << "Password: ";
-    std::cin >> password;
+    // std::cout << "Password: ";
+    // std::cin >> password;
 
-    if (network == "") network = "Default";
+    // if (network == "") network = "Default";
 
-    Salt sa;
-    std::string salt = sa.get_salt_from_file();
-
-    std::map<std::string, std::string> cred = Auth::verifyCredentials(email, salt, password);
+    std::map<std::string, std::string> cred = Auth::verifyCredentials(email, password);
 
     if (Auth::validateEmail(email) == true && Auth::setNetwork(network) == true && cred["error"] == "false")
     {
@@ -65,40 +62,32 @@ bool Auth::setNetwork(std::string &network)
 
 /**
  * verifyCredentials:
- * if H(H(email)+H(H(password+salt)+salt)+salt) is correct
- * then login is ok
- * if no data from blockchain: create new user
  */
-std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &salt, std::string &password)
+std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
 {
     Shab58 s;
     Ecdsa e;
-    Salt sa;
+    PrevHash ph;
     std::string hash_email = s.create_base58_hash(email);
-    my_full_hash_ =  s.create_base58_hash(hash_email + salt);
+    std::string prev_hash = ph.get_prev_hash_from_file();
+    my_full_hash_ =  s.create_base58_hash(hash_email + prev_hash);
     Poco p;
     std::string database_response = p.Get(my_full_hash_);
 
     std::map<std::string, std::string> cred;
-    if (salt == "")
+    if (e.get_priv_key() == "" && prev_hash == "")
     {
         // new user is created
         printf("A new user will be created!\n");
 
-        salt = sa.create_and_save_salt_to_file();
-
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
-        cred["salt"] = salt;
-        my_full_hash_ =  s.create_base58_hash(hash_email + salt);
-        cred["full_hash"] = my_full_hash_;
 
         // generate a new keypair for the signature
         e.generate_and_save_keypair();
         auto pub_key = e.get_pub_key();
-std::cout << pub_key << std::endl;
-        cred["pub_key"] = pub_key;
 
+        cred["pub_key"] = pub_key;
         cred["new_peer"] = "true";
         cred["error"] = "false";
 
@@ -110,11 +99,10 @@ std::cout << pub_key << std::endl;
         printf("The user exists!\n");
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
-        cred["salt"] = salt;
+        cred["prev_hash"] = prev_hash;
         cred["full_hash"] = my_full_hash_;
 
         std::string pub_key_from_file = e.get_pub_key();
-
         cred["pub_key"] = pub_key_from_file;
 
         nlohmann::json json_response = nlohmann::json::parse(database_response);
@@ -140,8 +128,7 @@ std::cout << pub_key << std::endl;
     }
     else
     {
-        std::cerr << "Wrong user for this software!\n"; // TODO: multiple persons should be able to login
-                                                        // Salt, priv_key and pub_key should be in 1 file containing a json
+        std::cerr << "User not in database, priv_key and prev_key present!\n"; // TODO: multiple persons should be able to login
 
         cred["error"] = "true";
         return cred;

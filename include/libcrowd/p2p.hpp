@@ -43,7 +43,7 @@ namespace Crowd
     {
     public:
         int server();
-        std::string client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message, std::string &pub_key); // TODO: add a reference & to these strings
+        std::string client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message); // TODO: add a reference & to these strings
         void set_tcp_closed_client(bool &close)
         {
             close_client_ = close;

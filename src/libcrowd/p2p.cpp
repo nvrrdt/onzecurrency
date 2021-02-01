@@ -37,18 +37,18 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         Ecdsa e;
         Shab58 s;
         Poco p;
-        nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j, rocksdb_j;
+        nlohmann::json message_j, to_sign_j, to_block_j, transaction_j, list_of_transactions_j, rocksdb_j;
         message_j["req"] = "intro_peer";
-        message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
-        message_j["salt_of_req"] = cred["salt"]; // TODO: is the salt and the full_hash done in liblogin?
-        message_j["full_hash_peer"] = cred["full_hash"]; // TODO control fullhash
-        message_j["full_hash_co"] = p.FindChosenOne(cred["full_hash"]);
         message_j["email_of_req"] = cred["email"];
+        message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
+        message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
+        message_j["full_hash_co"] = p.FindChosenOne(cred["email_hashed"]);
         
-        message_j["pub_key"] = e.get_pub_key();
+        
+        message_j["pub_key"] = cred["pub_key"];
 
-        to_sign_j["pub_key"] = message_j["pub_key"];
-        to_sign_j["full_hash_peer"] = message_j["full_hash_peer"];
+        to_sign_j["pub_key"] = cred["pub_key"];
+        to_sign_j["email"] = cred["email"];
         std::string to_sign_s = to_sign_j.dump();
         auto [signature, succ] = e.sign(to_sign_s);
         if (succ)
@@ -59,22 +59,27 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         std::string srv_ip = "";
         std::string peer_hash = "";
         std::string message = message_j.dump();
-        std::string pub_key = "pub_key";
-        t.client(srv_ip, ip_mother_peer, peer_hash, message, pub_key); // mother server must respond with ip_peer and ip_server_peer
+        t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer
 
         if (t.get_tcp_closed_client())
         {
             std::cout << "Connection was closed, probably no server reachable!" << std::endl;
-            // you are the only peer and can create a block
-            // + timestamp for the block
 
+            // you are the only peer and can create a block
+
+            std::string hash_email = cred["email_hashed"];
+            std::string prev_hash = cred["prev_hash"];
+            std::string full_hash =  s.create_base58_hash(hash_email + prev_hash);
+
+            to_block_j["full_hash"] = full_hash;
+            to_block_j["pub_key"] = cred["pub_key"];
 
             std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
-            s_shptr->push(to_sign_j.dump());
+            s_shptr->push(to_block_j.dump());
             merkle_tree mt;
             s_shptr = mt.calculate_root_hash(s_shptr);
-            transaction_j["full_hash"] = message_j["full_hash_peer"];
-            transaction_j["pub_key"] = message_j["pub_key"];
+            transaction_j["full_hash"] = to_block_j["full_hash"];
+            transaction_j["pub_key"] = to_block_j["pub_key"];
             list_of_transactions_j.push_back(transaction_j);
             std::string datetime = mt.time_now();
             std::string root_hash_data = s_shptr->top();
@@ -89,11 +94,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             rocksdb_j["salt"] = message_j["salt_of_req"];
             rocksdb_j["block"] = 0;
             rocksdb_j["pub_key"] = message_j["pub_key"];
-            std::string hash_email = rocksdb_j["hash_email"];
-            std::string salt = rocksdb_j["salt"];
-            std::string fullhash =  s.create_base58_hash(hash_email + salt);
             std::string rocksdb_s = rocksdb_j.dump();
-            p.Put(fullhash, rocksdb_s);
+            p.Put(full_hash, rocksdb_s);
             std::cout << "zijn we hier? " << std::endl;
 
             std::packaged_task<void()> task1([] {
