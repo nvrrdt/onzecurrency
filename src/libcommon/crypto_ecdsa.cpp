@@ -16,26 +16,26 @@ ecdsa::Key Ecdsa::generate_and_save_keypair()
 
     // save keys:
     ConfigDir cd;
-    if (!boost::filesystem::exists(cd.GetConfigDir() + "priv_key"))
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
-        std::string file = "priv_key";
+        std::string file = "ecdsa_priv_key";
         std::string contents = base58::EncodeBase58(priv_key);
         cd.CreateFileInConfigDir(file, contents);
     }
     else
     {
-        std::cout << "Priv_key existed already!!" << std::endl;
+        std::cout << "Ecdsa_priv_key existed already!!" << std::endl;
     }
     
-    if (!boost::filesystem::exists(cd.GetConfigDir() + "pub_key"))
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
-        std::string file = "pub_key";
+        std::string file = "ecdsa_pub_key";
         std::string contents = base58::EncodeBase58(pub_key);
         cd.CreateFileInConfigDir(file, contents);
     }
     else
     {
-        std::cout << "Pub_key existed already!!" << std::endl;
+        std::cout << "Ecdsa_pub_key existed already!!" << std::endl;
     }
 
     return key;
@@ -55,10 +55,10 @@ std::string Ecdsa::get_priv_key()
 
     // read priv_key file
     ConfigDir cd;
-    if (boost::filesystem::exists(cd.GetConfigDir() + "priv_key"))
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         // get priv_key
-        std::ifstream stream(cd.GetConfigDir() + "priv_key", std::ios::in | std::ios::binary);
+        std::ifstream stream(cd.GetConfigDir() + "ecdsa_priv_key", std::ios::in | std::ios::binary);
         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
         for(auto i: contents) {
@@ -70,7 +70,7 @@ std::string Ecdsa::get_priv_key()
     }
     else
     {
-        std::cout << "Priv_key existed already!!" << std::endl;
+        std::cout << "Ecdsa_priv_key existed already!!" << std::endl;
     }
 
     return priv_key;
@@ -82,10 +82,10 @@ std::string Ecdsa::get_pub_key()
 
     // read pub_key file
     ConfigDir cd;
-    if (boost::filesystem::exists(cd.GetConfigDir() + "pub_key"))
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         // get pub_key
-        std::ifstream stream(cd.GetConfigDir() + "pub_key", std::ios::in | std::ios::binary);
+        std::ifstream stream(cd.GetConfigDir() + "ecdsa_pub_key", std::ios::in | std::ios::binary);
         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
         for(auto i: contents) {
@@ -97,7 +97,7 @@ std::string Ecdsa::get_pub_key()
     }
     else
     {
-        std::cout << "Pub_key existed already!!" << std::endl;
+        std::cout << "Ecdsa_pub_key existed already!!" << std::endl;
     }
 
     return pub_key;
