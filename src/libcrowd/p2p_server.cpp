@@ -16,6 +16,7 @@
 #include "ip_peers.hpp"
 #include "auth.hpp"
 #include "crypto_ecdsa.hpp"
+#include "crypto_shab58.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -205,14 +206,16 @@ private:
             else if (buf_j["req"] == "intro_peer")
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
-                std::string full_hash_peer = buf_j["full_hash_req"];
-                std::string full_hash_co = buf_j["full_hash_co"];
+                std::string full_hash_co_from_peer = buf_j["full_hash_co"];
                 std::string email_of_peer = buf_j["email_of_req"];
-                std::string prev_hash_peer = buf_j["prev_hash"];
+                std::string prev_hash_peer = buf_j["prev_hash_of_req"];
                 std::string pub_key = buf_j["pub_key"];
                 std::string signature = buf_j["signature"];
 
-                std::cout << " email: " << email_of_peer << std::endl;
+                Shab58 s;
+                std::string full_hash_peer =  s.create_base58_hash(email_of_peer + prev_hash_peer);
+
+                std::cout << "email: " << email_of_peer << std::endl;
 
                 nlohmann::json to_verify_j;
                 to_verify_j["pub_key"] = pub_key;
@@ -224,13 +227,13 @@ private:
                 {
                     std::cout << "verified" << std::endl;
                     Poco p;
-                    std::string value_co = p.Get(full_hash_co);
-                    std::string chosen_one = p.FindChosenOne(full_hash_peer);
-                    if (value_co != "" && chosen_one == full_hash_co) // TODO: && chosen_one is online
+                    std::string co_from_this_db = p.FindChosenOne(full_hash_peer);
+                    // Do the chosen_one communicated correspond to the chosen_one lookup in db?
+                    if (co_from_this_db == full_hash_co_from_peer)
                     {
                         Auth a;
                         std::string my_full_hash = a.get_my_full_hash();
-                        if (full_hash_co == my_full_hash)
+                        if (full_hash_co_from_peer == my_full_hash) // TODO: an eta should be introduced for when someone enters/leaves the network
                         {
                             // I'm the chosen one
                             std::cout << "I'm the chosen one!" << std::endl;
