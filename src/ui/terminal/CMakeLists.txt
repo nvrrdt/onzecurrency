@@ -7,10 +7,9 @@ find_package(Threads)
 
 add_executable(onze-terminal main.cpp)
 
-add_dependencies(onze-terminal ecdsa++)
-
 target_include_directories(onze-terminal PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/ui/terminal"
+                          "${PROJECT_SOURCE_DIR}/include/libcommon"
                           "${PROJECT_SOURCE_DIR}/include/liblogin"
                           "${PROJECT_SOURCE_DIR}/include/libcrowd"
                           "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa"
@@ -19,6 +18,7 @@ target_include_directories(onze-terminal PUBLIC
 target_link_libraries(onze-terminal
         LINK_PUBLIC login
         LINK_PUBLIC crowd
+        LINK_PUBLIC common
         OpenSSL::SSL
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}

@@ -14,8 +14,8 @@
 #include "p2p.hpp"
 #include "json.hpp"
 #include "ip_peers.hpp"
-#include "crypto.hpp"
 #include "auth.hpp"
+#include "crypto_ecdsa.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -217,9 +217,9 @@ private:
                 std::string signature = buf_j["signature"];
                 std::string pub_key = buf_j["pub_key"];
 
-                Crypto c;
+                Ecdsa e;
                 std::string to_verify_s = to_verify_j.dump();
-                if (c.verify(to_verify_s, signature, pub_key))
+                if (e.verify(to_verify_s, signature, pub_key))
                 {
                     std::cout << "verified" << std::endl;
                     Poco p;

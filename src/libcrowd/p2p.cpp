@@ -6,8 +6,8 @@
 #include "p2p.hpp"
 #include "poco.hpp"
 #include "ip_peers.hpp"
-#include "crypto.hpp"
-#include "base58.h"
+#include "crypto_shab58.hpp"
+#include "crypto_ecdsa.hpp"
 #include "merkle_tree.hpp"
 
 #include <vector>
@@ -34,7 +34,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
     {
         Tcp t;
-        Crypto c;
+        Ecdsa e;
+        Shab58 s;
         Poco p;
         nlohmann::json message_j, to_sign_j, transaction_j, list_of_transactions_j, rocksdb_j;
         message_j["req"] = "intro_peer";
@@ -44,12 +45,12 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         message_j["full_hash_co"] = p.FindChosenOne(cred["full_hash"]);
         message_j["email_of_req"] = cred["email"];
         
-        message_j["pub_key"] = c.get_pub_key();
+        message_j["pub_key"] = e.get_pub_key();
 
         to_sign_j["pub_key"] = message_j["pub_key"];
         to_sign_j["full_hash_peer"] = message_j["full_hash_peer"];
         std::string to_sign_s = to_sign_j.dump();
-        auto [signature, succ] = c.sign(to_sign_s);
+        auto [signature, succ] = e.sign(to_sign_s);
         if (succ)
         {
             message_j["signature"] = base58::EncodeBase58(signature);
@@ -90,7 +91,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             rocksdb_j["pub_key"] = message_j["pub_key"];
             std::string hash_email = rocksdb_j["hash_email"];
             std::string salt = rocksdb_j["salt"];
-            std::string fullhash =  c.create_base58_hash(hash_email + salt);
+            std::string fullhash =  s.create_base58_hash(hash_email + salt);
             std::string rocksdb_s = rocksdb_j.dump();
             p.Put(fullhash, rocksdb_s);
             std::cout << "zijn we hier? " << std::endl;

@@ -9,7 +9,8 @@
 #include "configdir.hpp"
 #include "poco.hpp"
 #include "json.hpp"
-#include "crypto.hpp"
+#include "crypto_shab58.hpp"
+#include "crypto_ecdsa.hpp"
 #include "salt.hpp"
 
 using namespace Crowd;
@@ -28,8 +29,8 @@ std::map<std::string, std::string> Auth::authentication()
 
     if (network == "") network = "Default";
 
-    Salt s;
-    std::string salt = s.get_salt_from_file();
+    Salt sa;
+    std::string salt = sa.get_salt_from_file();
 
     std::map<std::string, std::string> cred = Auth::verifyCredentials(email, salt, password);
 
@@ -70,10 +71,11 @@ bool Auth::setNetwork(std::string &network)
  */
 std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &salt, std::string &password)
 {
-    Crypto c;
-    Salt s;
-    std::string hash_email = c.create_base58_hash(email);
-    my_full_hash_ =  c.create_base58_hash(hash_email + salt);
+    Shab58 s;
+    Ecdsa e;
+    Salt sa;
+    std::string hash_email = s.create_base58_hash(email);
+    my_full_hash_ =  s.create_base58_hash(hash_email + salt);
     Poco p;
     std::string database_response = p.Get(my_full_hash_);
 
@@ -83,18 +85,18 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         // new user is created
         printf("A new user will be created!\n");
 
-        salt = s.create_and_save_salt_to_file();
+        salt = sa.create_and_save_salt_to_file();
 
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["salt"] = salt;
-        my_full_hash_ =  c.create_base58_hash(hash_email + salt);
+        my_full_hash_ =  s.create_base58_hash(hash_email + salt);
         cred["full_hash"] = my_full_hash_;
 
         // generate a new keypair for the signature
-        c.generate_and_save_keypair();
-        auto pub_key = c.get_pub_key();
-
+        e.generate_and_save_keypair();
+        auto pub_key = e.get_pub_key();
+std::cout << pub_key << std::endl;
         cred["pub_key"] = pub_key;
 
         cred["new_peer"] = "true";
@@ -111,7 +113,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         cred["salt"] = salt;
         cred["full_hash"] = my_full_hash_;
 
-        std::string pub_key_from_file = c.get_pub_key();
+        std::string pub_key_from_file = e.get_pub_key();
 
         cred["pub_key"] = pub_key_from_file;
 

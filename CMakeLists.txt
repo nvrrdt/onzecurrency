@@ -17,6 +17,7 @@ include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
 
 add_subdirectory(src/ui/terminal)
+add_subdirectory(src/libcommon)
 add_subdirectory(src/libcrowd)
 add_subdirectory(src/liblogin)
 

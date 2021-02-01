@@ -7,13 +7,11 @@ find_package(Threads)
 
 add_library(login SHARED 
                      auth.cpp
-                     crypto.cpp   
 )
-
-add_dependencies(login ecdsa++)
 
 target_include_directories(login PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/ui/terminal"
+                        "${PROJECT_SOURCE_DIR}/include/libcommon"
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
                         "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa"
@@ -56,8 +54,10 @@ target_include_directories(login PUBLIC
 ### install:
 
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/ui/terminal/main.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_shab58.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_ecdsa.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_rsa.hpp"
                 "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
-                "${PROJECT_SOURCE_DIR}/include/liblogin/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/configdir.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/interface.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/ip_peers.hpp"

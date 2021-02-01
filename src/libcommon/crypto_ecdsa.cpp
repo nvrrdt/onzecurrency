@@ -1,12 +1,10 @@
-#include <vector>
-#include <string>
-
-#include "crypto.hpp"
+#include "crypto_ecdsa.hpp"
 #include "configdir.hpp"
+#include "crypto_shab58.hpp"
 
 using namespace Crowd;
 
-ecdsa::Key Crypto::generate_and_save_keypair()
+ecdsa::Key Ecdsa::generate_and_save_keypair()
 {
     // generate keys:
     ecdsa::Key key;
@@ -43,7 +41,7 @@ ecdsa::Key Crypto::generate_and_save_keypair()
     return key;
 }
 
-ecdsa::Key Crypto::get_keypair_with_priv_key(std::string &priv_key)
+ecdsa::Key Ecdsa::get_keypair_with_priv_key(std::string &priv_key)
 {
     std::vector<uint8_t> priv_key_data;
     base58::DecodeBase58(priv_key, priv_key_data);
@@ -51,7 +49,7 @@ ecdsa::Key Crypto::get_keypair_with_priv_key(std::string &priv_key)
     return key;
 }
 
-std::string Crypto::get_priv_key()
+std::string Ecdsa::get_priv_key()
 {
     std::string priv_key;
 
@@ -78,7 +76,7 @@ std::string Crypto::get_priv_key()
     return priv_key;
 }
 
-std::string Crypto::get_pub_key()
+std::string Ecdsa::get_pub_key()
 {
     std::string pub_key;
 
@@ -105,33 +103,20 @@ std::string Crypto::get_pub_key()
     return pub_key;
 }
 
-std::vector<uint8_t> Crypto::create_hash(const std::string &str)
+std::tuple<std::vector<uint8_t>, bool> Ecdsa::sign(const std::string &string)
 {
-  SHA512_CTX ctx;
-  SHA512_Init(&ctx);
-  SHA512_Update(&ctx, str.c_str(), str.size());
-  std::vector<uint8_t> md(SHA512_DIGEST_LENGTH);
-  SHA512_Final(md.data(), &ctx);
-  return md;
+    auto priv_key = Ecdsa::get_priv_key();
+    auto key = Ecdsa::get_keypair_with_priv_key(priv_key);
+    Shab58 s;
+    return key.Sign(s.create_hash(string));
 }
 
-std::string Crypto::create_base58_hash(const std::string &str)
-{
-    return base58::EncodeBase58(create_hash(str));
-}
-
-std::tuple<std::vector<uint8_t>, bool> Crypto::sign(const std::string &string)
-{
-    auto priv_key = Crypto::get_priv_key();
-    auto key = Crypto::get_keypair_with_priv_key(priv_key);
-    return key.Sign(create_hash(string));
-}
-
-bool Crypto::verify(const std::string &string, std::string &signature_base58, std::string &pub_key_base58)
+bool Ecdsa::verify(const std::string &string, std::string &signature_base58, std::string &pub_key_base58)
 {
     std::vector<uint8_t> pub_key_data, signature;
     base58::DecodeBase58(pub_key_base58, pub_key_data);
     ecdsa::PubKey pub_key(pub_key_data);
     base58::DecodeBase58(signature_base58, signature);
-    return pub_key.Verify(create_hash(string), signature);
+    Shab58 s;
+    return pub_key.Verify(s.create_hash(string), signature);
 }
