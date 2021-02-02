@@ -59,11 +59,7 @@ target_include_directories(crowd PUBLIC
 
 ### install:
 
-set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/ui/terminal/main.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_shab58.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_ecdsa.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_rsa.hpp"
-                "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
+set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/configdir.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/interface.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/ip_peers.hpp"
@@ -75,13 +71,6 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/ui/terminal/main.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/random.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/prev_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/base58.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/key.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/pub_key.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/rnd_man.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/rnd_openssl.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/rnd_os.h"
-                "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa/sysutils.h"
                 )
 
 INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcrowd/libcrowd.so DESTINATION lib/onze)
