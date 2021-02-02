@@ -152,7 +152,7 @@ std::string Poco::FindNextServerPeer(std::string &string_key)
 
     return ss.str();
 }
-uint32_t Poco::TotalAmountOfPeers()
+uint32_t Poco::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
 {
     std::string string_num;
     db->GetProperty("rocksdb.estimate-num-keys", &string_num);

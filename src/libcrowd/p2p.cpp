@@ -5,7 +5,6 @@
 #include "json.hpp"
 #include "p2p.hpp"
 #include "poco.hpp"
-#include "ip_peers.hpp"
 #include "crypto_shab58.hpp"
 #include "crypto_ecdsa.hpp"
 #include "merkle_tree.hpp"
@@ -22,96 +21,107 @@ std::vector<std::string> CreateBlock::list_of_new_peers_;
 
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
-    // get ip from ip_peers.json // TODO: put this in p2p.hpp, it's a copy
-    IpPeers ip;
-    std::vector<std::string> ip_s = ip.get_ip_s();
-    nlohmann::json json;
-    to_json(json, ip_s);
-    std::cout << "ip_s_client: " << json["ip_list"].size() << std::endl;
-
-    std::string ip_mother_peer = json["ip_list"][0].get<std::string>(); // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
-
-    if (json["ip_list"].size() == 1) // 1 ip == ip_mother_peer
+    if (cred["new_peer"] == "true")
     {
-        Tcp t;
-        Ecdsa e;
-        Shab58 s;
         Poco p;
-        nlohmann::json message_j, to_sign_j, to_block_j, transaction_j, list_of_transactions_j, rocksdb_j;
-        message_j["req"] = "intro_peer";
-        message_j["email_of_req"] = cred["email"];
-        message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
-        message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
-        message_j["full_hash_co"] = p.FindChosenOne(cred["email_hashed"]);
-        
-        
-        message_j["pub_key"] = cred["pub_key"];
-
-        to_sign_j["pub_key"] = cred["pub_key"];
-        to_sign_j["email"] = cred["email"];
-        std::string to_sign_s = to_sign_j.dump();
-        auto [signature, succ] = e.sign(to_sign_s);
-        if (succ)
+        if (p.TotalAmountOfPeers() <= 1)
         {
-            message_j["signature"] = base58::EncodeBase58(signature);
-        }
+            Tcp t;
+            Ecdsa e;
+            Shab58 s;
+            nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+            message_j["req"] = "intro_peer";
+            message_j["email_of_req"] = cred["email"];
+            message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
+            message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
+            message_j["full_hash_co"] = p.FindChosenOne(cred["email_hashed"]);
+            
+            
+            message_j["pub_key"] = cred["pub_key"];
 
-        std::string srv_ip = "";
-        std::string peer_hash = "";
-        std::string message = message_j.dump();
-        t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer
+            to_sign_j["pub_key"] = cred["pub_key"];
+            to_sign_j["email"] = cred["email"];
+            std::string to_sign_s = to_sign_j.dump();
+            auto [signature, succ] = e.sign(to_sign_s);
+            if (succ)
+            {
+                message_j["signature"] = base58::EncodeBase58(signature);
+            }
 
-        if (t.get_tcp_closed_client())
-        {
-            std::cout << "Connection was closed, probably no server reachable!" << std::endl;
+            std::string srv_ip = "";
+            std::string ip_mother_peer = "13.58.174.105"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+            std::string peer_hash = "";
+            std::string message = message_j.dump();
+            t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer
 
-            // you are the only peer and can create a block
+            if (t.get_tcp_closed_client())
+            {
+                std::cout << "Connection was closed, probably no server reachable!" << std::endl;
 
-            std::string hash_email = cred["email_hashed"];
-            std::string prev_hash = cred["prev_hash"];
-            std::string full_hash =  s.create_base58_hash(hash_email + prev_hash);
+                // you are the only peer and can create a block
 
-            to_block_j["full_hash"] = full_hash;
-            to_block_j["pub_key"] = cred["pub_key"];
+                std::string hash_email = cred["email_hashed"];
+                std::string prev_hash = cred["prev_hash"];
+                std::string full_hash =  s.create_base58_hash(hash_email + prev_hash);
 
-            std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
-            s_shptr->push(to_block_j.dump());
-            merkle_tree mt;
-            s_shptr = mt.calculate_root_hash(s_shptr);
-            transaction_j["full_hash"] = to_block_j["full_hash"];
-            transaction_j["pub_key"] = to_block_j["pub_key"];
-            list_of_transactions_j.push_back(transaction_j);
-            std::string datetime = mt.time_now();
-            std::string root_hash_data = s_shptr->top();
-            mt.create_block(datetime, root_hash_data, list_of_transactions_j);
+                to_block_j["full_hash"] = full_hash;
+                to_block_j["pub_key"] = cred["pub_key"];
 
-            // Update rocksdb
-            rocksdb_j["version"] = "O.1";
-            rocksdb_j["ip"] = ip_mother_peer;
-            rocksdb_j["server"] = true;
-            rocksdb_j["fullnode"] = true;
-            rocksdb_j["hash_email"] = message_j["hash_of_email"];
-            rocksdb_j["salt"] = message_j["salt_of_req"];
-            rocksdb_j["block"] = 0;
-            rocksdb_j["pub_key"] = message_j["pub_key"];
-            std::string rocksdb_s = rocksdb_j.dump();
-            p.Put(full_hash, rocksdb_s);
-            std::cout << "zijn we hier? " << std::endl;
+                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+                s_shptr->push(to_block_j.dump());
+                merkle_tree mt;
+                s_shptr = mt.calculate_root_hash(s_shptr);
+                entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                entry_tx_j["pub_key"] = to_block_j["pub_key"];
+                entry_transactions_j.push_back(entry_tx_j);
+                exit_tx_j["full_hash"] = "";
+                exit_transactions_j.push_back(exit_tx_j);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr->top();
+                mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
-            std::packaged_task<void()> task1([] {
-                Tcp t;
-                t.server();
-            });
-            // Run task on new thread.
-            std::thread t1(std::move(task1));
-            t1.join();
+                // Update rocksdb
+                rocksdb_j["version"] = "O.1";
+                rocksdb_j["ip"] = ip_mother_peer;
+                rocksdb_j["server"] = true;
+                rocksdb_j["fullnode"] = true;
+                rocksdb_j["hash_email"] = message_j["hash_of_email"];
+                rocksdb_j["salt"] = message_j["salt_of_req"];
+                rocksdb_j["block"] = 0;
+                rocksdb_j["pub_key"] = message_j["pub_key"];
+                std::string rocksdb_s = rocksdb_j.dump();
+                p.Put(full_hash, rocksdb_s);
+                std::cout << "zijn we hier? " << std::endl;
+
+                std::packaged_task<void()> task1([] {
+                    Tcp t;
+                    t.server();
+                });
+                // Run task on new thread.
+                std::thread t1(std::move(task1));
+                t1.join();
+            }
+            else
+            {
+                std::cout << "elseelse" << std::endl;
+                // you are not alone and your ip_list, blockchain, rochksdb must be updated, you must connect a peer's ip you get from mother_peer
+            }
+            return true;
         }
         else
         {
-            std::cout << "elseelse" << std::endl;
-            // you are not alone and your ip_list, blockchain, rochksdb must be updated, you must connect a peer's ip you get from mother_peer
+            // 2 or more peers ...
+            // get ip of online peer
         }
-        return true;
+    }
+    else if (cred["new_peer"] == "false")
+    {
+        // existing user
+        // "online" "true"
+    }
+    else
+    {
+        // something wrong cred["new_peer"] not present or correct
     }
 
     // // get ip_peer from mother_peer

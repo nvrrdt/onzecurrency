@@ -101,23 +101,36 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
     }
 }
 
-void merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &user_data_j)
+void merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
 {
+    nlohmann::json hash_co_j = nlohmann::json::parse(root_hash_data);
+    std::string hash_co_s = hash_co_j["full_hash"];
     // creation of the block's data for storage
     nlohmann::json j = {
         {"starttime", datetime},
-        {"hash_co", root_hash_data}
+        {"hash_co", hash_co_s}
     };
 
     int user_count = 0;
-    for (auto& element : user_data_j) {
+    for (auto& element : entry_data_j) {
         std::string full_hash, pub_key;
 
         full_hash = element["full_hash"];
         pub_key = element["pub_key"];
 
-        j["data"][user_count]["email_h"].push_back(full_hash);
-        j["data"][user_count]["passw_h"].push_back(pub_key);
+        j["entry"][user_count]["full_hash"] = full_hash;
+        j["entry"][user_count]["pub_key"] = pub_key;
+
+        user_count++;
+    }
+
+    user_count = 0;
+    for (auto& element : exit_data_j) { // TODO: exit strategy for users after 2 years of no transactions
+        std::string full_hash;
+
+        full_hash = element["full_hash"];
+
+        j["exit"][user_count]["full_hash"] = full_hash;
 
         user_count++;
     }
@@ -151,7 +164,7 @@ void merkle_tree::create_block(std::string &datetime, std::string &root_hash_dat
         if (!isEmpty)
         {
             std::cout << "Directory not empty" << std::endl;
-            j["prev_hash"].push_back("prev_hash by chosen one"); // TODO: pull in prev_hash by chosen one !!!!!!
+            j["prev_hash"] = "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_j = j.dump();
             std::string block_file = "blockchain/block_000000000001.json";
             cd.CreateFileInConfigDir(block_file, block_j); // TODO: make it count
@@ -164,7 +177,7 @@ void merkle_tree::create_block(std::string &datetime, std::string &root_hash_dat
 
             Shab58 s;
             genesis_prev_hash_hashed = s.create_base58_hash(genesis_prev_hash);
-            j["prev_hash"].push_back(genesis_prev_hash_hashed);
+            j["prev_hash"] = genesis_prev_hash_hashed;
             block_j = j.dump();
             std::string block_file = "blockchain/block_000000000000.json";
             cd.CreateFileInConfigDir(block_file, block_j);
