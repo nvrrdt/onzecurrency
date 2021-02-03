@@ -18,6 +18,6 @@ namespace Crowd
         bool validateEmail(const std::string &email);
         std::string get_my_full_hash();
     private:
-        std::string my_full_hash_;
+        static std::string my_full_hash_;
     };
 }

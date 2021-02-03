@@ -8,6 +8,7 @@
 #include "crypto_shab58.hpp"
 #include "crypto_ecdsa.hpp"
 #include "merkle_tree.hpp"
+#include "auth.hpp"
 
 #include <vector>
 
@@ -18,13 +19,14 @@ using namespace Crowd;
 
 // https://stackoverflow.com/questions/19856665/how-to-use-vector-of-objects-in-different-files
 std::vector<std::string> CreateBlock::list_of_new_peers_;
+std::string Auth::my_full_hash_;
 
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
     if (cred["new_peer"] == "true")
     {
-        Poco p;
-        if (p.TotalAmountOfPeers() <= 1)
+        Poco* poco = new Poco();
+        if (poco->TotalAmountOfPeers() <= 1)
         {
             Tcp t;
             Ecdsa e;
@@ -35,7 +37,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["email_of_req"] = cred["email"];
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
             message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
-            message_j["full_hash_co"] = p.FindChosenOne(cred["email_hashed"]);
+            message_j["full_hash_co"] = "0";
             message_j["latest_block"] = proto.latest_block();
             
             
@@ -92,8 +94,10 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 rocksdb_j["block"] = 0;
                 rocksdb_j["pub_key"] = message_j["pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
-                p.Put(full_hash, rocksdb_s);
+                poco->Put(full_hash, rocksdb_s);
                 std::cout << "zijn we hier? " << std::endl;
+
+                delete poco;
 
                 std::packaged_task<void()> task1([] {
                     Tcp t;

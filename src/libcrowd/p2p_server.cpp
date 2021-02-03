@@ -228,16 +228,19 @@ private:
                 {
                     std::cout << "verified" << std::endl;
                     Poco p;
-                    std::string co_from_this_db = p.FindChosenOne(s.create_base58_hash(full_hash_req));
+                    std::string to_find_co = s.create_base58_hash(full_hash_req);
+                    std::string co_from_this_db = p.FindChosenOne(to_find_co);
+                    std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
+                    std::cout << "co_from_req: " << co_from_req << std::endl;
                     // Do the chosen_one communicated correspond to the chosen_one lookup in db?
-                    if (co_from_this_db == co_from_req)
+                    if (co_from_this_db == co_from_req || co_from_req == "0")
                     {
                         Auth a;
                         std::string my_full_hash = a.get_my_full_hash();
                         std::cout << "my_full_hash: " << my_full_hash << std::endl;
                         std::cout << "co_from_req: " << co_from_req << std::endl;
                         std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
-                        if (co_from_req == my_full_hash) // TODO: an eta should be introduced for when someone enters/leaves the network
+                        if (co_from_this_db == my_full_hash) // TODO: an eta should be introduced for when someone enters/leaves the network
                         {
                             // I'm the chosen one
                             std::cout << "I'm the chosen one!" << std::endl;
@@ -246,8 +249,16 @@ private:
                             std::string my_latest_block = proto.latest_block();
                             std::cout << "My latest block: " << my_latest_block << std::endl;
 
-                            // upload blockchain to the requester starting from latest block,
-                            // for the server: layer_management needed: assemble all  the chosen ones in rocksdb,
+                            if (req_latest_block < my_latest_block)
+                            {
+                                // TODO: upload blockchain to the requester starting from latest block
+                            }
+                            else if (req_latest_block > my_latest_block)
+                            {
+                                // TODO: update your own blockchain
+                            }
+
+                            // for the server: layer_management needed: assemble all the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
                         }
                         else
