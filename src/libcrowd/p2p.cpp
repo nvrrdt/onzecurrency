@@ -29,12 +29,14 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             Tcp t;
             Ecdsa e;
             Shab58 s;
+            Protocol proto;
             nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
             message_j["req"] = "intro_peer";
             message_j["email_of_req"] = cred["email"];
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
             message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
             message_j["full_hash_co"] = p.FindChosenOne(cred["email_hashed"]);
+            message_j["latest_block"] = proto.latest_block();
             
             
             message_j["pub_key"] = cred["pub_key"];
@@ -103,25 +105,35 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             }
             else
             {
-                std::cout << "elseelse" << std::endl;
-                // you are not alone and your ip_list, blockchain, rochksdb must be updated, you must connect a peer's ip you get from mother_peer
+                std::cout << "The t.client did it's job succesfully and you should be added in the blockchain!" << std::endl;
+
+                std::packaged_task<void()> task1([] {
+                    Tcp t;
+                    t.server();
+                });
+                // Run task on new thread.
+                std::thread t1(std::move(task1));
+                t1.join();
             }
             return true;
         }
         else
         {
             // 2 or more peers ...
-            // get ip of online peer
+            // get ip of online peer in rocksdb
+            // then t.client to that peer
+            // and tat peer must create the block
         }
     }
     else if (cred["new_peer"] == "false")
     {
         // existing user
-        // "online" "true"
+        // t.client with {"online": "true"}
     }
     else
     {
         // something wrong cred["new_peer"] not present or correct
+        std::cerr << "Wrong cred[\"new_peer\"]" << std::endl;
     }
 
     // // get ip_peer from mother_peer

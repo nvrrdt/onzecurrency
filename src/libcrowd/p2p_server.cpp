@@ -206,20 +206,21 @@ private:
             else if (buf_j["req"] == "intro_peer")
             {
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
-                std::string full_hash_co_from_peer = buf_j["full_hash_co"];
-                std::string email_of_peer = buf_j["email_of_req"];
-                std::string prev_hash_peer = buf_j["prev_hash_of_req"];
+                std::string co_from_req = buf_j["full_hash_co"];
+                std::string email_of_req = buf_j["email_of_req"];
+                std::string prev_hash_req = buf_j["prev_hash_of_req"];
                 std::string pub_key = buf_j["pub_key"];
                 std::string signature = buf_j["signature"];
+                std::string req_latest_block = buf_j["latest_block"];
 
                 Shab58 s;
-                std::string full_hash_peer =  s.create_base58_hash(email_of_peer + prev_hash_peer);
+                std::string full_hash_req =  s.create_base58_hash(email_of_req + prev_hash_req);
 
-                std::cout << "email: " << email_of_peer << std::endl;
+                std::cout << "email: " << email_of_req << std::endl;
 
                 nlohmann::json to_verify_j;
                 to_verify_j["pub_key"] = pub_key;
-                to_verify_j["email"] = email_of_peer;
+                to_verify_j["email"] = email_of_req;
 
                 Ecdsa e;
                 std::string to_verify_s = to_verify_j.dump();
@@ -227,18 +228,25 @@ private:
                 {
                     std::cout << "verified" << std::endl;
                     Poco p;
-                    std::string co_from_this_db = p.FindChosenOne(full_hash_peer);
+                    std::string co_from_this_db = p.FindChosenOne(s.create_base58_hash(full_hash_req));
                     // Do the chosen_one communicated correspond to the chosen_one lookup in db?
-                    if (co_from_this_db == full_hash_co_from_peer)
+                    if (co_from_this_db == co_from_req)
                     {
                         Auth a;
                         std::string my_full_hash = a.get_my_full_hash();
-                        if (full_hash_co_from_peer == my_full_hash) // TODO: an eta should be introduced for when someone enters/leaves the network
+                        std::cout << "my_full_hash: " << my_full_hash << std::endl;
+                        std::cout << "co_from_req: " << co_from_req << std::endl;
+                        std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
+                        if (co_from_req == my_full_hash) // TODO: an eta should be introduced for when someone enters/leaves the network
                         {
                             // I'm the chosen one
                             std::cout << "I'm the chosen one!" << std::endl;
 
-                            // upload blockchain to the requesting peer,
+                            Protocol proto;
+                            std::string my_latest_block = proto.latest_block();
+                            std::cout << "My latest block: " << my_latest_block << std::endl;
+
+                            // upload blockchain to the requester starting from latest block,
                             // for the server: layer_management needed: assemble all  the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
                         }
@@ -250,8 +258,8 @@ private:
                     }
                     else
                     {
-                        // Peer does't yet exist in rocksdb or there's another chosen one, reply with error
-                        std::cerr << "ERROR: no full_hash_peer was sent or chosen_one is someone else!" << std::endl;
+                        // Req does't yet exist in rocksdb or there's another chosen one, reply with error
+                        std::cerr << "ERROR: no full_hash_req was sent or chosen_one is someone else!" << std::endl;
                     }
                 }
                 else
