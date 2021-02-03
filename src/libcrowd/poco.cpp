@@ -93,6 +93,7 @@ std::string Poco::FindServerPeer(std::string &key)
     {
         if (it->key().ToString() >= key)
         {
+            std::cout << "it: " << it->value().ToString() << std::endl;
             // Search in it->value for server enabledness
             nlohmann::json j = nlohmann::json::parse(it->value().ToString());
             if (j["server"] == true)
@@ -147,10 +148,7 @@ std::string Poco::FindNextServerPeer(std::string &string_key)
     }
     delete it;
 
-    std::stringstream ss;
-    ss << key;
-
-    return ss.str();
+    return string_key_server_peer;
 }
 uint32_t Poco::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
 {

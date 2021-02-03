@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(LayerManagement)
     result2["remainder"] = 2;
     result2["peersinremainder"] = 2;
     result2["overshoot"] = 2;
-    std::string s = "102";
+    s = "102";
     BOOST_CHECK(p.layer_management(s) == result2);
 
     std::map<std::string, uint32_t> result3;
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(LayerManagement)
     result3["remainder"] = 2202002;
     result3["peersinremainder"] = 13;
     result3["overshoot"] = 1101191902;
-    std::string s = "1202202002";
+    s = "1202202002";
     BOOST_CHECK(p.layer_management(s) == result3);
 }
 

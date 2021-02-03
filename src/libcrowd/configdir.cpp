@@ -10,11 +10,9 @@ ConfigDir::ConfigDir()
     }
     else
     {
-        char cwd[1024];
-        getcwd(cwd, sizeof(cwd));
-        std::string hd = cwd;
-        homedir = hd.c_str();
-        homedir = "../build"; // use git clone onzehub-dev-setup with docker
+        // char * homedir;
+        // getcwd(homedir, sizeof(homedir));
+        homedir = "/onzecurrency/build";
     }
     
     

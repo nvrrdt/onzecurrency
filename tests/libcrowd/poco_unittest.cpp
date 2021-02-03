@@ -8,68 +8,88 @@ using namespace Crowd;
 
 class PocoT : public Poco {};
 
-BOOST_FIXTURE_TEST_SUITE(DbFolderPath, PocoT)
+BOOST_FIXTURE_TEST_SUITE(PocoTests, PocoT)
 
 // use any protected methods inside your tests
 BOOST_AUTO_TEST_CASE(PathTest)
 {
     BOOST_CHECK(boost::algorithm::ends_with(usersdb_folder_path, ".config/onzehub/usersdb"));
 }
-BOOST_AUTO_TEST_SUITE_END()
-
-
-
-BOOST_AUTO_TEST_SUITE(PocoTest)
-
-Poco p;
 
 BOOST_AUTO_TEST_CASE(Get)
 {
-    // BOOST_TEST_MESSAGE("Get: " << p.Get(1)); // ./build/tests --log_level=message
-    BOOST_CHECK(p.Get("1") == "");
+    // BOOST_TEST_MESSAGE("Get: " << PocoT::Get(1)); // ./build/tests --log_level=message
+    std::string key = "1";
+    BOOST_CHECK(PocoT::Get(key) == "");
 }
 
 BOOST_AUTO_TEST_CASE(PutGetDelete)
 {
-    BOOST_CHECK(p.Put("2", "test2") == true);
-    BOOST_CHECK(p.Get("2") == "test2");
-    BOOST_CHECK(p.Delete("2") == true);
-    //BOOST_TEST_MESSAGE("Delete: " << p.Get("2"));
-    BOOST_CHECK(p.Get("2") == "");
+    std::string key = "2";
+    std::string value = "test2";
+    BOOST_CHECK(PocoT::Put(key, value) == true);
+    BOOST_CHECK(PocoT::Get(key) == "test2");
+    BOOST_CHECK(PocoT::Delete(key) == true);
+    //BOOST_TEST_MESSAGE("Delete: " << PocoT::Get("2"));
+    BOOST_CHECK(PocoT::Get(key) == "");
+    PocoT::Delete(key);
 }
 
 BOOST_AUTO_TEST_CASE(FindChosenOne)
 {
-    BOOST_CHECK(p.Put("2", "test2") == true);
-    BOOST_CHECK(p.FindChosenOne("1") == "2");
-    BOOST_CHECK(p.FindChosenOne("2") == "2");
-    BOOST_CHECK(p.FindChosenOne("3") == "2");
+    std::string key1 = "1";
+    std::string key2 = "2";
+    std::string key3 = "3";
+    std::string value = "test2";
+    BOOST_CHECK(PocoT::Put(key2, value) == true);
+    BOOST_CHECK(PocoT::FindChosenOne(key1) == "2");
+    BOOST_CHECK(PocoT::FindChosenOne(key2) == "2");
+    BOOST_CHECK(PocoT::FindChosenOne(key3) == "2");
+    PocoT::Delete(key2);
 }
 
 BOOST_AUTO_TEST_CASE(FindNextPeer)
 {
-    BOOST_CHECK(p.Put("2", "test2") == true);
-    BOOST_CHECK(p.Put("5", "test5") == true);
-    BOOST_CHECK(p.FindNextPeer("1") == "2");
-    BOOST_CHECK(p.FindNextPeer("3") == "5");
+    std::string key1 = "1";
+    std::string key2 = "2";
+    std::string key3 = "3";
+    std::string key5 = "5";
+    std::string value2 = "test2";
+    std::string value5 = "test5";
+    BOOST_CHECK(PocoT::Put(key2, value2) == true);
+    BOOST_CHECK(PocoT::Put(key5, value5) == true);
+    BOOST_CHECK(PocoT::FindNextPeer(key1) == "2");
+    BOOST_CHECK(PocoT::FindNextPeer(key3) == "5");
+    PocoT::Delete(key2);
+    PocoT::Delete(key5);
 }
 
-nlohmann::json j = nlohmann::json::parse("{ \"upnp\": true }");
+nlohmann::json j = nlohmann::json::parse("{ \"server\": true }");
 
-BOOST_AUTO_TEST_CASE(FindUpnpPeer)
+BOOST_AUTO_TEST_CASE(FindServerPeer)
 {
-    BOOST_CHECK(p.Put("2", j.dump()) == true);
-    BOOST_CHECK(p.FindUpnpPeer("1") == "2");
-    BOOST_CHECK(p.FindUpnpPeer("2") == "2");
+    std::string key1 = "1";
+    std::string key2 = "2";
+    std::string j_s = j.dump();
+    BOOST_CHECK(PocoT::Put(key2, j_s) == true);
+    BOOST_CHECK(PocoT::FindServerPeer(key1) == "2");
+    BOOST_CHECK(PocoT::FindServerPeer(key2) == "2");
+    PocoT::Delete(key2);
 }
 
-BOOST_AUTO_TEST_CASE(FindNextUpnpPeer)
+BOOST_AUTO_TEST_CASE(FindNextServerPeer)
 {
-    BOOST_CHECK(p.Put("3", j.dump()) == true);
-    BOOST_CHECK(p.FindNextUpnpPeer("0") == "2");
-    BOOST_CHECK(p.FindNextUpnpPeer("2") == "3");
+    std::string key0 = "0";
+    std::string key2 = "2";
+    std::string key3 = "3";
+    std::string j_s = j.dump();
+    BOOST_CHECK(PocoT::Put(key3, j_s) == true);
+    BOOST_CHECK(PocoT::FindNextServerPeer(key0) == "3");
+    BOOST_CHECK(PocoT::FindNextServerPeer(key2) == "3");
+    PocoT::Delete(key3);
 }
+
+// TODO: reorder these tests --> after every test the entries should be deleted, which is not the caseder these tests --> after every test the entries should be deleted, which is not the case
 
 BOOST_AUTO_TEST_SUITE_END()
 
-// TODO: reorder these tests --> after every test the entries should be deleted, which is not the case

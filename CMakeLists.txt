@@ -20,6 +20,16 @@ add_subdirectory(src/ui/terminal)
 add_subdirectory(src/libcommon)
 add_subdirectory(src/libcrowd)
 add_subdirectory(src/liblogin)
+add_subdirectory(tests/ui/terminal)
+add_subdirectory(tests/libcommon)
+add_subdirectory(tests/libcrowd)
+add_subdirectory(tests/liblogin)
+add_subdirectory(tests/system_testing)
+
+### enable CTest
+
+enable_testing ()
+add_test (NAME Test COMMAND Test)
 
 ### enable CPack
 
