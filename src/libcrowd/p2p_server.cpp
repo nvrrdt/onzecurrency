@@ -301,7 +301,7 @@ private:
                 //     // 3) then: update the network with room_.deliver(msg)
                 //     // 4) add peer to ip_list
 
-                //     CreateBlock cb(email_of_peer, hash_of_peer);
+                //     CreateBlock cb(email_of_peer, hash_of_peer); // moet bij new_peer
                 //     std::cout << "Is this reached? " << hash_of_peer << std::endl;
                 //     // if cb ok: update blockchain and update rocksdb will be received through the chosen one's
                 // }
