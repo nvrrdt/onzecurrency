@@ -7,6 +7,10 @@
 #include <sys/types.h>
 #include <pwd.h>
 
+#include <cstdint>
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
 #include "configdir.hpp"
 
 #include "rocksdb/db.h"
@@ -43,6 +47,7 @@ namespace Crowd
         std::string FindNextPeer(std::string &key);
         std::string FindServerPeer(std::string &key);
         std::string FindNextServerPeer(std::string &key);
-        uint32_t TotalAmountOfPeers();
+        uint256_t TotalAmountOfPeers();
+        uint256_t CountPeersFromTo(std::string &my_hash, std::string &next_hash);
     };
 }

@@ -115,7 +115,7 @@ std::string Poco::FindServerPeer(std::string &key)
 std::string Poco::FindNextServerPeer(std::string &string_key)
 {
     std::istringstream iss (string_key);
-    uint32_t key;
+    uint256_t key;
     iss >> key;
     if (iss.fail())
     {
@@ -130,7 +130,7 @@ std::string Poco::FindNextServerPeer(std::string &string_key)
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        if (it->key().ToString() >= std::to_string(key))
+        if (it->key().ToString() >= string_key)
         {
             // Search in it->value for next one's server enabledness
             nlohmann::json j = nlohmann::json::parse(it->value().ToString());
@@ -150,13 +150,13 @@ std::string Poco::FindNextServerPeer(std::string &string_key)
 
     return string_key_server_peer;
 }
-uint32_t Poco::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
+uint256_t Poco::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
 {
     std::string string_num;
     db->GetProperty("rocksdb.estimate-num-keys", &string_num);
 
     std::istringstream iss (string_num);
-    uint32_t num;
+    uint256_t num;
     iss >> num;
     if (iss.fail())
     {
@@ -165,4 +165,67 @@ uint32_t Poco::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
     }
 
     return num;
+}
+
+uint256_t Poco::CountPeersFromTo(std::string &from, std::string &to)
+{
+    uint256_t count = 0;
+
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    if (from < to)
+    {
+        for (it->SeekToFirst(); it->Valid(); it->Next())
+        {
+            if (it->key().ToString() > from)
+            {
+                std::cout << "it->key(): " << it->key().ToString() << std::endl;
+                count++;
+
+                if (it->key().ToString() >= to)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    else if (from == to)
+    {
+        std::string last;
+        for (it->SeekToLast(); it->Valid(); it->Prev())
+        {
+            last = it->key().ToString();
+            break;
+        }
+
+        for (it->SeekToFirst(); it->Valid(); it->Next())
+        {
+            if (it->key().ToString() > from)
+            {
+                count++;
+
+                if (it->key().ToString() == last)
+                {
+                    for (it->SeekToFirst(); it->Valid(); it->Next())
+                    {
+                        count++;
+
+                        if (it->key().ToString() >= to)
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    else
+    {
+        // Shouldn't happen!!
+        std::cerr << "ERROR: to should be >= to from" << std::endl;
+    }
+
+    delete it;
+
+    return count;
 }
