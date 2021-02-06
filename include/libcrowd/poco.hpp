@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include <cstdint>
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 

@@ -18,6 +18,9 @@
 #include <stack>
 #include <memory>
 
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
+
 using namespace std::chrono_literals;
 
 using namespace std; 
@@ -79,10 +82,12 @@ namespace Crowd
     public:
         int hello_and_setup(std::string& my_user_login_hash);
         std::string latest_block();
-        std::map<std::string, uint64_t> layers_management(std::string &total_amount_of_peers);
+        std::map<std::string, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
+        std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
     private:
         int verify_latest_block(std::string &latest_block_peer);
         int communicate_to_all(boost::array<char, 128> &msg);
+        std::map<std::string, std::string> get_calculated_hashes(std::string &my_hash, std::map<uint32_t, uint256_t> &chosen_ones_counter);
     };
 
     class LookupPeer

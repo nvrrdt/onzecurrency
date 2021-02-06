@@ -41,74 +41,152 @@ std::string Protocol::latest_block()
     return latest_block; // TODO: also verify latest hash
 }
 
-std::map<std::string, uint64_t> Protocol::layers_management(std::string &string_total_amount_of_peers)
+std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_peers)
 {
     const int nmax = 100;   // max number of peers per section
-    uint32_t i;                  // number of layers
-    uint64_t tmaxmax = 0, tmaxmin = 0, overshoot = 0, tlayer = 0;
-    uint64_t total_amount_of_peers = static_cast<uint64_t>(std::stoul(string_total_amount_of_peers)); // real number of peers
+    uint32_t i;             // number of layers
+    uint256_t tmaxmax = 0, tmaxmin = 0, overshoot = 0, tlayer = 0;
 
-    std::vector<uint64_t> layercontents;
+    std::vector<uint256_t> layercontents;
 
     int imax = 64;
     for (i = 1; i <= imax; i++)
     {
         
-        tlayer = pow(nmax, i);  // max number of peers in a layer
-        tmaxmax += tlayer;      // max number of peers in all layers
+        tlayer = uint256_t(pow(nmax, i));   // max number of peers in a layer
+        tmaxmax += tlayer;                  // max number of peers in all layers
 
         layercontents.push_back(tlayer);
 
-        if (total_amount_of_peers <= tmaxmax)
+        if (amount_of_peers <= tmaxmax)
         {
-            printf("\nmax peers last layer: %ld, and max peers all layers: %ld\n", tlayer, tmaxmax);
-            printf("total_amount_of_peers: %ld\n", total_amount_of_peers);
-            printf("layers i: %d\n", i);
+            // std::cout << std::endl << "max peers last layer: " << tlayer << std::endl;
+            // std::cout << "max peers all layers: " << tmaxmax << std::endl;
+            std::cout << std::endl << "amount of layers: " << i << std::endl;
+            std::cout << "amount_of_peers: " << amount_of_peers << std::endl;
             break;
         }
-        else if (i == imax && total_amount_of_peers > tmaxmax)
+        else if (i == imax && amount_of_peers > tmaxmax)
         {
             std::cerr << "ERROR: change imax as there are more peers than imax can handle" << std::endl;
         }
     }
 
     tmaxmin = tmaxmax - layercontents.at(i-1);      // max number of peers in all layers minus last layer
-    overshoot = total_amount_of_peers - tmaxmin;    // number of peers in last layer
+    overshoot = amount_of_peers - tmaxmin;    // number of peers in last layer
     
     // partitioning of last layer:
     // explanation: (remainder) contains (quotient + 1) peers in 1 bucket of last layer
     //              (layercontents(last_layer) - remainder) contains (quotient) peers in 1 bucket of last layer
     //              (layercontents(last_layer)) is maximum number of peers in that layer
-    uint64_t quotient, remainder;
+    uint256_t quotient, remainder;
     if (i == 1) // only 1 layer == layer 0
     {
         quotient = 0;
         remainder = overshoot;
-        printf("quotient: %ld\n", quotient);
-        printf("remainder: %ld\n", remainder);
+        // std::cout << "quotient: " << quotient << std::endl;
+        // std::cout << "remainder: " << remainder << std::endl;
     }
     else
     {
         quotient = overshoot / layercontents.at(i-1);
         remainder = overshoot % layercontents.at(i-1);
-        std::cout << remainder << " buckets with " << quotient+1 << " peers and " << (layercontents.at(i-2))-remainder << " buckets with " << quotient << " peers." << std::endl;
-        std::cout << overshoot << " (overshoot) must be equal to " << (remainder*(quotient+1))+((layercontents.at(i-2)-remainder)*quotient) << " (calculation of here before mentioned numbers)" << std::endl;
+        // std::cout << remainder << " buckets in last layer with " << quotient+1 << " peers and " << (layercontents.at(i-2))-remainder << " buckets with " << quotient << " peers." << std::endl;
+        // std::cout << overshoot << " (overshoot) must be equal to " << (remainder*(quotient+1))+((layercontents.at(i-2)-remainder)*quotient) << " (calculation of here before mentioned numbers)" << std::endl;
     }
 
-    std::map<std::string, uint64_t> result;
-    result["numberlayers"] = i;
-    result["numbermaxbucketslastlayer"] = remainder;
-    result["contentsmaxbucketslastlayer"] = quotient+1;
-    result["numberminbucketslastlayer"] = ((i == 1) ? 100-remainder : layercontents.at(i-1)-remainder);
-    result["contentsminbucketslastlayer"] = quotient;
-    result["overshootlastlayer"] = overshoot;
+    // std::cout << "numberlayers: " << i << std::endl;
+    // std::cout << "numbermaxbucketslastlayer: " << remainder << std::endl;
+    // std::cout << "contentsmaxbucketslastlayer: " << quotient+1 << std::endl;
+    // std::cout << "numberminbucketslastlayer: " << ((i == 1) ? 100-remainder : (layercontents.at(i-1)-remainder)) << std::endl;
+    // std::cout << "contentsminbucketslastlayer: " << quotient << std::endl;
+    // std::cout << "overshootlastlayer: " << overshoot << std::endl;
 
-    std::cout << "numberlayers: " << i << std::endl;
-    std::cout << "numbermaxbucketslastlayer: " << remainder << std::endl;
-    std::cout << "contentsmaxbucketslastlayer: " << quotient+1 << std::endl;
-    std::cout << "numberminbucketslastlayer: " << ((i == 1) ? 100-remainder : (layercontents.at(i-1)-remainder)) << std::endl;
-    std::cout << "contentsminbucketslastlayer: " << quotient << std::endl;
-    std::cout << "overshootlastlayer: " << overshoot << std::endl;
+    // the peers between every top layer peer is counted and put in a vector
+    uint256_t counter, total_counter;
+    std::map<uint32_t, uint256_t> chosen_ones_counter;
+    for (int k = 1; k <= nmax; k++)
+    {
+        chosen_ones_counter[i] = 0;
+    }
+    for (int k = 1; k <= nmax; k++)
+    {
+        for (int layer = 1; layer <= imax; layer++)
+        {
+            if (i == 1)
+            {
+                for (int m = 1; m <= overshoot; m++)
+                {
+                    chosen_ones_counter[m] = 1;
+                }
+            }
+            else if (i > 1)
+            {
+                if (layer == 1)
+                {
+                     chosen_ones_counter[k] += 1;
+                }
+                else if (layer < i)
+                {
+                    chosen_ones_counter[k] += layercontents.at(layer-1) / nmax;
+                }
+                else if (layer == i)
+                {
+                    if (remainder <= (layercontents.at(i-1)) / nmax && remainder != 0)
+                    {
+                        chosen_ones_counter[k] += quotient+1 * remainder;
+                        remainder = 0;
+                        break;
+                    }
+                    else if (remainder > (layercontents.at(i-1)) / nmax)
+                    {
+                        chosen_ones_counter[k] += quotient+1 * (layercontents.at(i-1) / nmax);
+                        remainder -= (layercontents.at(i-1) / nmax);
+                        break;
+                    }
+                    else
+                    {
+                        chosen_ones_counter[k] += quotient * (layercontents.at(i-1) / nmax);
+                        break;
+                    }
+                }
+            }
+        }
+        // std::cout << "coc: " << chosen_ones_counter[k] << std::endl;
+        total_counter += chosen_ones_counter[k];
+    }
+    std::cout << "amount of peers to verify: " << total_counter << std::endl;
 
-    return result;
+    return chosen_ones_counter;
+}
+
+std::map<std::string, std::string> Protocol::partition_in_buckets(std::string &my_hash, std::string &next_hash)
+{
+    // the input is rocksdb, where you will get the total amount of peers from
+    // starting with the hash of the chosen one
+    // less than 100 peers in rocksdb and every one is the chosen one or coordinator
+    // more than 1 layer and you have to count and partition in buckets with their respective coordinator
+
+    // count peers between my_hash and next_hash in rocksdb, then calculate the layers with an adapted layers_management
+    // t.client({"msg": "communicate_to", "you_hash": "you_hash", "next_hash": "next_hash"}) --> at receiving server: calculate your bucket
+    // 1 layer: t.client({"msg": "communicate_to", "you_hash": "1", "next_hash": "2"})
+    // 2 layers, layer 1: t.client({"msg": "communicate_to", "you_hash": "1", "next_hash": "102"}) --> calculate preliminary peers between hashes
+                                                                                                    // based on the current state of rocksdb
+    // 2 layers, layer 2: t.client({"msg": "communicate_to", "you_hash": "103", "next_hash": "104"})
+
+    Poco poco;
+    uint256_t count = poco.CountPeersFromTo(my_hash, next_hash);
+
+    std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
+
+    return Protocol::get_calculated_hashes(my_hash, chosen_ones_counter);
+}
+
+std::map<std::string, std::string> Protocol::get_calculated_hashes(std::string &my_hash, std::map<uint32_t, uint256_t> &chosen_ones_counter)
+{
+    // Get the hashes from rocksdb, the count is accessible now
+    
+    std::map<std::string, std::string> calculated_hashes;
+    calculated_hashes[my_hash] = my_hash;
+    return calculated_hashes;
 }

@@ -23,34 +23,53 @@ Protocol p;
 
 BOOST_AUTO_TEST_CASE(LayerManagement)
 {
-    std::map<std::string, uint64_t> result1;
-    result1["numberlayers"] = 1;
-    result1["numbermaxbucketslastlayer"] = 10;
-    result1["contentsmaxbucketslastlayer"] = 1;
-    result1["numberminbucketslastlayer"] = 90;
-    result1["contentsminbucketslastlayer"] = 0;
-    result1["overshootlastlayer"] = 10;
-    std::string s = "10";
+    std::map<uint32_t, uint256_t>result1;
+    for (int i = 1; i <= 100; i++)
+    {
+        if (i <= 10)
+        {
+            result1[i] = 1;
+        }
+        else
+        {
+            result1[i] = 0;
+        }
+    }
+    uint256_t s = 10;
     BOOST_CHECK(p.layers_management(s) == result1);
 
-    std::map<std::string, uint64_t> result2;
-    result2["numberlayers"] = 2;
-    result2["numbermaxbucketslastlayer"] = 2;
-    result2["contentsmaxbucketslastlayer"] = 1;
-    result2["numberminbucketslastlayer"] = 9998;
-    result2["contentsminbucketslastlayer"] = 0;
-    result2["overshootlastlayer"] = 2;
-    s = "102";
+    std::map<uint32_t, uint256_t> result2;
+    for (int i = 1; i <= 100; i++)
+    {
+        if (i <= 1)
+        {
+            result2[i] = 3;
+        }
+        else
+        {
+            result2[i] = 1;
+        }
+    }
+    s = 102;
     BOOST_CHECK(p.layers_management(s) == result2);
 
-    std::map<std::string, uint64_t> result3;
-    result3["numberlayers"] = 5;
-    result3["numbermaxbucketslastlayer"] = 1101191902;
-    result3["contentsmaxbucketslastlayer"] = 1;
-    result3["numberminbucketslastlayer"] = 8898808098;
-    result3["contentsminbucketslastlayer"] = 0;
-    result3["overshootlastlayer"] = 1101191902;
-    s = "1202202002";
+    std::map<uint32_t, uint256_t> result3;
+    for (int i = 1; i <= 100; i++)
+    {
+        if (i <= 11)
+        {
+            result3[i] = 101010101;
+        }
+        else if (i == 12)
+        {
+            result3[i] = 2202003;
+        }
+        else
+        {
+            result3[i] = 1010101;
+        }
+    }
+    s = 1202202002;
     BOOST_CHECK(p.layers_management(s) == result3);
 }
 
