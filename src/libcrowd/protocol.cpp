@@ -191,3 +191,63 @@ std::map<std::string, std::string> Protocol::get_calculated_hashes(std::string &
     calculated_hashes[my_hash] = my_hash;
     return calculated_hashes;
 }
+
+std::string Protocol::get_blocks_from(std::string &latest_block_peer)
+{
+    nlohmann::json blocks_j;
+
+    // put all blocks with block_nr in a string
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "blockchain"))
+    {
+        boost::filesystem::path p(cd.GetConfigDir() + "blockchain");
+
+        typedef std::vector<boost::filesystem::path> vec;
+        vec v;
+
+        std::copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+        std::sort(v.begin(), v.end()
+            , [](boost::filesystem::path const& a, boost::filesystem::path const& b) {
+            return std::stoi(a.filename().string()) < std::stoi(b.filename().string());
+        });
+
+        nlohmann::json block_j;
+        for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+        {
+            std::string str = it->stem().string();
+            std::uint64_t value_this_blockchain_dir;
+            std::istringstream iss(str.substr(6,18));
+            iss >> value_this_blockchain_dir;
+            std::uint64_t value_peer;
+            if (latest_block_peer != "no blockchain present in folder")
+            {
+                std::istringstream isss(latest_block_peer);
+                isss >> value_peer;
+                std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
+                if (value_this_blockchain_dir > value_peer)
+                {
+                    std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
+                    std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                    block_j["block_nr"] = value_this_blockchain_dir;
+                    block_j["block"] = nlohmann::json::parse(contents);
+                    blocks_j.push_back(block_j);
+                }
+            }
+            else
+            {
+                std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
+                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                block_j["block_nr"] = value_this_blockchain_dir;
+                block_j["block"] = nlohmann::json::parse(contents);
+                blocks_j.push_back(block_j);
+            }
+        }
+    }
+    else
+    {
+        std::cout << "Blockchain directory doesn't exist!!" << std::endl;
+    }
+
+    return blocks_j.dump();
+}

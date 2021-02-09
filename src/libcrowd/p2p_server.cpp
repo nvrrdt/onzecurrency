@@ -253,14 +253,15 @@ private:
                             Protocol proto;
                             std::string my_latest_block = proto.latest_block();
                             std::cout << "My latest block: " << my_latest_block << std::endl;
+                            std::cout << "Req latest block: " << req_latest_block << std::endl;
 
                             room_.join(shared_from_this());
                             
-                            if (req_latest_block < my_latest_block)
+                            if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
                             {
                                 // TODO: upload blockchain to the requester starting from latest block
                                 // send latest block to peer
-                                nlohmann::json block_j = nlohmann::json::parse(my_latest_block);
+                                nlohmann::json block_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
                                 nlohmann::json msg;
                                 msg["req"] = "new_block";
                                 msg["block_nr"] = "0";
@@ -327,7 +328,7 @@ private:
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
                                 room_.deliver(resp_msg_);
-                                std::cout << "Block sent! " << msg.dump() << std::endl;
+                                std::cout << "Block sent! " << std::endl;
                             }
                             else
                             {

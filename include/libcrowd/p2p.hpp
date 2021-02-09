@@ -84,6 +84,7 @@ namespace Crowd
         std::string latest_block();
         std::map<std::string, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
+        std::string get_blocks_from(std::string &latest_block_peer);
     private:
         int verify_latest_block(std::string &latest_block_peer);
         int communicate_to_all(boost::array<char, 128> &msg);
