@@ -69,7 +69,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     Ecdsa e;
     PrevHash ph;
     std::string hash_email = s.create_base58_hash(email);
-    std::string prev_hash = ph.get_prev_hash_from_file();
+    std::string prev_hash = ph.get_my_prev_hash_from_file();
     my_full_hash_ =  s.create_base58_hash(hash_email + prev_hash);
     Poco p;
     std::string database_response = p.Get(my_full_hash_);

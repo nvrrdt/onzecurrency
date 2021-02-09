@@ -17,6 +17,8 @@
 #include "auth.hpp"
 #include "crypto_ecdsa.hpp"
 #include "crypto_shab58.hpp"
+#include "prev_hash.hpp"
+#include "merkle_tree.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -249,9 +251,18 @@ private:
                             std::string my_latest_block = proto.latest_block();
                             std::cout << "My latest block: " << my_latest_block << std::endl;
 
+                            
                             if (req_latest_block < my_latest_block)
                             {
                                 // TODO: upload blockchain to the requester starting from latest block
+                                // send latest block to peer
+                                nlohmann::json block_j = nlohmann::json::parse(my_latest_block);
+                                nlohmann::json msg;
+                                msg["req"] = "new_block";
+                                msg["block_nr"] = "0";
+                                msg["block"] = block_j;
+                                set_resp_msg(msg.dump());
+                                room_.deliver(resp_msg_);
                             }
                             else if (req_latest_block > my_latest_block)
                             {
@@ -260,6 +271,63 @@ private:
 
                             // for the server: layer_management needed: assemble all the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
+
+                            if (p.TotalAmountOfPeers() == 1)
+                            {
+                                // create_block ...
+                                // resp_msg_ = ...
+                                // inform room_.deliver(resp_msg_);
+                                nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+                                
+                                std::string hash_email =  s.create_base58_hash(email_of_req);
+                                PrevHash ph;
+                                std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+                                std::cout << "prev_hash: " << prev_hash << std::endl;
+                                std::string full_hash_of_new_peer =  s.create_base58_hash(hash_email + prev_hash);
+                                
+                                to_block_j["full_hash"] = full_hash_of_new_peer;
+                                to_block_j["pub_key"] = pub_key;
+
+                                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+                                s_shptr->push(to_block_j.dump());
+                                merkle_tree mt;
+                                s_shptr = mt.calculate_root_hash(s_shptr);
+                                entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                                entry_tx_j["pub_key"] = to_block_j["pub_key"];
+                                entry_transactions_j.push_back(entry_tx_j);
+                                exit_tx_j["full_hash"] = "";
+                                exit_transactions_j.push_back(exit_tx_j);
+                                std::string datetime = mt.time_now();
+                                std::string root_hash_data = s_shptr->top();
+                                std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+                                // Update rocksdb
+                                rocksdb_j["version"] = "O.1";
+                                rocksdb_j["ip"] = ip_of_peer_;
+                                rocksdb_j["server"] = true;
+                                rocksdb_j["fullnode"] = true;
+                                rocksdb_j["hash_email"] = hash_email;
+                                rocksdb_j["block"] = 1;
+                                rocksdb_j["pub_key"] = pub_key;
+                                std::string rocksdb_s = rocksdb_j.dump();
+                                Poco* poco = new Poco();
+                                poco->Put(full_hash_of_new_peer, rocksdb_s);
+                                delete poco;
+                                std::cout << "zijn we ook hier? " << std::endl;
+
+                                // send latest block to peer
+                                nlohmann::json block_j = nlohmann::json::parse(block);
+                                nlohmann::json msg;
+                                msg["req"] = "new_block";
+                                msg["block_nr"] = "1";
+                                msg["block"] = block_j;
+                                set_resp_msg(msg.dump());
+                                room_.deliver(resp_msg_);
+                            }
+                            else
+                            {
+                                // t.client to layer_management, but that's for later
+                            }
                         }
                         else
                         {
@@ -351,6 +419,7 @@ private:
     p2p_message_queue write_msgs_;
     std::string buf_;
     p2p_message resp_msg_;
+    std::string ip_of_peer_ = socket_.remote_endpoint().address().to_string();
 };
 
 //----------------------------------------------------------------------

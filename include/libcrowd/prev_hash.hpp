@@ -3,15 +3,14 @@
 #include <iostream>
 #include <string>
 
-#include "random.hpp"
-
 namespace Crowd
 {
     class PrevHash
     {
     public:
-        void save_prev_hash_to_file(std::string &prev_hash);
-        std::string get_prev_hash_from_file();
+        void save_my_prev_hash_to_file(std::string &prev_hash);
+        std::string get_my_prev_hash_from_file();
+        std::string get_last_prev_hash_from_blocks();
     private:
     };
 }

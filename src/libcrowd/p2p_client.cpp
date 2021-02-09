@@ -119,13 +119,16 @@ private:
 
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
+            {
                 throw boost::system::system_error(ec); // Some other error.
+            }
             else if (buf_j["register"] == "ack")
             {
                 // TODO: what if there was no response from the server?
 
                 std::cout << "Ack for registering this client to a server" << std::endl;
-            } else if (buf_j["req"] == "connect")
+            }
+            else if (buf_j["req"] == "connect")
             {
                 if (buf_j["connect"] == "ok")
                 {
@@ -158,9 +161,14 @@ private:
                         t.server();
                     }
                 }
-            } else if (buf_j["connect"] == "true")
+            }
+            else if (buf_j["connect"] == "true")
             {
                 std::cout << "connection established" << std::endl;
+            }
+            else if (buf_j["req"] == "new_block")
+            {
+                std::cout << "new_block" << std::endl;
             }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string

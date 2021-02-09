@@ -101,7 +101,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
     }
 }
 
-void merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
+std::string merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
 {
     nlohmann::json hash_co_j = nlohmann::json::parse(root_hash_data);
     std::string hash_co_s = hash_co_j["full_hash"];
@@ -183,4 +183,6 @@ void merkle_tree::create_block(std::string &datetime, std::string &root_hash_dat
             cd.CreateFileInConfigDir(block_file, block_j);
         }
     }
+
+    return block_j;
 }

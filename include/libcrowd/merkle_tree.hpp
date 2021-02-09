@@ -16,7 +16,7 @@ namespace Crowd
     {
     public:
         int prep_block_creation();
-        void create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j);
+        std::string create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j);
         std::string time_now();
         std::shared_ptr<std::stack<std::string>> calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
     private:
