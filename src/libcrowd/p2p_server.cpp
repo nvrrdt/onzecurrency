@@ -78,10 +78,12 @@ public:
             recent_msgs_.pop_front();
 
         for (auto participant : participants_)
+        {
             if (participant->get_id() == participant->get_find_id())
             {
                 participant->deliver(msg);
             }
+        }
     }
 
 private:
@@ -229,9 +231,10 @@ private:
                 if (e.verify(to_verify_s, signature, pub_key))
                 {
                     std::cout << "verified" << std::endl;
-                    Poco p;
+                    Poco* poco = new Poco();
                     std::string to_find_co = s.create_base58_hash(full_hash_req);
-                    std::string co_from_this_db = p.FindChosenOne(to_find_co);
+                    std::string co_from_this_db = poco->FindChosenOne(to_find_co);
+                    delete poco;
                     std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
                     std::cout << "co_from_req: " << co_from_req << std::endl;
                     // Do the chosen_one communicated correspond to the chosen_one lookup in db?
@@ -251,6 +254,7 @@ private:
                             std::string my_latest_block = proto.latest_block();
                             std::cout << "My latest block: " << my_latest_block << std::endl;
 
+                            room_.join(shared_from_this());
                             
                             if (req_latest_block < my_latest_block)
                             {
@@ -272,7 +276,8 @@ private:
                             // for the server: layer_management needed: assemble all the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
 
-                            if (p.TotalAmountOfPeers() == 1)
+                            Poco* poco = new Poco();
+                            if (poco->TotalAmountOfPeers() == 1)
                             {
                                 // create_block ...
                                 // resp_msg_ = ...
@@ -310,7 +315,6 @@ private:
                                 rocksdb_j["block"] = 1;
                                 rocksdb_j["pub_key"] = pub_key;
                                 std::string rocksdb_s = rocksdb_j.dump();
-                                Poco* poco = new Poco();
                                 poco->Put(full_hash_of_new_peer, rocksdb_s);
                                 delete poco;
                                 std::cout << "zijn we ook hier? " << std::endl;
@@ -323,6 +327,7 @@ private:
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
                                 room_.deliver(resp_msg_);
+                                std::cout << "Block sent! " << msg.dump() << std::endl;
                             }
                             else
                             {

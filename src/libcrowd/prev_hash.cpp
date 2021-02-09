@@ -42,7 +42,7 @@ std::string PrevHash::get_my_prev_hash_from_file()
 
 std::string PrevHash::get_last_prev_hash_from_blocks()
 {
-    std::string ph;
+    std::string prev_hash;
 
     // read prev_hash file
     ConfigDir cd;
@@ -69,12 +69,12 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
         std::string json_s = json.dump();
 
         Shab58 s;
-        std::string prev_hash =  s.create_base58_hash(json_s);
+        prev_hash =  s.create_base58_hash(json_s);
     }
     else
     {
         std::cout << "Prev_hash not found in blockchain!!" << std::endl;
     }
 
-    return ph;
+    return prev_hash;
 }

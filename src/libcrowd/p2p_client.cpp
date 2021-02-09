@@ -109,7 +109,6 @@ private:
         if ( !read_msg_.get_eom_flag()) {
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg;
-            handle_read(ec);
         } else {
             // process json message
             std::string str_read_msg(read_msg_.body());
