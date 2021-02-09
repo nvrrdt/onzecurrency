@@ -168,6 +168,12 @@ private:
             else if (buf_j["req"] == "new_block")
             {
                 std::cout << "new_block" << std::endl;
+                // save blocks to blockchain folder
+
+                Protocol proto;
+                std::string buf_s = buf_j.dump();
+                std::cout << "buf_s: " << buf_s << std::endl;
+                proto.save_blocks_to_blockchain(buf_s);
             }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string

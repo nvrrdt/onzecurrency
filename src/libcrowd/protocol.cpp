@@ -194,7 +194,7 @@ std::map<std::string, std::string> Protocol::get_calculated_hashes(std::string &
 
 std::string Protocol::get_blocks_from(std::string &latest_block_peer)
 {
-    nlohmann::json blocks_j;
+    nlohmann::json all_blocks_j;
 
     // put all blocks with block_nr in a string
     ConfigDir cd;
@@ -231,7 +231,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                     block_j["block_nr"] = value_this_blockchain_dir;
                     block_j["block"] = nlohmann::json::parse(contents);
-                    blocks_j.push_back(block_j);
+                    all_blocks_j.push_back(block_j);
                 }
             }
             else
@@ -240,7 +240,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                 std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                 block_j["block_nr"] = value_this_blockchain_dir;
                 block_j["block"] = nlohmann::json::parse(contents);
-                blocks_j.push_back(block_j);
+                all_blocks_j.push_back(block_j);
             }
         }
     }
@@ -249,5 +249,34 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
         std::cout << "Blockchain directory doesn't exist!!" << std::endl;
     }
 
-    return blocks_j.dump();
+    return all_blocks_j.dump();
+}
+
+void Protocol::save_blocks_to_blockchain(std::string &msg)
+{
+    nlohmann::json json = nlohmann::json::parse(msg);
+    std::cout << "msggggg: " << json.dump() << std::endl;
+    std::string block_nr = json["block_nr"].get<std::string>();
+    std::string block = json["block"].dump();
+
+    ConfigDir cd;
+    uint32_t first_chars = 11 - block_nr.length();
+    std::string number = "";
+    for (int i = 0; i <= first_chars; i++)
+    {
+        number.append("0");
+    }
+    number.append(block_nr);
+    
+    std::string block_file = "blockchain/block_" + number + ".json";
+    std::cout << "blockfile: " << block_file << std::endl;
+
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
+
+    if (!boost::filesystem::exists(blockchain_folder_path))
+    {
+        boost::filesystem::create_directory(blockchain_folder_path);
+    }
+
+    cd.CreateFileInConfigDir(block_file, block);
 }
