@@ -16,13 +16,6 @@ ExternalProject_Add(cryptopp
                     BUILD_COMMAND make
                     INSTALL_COMMAND ""
 )
-ExternalProject_Add(libbase58
-                    GIT_REPOSITORY    https://github.com/bitcoin/libbase58.git
-                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
-                    CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh && <SOURCE_DIR>/configure
-                    BUILD_COMMAND make
-                    INSTALL_COMMAND ""
-)
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
 link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
