@@ -65,17 +65,17 @@ bool Auth::setNetwork(std::string &network)
  */
 std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
 {
-    Shab58 s;
-    Ecdsa e;
+    //Shab58 s;
+    //Ecdsa e;
     PrevHash ph;
-    std::string hash_email = s.create_base58_hash(email);
+    std::string hash_email = "s.create_base58_hash(email)";
     std::string prev_hash = ph.get_my_prev_hash_from_file();
-    my_full_hash_ =  s.create_base58_hash(hash_email + prev_hash);
+    my_full_hash_ =  "s.create_base58_hash(hash_email + prev_hash)";
     Poco p;
     std::string database_response = p.Get(my_full_hash_);
 
     std::map<std::string, std::string> cred;
-    if (e.get_priv_key() == "" && prev_hash == "")
+    if ("e.get_priv_key()" == "" && prev_hash == "")
     {
         // new user is created
         printf("A new user will be created!\n");
@@ -84,8 +84,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         cred["email_hashed"] = hash_email;
 
         // generate a new keypair for the signature
-        e.generate_and_save_keypair();
-        auto pub_key = e.get_pub_key();
+        //e.generate_and_save_keypair();
+        auto pub_key = "e.get_pub_key()";
 
         cred["pub_key"] = pub_key;
         cred["new_peer"] = "true";
@@ -102,7 +102,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         cred["prev_hash"] = prev_hash;
         cred["full_hash"] = my_full_hash_;
 
-        std::string pub_key_from_file = e.get_pub_key();
+        std::string pub_key_from_file = "e.get_pub_key()";
         cred["pub_key"] = pub_key_from_file;
 
         nlohmann::json json_response = nlohmann::json::parse(database_response);

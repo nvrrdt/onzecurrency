@@ -29,5 +29,4 @@ target_link_libraries(tests_login
         "/usr/lib/librocksdb.so"
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
-        libecdsa++.so
 )

@@ -9,10 +9,7 @@ add_library(common SHARED
                      crypto_shab58.cpp
                      crypto_ecdsa.cpp
                      crypto_rsa.cpp
-                     crypto_rsa_2.cpp
 )
-
-add_dependencies(common ecdsa++)
 
 target_include_directories(common PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/ui/terminal"
@@ -27,7 +24,6 @@ target_include_directories(common PUBLIC
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_shab58.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_ecdsa.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_rsa.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcommon/crypto_rsa_2.hpp"
                 )
 
 INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcommon/libcommon.so DESTINATION lib/onze)

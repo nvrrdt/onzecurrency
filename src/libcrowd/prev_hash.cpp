@@ -68,8 +68,8 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
         nlohmann::json json = nlohmann::json::parse(contents);
         std::string json_s = json.dump();
 
-        Shab58 s;
-        prev_hash =  s.create_base58_hash(json_s);
+        // Shab58 s;
+        // prev_hash =  "s.create_base58_hash(json_s)";
     }
     else
     {

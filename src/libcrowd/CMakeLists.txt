@@ -25,7 +25,6 @@ target_include_directories(crowd PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/libcommon"
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
-                        "${PROJECT_SOURCE_DIR}/build/external/include/ecdsa"
                           )
 
 ### install:

@@ -26,7 +26,6 @@ target_link_libraries(onze-terminal
         "/usr/lib/librocksdb.so"
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
-        libecdsa++.so
 )
 
 ### install:

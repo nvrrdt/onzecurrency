@@ -8,9 +8,20 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(ExternalProject)
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
-ExternalProject_Add(ecdsa++
-                    GIT_REPOSITORY    https://github.com/gladosconn/ecdsa_cxx.git
+ExternalProject_Add(cryptopp
+                    GIT_REPOSITORY    https://github.com/weidai11/cryptopp.git
+                    BUILD_IN_SOURCE 1
                     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+                    CONFIGURE_COMMAND wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake && cmake .
+                    BUILD_COMMAND make
+                    INSTALL_COMMAND ""
+)
+ExternalProject_Add(libbase58
+                    GIT_REPOSITORY    https://github.com/bitcoin/libbase58.git
+                    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+                    CONFIGURE_COMMAND <SOURCE_DIR>/autogen.sh && <SOURCE_DIR>/configure
+                    BUILD_COMMAND make
+                    INSTALL_COMMAND ""
 )
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
