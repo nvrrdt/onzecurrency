@@ -167,3 +167,102 @@ bool Crypto::ecdsa_verify_message( const ECDSA<ECP, SHA256>::PublicKey& key, con
 
     return result;
 }
+
+void Crypto::rsa_generate_and_save_keypair()
+{
+    // Generate keys
+    AutoSeededRandomPool rng;
+
+    InvertibleRSAFunction parameters;
+    parameters.GenerateRandomWithKeySize( rng, 2048 );
+
+    RSA::PrivateKey rsa_private_key( parameters );
+    RSA::PublicKey rsa_public_key( parameters );
+
+    rsa_save_private_key(rsa_private_key);
+    rsa_save_public_key(rsa_public_key);
+}
+
+void Crypto::rsa_save_private_key( RSA::PrivateKey& key )
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
+        key.Save( FileSink( filename.c_str(), true /*binary*/ ).Ref() );
+    }
+    else
+    {
+        std::cout << "Rsa_priv_key existed already!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_save_public_key( RSA::PublicKey& key )
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
+        key.Save( FileSink( filename.c_str(), true /*binary*/ ).Ref() );
+    }
+    else
+    {
+        std::cout << "Rsa_pub_key existed already!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_load_private_key( RSA::PrivateKey& key )
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
+        key.Load( FileSource( filename.c_str(), true /*pump all*/ ).Ref() );
+    }
+    else
+    {
+        std::cout << "Rsa_priv_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_load_public_key( RSA::PublicKey& key )
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
+        key.Load( FileSource( filename.c_str(), true /*pump all*/ ).Ref() );
+    }
+    else
+    {
+        std::cout << "Rsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_encrypt_message( RSA::PublicKey& rsa_public_key, string& message, string& cipher )
+{
+    AutoSeededRandomPool rng;
+
+    // Encryption
+    RSAES_OAEP_SHA_Encryptor e( rsa_public_key );
+
+    StringSource( message, true,
+        new PK_EncryptorFilter( rng, e,
+            new StringSink( cipher )
+        ) // PK_EncryptorFilter
+        ); // StringSource
+}
+
+void Crypto::rsa_decrypt_message( RSA::PrivateKey& rsa_private_key, string& cipher, string& recovered_message )
+{
+    AutoSeededRandomPool rng;
+
+    // Decryption
+    RSAES_OAEP_SHA_Decryptor d( rsa_private_key );
+
+    StringSource( cipher, true,
+        new PK_DecryptorFilter( rng, d,
+            new StringSink( recovered_message )
+        ) // PK_EncryptorFilter
+        ); // StringSource
+}

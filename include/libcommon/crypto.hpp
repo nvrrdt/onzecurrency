@@ -6,6 +6,7 @@
 
 #include <iostream>
 using std::cout;
+using std::cerr;
 using std::endl;
 
 #include <string>
@@ -31,6 +32,9 @@ using CryptoPP::ArraySink;
 using CryptoPP::SignerFilter;
 using CryptoPP::SignatureVerificationFilter;
 
+using CryptoPP::PK_EncryptorFilter;
+using CryptoPP::PK_DecryptorFilter;
+
 #include "files.h"
 using CryptoPP::FileSource;
 using CryptoPP::FileSink;
@@ -48,14 +52,35 @@ using GroupParams = CryptoPP::DL_GroupParameters_EC<ECP>;
 #include "oids.h"
 using CryptoPP::OID;
 
+#include "rsa.h"
+using CryptoPP::RSA;
+using CryptoPP::InvertibleRSAFunction;
+using CryptoPP::RSAES_OAEP_SHA_Encryptor;
+using CryptoPP::RSAES_OAEP_SHA_Decryptor;
+
+#include "secblock.h"
+using CryptoPP::SecByteBlock;
+
+#include "cryptlib.h"
+using CryptoPP::Exception;
+using CryptoPP::DecodingResult;
+
+#include <exception>
+using std::exception;
+
 namespace Crowd
 {
     class Crypto
     {
     public:
+        // SHA256:
         std::string sha256_create(std::string &msg);
+
+        // BASE58/
         std::string base58_encode_sha256(std::string &hash);
         std::string base58_decode(std::string &b58);
+
+        // ECDSA:
         int ecdsa_generate_and_save_keypair();
         bool ecdsa_generate_private_key( const OID& oid, ECDSA<ECP, SHA256>::PrivateKey& key );
         bool ecdsa_generate_public_key( const ECDSA<ECP, SHA256>::PrivateKey& ecdsa_private_key_, ECDSA<ECP, SHA256>::PublicKey& ecdsa_public_key_ );
@@ -65,11 +90,15 @@ namespace Crowd
         void ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key );
         bool ecdsa_sign_message( const ECDSA<ECP, SHA256>::PrivateKey& key, const string& message, string& signature );
         bool ecdsa_verify_message( const ECDSA<ECP, SHA256>::PublicKey& key, const string& message, const string& signature );
-        // ecdsa::Key get_keypair_with_priv_key(std::string &priv_key);
-        // std::string get_priv_key();
-        // std::string get_pub_key();
-        // std::tuple<std::vector<uint8_t>, bool> sign(const std::string &string);
-        // bool verify(const std::string &string, std::string &signature_base58, std::string &pub_key_base58);
+        
+        // RSA:
+        void rsa_generate_and_save_keypair();
+        void rsa_save_private_key( RSA::PrivateKey& key );
+        void rsa_save_public_key( RSA::PublicKey& key );
+        void rsa_load_private_key( RSA::PrivateKey& key );
+        void rsa_load_public_key( RSA::PublicKey& key );
+        void rsa_encrypt_message( RSA::PublicKey& rsa_public_key, string& message, string& cipher );
+        void rsa_decrypt_message( RSA::PrivateKey& rsa_private_key, string& cipher, string& recovered_message );
     private:
         // Private and Public keys
         ECDSA<ECP, SHA256>::PrivateKey ecdsa_private_key_;
