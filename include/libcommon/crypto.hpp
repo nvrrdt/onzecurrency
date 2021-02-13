@@ -68,6 +68,10 @@ using CryptoPP::DecodingResult;
 #include <exception>
 using std::exception;
 
+#include "hex.h"
+using CryptoPP::HexEncoder;
+using CryptoPP::HexDecoder;
+
 namespace Crowd
 {
     class Crypto
@@ -88,6 +92,12 @@ namespace Crowd
         void ecdsa_save_public_key( const ECDSA<ECP, SHA256>::PublicKey& key );
         void ecdsa_load_private_key( ECDSA<ECP, SHA256>::PrivateKey& key );
         void ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key );
+        void ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey& private_key );
+        void ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& public_key );
+        void ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateKey& key);
+        void ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey& key);
+        void ecdsa_load_private_key_as_string(std::string &private_key);
+        void ecdsa_load_public_key_as_string(std::string &public_key);
         bool ecdsa_sign_message( const ECDSA<ECP, SHA256>::PrivateKey& key, const string& message, string& signature );
         bool ecdsa_verify_message( const ECDSA<ECP, SHA256>::PublicKey& key, const string& message, const string& signature );
         

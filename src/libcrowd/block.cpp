@@ -22,7 +22,7 @@
 
 #include "verification.hpp"
 
-#include "crypto_shab58.hpp"
+#include "crypto.hpp"
 
 using namespace Crowd;
 
@@ -63,8 +63,8 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::calculate_root_hash(std::s
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
         std::string zero = "zero", zero_hashed;
-        //Shab58 s;
-        zero_hashed = "s.create_base58_hash(zero)";
+        Crypto crypto;
+        zero_hashed = crypto.base58_encode_sha256(zero);
         s_shptr->push(zero_hashed);
     }
 
@@ -92,8 +92,8 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
 
             std::string parent_conc = uneven + even, parent_hashed;
 
-            //Shab58 s;
-            parent_conc = "s.create_base58_hash(parent_conc)";
+            Crypto crypto;
+            parent_conc = crypto.base58_encode_sha256(parent_conc);
             s1_shptr->push(parent_hashed);
         }
 
@@ -175,8 +175,8 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
 
             std::string genesis_prev_hash = "secrets are dumb, omnivalently speaking", genesis_prev_hash_hashed;
 
-            //Shab58 s;
-            genesis_prev_hash_hashed = "s.create_base58_hash(genesis_prev_hash)";
+            Crypto crypto;
+            genesis_prev_hash_hashed = crypto.base58_encode_sha256(genesis_prev_hash);
             j["prev_hash"] = genesis_prev_hash_hashed;
             block_j = j.dump();
             std::string block_file = "blockchain/block_000000000000.json";

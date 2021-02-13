@@ -6,8 +6,7 @@
 #include "prev_hash.hpp"
 #include "configdir.hpp"
 #include "json.hpp"
-#include "crypto_ecdsa.hpp"
-#include "crypto_shab58.hpp"
+#include "crypto.hpp"
 
 using namespace Crowd;
 
@@ -68,8 +67,8 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
         nlohmann::json json = nlohmann::json::parse(contents);
         std::string json_s = json.dump();
 
-        // Shab58 s;
-        // prev_hash =  "s.create_base58_hash(json_s)";
+        Crypto crypto;
+        prev_hash = crypto.base58_encode_sha256(json_s);
     }
     else
     {

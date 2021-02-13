@@ -48,13 +48,17 @@ int Crypto::ecdsa_generate_and_save_keypair()
     bool result = false; 
 
     // Generate Keys
-    result = ecdsa_generate_private_key( CryptoPP::ASN1::secp160r1(), ecdsa_private_key_ );
+    result = ecdsa_generate_private_key( CryptoPP::ASN1::secp256k1(), ecdsa_private_key_ );
     assert( true == result );
     if( !result ) { return -1; }
+
+    ecdsa_save_private_key_as_string(ecdsa_private_key_);
 
     result = ecdsa_generate_public_key( ecdsa_private_key_, ecdsa_public_key_ );
     assert( true == result );
     if( !result ) { return -2; }
+
+    ecdsa_save_public_key_as_string(ecdsa_public_key_);
 
     return 0;
 }
@@ -65,7 +69,7 @@ bool Crypto::ecdsa_generate_private_key( const OID& oid, ECDSA<ECP, SHA256>::Pri
 
     key.Initialize( prng, oid );
     assert( key.Validate( prng, 3 ) );
-     
+
     return key.Validate( prng, 3 );
 }
 
@@ -131,6 +135,179 @@ void Crypto::ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key )
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
         key.Load( FileSource( filename.c_str(), true /*pump all*/ ).Ref() );
+    }
+    else
+    {
+        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey& private_key )
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
+        std::fstream pk;
+        std::string private_key_h;
+        pk.open(filename, std::ios::in);
+        if (pk.is_open())
+        {
+            std::string str;
+            while(getline(pk, str))
+            {
+                std::cout << str << std::endl;
+                private_key_h += str;
+            }
+            pk.close(); //close the file object.
+        }
+
+        HexDecoder decoderPrivate;
+        decoderPrivate.Put((byte*)private_key_h.data(), private_key_h.size());
+        decoderPrivate.MessageEnd();
+
+        private_key.Load(decoderPrivate);
+    }
+    else
+    {
+        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& public_key )
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
+        std::fstream pk;
+        std::string public_key_h;
+        pk.open(filename, std::ios::in);
+        if (pk.is_open())
+        {
+            std::string str;
+            while(getline(pk, str))
+            {
+                std::cout << str << std::endl;
+                public_key_h += str;
+            }
+            pk.close(); //close the file object.
+        }
+        
+        HexDecoder decoderPublic;
+        decoderPublic.Put((byte*)public_key_h.data(), public_key_h.size());
+        decoderPublic.MessageEnd();
+
+        public_key.Load(decoderPublic);
+    }
+    else
+    {
+        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Save(const string& filename, const BufferedTransformation& bt)
+{
+    FileSink file(filename.c_str());
+    bt.CopyTo(file);
+    file.MessageEnd();
+}
+
+void SaveHex(const string& filename, const BufferedTransformation& bt)
+{
+    HexEncoder encoder;
+    bt.CopyTo(encoder);
+    encoder.MessageEnd();
+    Save(filename, encoder);
+}
+
+void SaveHexPrivateKey(const string& filename, const PrivateKey& key)
+{
+    ByteQueue queue;
+    key.Save(queue);
+    SaveHex(filename, queue);
+}
+
+void SaveHexPublicKey(const string& filename, const PublicKey& key)
+{
+    ByteQueue queue;
+    key.Save(queue);
+    SaveHex(filename, queue);
+}
+
+void Crypto::ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateKey& key)
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
+
+        SaveHexPrivateKey(filename, key);
+    }
+    else
+    {
+        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey& key)
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
+        
+        SaveHexPublicKey(filename, key);
+    }
+    else
+    {
+        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
+        std::fstream pk;
+        pk.open(filename, std::ios::in);
+        if (pk.is_open())
+        {
+            std::string str;
+            while(getline(pk, str))
+            {
+                std::cout << str << std::endl;
+                private_key += str;
+            }
+            pk.close(); //close the file object.
+        }
+    }
+    else
+    {
+        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
+        std::fstream pk;
+        pk.open(filename, std::ios::in);
+        if (pk.is_open())
+        {
+            std::string str;
+            while(getline(pk, str))
+            {
+                std::cout << str << std::endl;
+                public_key += str;
+            }
+            pk.close(); //close the file object.
+        }
     }
     else
     {

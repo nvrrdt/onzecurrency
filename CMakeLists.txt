@@ -14,7 +14,7 @@ ExternalProject_Add(cryptopp
                     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
                     CONFIGURE_COMMAND wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake && cmake .
                     BUILD_COMMAND make
-                    INSTALL_COMMAND ""
+                    INSTALL_COMMAND make install
 )
 
 include_directories(${EXTERNAL_INSTALL_LOCATION}/include)

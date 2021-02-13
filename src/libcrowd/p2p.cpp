@@ -5,8 +5,7 @@
 #include "json.hpp"
 #include "p2p.hpp"
 #include "poco.hpp"
-#include "crypto_shab58.hpp"
-#include "crypto_ecdsa.hpp"
+#include "crypto.hpp"
 #include "merkle_tree.hpp"
 #include "auth.hpp"
 
@@ -29,8 +28,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         if (poco->TotalAmountOfPeers() <= 1)
         {
             Tcp t;
-            //Ecdsa e;
-            //Shab58 s;
+            Crypto crypto;
             Protocol proto;
             nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
             message_j["req"] = "intro_peer";
@@ -46,11 +44,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             to_sign_j["pub_key"] = cred["pub_key"];
             to_sign_j["email"] = cred["email"];
             std::string to_sign_s = to_sign_j.dump();
-            // auto [signature, succ] = "e.sign(to_sign_s)";
-            // if (succ)
-            // {
-            //     message_j["signature"] = base58::EncodeBase58(signature);
-            // }
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base58_encode_sha256(signature);
+            }
 
             std::string srv_ip = "";
             std::string ip_mother_peer = "51.15.226.67"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
@@ -66,7 +66,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
                 std::string hash_email = cred["email_hashed"];
                 std::string prev_hash = cred["prev_hash"];
-                std::string full_hash =  "s.create_base58_hash(hash_email + prev_hash)";
+                std::string email_prev_hash_app = hash_email + prev_hash;
+                std::string full_hash = crypto.base58_encode_sha256(email_prev_hash_app);
 
                 to_block_j["full_hash"] = full_hash;
                 to_block_j["pub_key"] = cred["pub_key"];

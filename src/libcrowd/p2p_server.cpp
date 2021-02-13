@@ -15,8 +15,7 @@
 #include "json.hpp"
 #include "ip_peers.hpp"
 #include "auth.hpp"
-#include "crypto_ecdsa.hpp"
-#include "crypto_shab58.hpp"
+#include "crypto.hpp"
 #include "prev_hash.hpp"
 #include "merkle_tree.hpp"
 
@@ -217,8 +216,9 @@ private:
                 std::string signature = buf_j["signature"];
                 std::string req_latest_block = buf_j["latest_block"];
 
-                //Shab58 s;
-                std::string full_hash_req =  "s.create_base58_hash(email_of_req + prev_hash_req)";
+                Crypto crypto;
+                std::string email__prev_hash_app = email_of_req + prev_hash_req;
+                std::string full_hash_req =  crypto.base58_encode_sha256(email__prev_hash_app);
 
                 std::cout << "email: " << email_of_req << std::endl;
 
@@ -226,13 +226,14 @@ private:
                 to_verify_j["pub_key"] = pub_key;
                 to_verify_j["email"] = email_of_req;
 
-                //Ecdsa e;
                 std::string to_verify_s = to_verify_j.dump();
-                if ("e.verify(to_verify_s, signature, pub_key)" == to_verify_j) //delete to_verify_j
+                ECDSA<ECP, SHA256>::PublicKey public_key;
+                crypto.ecdsa_load_public_key_from_string(public_key);
+                if (crypto.ecdsa_verify_message(public_key, to_verify_s, signature))
                 {
                     std::cout << "verified" << std::endl;
                     Poco* poco = new Poco();
-                    std::string to_find_co = "s.create_base58_hash(full_hash_req)";
+                    std::string to_find_co = crypto.base58_encode_sha256(full_hash_req);
                     std::string co_from_this_db = poco->FindChosenOne(to_find_co);
                     delete poco;
                     std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
@@ -290,11 +291,12 @@ private:
                                 // inform room_.deliver(resp_msg_);
                                 nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
                                 
-                                std::string hash_email =  "s.create_base58_hash(email_of_req)";
+                                std::string hash_email = crypto.base58_encode_sha256(email_of_req);
                                 PrevHash ph;
                                 std::string prev_hash = ph.get_last_prev_hash_from_blocks();
                                 std::cout << "prev_hash: " << prev_hash << std::endl;
-                                std::string full_hash_of_new_peer =  "s.create_base58_hash(hash_email + prev_hash)";
+                                std::string hash_email_prev_hash_app = hash_email + prev_hash;
+                                std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
                                 
                                 to_block_j["full_hash"] = full_hash_of_new_peer;
                                 to_block_j["pub_key"] = pub_key;
