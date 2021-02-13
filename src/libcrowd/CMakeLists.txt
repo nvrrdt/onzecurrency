@@ -1,5 +1,3 @@
-find_package(OpenSSL REQUIRED)
-
 set(BOOST_INCLUDEDIR /usr/include)
 find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 

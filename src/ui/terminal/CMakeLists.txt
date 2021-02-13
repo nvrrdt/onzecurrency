@@ -1,5 +1,3 @@
-find_package(OpenSSL REQUIRED)
-
 set(BOOST_INCLUDEDIR /usr/include)
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 
@@ -22,7 +20,6 @@ target_link_libraries(onze-terminal
         LINK_PUBLIC crowd
         LINK_PUBLIC common
         cryptopp-static
-        OpenSSL::SSL
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT}

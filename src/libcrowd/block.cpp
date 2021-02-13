@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <openssl/evp.h>
 
 #include "merkle_tree.hpp"
 
