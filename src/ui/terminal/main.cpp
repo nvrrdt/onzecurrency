@@ -1,6 +1,5 @@
 #include <string>
 #include <map>
-#include <curl/curl.h>
 #include <stdlib.h>
 #include <boost/process.hpp>
 

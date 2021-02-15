@@ -13,7 +13,8 @@ def main():
     
     # Adding optional arguments
     parser.add_argument("-r", "--remove-build-dir", help = "Remove build directory", action="store_true")
-    parser.add_argument("-c", "--cryptopp", help = "Install cryptopp", action="store_true")
+    parser.add_argument("-c", "--cryptopp_ninja", help = "Install cryptopp with ninja", action="store_true")
+    parser.add_argument("-d", "--cryptopp_make", help = "Install cryptopp with make", action="store_true")
     parser.add_argument("-m", "--make", help = "Make", action="store_true")
     parser.add_argument("-i", "--install", help = "Make install", action="store_true")
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
@@ -27,13 +28,20 @@ def main():
     if args.remove_build_dir:
         if os.path.exists(project_path("build")):
             subprocess.call('rm -r ' + project_path("build"), shell=True)  # suppose we're in ./scripts directory
-    if args.cryptopp:
+    if args.cryptopp_ninja:
         subprocess.call('cd ' + project_path("build") + \
             ' && git clone --recursive https://github.com/weidai11/cryptopp.git' \
             ' && cd cryptopp' \
             ' && wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt' \
             ' && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake' \
             ' && mkdir build && cd build && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja && ninja install', shell=True)
+    if args.cryptopp_make:
+        subprocess.call('cd ' + project_path("build") + \
+            ' && git clone --recursive https://github.com/weidai11/cryptopp.git' \
+            ' && cd cryptopp' \
+            ' && wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt' \
+            ' && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake' \
+            ' && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && make install', shell=True)
     if args.make:
         subprocess.call('cd ' + project_path("build") + ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja', shell=True)
     if args.install:
