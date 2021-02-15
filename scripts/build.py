@@ -33,7 +33,7 @@ def main():
             ' && cd cryptopp' \
             ' && wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt' \
             ' && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake' \
-            ' && mkdir build && cd build && cmake .. && make && make install', shell=True)
+            ' && mkdir build && cd build && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja && ninja install', shell=True)
     if args.make:
         subprocess.call('cd ' + project_path("build") + ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug .. && ninja', shell=True)
     if args.install:
