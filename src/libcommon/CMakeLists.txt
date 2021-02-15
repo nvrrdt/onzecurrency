@@ -8,14 +8,14 @@ add_library(common SHARED
                      base58.cpp
 )
 
-add_dependencies(common cryptopp)
+
 
 target_include_directories(common PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/ui/terminal"
                         "${PROJECT_SOURCE_DIR}/include/libcommon"
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
-                        "${PROJECT_SOURCE_DIR}/build/cryptopp-prefix/src/cryptopp"
+                        "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           )
 
 ### install:

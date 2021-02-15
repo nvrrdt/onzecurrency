@@ -3,7 +3,7 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
 find_package(Threads)
 
-find_package(CryptoPP REQUIRED PATHS "${PROJECT_SOURCE_DIR}/build/cryptopp-prefix/src/cryptopp")
+find_package(CryptoPP REQUIRED PATHS "${PROJECT_SOURCE_DIR}/build/cryptopp")
 
 add_executable(tests_crowd main.cpp
                            configdir_unittest.cpp
@@ -19,7 +19,7 @@ target_include_directories(tests_crowd PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libcommon"
                           "${PROJECT_SOURCE_DIR}/include/liblogin"
                           "${PROJECT_SOURCE_DIR}/include/libcrowd"
-                          "${PROJECT_SOURCE_DIR}/build/cryptopp-prefix/src/cryptopp"
+                          "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           )
 
 target_link_libraries(tests_crowd
