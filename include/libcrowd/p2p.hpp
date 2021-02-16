@@ -82,6 +82,7 @@ namespace Crowd
     public:
         int hello_and_setup(std::string& my_user_login_hash);
         std::string latest_block();
+        std::string get_prev_hash_from_block_number(std::string &block_number);
         std::map<std::string, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
         std::string get_blocks_from(std::string &latest_block_peer);

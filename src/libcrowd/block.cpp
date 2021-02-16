@@ -22,6 +22,7 @@
 #include "verification.hpp"
 
 #include "crypto.hpp"
+#include "p2p.hpp"
 
 using namespace Crowd;
 
@@ -163,7 +164,9 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
         if (!isEmpty)
         {
             std::cout << "Directory not empty" << std::endl;
-            j["prev_hash"] = "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
+            Protocol protocol;
+            std:string latest_block = protocol.latest_block();
+            j["prev_hash"] = protocol.get_prev_hash_from_block_number(latest_block); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_j = j.dump();
             std::string block_file = "blockchain/block_000000000001.json";
             cd.CreateFileInConfigDir(block_file, block_j); // TODO: make it count

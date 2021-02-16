@@ -34,7 +34,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["req"] = "intro_peer";
             message_j["email_of_req"] = cred["email"];
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
-            message_j["prev_hash_of_req"] = cred["prev_hash"]; // TODO: is the salt and the full_hash done in liblogin?
+            message_j["prev_hash_of_req"] = cred["prev_hash"];
             message_j["full_hash_co"] = "0";
             message_j["latest_block"] = proto.latest_block();
             
