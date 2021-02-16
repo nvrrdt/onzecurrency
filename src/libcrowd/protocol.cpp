@@ -42,49 +42,6 @@ std::string Protocol::latest_block()
     return latest_block; // TODO: also verify latest hash
 }
 
-std::string Protocol::get_prev_hash_from_block_number(std::string &block_number)
-{
-    ConfigDir cd;
-    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
-    boost::system::error_code c;
-    boost::filesystem::path path(blockchain_folder_path);
-
-    std::string prev_hash;
-
-    if (!boost::filesystem::exists(path))
-    {
-        return "no blockchain present in folder";
-    }
-    else
-    {
-        boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
-        for ( boost::filesystem::directory_iterator itr( path ); itr != end_itr; ++itr )
-        {
-            if (itr->path().string() == block_number)
-            {
-                std::fstream fs;
-                std::string block;
-                std::string filename = blockchain_folder_path + "/block_000000000000.json"; // TODO: handle the number correctly
-                fs.open(filename, std::ios::in);
-                if (fs.is_open())
-                {
-                    std::string str;
-                    while(getline(fs, str))
-                    {
-                        std::cout << str << std::endl;
-                        block += str;
-                    }
-                    fs.close(); //close the file object.
-                }
-                Crypto crypto;
-                prev_hash = crypto.base58_encode_sha256(block);
-            }
-        }
-    }
-    
-    return prev_hash;
-}
-
 std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_peers)
 {
     const int nmax = 100;   // max number of peers per section
