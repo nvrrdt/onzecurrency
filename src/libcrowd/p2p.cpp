@@ -49,7 +49,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             crypto.ecdsa_load_private_key_from_string(private_key);
             if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
             {
-                message_j["signature"] = crypto.base58_encode_sha256(signature);
+                message_j["signature"] = crypto.base58_encode(signature);
             }
 
             std::string srv_ip = "";

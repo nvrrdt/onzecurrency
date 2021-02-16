@@ -227,9 +227,11 @@ private:
                 to_verify_j["email"] = email_of_req;
 
                 std::string to_verify_s = to_verify_j.dump();
-                ECDSA<ECP, SHA256>::PublicKey public_key;
-                crypto.ecdsa_load_public_key_from_string(public_key);
-                if (crypto.ecdsa_verify_message(public_key, to_verify_s, signature))
+                ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+                crypto.ecdsa_string_to_public_key(pub_key, public_key_ecdsa);
+                signature = crypto.base58_decode(signature);
+                std::cout << "signature2: " << signature << std::endl;
+                if (crypto.ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
                 {
                     std::cout << "verified" << std::endl;
                     Poco* poco = new Poco();

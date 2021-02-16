@@ -82,6 +82,7 @@ namespace Crowd
 
         // BASE58/
         std::string base58_encode_sha256(std::string &hash);
+        std::string base58_encode(std::string &str);
         std::string base58_decode(std::string &b58);
 
         // ECDSA:
@@ -94,6 +95,7 @@ namespace Crowd
         void ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key );
         void ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey& private_key );
         void ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& public_key );
+        void ecdsa_string_to_public_key( std::string public_key_in, ECDSA<ECP, SHA256>::PublicKey& public_key_out );
         void ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateKey& key);
         void ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey& key);
         void ecdsa_load_private_key_as_string(std::string &private_key);

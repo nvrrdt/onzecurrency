@@ -27,6 +27,12 @@ std::string Crypto::base58_encode_sha256(std::string &hash)
     return base58::EncodeBase58(vec);
 }
 
+std::string Crypto::base58_encode(std::string &str)
+{
+    std::vector<uint8_t> vec(str.begin(), str.end());
+    return base58::EncodeBase58(vec);
+}
+
 std::string Crypto::base58_decode(std::string &b58)
 {
     std::vector<uint8_t> vec;
@@ -204,6 +210,15 @@ void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& p
     {
         std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
     }
+}
+
+void Crypto::ecdsa_string_to_public_key( std::string public_key_in, ECDSA<ECP, SHA256>::PublicKey& public_key_out )
+{
+    HexDecoder decoderPublic;
+    decoderPublic.Put((byte*)public_key_in.data(), public_key_in.size());
+    decoderPublic.MessageEnd();
+
+    public_key_out.Load(decoderPublic);
 }
 
 void Save(const string& filename, const BufferedTransformation& bt)
