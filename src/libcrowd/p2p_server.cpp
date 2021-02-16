@@ -182,8 +182,7 @@ private:
                 resp_j["register"] = "ack";
 
                 set_resp_msg(resp_j.dump());
-                room_.deliver(resp_msg_);
-
+                
                 std::cout << "Ack for registering client is confirmed" << std::endl;
             }
             else if (buf_j["req"] == "connect")
@@ -202,8 +201,7 @@ private:
                 resp_j["ip_from"] = buf_j["ip_from"];
 
                 set_resp_msg(resp_j.dump()); 
-                room_.deliver(resp_msg_);
- 
+                 
                 room_.leave(shared_from_this());
             } 
             else if (buf_j["req"] == "intro_peer")
@@ -231,8 +229,10 @@ private:
                 std::string to_verify_s = to_verify_j.dump();
                 ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
                 crypto.ecdsa_string_to_public_key(ecdsa_pub_key, public_key_ecdsa);
+                std::cout << "signature1: " << signature << std::endl;
                 signature = crypto.base58_decode(signature);
                 std::cout << "signature2: " << signature << std::endl;
+                std::cout << "to_verify_s: " << to_verify_s << std::endl;
                 if (crypto.ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
                 {
                     std::cout << "verified" << std::endl;
@@ -277,7 +277,6 @@ private:
                                 msg["block_nr"] = "0";
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
-                                room_.deliver(resp_msg_);
                             }
                             else if (req_latest_block > my_latest_block)
                             {
@@ -341,7 +340,6 @@ private:
                                 msg["block_nr"] = "1";
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
-                                room_.deliver(resp_msg_);
                                 std::cout << "Block sent! " << std::endl;
                             }
                             else
@@ -401,13 +399,39 @@ private:
         }
     }
 
+    std::vector<std::string> split(const std::string& str, int splitLength)
+    {
+    int NumSubstrings = str.length() / splitLength;
+    std::vector<std::string> ret;
+
+    for (auto i = 0; i < NumSubstrings; i++)
+    {
+            ret.push_back(str.substr(i * splitLength, splitLength));
+    }
+
+    // If there are leftover characters, create a shorter item at the end.
+    if (str.length() % splitLength != 0)
+    {
+            ret.push_back(str.substr(splitLength * NumSubstrings));
+    }
+
+    return ret;
+    }
+
     void set_resp_msg(std::string msg)
     {
-        char c[p2p_message::max_body_length];
-        strncpy(c, msg.c_str(), sizeof(c));
-        resp_msg_.body_length(std::strlen(c));
-        std::memcpy(resp_msg_.body(), c, resp_msg_.body_length());
-        resp_msg_.encode_header(1); // TODO a 0 arg = not eom, should also be implemented for when > max_body_length, see ?: in p2p_client
+        std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+        for (int i = 0; i < splitted.size(); i++)
+        {
+            char s[p2p_message::max_body_length + 1];
+            strncpy(s, splitted[i].c_str(), sizeof(s));
+
+            resp_msg_.body_length(std::strlen(s));
+            std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
+            i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+            room_.deliver(resp_msg_);
+        }
     }
 
     void do_write()

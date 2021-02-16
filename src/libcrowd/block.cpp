@@ -113,13 +113,15 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
 
     int user_count = 0;
     for (auto& element : entry_data_j) {
-        std::string full_hash, pub_key;
+        std::string full_hash, ecdsa_pub_key, rsa_pub_key;
 
         full_hash = element["full_hash"];
-        pub_key = element["pub_key"];
+        ecdsa_pub_key = element["ecdsa_pub_key"];
+        rsa_pub_key = element["rsa_pub_key"];
 
         j["entry"][user_count]["full_hash"] = full_hash;
-        j["entry"][user_count]["pub_key"] = pub_key;
+        j["entry"][user_count]["ecdsa_pub_key"] = ecdsa_pub_key;
+        j["entry"][user_count]["rsa_pub_key"] = rsa_pub_key;
 
         user_count++;
     }

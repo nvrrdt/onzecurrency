@@ -40,7 +40,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             
             
             message_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
-            message_j["rsa_pub_key"] = cred["ecdsa_pub_key"];
+            message_j["rsa_pub_key"] = cred["rsa_pub_key"];
 
             to_sign_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
             to_sign_j["rsa_pub_key"] = cred["rsa_pub_key"];
