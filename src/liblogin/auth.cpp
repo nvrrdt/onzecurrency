@@ -86,10 +86,16 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
 
         // generate a new keypair for the signature
         crypto.ecdsa_generate_and_save_keypair();
-        std::string pub_key;
-        crypto.ecdsa_load_public_key_as_string(pub_key);
+        std::string ecdsa_pub_key;
+        crypto.ecdsa_load_public_key_as_string(ecdsa_pub_key);
 
-        cred["pub_key"] = pub_key;
+        // generate a new keypair for rsa
+        crypto.rsa_generate_and_save_keypair();
+        std::string rsa_pub_key;
+        crypto.rsa_load_public_key_as_string_from_file(rsa_pub_key);
+
+        cred["ecdsa_pub_key"] = ecdsa_pub_key;
+        cred["rsa_pub_key"] = rsa_pub_key;
         cred["new_peer"] = "true";
         cred["error"] = "false";
 
@@ -104,17 +110,21 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         cred["prev_hash"] = prev_hash;
         cred["full_hash"] = my_full_hash_;
 
-        std::string pub_key_from_file;
-        crypto.ecdsa_load_public_key_as_string(pub_key_from_file);
-        cred["pub_key"] = pub_key_from_file;
+        std::string ecdsa_pub_key_from_file;
+        crypto.ecdsa_load_public_key_as_string(ecdsa_pub_key_from_file);
+        cred["ecdsa_pub_key"] = ecdsa_pub_key_from_file;
+
+        std::string rsa_pub_key_from_file;
+        crypto.rsa_load_public_key_as_string_from_file(rsa_pub_key_from_file);
+        cred["rsa_pub_key"] = rsa_pub_key_from_file;
 
         nlohmann::json json_response = nlohmann::json::parse(database_response);
 
         // get data from rocksdb
-        std::string pub_key_from_blockchain = json_response["pub_key"];
+        std::string ecdsa_pub_key_from_blockchain = json_response["ecdsa_pub_key"];
 
-        // compare pub_key with blockchain
-        if (pub_key_from_file == pub_key_from_blockchain)
+        // compare ecdsa_pub_key with blockchain
+        if (ecdsa_pub_key_from_file == ecdsa_pub_key_from_blockchain)
         {
             cred["new_peer"] = "false";
             cred["error"] = "false";

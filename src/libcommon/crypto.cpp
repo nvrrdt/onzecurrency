@@ -371,8 +371,8 @@ void Crypto::rsa_generate_and_save_keypair()
     RSA::PrivateKey rsa_private_key( parameters );
     RSA::PublicKey rsa_public_key( parameters );
 
-    rsa_save_private_key(rsa_private_key);
-    rsa_save_public_key(rsa_public_key);
+    rsa_save_private_key_as_string(rsa_private_key);
+    rsa_save_public_key_as_string(rsa_public_key);
 }
 
 void Crypto::rsa_save_private_key( RSA::PrivateKey& key )
@@ -428,6 +428,61 @@ void Crypto::rsa_load_public_key( RSA::PublicKey& key )
     else
     {
         std::cout << "Rsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_save_private_key_as_string(RSA::PrivateKey& key)
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
+
+        SaveHexPrivateKey(filename, key);
+    }
+    else
+    {
+        std::cout << "Rsa_priv_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_save_public_key_as_string(RSA::PublicKey& key)
+{
+    ConfigDir cd;
+    if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
+        
+        SaveHexPublicKey(filename, key);
+    }
+    else
+    {
+        std::cout << "Rsa_pub_key doesn't exist!!" << std::endl;
+    }
+}
+
+void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
+{
+    ConfigDir cd;
+    if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
+    {
+        const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
+        std::fstream pk;
+        pk.open(filename, std::ios::in);
+        if (pk.is_open())
+        {
+            std::string str;
+            while(getline(pk, str))
+            {
+                std::cout << str << std::endl;
+                rsa_pub_key += str;
+            }
+            pk.close(); //close the file object.
+        }
+    }
+    else
+    {
+        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
     }
 }
 

@@ -109,6 +109,9 @@ namespace Crowd
         void rsa_save_public_key( RSA::PublicKey& key );
         void rsa_load_private_key( RSA::PrivateKey& key );
         void rsa_load_public_key( RSA::PublicKey& key );
+        void rsa_save_private_key_as_string(RSA::PrivateKey& key);
+        void rsa_save_public_key_as_string(RSA::PublicKey& key);
+        void rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key);
         void rsa_encrypt_message( RSA::PublicKey& rsa_public_key, string& message, string& cipher );
         void rsa_decrypt_message( RSA::PrivateKey& rsa_private_key, string& cipher, string& recovered_message );
     private:

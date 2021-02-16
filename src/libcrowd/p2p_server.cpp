@@ -212,7 +212,8 @@ private:
                 std::string co_from_req = buf_j["full_hash_co"];
                 std::string email_of_req = buf_j["email_of_req"];
                 std::string prev_hash_req = buf_j["prev_hash_of_req"];
-                std::string pub_key = buf_j["pub_key"];
+                std::string ecdsa_pub_key = buf_j["ecdsa_pub_key"];
+                std::string rsa_pub_key = buf_j["rsa_pub_key"];
                 std::string signature = buf_j["signature"];
                 std::string req_latest_block = buf_j["latest_block"];
 
@@ -223,12 +224,13 @@ private:
                 std::cout << "email: " << email_of_req << std::endl;
 
                 nlohmann::json to_verify_j;
-                to_verify_j["pub_key"] = pub_key;
+                to_verify_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                to_verify_j["rsa_pub_key"] = rsa_pub_key;
                 to_verify_j["email"] = email_of_req;
 
                 std::string to_verify_s = to_verify_j.dump();
                 ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
-                crypto.ecdsa_string_to_public_key(pub_key, public_key_ecdsa);
+                crypto.ecdsa_string_to_public_key(ecdsa_pub_key, public_key_ecdsa);
                 signature = crypto.base58_decode(signature);
                 std::cout << "signature2: " << signature << std::endl;
                 if (crypto.ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
@@ -301,14 +303,16 @@ private:
                                 std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
                                 
                                 to_block_j["full_hash"] = full_hash_of_new_peer;
-                                to_block_j["pub_key"] = pub_key;
+                                to_block_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                to_block_j["rsa_pub_key"] = rsa_pub_key;
 
                                 std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
                                 s_shptr->push(to_block_j.dump());
                                 merkle_tree mt;
                                 s_shptr = mt.calculate_root_hash(s_shptr);
                                 entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                                entry_tx_j["pub_key"] = to_block_j["pub_key"];
+                                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
                                 entry_transactions_j.push_back(entry_tx_j);
                                 exit_tx_j["full_hash"] = "";
                                 exit_transactions_j.push_back(exit_tx_j);
@@ -323,7 +327,8 @@ private:
                                 rocksdb_j["fullnode"] = true;
                                 rocksdb_j["hash_email"] = hash_email;
                                 rocksdb_j["block"] = 1;
-                                rocksdb_j["pub_key"] = pub_key;
+                                rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                rocksdb_j["rsa_pub_key"] = rsa_pub_key;
                                 std::string rocksdb_s = rocksdb_j.dump();
                                 poco->Put(full_hash_of_new_peer, rocksdb_s);
                                 delete poco;

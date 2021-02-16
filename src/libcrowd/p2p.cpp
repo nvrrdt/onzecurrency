@@ -39,9 +39,11 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["latest_block"] = proto.latest_block();
             
             
-            message_j["pub_key"] = cred["pub_key"];
+            message_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
+            message_j["rsa_pub_key"] = cred["ecdsa_pub_key"];
 
-            to_sign_j["pub_key"] = cred["pub_key"];
+            to_sign_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
+            to_sign_j["rsa_pub_key"] = cred["rsa_pub_key"];
             to_sign_j["email"] = cred["email"];
             std::string to_sign_s = to_sign_j.dump();
             ECDSA<ECP, SHA256>::PrivateKey private_key;
@@ -70,14 +72,16 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 std::string full_hash = crypto.base58_encode_sha256(email_prev_hash_app);
 
                 to_block_j["full_hash"] = full_hash;
-                to_block_j["pub_key"] = cred["pub_key"];
+                to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
+                to_block_j["rsa_pub_key"] = cred["rsa_pub_key"];
 
                 std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
                 s_shptr->push(to_block_j.dump());
                 merkle_tree mt;
                 s_shptr = mt.calculate_root_hash(s_shptr);
                 entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                entry_tx_j["pub_key"] = to_block_j["pub_key"];
+                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
                 entry_transactions_j.push_back(entry_tx_j);
                 exit_tx_j["full_hash"] = "";
                 exit_transactions_j.push_back(exit_tx_j);
@@ -93,7 +97,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 rocksdb_j["hash_email"] = message_j["hash_of_email"];
                 rocksdb_j["salt"] = message_j["salt_of_req"];
                 rocksdb_j["block"] = 0;
-                rocksdb_j["pub_key"] = message_j["pub_key"];
+                rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
+                rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
                 poco->Put(full_hash, rocksdb_s);
                 std::cout << "zijn we hier? " << std::endl;
