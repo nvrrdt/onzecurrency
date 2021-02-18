@@ -132,7 +132,11 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             // 2 or more peers ...
             // get ip of online peer in rocksdb
             // then t.client to that peer
-            // and tat peer must create the block
+            // and that peer must create the block
+
+            // TODO: this is only applicable when rocksdb is already filled with pears
+            // which is rather rarely the case when a new user enters the network
+            // so this code can be postponed to later
         }
     }
     else if (cred["new_peer"] == "false")
