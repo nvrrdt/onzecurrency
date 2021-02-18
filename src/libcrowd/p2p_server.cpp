@@ -351,8 +351,51 @@ private:
 
                                     // communicate intro_peers to chosen_one's with a new_peer req
 
+                                    Protocol proto;
+                                    std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
-                                    // t.client to layer_management, but that's for later
+                                    Tcp tcp;
+                                    Poco poco;
+                                    std::string key, val;
+                                    for (auto &[key, val] : parts)
+                                    {
+                                        std::cout << key        // string (key)
+                                                << ':'  
+                                                << val        // string's value
+                                                << std::endl;
+
+                                        // tcp.client ...
+                                        std::string srv_ip = ""; // only for nat traversal
+                                        std::string peer_ip = poco.FindNextPeer(val); // lookup in rocksdb
+                                        std::string peer_hash = ""; // dunno, still dunno
+
+                                        nlohmann::json message_j, to_sign_j;
+                                        message_j["req"] = "new_peer";
+                                        message_j["email_of_req"] = email_of_req;
+                                        message_j["hash_of_email"] = buf_j["hash_of_email"]; // = id requester
+                                        message_j["prev_hash_of_req"] = prev_hash_req;
+                                        message_j["full_hash_co"] = my_full_hash;
+                                        message_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                        message_j["rsa_pub_key"] = rsa_pub_key;
+
+                                        to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                        to_sign_j["rsa_pub_key"] = rsa_pub_key;
+                                        to_sign_j["email"] = email_of_req;
+                                        std::string to_sign_s = to_sign_j.dump();
+                                        ECDSA<ECP, SHA256>::PrivateKey private_key;
+                                        std::string signature;
+                                        crypto.ecdsa_load_private_key_from_string(private_key);
+                                        if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+                                        {
+                                            message_j["signature"] = crypto.base58_encode(signature);
+                                        }
+                                        
+                                        std::string message = message_j.dump();
+                                        tcp.client(srv_ip, peer_ip, peer_hash, message);
+                                    }
+
+                                    // wait 30 seconds of > 1 MB to create block
+                                    CreateBlock cb(email_of_peer, hash_of_peer);
 
 
                                 }
@@ -415,6 +458,10 @@ private:
                 // {
                 //     // If there are more peers in the ip_list ...
                 // }
+            }
+            else if (buf_j["req"] == "intro_peer")
+            {
+                //
             }
         }
     }
