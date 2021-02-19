@@ -9,6 +9,7 @@
 
 #include "poco.hpp"
 #include "json.hpp"
+#include "prev_hash.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -168,9 +169,16 @@ namespace Crowd
     class CreateBlock
     {
     public:
-        CreateBlock(std::string &email_of_req, std::string &hash_of_req)
+        CreateBlock(nlohmann::json &message_j)
         {
-            list_of_new_peers_.push_back(hash_of_req);
+            std::string email_of_req = message_j["email_of_req"];
+            std::string hash_email = crypto.base58_encode_sha256(email_of_req);
+            PrevHash ph;
+            std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+            std::string hash_email_prev_hash_app = hash_email + prev_hash;
+            std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
+
+            list_of_new_peers_.push_back(full_hash_of_new_peer);
 
             if (list_of_new_peers_.size() > 2048) // 2048x 512 bit hashes
             {
@@ -193,16 +201,62 @@ namespace Crowd
                 // TODO: create block here ...
                 // include prev_hash, hash of merkle tree of list_of_new_peers_, the list_of_new_peers_ and calculate but exclude the final hash
                 // rocksdb.get(final_hash) to get the chosen_one of chosen_one's
+
+                nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+                
+                std::string email_of_req = message_j["email_of_req"];
+                std::string hash_email = crypto.base58_encode_sha256(email_of_req);
+                PrevHash ph;
+                std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+                std::cout << "prev_hash: " << prev_hash << std::endl;
+                std::string hash_email_prev_hash_app = hash_email + prev_hash;
+                std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
+                
+                to_block_j["full_hash"] = full_hash_of_new_peer;
+                to_block_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
+                to_block_j["rsa_pub_key"] = message_j["rsa_pub_key"];
+
+                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+                s_shptr->push(to_block_j.dump());
+                merkle_tree mt;
+                s_shptr = mt.calculate_root_hash(s_shptr);
+                entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                entry_transactions_j.push_back(entry_tx_j);
+                exit_tx_j["full_hash"] = "";
+                exit_transactions_j.push_back(exit_tx_j);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr->top();
+                std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+                // Update rocksdb
+                rocksdb_j["version"] = "O.1";
+                rocksdb_j["ip"] = message_j["ip"];
+                rocksdb_j["server"] = true; // dunno yet
+                rocksdb_j["fullnode"] = true; // dunno yet
+                rocksdb_j["hash_email"] = hash_email;
+                rocksdb_j["block"] = 1; // TODO: not correct ...
+                rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
+                rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
+                std::string rocksdb_s = rocksdb_j.dump();
+                poco->Put(full_hash_of_new_peer, rocksdb_s);
+                delete poco;
+                std::cout << "zijn we ook hier? " << std::endl;
+
+                // send latest block to peer
+                nlohmann::json block_j = nlohmann::json::parse(block);
+                nlohmann::json msg;
+                msg["req"] = "new_block";
+                msg["block_nr"] = "1";
+                msg["block"] = block_j;
+                set_resp_msg(msg.dump());
+                std::cout << "Block sent now! " << std::endl;
             else
                 std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
-                // TODO: create block here ...
         }
         void signals()
         {
-            // std::this_thread::sleep_for(10ms);
-            // std::cerr << "Notifying...\n";
-            // cv.notify_all();
-            // std::this_thread::sleep_for(10ms);
             i = 1;
             std::cerr << "Notifying again...\n";
             cv.notify_all();
