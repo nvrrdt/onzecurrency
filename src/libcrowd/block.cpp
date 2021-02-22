@@ -142,7 +142,7 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
     //std::cout << std::setw(4) << j << '\n';
 
     // hashing of the whole new block
-    std::string block_j, block_hashed;
+    std::string block_s, block_hashed;
 
     // create genesis or add to blockchain
     boost::system::error_code c;
@@ -168,9 +168,9 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
             std::cout << "Directory not empty" << std::endl;
             PrevHash ph;
             j["prev_hash"] = ph.get_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
-            block_j = j.dump();
+            block_s = j.dump();
             std::string block_file = "blockchain/block_000000000001.json";
-            cd.CreateFileInConfigDir(block_file, block_j); // TODO: make it count
+            cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
         }
         else
         {
@@ -181,11 +181,11 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
             Crypto crypto;
             genesis_prev_hash_hashed = crypto.base58_encode_sha256(genesis_prev_hash);
             j["prev_hash"] = genesis_prev_hash_hashed;
-            block_j = j.dump();
+            block_s = j.dump();
             std::string block_file = "blockchain/block_000000000000.json";
-            cd.CreateFileInConfigDir(block_file, block_j);
+            cd.CreateFileInConfigDir(block_file, block_s);
         }
     }
 
-    return block_j;
+    return block_s;
 }

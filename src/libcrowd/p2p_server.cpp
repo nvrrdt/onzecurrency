@@ -347,15 +347,12 @@ private:
                                 }
                                 else
                                 {
-                                    delete poco;
-
                                     // communicate intro_peers to chosen_one's with a new_peer req
 
                                     Protocol proto;
                                     std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
                                     std::string srv_ip = ""; // only for nat traversal
-                                    std::string peer_ip = poco.FindNextPeer(val); // lookup in rocksdb
                                     std::string peer_hash = ""; // dunno, still dunno
 
                                     nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -380,7 +377,6 @@ private:
                                     }
 
                                     Tcp tcp;
-                                    Poco poco;
                                     std::string key, val;
                                     for (auto &[key, val] : parts)
                                     {
@@ -389,7 +385,7 @@ private:
                                                 << val        // string's value
                                                 << std::endl;
 
-                                        // tcp.client ...                                       
+                                        std::string peer_ip = poco->FindNextPeer(val); // lookup in rocksdb
                                         
                                         std::string message = message_j.dump();
                                         tcp.client(srv_ip, peer_ip, peer_hash, message);
@@ -398,7 +394,11 @@ private:
                                     // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                                     CreateBlock cb(message_j);
 
+                                    // TODO: rocksdb shoudl be updated when the block is created
+                                    // so: the new peer should receive the message that the block is created
+                                    // and then a message should be sent with the rocksdb entries
 
+                                    // TODO: CreateBlock isn't final, the hash of the block should point to the chosen_one
                                 }
                             }
                             else

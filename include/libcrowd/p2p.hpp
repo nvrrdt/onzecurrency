@@ -10,6 +10,8 @@
 #include "poco.hpp"
 #include "json.hpp"
 #include "prev_hash.hpp"
+#include "crypto.hpp"
+#include "merkle_tree.hpp"
 
 #include <atomic>
 #include <condition_variable>
@@ -172,12 +174,13 @@ namespace Crowd
         CreateBlock(nlohmann::json &message_j)
         {
             std::string email_of_req = message_j["email_of_req"];
+            Crypto crypto;
             std::string hash_email = crypto.base58_encode_sha256(email_of_req);
             PrevHash ph;
             std::string prev_hash = ph.get_last_prev_hash_from_blocks();
             std::string hash_email_prev_hash_app = hash_email + prev_hash;
             std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
-
+            
             list_of_new_peers_.push_back(full_hash_of_new_peer);
 
             if (list_of_new_peers_.size() > 2048) // 2048x 512 bit hashes
@@ -187,73 +190,54 @@ namespace Crowd
             }
             else
             {
-                std::thread t1(&CreateBlock::waits, this, 1); // TODO: maybe when adding two peers within 30 seconds doesn't work because of this
-                t1.join();                // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
+                std::thread t1(&CreateBlock::waits, this, 1, message_j, full_hash_of_new_peer); // TODO: maybe when adding two peers within 30 seconds doesn't work because of this
+                t1.join();  // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
             }
         }
     private:
-        void waits(int idx)
+        void waits(int idx, nlohmann::json message_j, std::string full_hash_of_new_peer)
         {
             std::unique_lock<std::mutex> lk(cv_m);
             auto now = std::chrono::system_clock::now();
             if(cv.wait_until(lk, now + 30s, [=](){return i == 1;}))
+            {
                 std::cerr << "Thread " << idx << " finished waiting. i == " << i << '\n';
                 // TODO: create block here ...
                 // include prev_hash, hash of merkle tree of list_of_new_peers_, the list_of_new_peers_ and calculate but exclude the final hash
                 // rocksdb.get(final_hash) to get the chosen_one of chosen_one's
 
-                nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
-                
-                std::string email_of_req = message_j["email_of_req"];
-                std::string hash_email = crypto.base58_encode_sha256(email_of_req);
-                PrevHash ph;
-                std::string prev_hash = ph.get_last_prev_hash_from_blocks();
-                std::cout << "prev_hash: " << prev_hash << std::endl;
-                std::string hash_email_prev_hash_app = hash_email + prev_hash;
-                std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
+                // TODO: the hash of the block doesn't point to the chosen_one yet, which should be ...
+                // now the block is no matter what created after 30 seconds or 1 MB, that's nog right
+
+                nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+                                
+                merkle_tree mt;
+                s_shptr_ = mt.calculate_root_hash(s_shptr_);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr_->top();
+                std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
+
+                std::cout << "Block created! " << std::endl;
+            }
+            else
+            {
+                std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
+
+                nlohmann::json to_block_j, entry_tx_j, exit_tx_j;
                 
                 to_block_j["full_hash"] = full_hash_of_new_peer;
                 to_block_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
                 to_block_j["rsa_pub_key"] = message_j["rsa_pub_key"];
 
-                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
-                s_shptr->push(to_block_j.dump());
-                merkle_tree mt;
-                s_shptr = mt.calculate_root_hash(s_shptr);
+                s_shptr_->push(to_block_j.dump());
+
                 entry_tx_j["full_hash"] = to_block_j["full_hash"];
                 entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
                 entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                entry_transactions_j.push_back(entry_tx_j);
+                entry_transactions_j_.push_back(entry_tx_j);
                 exit_tx_j["full_hash"] = "";
-                exit_transactions_j.push_back(exit_tx_j);
-                std::string datetime = mt.time_now();
-                std::string root_hash_data = s_shptr->top();
-                std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-
-                // Update rocksdb
-                rocksdb_j["version"] = "O.1";
-                rocksdb_j["ip"] = message_j["ip"];
-                rocksdb_j["server"] = true; // dunno yet
-                rocksdb_j["fullnode"] = true; // dunno yet
-                rocksdb_j["hash_email"] = hash_email;
-                rocksdb_j["block"] = 1; // TODO: not correct ...
-                rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
-                rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
-                std::string rocksdb_s = rocksdb_j.dump();
-                poco->Put(full_hash_of_new_peer, rocksdb_s);
-                delete poco;
-                std::cout << "zijn we ook hier? " << std::endl;
-
-                // send latest block to peer
-                nlohmann::json block_j = nlohmann::json::parse(block);
-                nlohmann::json msg;
-                msg["req"] = "new_block";
-                msg["block_nr"] = "1";
-                msg["block"] = block_j;
-                set_resp_msg(msg.dump());
-                std::cout << "Block sent now! " << std::endl;
-            else
-                std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
+                exit_transactions_j_.push_back(exit_tx_j);
+            }
         }
         void signals()
         {
@@ -263,6 +247,9 @@ namespace Crowd
         }
     private:
         static std::vector<std::string> list_of_new_peers_;
+        std::shared_ptr<std::stack<std::string>> s_shptr_ = make_shared<std::stack<std::string>>();
+        nlohmann::json entry_transactions_j_;
+        nlohmann::json exit_transactions_j_;
 
         std::condition_variable cv;
         std::mutex cv_m;
