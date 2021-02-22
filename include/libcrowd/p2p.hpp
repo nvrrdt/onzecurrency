@@ -194,6 +194,10 @@ namespace Crowd
                 t1.join();  // https://en.cppreference.com/w/cpp/thread/condition_variable/wait_until
             }
         }
+        std::string get_hash_of_new_block()
+        {
+            return hash_of_block_;
+        }
     private:
         void waits(int idx, nlohmann::json message_j, std::string full_hash_of_new_peer)
         {
@@ -216,6 +220,8 @@ namespace Crowd
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr_->top();
                 std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
+
+                set_hash_of_new_block(block);
 
                 std::cout << "Block created! " << std::endl;
             }
@@ -245,11 +251,18 @@ namespace Crowd
             std::cerr << "Notifying again...\n";
             cv.notify_all();
         }
+        void set_hash_of_new_block(std::string block)
+        {
+            Crypto crypto;
+            hash_of_block_ = crypto.base58_encode(block);
+        }
     private:
         static std::vector<std::string> list_of_new_peers_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = make_shared<std::stack<std::string>>();
         nlohmann::json entry_transactions_j_;
         nlohmann::json exit_transactions_j_;
+
+        std::string hash_of_block_;
 
         std::condition_variable cv;
         std::mutex cv_m;

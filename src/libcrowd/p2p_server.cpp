@@ -394,11 +394,28 @@ private:
                                     // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                                     CreateBlock cb(message_j);
 
-                                    // TODO: rocksdb shoudl be updated when the block is created
+                                    // TODO: rocksdb should be updated when the block is created
                                     // so: the new peer should receive the message that the block is created
                                     // and then a message should be sent with the rocksdb entries
 
                                     // TODO: CreateBlock isn't final, the hash of the block should point to the chosen_one
+
+                                    std::string hash_of_new_block = cb.get_hash_of_new_block();
+                                    if (hash_of_new_block != "")
+                                    {
+                                        std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                                        if (co_for_new_block == my_full_hash)
+                                        {
+                                            // I'm the chosen one for creating the block!!!
+                                            std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+                                        }
+                                        else
+                                        {
+                                            // I'm NOT the chosen one for creating the block!!!
+                                            std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
+                                        }
+                                        delete poco;
+                                    }
                                 }
                             }
                             else
@@ -463,6 +480,28 @@ private:
             else if (buf_j["req"] == "new_peer")
             {
                 // should read the timestamp of the first new_peer request received
+                CreateBlock cb(buf_j);
+
+                Auth a;
+                std::string my_full_hash = a.get_my_full_hash();
+
+                std::string hash_of_new_block = cb.get_hash_of_new_block();
+                if (hash_of_new_block != "")
+                {
+                    Poco* poco = new Poco();
+                    std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                    if (co_for_new_block == my_full_hash)
+                    {
+                        // I'm the chosen one for creating the block!!!
+                        std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+                    }
+                    else
+                    {
+                        // I'm NOT the chosen one for creating the block!!!
+                        std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
+                    }
+                    delete poco;
+                }
             }
         }
     }
