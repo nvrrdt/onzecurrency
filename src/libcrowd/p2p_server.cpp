@@ -320,7 +320,8 @@ private:
                                     exit_transactions_j.push_back(exit_tx_j);
                                     std::string datetime = mt.time_now();
                                     std::string root_hash_data = s_shptr->top();
-                                    std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                                    nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                                    std::string block_s = mt.save_block_to_file(block_j);
 
                                     // Update rocksdb
                                     rocksdb_j["version"] = "O.1";
@@ -337,7 +338,6 @@ private:
                                     std::cout << "zijn we ook hier? " << std::endl;
 
                                     // send latest block to peer
-                                    nlohmann::json block_j = nlohmann::json::parse(block);
                                     nlohmann::json msg;
                                     msg["req"] = "new_block";
                                     msg["block_nr"] = "1";
@@ -494,6 +494,11 @@ private:
                     {
                         // I'm the chosen one for creating the block!!!
                         std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+
+                        // tcp.client to all chosen_ones
+                        // then save block
+                        // then update rocksdb
+                        // then test the whole
                     }
                     else
                     {

@@ -101,7 +101,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
     }
 }
 
-std::string merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
+nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
 {
     nlohmann::json hash_co_j = nlohmann::json::parse(root_hash_data);
     std::string hash_co_s = hash_co_j["full_hash"];
@@ -141,7 +141,12 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
     //cout << "goed " << datetime << " " << root_hash_data << " " << user_count << endl;
     //std::cout << std::setw(4) << j << '\n';
 
-    // hashing of the whole new block
+    return j;
+}
+
+std::string merkle_tree::save_block_to_file(nlohmann::json &block_j)
+{
+        // hashing of the whole new block
     std::string block_s, block_hashed;
 
     // create genesis or add to blockchain
@@ -167,8 +172,8 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
         {
             std::cout << "Directory not empty" << std::endl;
             PrevHash ph;
-            j["prev_hash"] = ph.get_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
-            block_s = j.dump();
+            block_j["prev_hash"] = ph.get_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
+            block_s = block_j.dump();
             std::string block_file = "blockchain/block_000000000001.json";
             cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
         }
@@ -180,8 +185,8 @@ std::string merkle_tree::create_block(std::string &datetime, std::string &root_h
 
             Crypto crypto;
             genesis_prev_hash_hashed = crypto.base58_encode_sha256(genesis_prev_hash);
-            j["prev_hash"] = genesis_prev_hash_hashed;
-            block_s = j.dump();
+            block_j["prev_hash"] = genesis_prev_hash_hashed;
+            block_s = block_j.dump();
             std::string block_file = "blockchain/block_000000000000.json";
             cd.CreateFileInConfigDir(block_file, block_s);
         }

@@ -87,7 +87,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 exit_transactions_j.push_back(exit_tx_j);
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr->top();
-                mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                mt.save_block_to_file(block_j);
 
                 // Update rocksdb
                 rocksdb_j["version"] = "O.1";

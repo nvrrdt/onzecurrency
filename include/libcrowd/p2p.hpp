@@ -219,10 +219,11 @@ namespace Crowd
                 s_shptr_ = mt.calculate_root_hash(s_shptr_);
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr_->top();
-                std::string block = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
+                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
+                std::string block_s = mt.save_block_to_file(block_j);
 
-                set_hash_of_new_block(block);
-
+                set_hash_of_new_block(block_s);
+                
                 std::cout << "Block created! " << std::endl;
             }
             else
