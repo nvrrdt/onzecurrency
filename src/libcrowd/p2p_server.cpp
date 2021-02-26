@@ -215,9 +215,9 @@ private:
                 std::string signature = buf_j["signature"];
                 std::string req_latest_block = buf_j["latest_block"];
 
-                Crypto crypto;
+                Crypto* crypto = new Crypto();
                 std::string email__prev_hash_app = email_of_req + prev_hash_req;
-                std::string full_hash_req =  crypto.base58_encode_sha256(email__prev_hash_app);
+                std::string full_hash_req =  crypto->bech32_encode_sha256(email__prev_hash_app);
 
                 Poco* poco = new Poco();
                 if (poco->Get(full_hash_req) == "")
@@ -231,16 +231,20 @@ private:
 
                     std::string to_verify_s = to_verify_j.dump();
                     ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
-                    crypto.ecdsa_string_to_public_key(ecdsa_pub_key, public_key_ecdsa);
+                    crypto->ecdsa_string_to_public_key(ecdsa_pub_key, public_key_ecdsa);
+                    std::cout << "ecdsa_pub_key: " << ecdsa_pub_key << std::endl;
                     std::cout << "signature1: " << signature << std::endl;
-                    signature = crypto.base58_decode(signature);
+                    signature = crypto->bech32_decode(signature);
                     std::cout << "signature2: " << signature << std::endl;
+                    signature = crypto->bech32_encode(signature);
+                    std::cout << "signature3: " << signature << std::endl;
+                    signature = crypto->bech32_decode(signature);
                     std::cout << "to_verify_s: " << to_verify_s << std::endl;
-                    if (crypto.ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
+                    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
                     {
                         std::cout << "verified" << std::endl;
                         Poco* poco = new Poco();
-                        std::string to_find_co = crypto.base58_encode_sha256(full_hash_req);
+                        std::string to_find_co = crypto->bech32_encode_sha256(full_hash_req);
                         std::string co_from_this_db = poco->FindChosenOne(to_find_co);
                         delete poco;
                         std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
@@ -297,12 +301,12 @@ private:
                                     // inform room_.deliver(resp_msg_);
                                     nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
                                     
-                                    std::string hash_email = crypto.base58_encode_sha256(email_of_req);
+                                    std::string hash_email = crypto->bech32_encode_sha256(email_of_req);
                                     PrevHash ph;
                                     std::string prev_hash = ph.get_last_prev_hash_from_blocks();
                                     std::cout << "prev_hash: " << prev_hash << std::endl;
                                     std::string hash_email_prev_hash_app = hash_email + prev_hash;
-                                    std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
+                                    std::string full_hash_of_new_peer = crypto->bech32_encode_sha256(hash_email_prev_hash_app);
                                     
                                     to_block_j["full_hash"] = full_hash_of_new_peer;
                                     to_block_j["ecdsa_pub_key"] = ecdsa_pub_key;
@@ -370,10 +374,10 @@ private:
                                     std::string to_sign_s = to_sign_j.dump();
                                     ECDSA<ECP, SHA256>::PrivateKey private_key;
                                     std::string signature;
-                                    crypto.ecdsa_load_private_key_from_string(private_key);
-                                    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+                                    crypto->ecdsa_load_private_key_from_string(private_key);
+                                    if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
                                     {
-                                        message_j["signature"] = crypto.base58_encode(signature);
+                                        message_j["signature"] = crypto->bech32_encode(signature);
                                     }
 
                                     Tcp tcp;
@@ -446,6 +450,8 @@ private:
                     std::cout << "!poco->Get(full_hash_req) == \"\" " << std::endl;
                 }
 
+                delete crypto;
+
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
                 // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
 
@@ -495,8 +501,9 @@ private:
                         // I'm the chosen one for creating the block!!!
                         std::cout << "I'm the chosen_one for block creation!!" << std::endl;
 
-                        // tcp.client to all chosen_ones
-                        // then save block
+                        // tcp.client to all chosen_ones with all new_peers
+                        // the hash block and compare hash and verify some other stuff
+                        // if ok then save block and tcp.client to all next_layer peers in your bucket
                         // then update rocksdb
                         // then test the whole
                     }

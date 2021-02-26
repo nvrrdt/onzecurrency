@@ -68,7 +68,7 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
         std::string json_s = json.dump();
 
         Crypto crypto;
-        prev_hash = crypto.base58_encode_sha256(json_s);
+        prev_hash = crypto.bech32_encode_sha256(json_s);
     }
     else
     {

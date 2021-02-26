@@ -66,10 +66,10 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
 {
     Crypto crypto;
     PrevHash ph;
-    std::string hash_email = crypto.base58_encode_sha256(email);
+    std::string hash_email = crypto.bech32_encode_sha256(email);
     std::string prev_hash = ph.get_my_prev_hash_from_file();
     std::string my_full_hash_s = hash_email + prev_hash;
-    my_full_hash_ =  crypto.base58_encode_sha256(my_full_hash_s);
+    my_full_hash_ =  crypto.bech32_encode_sha256(my_full_hash_s);
     Poco p;
     std::string database_response = p.Get(my_full_hash_);
 

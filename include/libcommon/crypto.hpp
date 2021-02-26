@@ -80,10 +80,10 @@ namespace Crowd
         // SHA256:
         std::string sha256_create(std::string &msg);
 
-        // BASE58/
-        std::string base58_encode_sha256(std::string &hash);
-        std::string base58_encode(std::string &str);
-        std::string base58_decode(std::string &b58);
+        // BECH32:
+        std::string bech32_encode_sha256(std::string &str);
+        const std::string bech32_encode(std::string &str);
+        std::string bech32_decode(const std::string &str);
 
         // ECDSA:
         int ecdsa_generate_and_save_keypair();

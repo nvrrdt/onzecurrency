@@ -6,6 +6,7 @@ find_package(Threads)
 add_library(common SHARED 
                      crypto.cpp
                      base58.cpp
+                     bech32.cpp
 )
 
 
@@ -22,6 +23,7 @@ target_include_directories(common PUBLIC
 
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/base58.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/bech32.hpp"
                 )
 
 INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcommon/libcommon.so DESTINATION lib/onze)

@@ -1,5 +1,8 @@
+#include <utility> 
+
 #include "crypto.hpp"
-#include "base58.hpp"
+#include "bech32.hpp"
+#include "strencodings.hpp"
 #include "configdir.hpp"
 
 #include "cryptlib.h"
@@ -8,7 +11,7 @@
 
 using namespace Crowd;
 using namespace CryptoPP;
-using namespace base58;
+using namespace bech32;
 
 std::string Crypto::sha256_create(std::string &msg)
 {
@@ -20,27 +23,38 @@ std::string Crypto::sha256_create(std::string &msg)
     return digest;
 }
 
-std::string Crypto::base58_encode_sha256(std::string &hash)
+std::string Crypto::bech32_encode_sha256(std::string &str)
 {
-    std::string str = sha256_create(hash);
-    std::vector<uint8_t> vec(str.begin(), str.end());
-    return base58::EncodeBase58(vec);
+    std::string hrp = "onze";
+    std::string hash = sha256_create(str);
+    std::vector<unsigned char> data = {0};
+    data.reserve(str.size());
+    ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, hash.begin(), hash.end());
+
+    return bech32::Encode(hrp, data);
 }
 
-std::string Crypto::base58_encode(std::string &str)
+const std::string Crypto::bech32_encode(std::string &str)
 {
-    std::vector<uint8_t> vec(str.begin(), str.end());
-    return base58::EncodeBase58(vec);
+    const std::string hrp = "onze";
+    std::vector<unsigned char> data = {0};
+    data.reserve(str.size());
+    ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, str.begin(), str.end());
+
+    return bech32::Encode(hrp, data);
 }
 
-std::string Crypto::base58_decode(std::string &b58)
+std::string Crypto::bech32_decode(const std::string &str)
 {
-    std::vector<uint8_t> vec;
+    std::vector<unsigned char> data;
 
-    if (base58::DecodeBase58(b58, vec))
+    auto bech = bech32::Decode(str);
+
+    if (bech.first == "onze")
     {
-        std::string str(vec.begin(), vec.end());
-        return str;
+        ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end());
+        std::string s(data.begin(), data.end());
+        return s;
     }
     else
     {

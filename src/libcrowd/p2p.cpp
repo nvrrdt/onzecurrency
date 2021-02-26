@@ -46,12 +46,18 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             to_sign_j["rsa_pub_key"] = cred["rsa_pub_key"];
             to_sign_j["email"] = cred["email"];
             std::string to_sign_s = to_sign_j.dump();
+            std::cout << "to_sign_s: " << to_sign_s << std::endl;
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
             crypto.ecdsa_load_private_key_from_string(private_key);
             if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
             {
-                message_j["signature"] = crypto.base58_encode(signature);
+                std::cout << "signature1p: " << signature << std::endl;
+                std::cout << "signature2p: " << crypto.bech32_encode(signature) << std::endl;
+                const std::string cccc = crypto.bech32_encode(signature);
+                std::string cc = crypto.bech32_decode(cccc);
+                std::cout << "signature3p: " << crypto.bech32_encode(cc) << std::endl;
+                message_j["signature"] = crypto.bech32_encode(signature);
             }
 
             std::string srv_ip = "";
@@ -69,7 +75,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 std::string hash_email = cred["email_hashed"];
                 std::string prev_hash = cred["prev_hash"];
                 std::string email_prev_hash_app = hash_email + prev_hash;
-                std::string full_hash = crypto.base58_encode_sha256(email_prev_hash_app);
+                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
 
                 to_block_j["full_hash"] = full_hash;
                 to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];

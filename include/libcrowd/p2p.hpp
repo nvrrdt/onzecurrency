@@ -175,11 +175,11 @@ namespace Crowd
         {
             std::string email_of_req = message_j["email_of_req"];
             Crypto crypto;
-            std::string hash_email = crypto.base58_encode_sha256(email_of_req);
+            std::string hash_email = crypto.bech32_encode_sha256(email_of_req);
             PrevHash ph;
             std::string prev_hash = ph.get_last_prev_hash_from_blocks();
             std::string hash_email_prev_hash_app = hash_email + prev_hash;
-            std::string full_hash_of_new_peer = crypto.base58_encode_sha256(hash_email_prev_hash_app);
+            std::string full_hash_of_new_peer = crypto.bech32_encode_sha256(hash_email_prev_hash_app);
             
             list_of_new_peers_.push_back(full_hash_of_new_peer);
 
@@ -255,7 +255,7 @@ namespace Crowd
         void set_hash_of_new_block(std::string block)
         {
             Crypto crypto;
-            hash_of_block_ = crypto.base58_encode(block);
+            hash_of_block_ = crypto.bech32_encode(block);
         }
     private:
         static std::vector<std::string> list_of_new_peers_;
