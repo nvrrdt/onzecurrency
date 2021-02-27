@@ -188,7 +188,8 @@ private:
                                                      write_msgs_.front().length()),
                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
                                      if (!ec)
-                                     {std::cout << "ec1: " << ec << std::endl;
+                                     {
+                                         std::cout << "ec1: " << ec << std::endl;
                                          write_msgs_.pop_front();
                                          if (!write_msgs_.empty())
                                          {
