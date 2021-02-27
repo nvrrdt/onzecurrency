@@ -271,7 +271,6 @@ private:
                                 // send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
 
-std::cout << "1 if: " << std::endl;
                                 // the fist block in the blockchain directory contains weird escape characters .......
                                 nlohmann::json block_j = list_of_blocks_j[0]["block"];
                                 std::cout << "block_j: " << block_j << std::endl;
@@ -292,6 +291,8 @@ std::cout << "1 if: " << std::endl;
                             Poco* poco = new Poco();
                             if (poco->TotalAmountOfPeers() == 1)
                             {
+                                delete poco;
+
                                 // create_block ...
                                 // resp_msg_ = ...
                                 // inform room_.deliver(resp_msg_);
@@ -333,6 +334,7 @@ std::cout << "1 if: " << std::endl;
                                 rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                                 rocksdb_j["rsa_pub_key"] = rsa_pub_key;
                                 std::string rocksdb_s = rocksdb_j.dump();
+                                Poco* poco = new Poco();
                                 poco->Put(full_hash_of_new_peer, rocksdb_s);
                                 delete poco;
                                 std::cout << "zijn we ook hier? " << std::endl;
@@ -347,6 +349,8 @@ std::cout << "1 if: " << std::endl;
                             }
                             else
                             {
+                                delete poco;
+
                                 // communicate intro_peers to chosen_one's with a new_peer req
 
                                 Protocol proto;
@@ -376,6 +380,7 @@ std::cout << "1 if: " << std::endl;
                                     message_j["signature"] = crypto->base64_encode(signature);
                                 }
 
+                                Poco* poco = new Poco();
                                 Tcp tcp;
                                 std::string key, val;
                                 for (auto &[key, val] : parts)
@@ -386,14 +391,14 @@ std::cout << "1 if: " << std::endl;
                                             << std::endl;
 
                                     std::string peer_ip = poco->FindNextPeer(val); // lookup in rocksdb
-                                    
+
                                     std::string message = message_j.dump();
                                     tcp.client(srv_ip, peer_ip, peer_hash, message);
                                 }
-
+std::cout << "before: " << std::endl;                                   
                                 // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                                 CreateBlock cb(message_j);
-
+std::cout << "after: " << std::endl;                                   
                                 // TODO: rocksdb should be updated when the block is created
                                 // so: the new peer should receive the message that the block is created
                                 // and then a message should be sent with the rocksdb entries
@@ -414,8 +419,9 @@ std::cout << "1 if: " << std::endl;
                                         // I'm NOT the chosen one for creating the block!!!
                                         std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
                                     }
-                                    delete poco;
                                 }
+
+                                delete poco;
                             }
                         }
                         else
