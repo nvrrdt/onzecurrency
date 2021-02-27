@@ -197,36 +197,53 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
 {
     nlohmann::json all_blocks_j;
 
-    // put all blocks with block_nr in a string
     ConfigDir cd;
-    if (boost::filesystem::exists(cd.GetConfigDir() + "blockchain"))
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+
+    try
     {
-        boost::filesystem::path p(cd.GetConfigDir() + "blockchain");
-
-        typedef std::vector<boost::filesystem::path> vec;
-        vec v;
-
-        std::copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
-
-        std::sort(v.begin(), v.end()
-            , [](boost::filesystem::path const& a, boost::filesystem::path const& b) {
-            return std::stoi(a.filename().string()) < std::stoi(b.filename().string());
-        });
-
-        nlohmann::json block_j;
-        for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+        if (boost::filesystem::exists(p))    // does p actually exist?
         {
-            std::string str = it->stem().string();
-            std::uint64_t value_this_blockchain_dir;
-            std::istringstream iss(str.substr(6,18));
-            iss >> value_this_blockchain_dir;
-            std::uint64_t value_peer;
-            if (latest_block_peer != "no blockchain present in folder")
+        if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+            cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+
+        else if (boost::filesystem::is_directory(p))      // is p a directory?
+        {
+            cout << p << " is a directory containing:\n";
+
+            typedef vector<boost::filesystem::path> vec;             // store paths,
+            vec v;                                // so we can sort them later
+
+            copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+            sort(v.begin(), v.end());             // sort, since directory iteration
+                                                // is not ordered on some file systems
+
+            nlohmann::json block_j;
+            for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
             {
-                std::istringstream isss(latest_block_peer);
-                isss >> value_peer;
-                std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
-                if (value_this_blockchain_dir > value_peer)
+                cout << "   " << *it << '\n';
+
+                std::string str = it->stem().string();
+                std::uint64_t value_this_blockchain_dir;
+                std::istringstream iss(str.substr(6,18));
+                iss >> value_this_blockchain_dir;
+                std::uint64_t value_peer;
+                if (latest_block_peer != "no blockchain present in folder")
+                {
+                    std::istringstream isss(latest_block_peer);
+                    isss >> value_peer;
+                    std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
+                    if (value_this_blockchain_dir > value_peer)
+                    {
+                        std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
+                        std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                        block_j["block_nr"] = value_this_blockchain_dir;
+                        block_j["block"] = nlohmann::json::parse(contents);
+                        all_blocks_j.push_back(block_j);
+                    }
+                }
+                else
                 {
                     std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
@@ -235,19 +252,17 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     all_blocks_j.push_back(block_j);
                 }
             }
-            else
-            {
-                std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
-                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-                block_j["block_nr"] = value_this_blockchain_dir;
-                block_j["block"] = nlohmann::json::parse(contents);
-                all_blocks_j.push_back(block_j);
-            }
         }
+        else
+            cout << p << " exists, but is neither a regular file nor a directory\n";
+        }
+        else
+            cout << p << " does not exist\n";
     }
-    else
+
+    catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << "Blockchain directory doesn't exist!!" << std::endl;
+        cout << ex.what() << '\n';
     }
 
     return all_blocks_j.dump();

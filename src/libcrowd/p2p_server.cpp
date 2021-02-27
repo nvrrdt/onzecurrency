@@ -271,7 +271,7 @@ private:
                                 // send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
 
-
+std::cout << "1 if: " << std::endl;
                                 // the fist block in the blockchain directory contains weird escape characters .......
                                 nlohmann::json block_j = list_of_blocks_j[0]["block"];
                                 std::cout << "block_j: " << block_j << std::endl;
