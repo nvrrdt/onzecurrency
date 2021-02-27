@@ -212,7 +212,9 @@ private:
                 std::string prev_hash_req = buf_j["prev_hash_of_req"];
                 std::string ecdsa_pub_key_s = buf_j["ecdsa_pub_key"];
                 std::string rsa_pub_key = buf_j["rsa_pub_key"];
+                std::cout << "1p: " << buf_j.dump() << std::endl;
                 std::string signature = buf_j["signature"];
+                std::cout << "2p: " << std::endl;
                 std::string req_latest_block = buf_j["latest_block"];
 
                 Crypto* crypto = new Crypto();

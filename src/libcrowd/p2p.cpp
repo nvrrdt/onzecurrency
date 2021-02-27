@@ -31,6 +31,16 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             Crypto crypto;
             Protocol proto;
             nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+
+            message_j.empty();
+            to_sign_j.empty();
+            to_block_j.empty();
+            entry_tx_j.empty();
+            entry_transactions_j.empty();
+            exit_tx_j.empty();
+            exit_transactions_j.empty();
+            rocksdb_j.empty();
+            
             message_j["req"] = "intro_peer";
             message_j["email_of_req"] = cred["email"];
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
@@ -61,28 +71,28 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
             // begin test
 
-            ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
-            std::string ecdsa_pub_key_s = cred["ecdsa_pub_key"];
-            crypto.ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
-            std::string signature2 = message_j["signature"];
-            std::string signature3 = crypto.base64_decode(signature2);
+            // ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+            // std::string ecdsa_pub_key_s = cred["ecdsa_pub_key"];
+            // crypto.ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+            // std::string signature2 = message_j["signature"];
+            // std::string signature3 = crypto.base64_decode(signature2);
 
-            if (crypto.ecdsa_verify_message(public_key_ecdsa, to_sign_s, signature3))
-            {
-                std::cout << "verification1p: " << std::endl;
-                std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-                std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
-                std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
-                std::cout << "base64_signature: " << "X" << signature2 << "X" << std::endl;
-            }
-            else
-            {
-                std::cout << "verification2p: " << std::endl;
-                std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-                std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
-                std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
-                std::cout << "hex_signature: " << "X" << signature2 << "X" << std::endl;
-            }
+            // if (crypto.ecdsa_verify_message(public_key_ecdsa, to_sign_s, signature3))
+            // {
+            //     std::cout << "verification1p: " << std::endl;
+            //     std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+            //     std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
+            //     std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
+            //     std::cout << "base64_signature: " << "X" << signature2 << "X" << std::endl;
+            // }
+            // else
+            // {
+            //     std::cout << "verification2p: " << std::endl;
+            //     std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+            //     std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
+            //     std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
+            //     std::cout << "hex_signature: " << "X" << signature2 << "X" << std::endl;
+            // }
 
             // end test
 
