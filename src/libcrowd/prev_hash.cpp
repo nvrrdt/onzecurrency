@@ -1,7 +1,11 @@
-#include <iostream>
+#include <future>
+#include <thread>
 #include <boost/filesystem.hpp>
-#include <boost/range.hpp>
 #include <boost/system/error_code.hpp>
+#include <vector>
+#include <iterator>
+#include <algorithm>
+
 
 #include "prev_hash.hpp"
 #include "configdir.hpp"
@@ -45,35 +49,87 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
 
     // read prev_hash file
     ConfigDir cd;
-    if (boost::filesystem::exists(cd.GetConfigDir() + "blockchain"))
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+
+    try
     {
-        boost::filesystem::path p(cd.GetConfigDir() + "blockchain");
+        if (boost::filesystem::exists(p))    // does p actually exist?
+        {
+        if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+            cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
 
-        typedef std::vector<boost::filesystem::path> vec;
-        vec v;
+        else if (boost::filesystem::is_directory(p))      // is p a directory?
+        {
+            cout << p << " is a directory containing:\n";
 
-        std::copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+            typedef std::vector<boost::filesystem::path> vec;             // store paths,
+            vec v;                                // so we can sort them later
 
-        std::sort(v.begin(), v.end()
-            , [](boost::filesystem::path const& a, boost::filesystem::path const& b) {
-            return std::stoi(a.filename().string()) < std::stoi(b.filename().string());
-        });
+            copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
 
-        uint64_t n = v.size(); 
+            sort(v.begin(), v.end());             // sort, since directory iteration
+                                                // is not ordered on some file systems
 
-        std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
-        std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+            // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+            // {
+            //     cout << "   " << *it << '\n';
+            // }
 
-        nlohmann::json json = nlohmann::json::parse(contents);
-        std::string json_s = json.dump();
+            uint64_t n = v.size(); 
 
-        Crypto crypto;
-        prev_hash = crypto.bech32_encode_sha256(json_s);
+            std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+            std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+            nlohmann::json json = nlohmann::json::parse(contents);
+            std::string json_s = json.dump();
+
+            Crypto crypto;
+            prev_hash = crypto.bech32_encode_sha256(json_s);
+        }
+        else
+            cout << p << " exists, but is neither a regular file nor a directory\n";
+        }
+        else
+            cout << p << " does not exist\n";
     }
-    else
+
+    catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << "Prev_hash not found in blockchain!!" << std::endl;
+        cout << ex.what() << '\n';
     }
+
+
+
+
+    // if (boost::filesystem::exists(cd.GetConfigDir() + "blockchain"))
+    // {
+    //     boost::filesystem::path p(cd.GetConfigDir() + "blockchain");
+
+    //     typedef std::vector<boost::filesystem::path> vec;
+    //     vec v;
+
+    //     std::copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+    //     std::sort(v.begin(), v.end()
+    //         , [](boost::filesystem::path const& a, boost::filesystem::path const& b) {
+    //         return std::stoi(a.filename().string()) < std::stoi(b.filename().string());
+    //     });
+
+    //     uint64_t n = v.size(); 
+
+    //     std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+    //     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+    //     nlohmann::json json = nlohmann::json::parse(contents);
+    //     std::string json_s = json.dump();
+
+    //     Crypto crypto;
+    //     prev_hash = crypto.bech32_encode_sha256(json_s);
+    // }
+    // else
+    // {
+    //     std::cout << "Prev_hash not found in blockchain!!" << std::endl;
+    // }
 
     return prev_hash;
 }

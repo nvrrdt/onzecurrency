@@ -395,10 +395,10 @@ private:
                                     std::string message = message_j.dump();
                                     tcp.client(srv_ip, peer_ip, peer_hash, message);
                                 }
-std::cout << "before: " << std::endl;                                   
+
                                 // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                                 CreateBlock cb(message_j);
-std::cout << "after: " << std::endl;                                   
+
                                 // TODO: rocksdb should be updated when the block is created
                                 // so: the new peer should receive the message that the block is created
                                 // and then a message should be sent with the rocksdb entries

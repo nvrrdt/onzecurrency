@@ -211,7 +211,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
         {
             cout << p << " is a directory containing:\n";
 
-            typedef vector<boost::filesystem::path> vec;             // store paths,
+            typedef std::vector<boost::filesystem::path> vec;             // store paths,
             vec v;                                // so we can sort them later
 
             copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
