@@ -52,13 +52,39 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             crypto.ecdsa_load_private_key_from_string(private_key);
             if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
             {
-                std::cout << "signature1p: " << signature << std::endl;
-                std::cout << "signature2p: " << crypto.bech32_encode(signature) << std::endl;
-                const std::string cccc = crypto.bech32_encode(signature);
-                std::string cc = crypto.bech32_decode(cccc);
-                std::cout << "signature3p: " << crypto.bech32_encode(cc) << std::endl;
-                message_j["signature"] = crypto.bech32_encode(signature);
+                message_j["signature"] = crypto.base64_encode(signature);
+
+                std::cout << "verification0p: " << std::endl;
+                std::cout << "signature_bin: " << "X" << signature << "X" << std::endl;
+                std::cout << "base64_signature: " << "X" << crypto.base64_encode(signature) << "X" << std::endl;
             }
+
+            // begin test
+
+            ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+            std::string ecdsa_pub_key_s = cred["ecdsa_pub_key"];
+            crypto.ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+            std::string signature2 = message_j["signature"];
+            std::string signature3 = crypto.base64_decode(signature2);
+
+            if (crypto.ecdsa_verify_message(public_key_ecdsa, to_sign_s, signature3))
+            {
+                std::cout << "verification1p: " << std::endl;
+                std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
+                std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
+                std::cout << "base64_signature: " << "X" << signature2 << "X" << std::endl;
+            }
+            else
+            {
+                std::cout << "verification2p: " << std::endl;
+                std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
+                std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
+                std::cout << "hex_signature: " << "X" << signature2 << "X" << std::endl;
+            }
+
+            // end test
 
             std::string srv_ip = "";
             std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list

@@ -62,6 +62,53 @@ std::string Crypto::bech32_decode(const std::string &str)
     }
 }
 
+typedef unsigned char uchar;
+static const std::string b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";//=
+
+std::string Crypto::base64_encode(const std::string &in)
+{
+    std::string out;
+
+    int val=0, valb=-6;
+    for (uchar c : in)
+    {
+        val = (val<<8) + c;
+        valb += 8;
+        while (valb>=0)
+        {
+            out.push_back(b[(val>>valb)&0x3F]);
+            valb-=6;
+        }
+    }
+    if (valb>-6) out.push_back(b[((val<<8)>>(valb+8))&0x3F]);
+    while (out.size()%4) out.push_back('=');
+    return out;
+}
+
+
+std::string Crypto::base64_decode(const std::string &in)
+{
+
+    std::string out;
+
+    std::vector<int> T(256,-1);
+    for (int i=0; i<64; i++) T[b[i]] = i;
+
+    int val=0, valb=-8;
+    for (uchar c : in)
+    {
+        if (T[c] == -1) break;
+        val = (val<<6) + T[c];
+        valb += 6;
+        if (valb>=0)
+        {
+            out.push_back(char((val>>valb)&0xFF));
+            valb-=8;
+        }
+    }
+    return out;
+}
+
 int Crypto::ecdsa_generate_and_save_keypair()
 {
     // Scratch result
@@ -176,7 +223,7 @@ void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey&
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << str << std::endl;
+                std::cout << "hey1: " << str << std::endl;
                 private_key_h += str;
             }
             pk.close(); //close the file object.
@@ -208,7 +255,7 @@ void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& p
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << str << std::endl;
+                std::cout << "hey2: " << str << std::endl;
                 public_key_h += str;
             }
             pk.close(); //close the file object.
@@ -307,7 +354,7 @@ void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << str << std::endl;
+                std::cout << "hey3: " << str << std::endl;
                 private_key += str;
             }
             pk.close(); //close the file object.
@@ -332,7 +379,7 @@ void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << str << std::endl;
+                std::cout << "hey4: " << str << std::endl;
                 public_key += str;
             }
             pk.close(); //close the file object.
@@ -488,7 +535,7 @@ void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << str << std::endl;
+                std::cout << "hey5: " << str << std::endl;
                 rsa_pub_key += str;
             }
             pk.close(); //close the file object.

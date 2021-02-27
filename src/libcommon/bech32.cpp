@@ -99,7 +99,7 @@ inline unsigned char LowerCase(unsigned char c)
 data ExpandHRP(const std::string& hrp)
 {
     data ret;
-    ret.reserve(hrp.size() + 120); // in the original bitcoin code hrp.size() + 90 ...
+    ret.reserve(hrp.size() + 90);
     ret.resize(hrp.size() * 2 + 1);
     for (size_t i = 0; i < hrp.size(); ++i) {
         unsigned char c = hrp[i];
@@ -172,7 +172,7 @@ std::pair<std::string, data> Decode(const std::string& str) {
         return {};
     }
     size_t pos = str.rfind('1');
-    if (str.size() > 120 || pos == str.npos || pos == 0 || pos + 7 > str.size()) { // in the original bitcoin code str.size() > 90 ...
+    if (str.size() > 90 || pos == str.npos || pos == 0 || pos + 7 > str.size()) {
         return {};
     }
     data values(str.size() - 1 - pos);

@@ -210,7 +210,7 @@ private:
                 std::string co_from_req = buf_j["full_hash_co"];
                 std::string email_of_req = buf_j["email_of_req"];
                 std::string prev_hash_req = buf_j["prev_hash_of_req"];
-                std::string ecdsa_pub_key = buf_j["ecdsa_pub_key"];
+                std::string ecdsa_pub_key_s = buf_j["ecdsa_pub_key"];
                 std::string rsa_pub_key = buf_j["rsa_pub_key"];
                 std::string signature = buf_j["signature"];
                 std::string req_latest_block = buf_j["latest_block"];
@@ -225,23 +225,23 @@ private:
                     delete poco;
 
                     nlohmann::json to_verify_j;
-                    to_verify_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                    to_verify_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                     to_verify_j["rsa_pub_key"] = rsa_pub_key;
                     to_verify_j["email"] = email_of_req;
 
                     std::string to_verify_s = to_verify_j.dump();
                     ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
-                    crypto->ecdsa_string_to_public_key(ecdsa_pub_key, public_key_ecdsa);
-                    std::cout << "ecdsa_pub_key: " << ecdsa_pub_key << std::endl;
-                    std::cout << "signature1: " << signature << std::endl;
-                    signature = crypto->bech32_decode(signature);
-                    std::cout << "signature2: " << signature << std::endl;
-                    signature = crypto->bech32_encode(signature);
-                    std::cout << "signature3: " << signature << std::endl;
-                    signature = crypto->bech32_decode(signature);
-                    std::cout << "to_verify_s: " << to_verify_s << std::endl;
-                    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature))
+                    crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+                    std::string signature_bin = crypto->base64_decode(signature);
+                    
+                    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
                     {
+                        std::cout << "verification1p succeeded: " << std::endl;
+                        std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                        std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
+                        std::cout << "base64_signature: " << "X" << signature << "X" << std::endl; 
+                        std::cout << "signature_bin: " << "X" << signature_bin << "X" << std::endl; 
+
                         std::cout << "verified" << std::endl;
                         Poco* poco = new Poco();
                         std::string to_find_co = crypto->bech32_encode_sha256(full_hash_req);
@@ -309,7 +309,7 @@ private:
                                     std::string full_hash_of_new_peer = crypto->bech32_encode_sha256(hash_email_prev_hash_app);
                                     
                                     to_block_j["full_hash"] = full_hash_of_new_peer;
-                                    to_block_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                    to_block_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                                     to_block_j["rsa_pub_key"] = rsa_pub_key;
 
                                     std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
@@ -334,7 +334,7 @@ private:
                                     rocksdb_j["fullnode"] = true;
                                     rocksdb_j["hash_email"] = hash_email;
                                     rocksdb_j["block"] = 1;
-                                    rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                    rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                                     rocksdb_j["rsa_pub_key"] = rsa_pub_key;
                                     std::string rocksdb_s = rocksdb_j.dump();
                                     poco->Put(full_hash_of_new_peer, rocksdb_s);
@@ -364,11 +364,11 @@ private:
                                     message_j["email_of_req"] = email_of_req;
                                     message_j["prev_hash_of_req"] = prev_hash_req;
                                     message_j["full_hash_co"] = my_full_hash;
-                                    message_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                    message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                                     message_j["rsa_pub_key"] = rsa_pub_key;
                                     message_j["ip"] = ip_of_peer_;
 
-                                    to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key;
+                                    to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                                     to_sign_j["rsa_pub_key"] = rsa_pub_key;
                                     to_sign_j["email"] = email_of_req;
                                     std::string to_sign_s = to_sign_j.dump();
@@ -377,7 +377,7 @@ private:
                                     crypto->ecdsa_load_private_key_from_string(private_key);
                                     if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
                                     {
-                                        message_j["signature"] = crypto->bech32_encode(signature);
+                                        message_j["signature"] = crypto->base64_encode(signature);
                                     }
 
                                     Tcp tcp;
@@ -437,6 +437,12 @@ private:
                     else
                     {
                         std::cout << "failed verification" << std::endl;
+
+                        std::cout << "verification2p: " << std::endl;
+                        std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                        std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
+                        std::cout << "signature: " << "X" << signature << "X" << std::endl;
+
                         room_.leave(shared_from_this());
                     }
                 }

@@ -85,6 +85,10 @@ namespace Crowd
         const std::string bech32_encode(std::string &str);
         std::string bech32_decode(const std::string &str);
 
+        // BASE64
+        static std::string base64_encode(const std::string &in);
+        static std::string base64_decode(const std::string &in);
+
         // ECDSA:
         int ecdsa_generate_and_save_keypair();
         bool ecdsa_generate_private_key( const OID& oid, ECDSA<ECP, SHA256>::PrivateKey& key );
