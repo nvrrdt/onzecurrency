@@ -209,7 +209,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
 
         else if (boost::filesystem::is_directory(p))      // is p a directory?
         {
-            cout << p << " is a directory containing:\n";
+            cout << p << " is a directory containing the next:\n";
 
             typedef std::vector<boost::filesystem::path> vec;             // store paths,
             vec v;                                // so we can sort them later
@@ -239,7 +239,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                         block_j["block_nr"] = value_this_blockchain_dir;
-                        block_j["block"] = nlohmann::json::parse(contents);
+                        block_j["block"] = contents;
                         all_blocks_j.push_back(block_j);
                     }
                 }
@@ -248,7 +248,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                     block_j["block_nr"] = value_this_blockchain_dir;
-                    block_j["block"] = nlohmann::json::parse(contents);
+                    block_j["block"] = contents;
                     all_blocks_j.push_back(block_j);
                 }
             }

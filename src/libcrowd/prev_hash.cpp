@@ -80,11 +80,8 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
             std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
             std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-            nlohmann::json json = nlohmann::json::parse(contents);
-            std::string json_s = json.dump();
-
             Crypto crypto;
-            prev_hash = crypto.bech32_encode_sha256(json_s);
+            prev_hash = crypto.bech32_encode_sha256(contents);
         }
         else
             cout << p << " exists, but is neither a regular file nor a directory\n";
