@@ -271,7 +271,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
 void Protocol::save_blocks_to_blockchain(std::string &msg)
 {
     nlohmann::json json = nlohmann::json::parse(msg);
-    std::cout << "msggggg: " << json.dump() << std::endl;
+    //std::cout << "msggggg: " << json.dump() << std::endl;
     std::string block_nr = json["block_nr"].get<std::string>();
     std::string block = json["block"].dump();
 

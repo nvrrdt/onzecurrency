@@ -273,7 +273,7 @@ private:
 
                                 // the fist block in the blockchain directory contains weird escape characters .......
                                 nlohmann::json block_j = list_of_blocks_j[0]["block"];
-                                std::cout << "block_j: " << block_j << std::endl;
+                                // std::cout << "block_j: " << block_j << std::endl;
                                 nlohmann::json msg;
                                 msg["req"] = "new_block";
                                 msg["block_nr"] = "0";
@@ -322,7 +322,7 @@ private:
                                 std::string datetime = mt.time_now();
                                 std::string root_hash_data = s_shptr->top();
                                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                                std::string block_s = mt.save_block_to_file(block_j);
+                                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 
                                 // Update rocksdb
                                 rocksdb_j["version"] = "O.1";

@@ -130,7 +130,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr->top();
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                mt.save_block_to_file(block_j);
+                std::string block_nr = "0";
+                mt.save_block_to_file(block_j, block_nr);
 
                 // Update rocksdb
                 rocksdb_j["version"] = "O.1";
@@ -139,7 +140,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 rocksdb_j["fullnode"] = true;
                 rocksdb_j["hash_email"] = message_j["hash_of_email"];
                 rocksdb_j["salt"] = message_j["salt_of_req"];
-                rocksdb_j["block"] = 0;
+                rocksdb_j["block"] = block_nr;
                 rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
                 rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();

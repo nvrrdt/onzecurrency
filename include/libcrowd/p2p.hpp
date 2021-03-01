@@ -220,7 +220,9 @@ namespace Crowd
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr_->top();
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
-                std::string block_s = mt.save_block_to_file(block_j);
+                Protocol proto;
+                std::string my_latest_block = proto.latest_block();
+                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 
                 set_hash_of_new_block(block_s);
                 

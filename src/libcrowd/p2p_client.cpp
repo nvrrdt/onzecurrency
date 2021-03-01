@@ -92,9 +92,9 @@ private:
                                 [this](boost::system::error_code ec, std::size_t /*length*/) {
                                     if (!ec)
                                     {
-                                        std::cout << "do_read_body: ";
-                                        std::cout.write(read_msg_.body(), read_msg_.body_length());
-                                        std::cout << "\n";
+                                        // std::cout << "do_read_body: ";
+                                        // std::cout.write(read_msg_.body(), read_msg_.body_length());
+                                        // std::cout << "\n";
                                         handle_read(ec);
                                         do_read_header();
                                     }
@@ -173,7 +173,7 @@ private:
 
                 Protocol proto;
                 std::string buf_s = buf_j.dump();
-                std::cout << "buf_s: " << buf_s << std::endl;
+                // std::cout << "buf_s: " << buf_s << std::endl;
                 proto.save_blocks_to_blockchain(buf_s);
             }
 

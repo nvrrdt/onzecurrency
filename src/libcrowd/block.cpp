@@ -144,7 +144,7 @@ nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &roo
     return j;
 }
 
-std::string merkle_tree::save_block_to_file(nlohmann::json &block_j)
+std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string &latest_block)
 {
         // hashing of the whole new block
     std::string block_s, block_hashed;
@@ -168,13 +168,22 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j)
     }
     else
     {
-        if (!isEmpty)
+        if (latest_block != "0")
         {
             std::cout << "Directory not empty" << std::endl;
             PrevHash ph;
             block_j["prev_hash"] = ph.get_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_s = block_j.dump();
-            std::string block_file = "blockchain/block_000000000001.json";
+
+            uint32_t first_chars = 11 - latest_block.length();
+            std::string number = "";
+            for (int i = 0; i <= first_chars; i++)
+            {
+                number.append("0");
+            }
+            number.append(latest_block);
+
+            std::string block_file = "blockchain/block_" + number + ".json";
             cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
         }
         else
