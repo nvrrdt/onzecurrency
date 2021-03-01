@@ -223,7 +223,7 @@ void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey&
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << "hey1: " << str << std::endl;
+                // std::cout << "hey1: " << str << std::endl;
                 private_key_h += str;
             }
             pk.close(); //close the file object.
@@ -255,7 +255,7 @@ void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& p
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << "hey2: " << str << std::endl;
+                // std::cout << "hey2: " << str << std::endl;
                 public_key_h += str;
             }
             pk.close(); //close the file object.
@@ -354,7 +354,7 @@ void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << "hey3: " << str << std::endl;
+                // std::cout << "hey3: " << str << std::endl;
                 private_key += str;
             }
             pk.close(); //close the file object.
@@ -379,7 +379,7 @@ void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << "hey4: " << str << std::endl;
+                // std::cout << "hey4: " << str << std::endl;
                 public_key += str;
             }
             pk.close(); //close the file object.
@@ -535,7 +535,7 @@ void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
             std::string str;
             while(getline(pk, str))
             {
-                std::cout << "hey5: " << str << std::endl;
+                // std::cout << "hey5: " << str << std::endl;
                 rsa_pub_key += str;
             }
             pk.close(); //close the file object.

@@ -56,7 +56,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             to_sign_j["rsa_pub_key"] = cred["rsa_pub_key"];
             to_sign_j["email"] = cred["email"];
             std::string to_sign_s = to_sign_j.dump();
-            std::cout << "to_sign_s: " << to_sign_s << std::endl;
+            // std::cout << "to_sign_s: " << to_sign_s << std::endl;
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
             crypto.ecdsa_load_private_key_from_string(private_key);
@@ -64,9 +64,9 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             {
                 message_j["signature"] = crypto.base64_encode(signature);
 
-                std::cout << "verification0p: " << std::endl;
-                std::cout << "signature_bin: " << "X" << signature << "X" << std::endl;
-                std::cout << "base64_signature: " << "X" << crypto.base64_encode(signature) << "X" << std::endl;
+                // std::cout << "verification0p: " << std::endl;
+                // std::cout << "signature_bin: " << "X" << signature << "X" << std::endl;
+                // std::cout << "base64_signature: " << "X" << crypto.base64_encode(signature) << "X" << std::endl;
             }
 
             // begin test

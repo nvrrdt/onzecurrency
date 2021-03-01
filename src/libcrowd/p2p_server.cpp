@@ -212,9 +212,9 @@ private:
                 std::string prev_hash_req = buf_j["prev_hash_of_req"];
                 std::string ecdsa_pub_key_s = buf_j["ecdsa_pub_key"];
                 std::string rsa_pub_key = buf_j["rsa_pub_key"];
-                std::cout << "1p: " << buf_j.dump() << std::endl;
+                //std::cout << "1p: " << buf_j.dump() << std::endl;
                 std::string signature = buf_j["signature"];
-                std::cout << "2p: " << std::endl;
+                //std::cout << "2p: " << std::endl;
                 std::string req_latest_block = buf_j["latest_block"];
 
                 Crypto* crypto = new Crypto();
@@ -238,11 +238,11 @@ private:
                     
                     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
                     {
-                        std::cout << "verification1p succeeded: " << std::endl;
-                        std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-                        std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
-                        std::cout << "base64_signature: " << "X" << signature << "X" << std::endl; 
-                        std::cout << "signature_bin: " << "X" << signature_bin << "X" << std::endl; 
+                        // std::cout << "verification1p succeeded: " << std::endl;
+                        // std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                        // std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
+                        // std::cout << "base64_signature: " << "X" << signature << "X" << std::endl; 
+                        // std::cout << "signature_bin: " << "X" << signature_bin << "X" << std::endl; 
 
                         std::cout << "verified" << std::endl;
                         Poco* poco = new Poco();
@@ -434,10 +434,10 @@ private:
                     {
                         std::cout << "failed verification" << std::endl;
 
-                        std::cout << "verification2p: " << std::endl;
-                        std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-                        std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
-                        std::cout << "signature: " << "X" << signature << "X" << std::endl;
+                        // std::cout << "verification2p: " << std::endl;
+                        // std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
+                        // std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
+                        // std::cout << "signature: " << "X" << signature << "X" << std::endl;
 
                         room_.leave(shared_from_this());
                     }
