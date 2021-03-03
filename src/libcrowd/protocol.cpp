@@ -296,3 +296,16 @@ void Protocol::save_blocks_to_blockchain(std::string &msg)
 
     cd.CreateFileInConfigDir(block_file, block);
 }
+
+
+std::string Protocol::block_plus_one(std::string &block_nr)
+{
+    uint64_t value;
+    std::istringstream iss(block_nr);
+    iss >> value;
+    std::ostringstream o;
+    o << value + 1;
+    std::string new_block = o.str();
+
+    return new_block;
+}

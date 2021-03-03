@@ -89,6 +89,7 @@ namespace Crowd
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
         std::string get_blocks_from(std::string &latest_block_peer);
         void save_blocks_to_blockchain(std::string &msg);
+        std::string block_plus_one(std::string &block_nr);
     private:
         int verify_latest_block(std::string &latest_block_peer);
         int communicate_to_all(boost::array<char, 128> &msg);
@@ -222,7 +223,8 @@ namespace Crowd
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
                 Protocol proto;
                 std::string my_latest_block = proto.latest_block();
-                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+                std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
+                std::string block_s = mt.save_block_to_file(block_j, latest_block_plus_one);
 
                 set_hash_of_new_block(block_s);
                 

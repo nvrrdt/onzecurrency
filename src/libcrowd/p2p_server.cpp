@@ -322,7 +322,10 @@ private:
                                 std::string datetime = mt.time_now();
                                 std::string root_hash_data = s_shptr->top();
                                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+                                std::cout << "my_latest_block: " << my_latest_block << std::endl;
+                                Protocol proto;
+                                std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
+                                std::string block_s = mt.save_block_to_file(block_j, latest_block_plus_one);
 
                                 // Update rocksdb
                                 rocksdb_j["version"] = "O.1";
@@ -487,6 +490,7 @@ private:
             }
             else if (buf_j["req"] == "new_peer")
             {
+                std::cout << "new_peer: " << std::endl;
                 // should read the timestamp of the first new_peer request received
                 CreateBlock cb(buf_j);
 
