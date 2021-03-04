@@ -7,6 +7,7 @@
 #include "p2p.hpp"
 #include "json.hpp"
 #include "poco.hpp"
+#include "merkle_tree.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -171,10 +172,14 @@ private:
                 std::cout << "new_block" << std::endl;
                 // save blocks to blockchain folder
 
-                Protocol proto;
-                std::string buf_s = buf_j.dump();
-                // std::cout << "buf_s: " << buf_s << std::endl;
-                proto.save_blocks_to_blockchain(buf_s);
+                nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
+                std::string block_nr = buf_j["block_nr"];
+                if (block_nr == "no blockchain present in folder") block_nr = "0";
+                // std::cout << "block_s: " << buf_j["block"] << std::endl;
+                // std::cout << "block_nr: " << block_nr << std::endl;
+
+                merkle_tree mt;
+                mt.save_block_to_file(block_j, block_nr);
             }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string

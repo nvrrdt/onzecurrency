@@ -239,7 +239,8 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                         block_j["block_nr"] = value_this_blockchain_dir;
-                        block_j["block"] = contents;
+                        nlohmann::json contents_j = nlohmann::json::parse(contents);
+                        block_j["block"] = contents_j;
                         all_blocks_j.push_back(block_j);
                     }
                 }
@@ -248,7 +249,8 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                     block_j["block_nr"] = value_this_blockchain_dir;
-                    block_j["block"] = contents;
+                    nlohmann::json contents_j = nlohmann::json::parse(contents);
+                    block_j["block"] = contents_j;
                     all_blocks_j.push_back(block_j);
                 }
             }
@@ -273,16 +275,17 @@ void Protocol::save_blocks_to_blockchain(std::string &msg)
     nlohmann::json json = nlohmann::json::parse(msg);
     //std::cout << "msggggg: " << json.dump() << std::endl;
     std::string block_nr = json["block_nr"].get<std::string>();
+    std::string block_nr_plus_one = Protocol::block_plus_one(block_nr);
     std::string block = json["block"].dump();
 
     ConfigDir cd;
-    uint32_t first_chars = 11 - block_nr.length();
+    uint32_t first_chars = 11 - block_nr_plus_one.length();
     std::string number = "";
     for (int i = 0; i <= first_chars; i++)
     {
         number.append("0");
     }
-    number.append(block_nr);
+    number.append(block_nr_plus_one);
     
     std::string block_file = "blockchain/block_" + number + ".json";
     std::cout << "blockfile: " << block_file << std::endl;

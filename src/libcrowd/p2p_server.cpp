@@ -276,7 +276,7 @@ private:
                                 // std::cout << "block_j: " << block_j << std::endl;
                                 nlohmann::json msg;
                                 msg["req"] = "new_block";
-                                msg["block_nr"] = "0";
+                                msg["block_nr"] = req_latest_block;
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
                             }
@@ -345,7 +345,7 @@ private:
                                 // send latest block to peer
                                 nlohmann::json msg;
                                 msg["req"] = "new_block";
-                                msg["block_nr"] = "1";
+                                msg["block_nr"] = latest_block_plus_one;
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
                                 std::cout << "Block sent! " << std::endl;
