@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <deque>
 #include <iostream>
+#include <sstream>
 #include <list>
 #include <memory>
 #include <set>
@@ -259,7 +260,7 @@ private:
                             std::cout << "my_full_hash: " << my_full_hash << std::endl;
 
                             Protocol proto;
-                            std::string my_latest_block = proto.latest_block();
+                            std::string my_latest_block = proto.get_last_block_nr();
                             std::cout << "My latest block: " << my_latest_block << std::endl;
                             std::cout << "Req latest block: " << req_latest_block << std::endl;
 
@@ -271,14 +272,22 @@ private:
                                 // send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
 
-                                // the fist block in the blockchain directory contains weird escape characters .......
-                                nlohmann::json block_j = list_of_blocks_j[0]["block"];
-                                // std::cout << "block_j: " << block_j << std::endl;
-                                nlohmann::json msg;
-                                msg["req"] = "new_block";
-                                msg["block_nr"] = req_latest_block;
-                                msg["block"] = block_j;
-                                set_resp_msg(msg.dump());
+                                uint64_t value;
+                                std::istringstream iss(my_latest_block);
+                                iss >> value;
+
+                                for (uint64_t i = 0; i <= value; i++)
+                                {
+                                    nlohmann::json block_j = list_of_blocks_j[i]["block"];
+                                    // std::cout << "block_j: " << block_j << std::endl;
+                                    nlohmann::json msg;
+                                    msg["req"] = "new_block";
+                                    std::ostringstream o;
+                                    o << i;
+                                    msg["block_nr"] = o.str();
+                                    msg["block"] = block_j;
+                                    set_resp_msg(msg.dump());
+                                }
                             }
                             else if (req_latest_block > my_latest_block)
                             {
@@ -352,6 +361,8 @@ private:
                             }
                             else
                             {
+                                std::cout << "More than 1 totalamountofpeers! " << std::endl;
+
                                 delete poco;
 
                                 // communicate intro_peers to chosen_one's with a new_peer req

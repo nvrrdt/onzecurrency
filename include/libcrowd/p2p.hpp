@@ -84,7 +84,7 @@ namespace Crowd
     {
     public:
         int hello_and_setup(std::string& my_user_login_hash);
-        std::string latest_block();
+        std::string get_last_block_nr();
         std::map<std::string, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
         std::string get_blocks_from(std::string &latest_block_peer);
@@ -222,7 +222,7 @@ namespace Crowd
                 std::string root_hash_data = s_shptr_->top();
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
                 Protocol proto;
-                std::string my_latest_block = proto.latest_block();
+                std::string my_latest_block = proto.get_last_block_nr();
                 std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
                 std::string block_s = mt.save_block_to_file(block_j, latest_block_plus_one);
 

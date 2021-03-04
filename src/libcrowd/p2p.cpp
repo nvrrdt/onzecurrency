@@ -46,7 +46,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
             message_j["prev_hash_of_req"] = cred["prev_hash"];
             message_j["full_hash_co"] = "0";
-            message_j["latest_block"] = proto.latest_block();
+            message_j["latest_block"] = proto.get_last_block_nr();
             
             
             message_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];

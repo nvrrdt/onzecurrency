@@ -3,6 +3,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 #include <vector>
+#include <sstream>
 
 #include "json.hpp"
 
@@ -14,14 +15,14 @@
 
 using namespace Crowd;
 
-std::string Protocol::latest_block()
+std::string Protocol::get_last_block_nr()
 {
     ConfigDir cd;
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
     boost::system::error_code c;
     boost::filesystem::path path(blockchain_folder_path);
 
-    std::string latest_block = "0";
+    std::ostringstream o;
 
     if (!boost::filesystem::exists(path))
     {
@@ -29,17 +30,25 @@ std::string Protocol::latest_block()
     }
     else
     {
-        boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
-        for ( boost::filesystem::directory_iterator itr( path ); itr != end_itr; ++itr )
-        {
-            if (itr->path().string() > latest_block)
-            {
-                latest_block = itr->path().string();
-            }
-        }
+        typedef std::vector<boost::filesystem::path> vec;             // store paths,
+        vec v;                                // so we can sort them later
+
+        copy(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), back_inserter(v));
+
+        sort(v.begin(), v.end());             // sort, since directory iteration
+                                            // is not ordered on some file systems
+
+        // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+        // {
+        //     cout << "   " << *it << '\n';
+        // }
+
+        uint64_t n = v.size(); // TODO: perhaps verify with the number in de filename
+
+        o << n;
     }
     
-    return latest_block; // TODO: also verify latest hash
+    return o.str(); // TODO: also verify latest hash
 }
 
 std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_peers)

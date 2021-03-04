@@ -55,36 +55,36 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
-        if (boost::filesystem::is_regular_file(p))        // is p a regular file?
-            cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+            if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+                cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
 
-        else if (boost::filesystem::is_directory(p))      // is p a directory?
-        {
-            cout << p << " is a directory containing:\n";
+            else if (boost::filesystem::is_directory(p))      // is p a directory?
+            {
+                cout << p << " is a directory containing:\n";
 
-            typedef std::vector<boost::filesystem::path> vec;             // store paths,
-            vec v;                                // so we can sort them later
+                typedef std::vector<boost::filesystem::path> vec;             // store paths,
+                vec v;                                // so we can sort them later
 
-            copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+                copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
 
-            sort(v.begin(), v.end());             // sort, since directory iteration
-                                                // is not ordered on some file systems
+                sort(v.begin(), v.end());             // sort, since directory iteration
+                                                    // is not ordered on some file systems
 
-            // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
-            // {
-            //     cout << "   " << *it << '\n';
-            // }
+                // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+                // {
+                //     cout << "   " << *it << '\n';
+                // }
 
-            uint64_t n = v.size(); 
+                uint64_t n = v.size(); 
 
-            std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
-            std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-            Crypto crypto;
-            prev_hash = crypto.bech32_encode_sha256(contents);
-        }
-        else
-            cout << p << " exists, but is neither a regular file nor a directory\n";
+                Crypto crypto;
+                prev_hash = crypto.bech32_encode_sha256(contents);
+            }
+            else
+                cout << p << " exists, but is neither a regular file nor a directory\n";
         }
         else
             cout << p << " does not exist\n";
