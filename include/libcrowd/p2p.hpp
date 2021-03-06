@@ -215,39 +215,64 @@ namespace Crowd
                 // now the block is no matter what created after 30 seconds or 1 MB, that's nog right
 
                 nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
-                                
-                merkle_tree mt;
-                s_shptr_ = mt.calculate_root_hash(s_shptr_);
-                std::string datetime = mt.time_now();
-                std::string root_hash_data = s_shptr_->top();
-                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j_, exit_transactions_j_);
-                Protocol proto;
-                std::string my_latest_block = proto.get_last_block_nr();
-                std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
-                std::string block_s = mt.save_block_to_file(block_j, latest_block_plus_one);
-
-                set_hash_of_new_block(block_s);
-                
-                std::cout << "Block created! " << std::endl;
-            }
-            else
-            {
-                std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
-
-                nlohmann::json to_block_j, entry_tx_j, exit_tx_j;
+                nlohmann::json to_block_j;
                 
                 to_block_j["full_hash"] = full_hash_of_new_peer;
                 to_block_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
                 to_block_j["rsa_pub_key"] = message_j["rsa_pub_key"];
 
+                merkle_tree mt;
                 s_shptr_->push(to_block_j.dump());
-
+                s_shptr_ = mt.calculate_root_hash(s_shptr_);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr_->top();
                 entry_tx_j["full_hash"] = to_block_j["full_hash"];
                 entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
                 entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                entry_transactions_j_.push_back(entry_tx_j);
+                entry_transactions_j.push_back(entry_tx_j);
                 exit_tx_j["full_hash"] = "";
-                exit_transactions_j_.push_back(exit_tx_j);
+                exit_transactions_j.push_back(exit_tx_j);
+                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                Protocol proto;
+                std::string my_latest_block = proto.get_last_block_nr();
+                //std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
+                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+
+                set_hash_of_new_block(block_s);
+                
+                std::cout << "Block created when > 2048! " << std::endl;
+            }
+            else
+            {
+                std::cerr << "Thread " << idx << " timed out. i == " << i << '\n';
+
+                nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+                nlohmann::json to_block_j;
+                
+                to_block_j["full_hash"] = full_hash_of_new_peer;
+                to_block_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
+                to_block_j["rsa_pub_key"] = message_j["rsa_pub_key"];
+
+                merkle_tree mt;
+                s_shptr_->push(to_block_j.dump());
+                s_shptr_ = mt.calculate_root_hash(s_shptr_);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr_->top();
+                entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                entry_transactions_j.push_back(entry_tx_j);
+                exit_tx_j["full_hash"] = "";
+                exit_transactions_j.push_back(exit_tx_j);
+                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                Protocol proto;
+                std::string my_latest_block = proto.get_last_block_nr();
+                //std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
+                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+
+                set_hash_of_new_block(block_s);
+                
+                std::cout << "Block created after 30 seconds! " << std::endl;
             }
         }
         void signals()
@@ -264,8 +289,6 @@ namespace Crowd
     private:
         static std::vector<std::string> list_of_new_peers_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = make_shared<std::stack<std::string>>();
-        nlohmann::json entry_transactions_j_;
-        nlohmann::json exit_transactions_j_;
 
         std::string hash_of_block_;
 

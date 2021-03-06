@@ -272,7 +272,7 @@ private:
                                 // TODO: upload blockchain to the requester starting from latest block
                                 // send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
-std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
+                                //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
                                 uint64_t value;
                                 std::istringstream iss(my_latest_block);
                                 iss >> value;
@@ -280,7 +280,7 @@ std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
                                 for (uint64_t i = 0; i < value; i++)
                                 {
                                     nlohmann::json block_j = list_of_blocks_j[i]["block"];
-std::cout << "block_j: " << block_j << std::endl;
+                                    //std::cout << "block_j: " << block_j << std::endl;
                                     nlohmann::json msg;
                                     msg["req"] = "update_your_blocks";
                                     std::ostringstream o;
@@ -470,7 +470,9 @@ std::cout << "block_j: " << block_j << std::endl;
 
                             if (hash_of_new_block != "")
                             {
+                                Poco* poco = new Poco();
                                 std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                                delete poco;
                                 if (co_for_new_block == my_full_hash)
                                 {
                                     // I'm the chosen one for creating the block!!!
