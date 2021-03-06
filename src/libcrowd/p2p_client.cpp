@@ -209,6 +209,10 @@ private:
                     set_resp_msg(msg.dump());
                 }
             }
+            else if (buf_j["req"] == "new_peer")
+            {
+                //
+            }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }

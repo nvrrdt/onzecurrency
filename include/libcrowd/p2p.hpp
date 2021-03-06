@@ -235,7 +235,6 @@ namespace Crowd
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 Protocol proto;
                 std::string my_latest_block = proto.get_last_block_nr();
-                //std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
                 std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 
                 set_hash_of_new_block(block_s);
@@ -267,7 +266,6 @@ namespace Crowd
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 Protocol proto;
                 std::string my_latest_block = proto.get_last_block_nr();
-                //std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
                 std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 
                 set_hash_of_new_block(block_s);

@@ -476,12 +476,17 @@ private:
                                 if (co_for_new_block == my_full_hash)
                                 {
                                     // I'm the chosen one for creating the block!!!
-                                    std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+                                    std::cout << "I'm the coordinator for block creation!!" << std::endl;
+
+                                    // contact co with new_block
+                                    // verify hash of block and store percentage of correspondence
+                                    // save_block
+                                    // send new_block to underlying layer
                                 }
                                 else
                                 {
                                     // I'm NOT the chosen one for creating the block!!!
-                                    std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
+                                    std::cout << "I'm NOT the coordinator for block creation!!" << std::endl;
                                 }
                             }
 
