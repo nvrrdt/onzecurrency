@@ -181,6 +181,34 @@ private:
                 merkle_tree mt;
                 mt.save_block_to_file(block_j, block_nr);
             }
+            else if (buf_j["req"] == "update_my_blocks")
+            {
+                std::cout << "update_my_blocks" << std::endl;
+                // send blocks to peer
+
+                Protocol proto;
+                std::string my_latest_block = proto.get_last_block_nr();
+                std::string req_latest_block = buf_j["block_nr"];
+
+                nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
+
+                uint64_t value;
+                std::istringstream iss(my_latest_block);
+                iss >> value;
+
+                for (uint64_t i = 0; i <= value; i++)
+                {
+                    nlohmann::json block_j = list_of_blocks_j[i]["block"];
+                    // std::cout << "block_j: " << block_j << std::endl;
+                    nlohmann::json msg;
+                    msg["req"] = "update_your_blocks";
+                    std::ostringstream o;
+                    o << i;
+                    msg["block_nr"] = o.str();
+                    msg["block"] = block_j;
+                    set_resp_msg(msg.dump());
+                }
+            }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }
@@ -210,6 +238,41 @@ private:
                                  });
     }
 
+    void set_resp_msg(std::string msg)
+    {
+        std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+        for (int i = 0; i < splitted.size(); i++)
+        {
+            char s[p2p_message::max_body_length + 1];
+            strncpy(s, splitted[i].c_str(), sizeof(s));
+
+            resp_msg_.body_length(std::strlen(s));
+            std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
+            i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+            write(resp_msg_);
+        }
+    }
+
+    std::vector<std::string> split(const std::string& str, int splitLength)
+    {
+        int NumSubstrings = str.length() / splitLength;
+        std::vector<std::string> ret;
+
+        for (auto i = 0; i < NumSubstrings; i++)
+        {
+            ret.push_back(str.substr(i * splitLength, splitLength));
+        }
+
+        // If there are leftover characters, create a shorter item at the end.
+        if (str.length() % splitLength != 0)
+        {
+            ret.push_back(str.substr(splitLength * NumSubstrings));
+        }
+
+        return ret;
+    }
+    
 private:
     boost::asio::io_context &io_context_;
     tcp::socket socket_;

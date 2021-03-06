@@ -292,6 +292,10 @@ private:
                             else if (req_latest_block > my_latest_block)
                             {
                                 // TODO: update your own blockchain
+                                nlohmann::json msg;
+                                msg["req"] = "update_my_blocks";
+                                msg["block_nr"] = my_latest_block;
+                                set_resp_msg(msg.dump());
                             }
 
                             // for the server: layer_management needed: assemble all the chosen ones in rocksdb,
@@ -532,26 +536,40 @@ private:
                     delete poco;
                 }
             }
+            else if (buf_j["req"] == "update_your_blocks")
+            {
+                std::cout << "update_your_blocks" << std::endl;
+                // save blocks to blockchain folder
+
+                nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
+                std::string block_nr = buf_j["block_nr"];
+                if (block_nr == "no blockchain present in folder") block_nr = "0";
+                // std::cout << "block_s: " << buf_j["block"] << std::endl;
+                // std::cout << "block_nr: " << block_nr << std::endl;
+
+                merkle_tree mt;
+                mt.save_block_to_file(block_j, block_nr);
+            }
         }
     }
 
     std::vector<std::string> split(const std::string& str, int splitLength)
     {
-    int NumSubstrings = str.length() / splitLength;
-    std::vector<std::string> ret;
+        int NumSubstrings = str.length() / splitLength;
+        std::vector<std::string> ret;
 
-    for (auto i = 0; i < NumSubstrings; i++)
-    {
+        for (auto i = 0; i < NumSubstrings; i++)
+        {
             ret.push_back(str.substr(i * splitLength, splitLength));
-    }
+        }
 
-    // If there are leftover characters, create a shorter item at the end.
-    if (str.length() % splitLength != 0)
-    {
+        // If there are leftover characters, create a shorter item at the end.
+        if (str.length() % splitLength != 0)
+        {
             ret.push_back(str.substr(splitLength * NumSubstrings));
-    }
+        }
 
-    return ret;
+        return ret;
     }
 
     void set_resp_msg(std::string msg)
