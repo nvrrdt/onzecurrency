@@ -336,9 +336,7 @@ private:
                                 std::string root_hash_data = s_shptr->top();
                                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                                 std::cout << "my_latest_block: " << my_latest_block << std::endl;
-                                Protocol proto;
-                                std::string latest_block_plus_one = proto.block_plus_one(my_latest_block);
-                                std::string block_s = mt.save_block_to_file(block_j, latest_block_plus_one);
+                                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 
                                 // Update rocksdb
                                 rocksdb_j["version"] = "O.1";
@@ -358,7 +356,7 @@ private:
                                 // send latest block to peer
                                 nlohmann::json msg;
                                 msg["req"] = "new_block";
-                                msg["block_nr"] = latest_block_plus_one;
+                                msg["block_nr"] = my_latest_block;
                                 msg["block"] = block_j;
                                 set_resp_msg(msg.dump());
                                 std::cout << "Block sent! " << std::endl;
