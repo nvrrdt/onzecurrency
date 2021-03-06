@@ -167,9 +167,9 @@ private:
             {
                 std::cout << "connection established" << std::endl;
             }
-            else if (buf_j["req"] == "new_block")
+            else if (buf_j["req"] == "update_your_blocks")
             {
-                std::cout << "new_block" << std::endl;
+                std::cout << "update_your_blocks client" << std::endl;
                 // save blocks to blockchain folder
 
                 nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
@@ -183,7 +183,7 @@ private:
             }
             else if (buf_j["req"] == "update_my_blocks")
             {
-                std::cout << "update_my_blocks" << std::endl;
+                std::cout << "update_my_blocks client" << std::endl;
                 // send blocks to peer
 
                 Protocol proto;
@@ -272,7 +272,7 @@ private:
 
         return ret;
     }
-    
+
 private:
     boost::asio::io_context &io_context_;
     tcp::socket socket_;

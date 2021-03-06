@@ -217,6 +217,7 @@ private:
                 std::string signature = buf_j["signature"];
                 //std::cout << "2p: " << std::endl;
                 std::string req_latest_block = buf_j["latest_block"];
+                std::string req_ip = buf_j["ip"];
 
                 Crypto* crypto = new Crypto();
                 std::string email__prev_hash_app = email_of_req + prev_hash_req;
@@ -271,17 +272,17 @@ private:
                                 // TODO: upload blockchain to the requester starting from latest block
                                 // send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
-
+std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
                                 uint64_t value;
                                 std::istringstream iss(my_latest_block);
                                 iss >> value;
 
-                                for (uint64_t i = 0; i <= value; i++)
+                                for (uint64_t i = 0; i < value; i++)
                                 {
                                     nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                                    // std::cout << "block_j: " << block_j << std::endl;
+std::cout << "block_j: " << block_j << std::endl;
                                     nlohmann::json msg;
-                                    msg["req"] = "new_block";
+                                    msg["req"] = "update_your_blocks";
                                     std::ostringstream o;
                                     o << i;
                                     msg["block_nr"] = o.str();
@@ -301,144 +302,189 @@ private:
                             // for the server: layer_management needed: assemble all the chosen ones in rocksdb,
                             // then create clients to them all with new_peer message
 
-                            Poco* poco = new Poco();
-                            if (poco->TotalAmountOfPeers() == 1)
+                            // Poco* poco = new Poco();
+                            // if (poco->TotalAmountOfPeers() == 1)
+                            // {
+                            //     delete poco;
+
+                            //     // create_block ...
+                            //     // resp_msg_ = ...
+                            //     // inform room_.deliver(resp_msg_);
+                            //     nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+                                
+                            //     std::string hash_email = crypto->bech32_encode_sha256(email_of_req);
+                            //     PrevHash ph;
+                            //     std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+                            //     std::cout << "prev_hash: " << prev_hash << std::endl;
+                            //     std::string hash_email_prev_hash_app = hash_email + prev_hash;
+                            //     std::string full_hash_of_new_peer = crypto->bech32_encode_sha256(hash_email_prev_hash_app);
+                                
+                            //     to_block_j["full_hash"] = full_hash_of_new_peer;
+                            //     to_block_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+                            //     to_block_j["rsa_pub_key"] = rsa_pub_key;
+
+                            //     std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+                            //     s_shptr->push(to_block_j.dump());
+                            //     merkle_tree mt;
+                            //     s_shptr = mt.calculate_root_hash(s_shptr);
+                            //     entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                            //     entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                            //     entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                            //     entry_transactions_j.push_back(entry_tx_j);
+                            //     exit_tx_j["full_hash"] = "";
+                            //     exit_transactions_j.push_back(exit_tx_j);
+                            //     std::string datetime = mt.time_now();
+                            //     std::string root_hash_data = s_shptr->top();
+                            //     nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                            //     std::cout << "my_latest_block: " << my_latest_block << std::endl;
+                            //     std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+
+                            //     // Update rocksdb
+                            //     rocksdb_j["version"] = "O.1";
+                            //     rocksdb_j["ip"] = ip_of_peer_;
+                            //     rocksdb_j["server"] = true;
+                            //     rocksdb_j["fullnode"] = true;
+                            //     rocksdb_j["hash_email"] = hash_email;
+                            //     rocksdb_j["block"] = 1;
+                            //     rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+                            //     rocksdb_j["rsa_pub_key"] = rsa_pub_key;
+                            //     std::string rocksdb_s = rocksdb_j.dump();
+                            //     Poco* poco = new Poco();
+                            //     poco->Put(full_hash_of_new_peer, rocksdb_s);
+                            //     delete poco;
+                            //     std::cout << "zijn we ook hier? " << std::endl;
+
+                            //     // send latest block to peer
+                            //     nlohmann::json msg;
+                            //     msg["req"] = "update_your_blocks";
+                            //     msg["block_nr"] = my_latest_block;
+                            //     msg["block"] = block_j;
+                            //     set_resp_msg(msg.dump());
+                            //     std::cout << "Block sent! " << std::endl;
+                            // }
+                            // else
+                            // {
+                            std::cout << "1 or more totalamountofpeers! " << std::endl;
+
+                                ////delete poco;
+
+                            // communicate intro_peers to chosen_one's with a new_peer req
+
+                                ////Protocol proto;
+                            std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+                            std::string srv_ip = ""; // only for nat traversal
+                            std::string peer_hash = ""; // dunno, still dunno
+
+                            nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+                            message_j["req"] = "new_peer";
+                            message_j["email_of_req"] = email_of_req;
+                            message_j["prev_hash_of_req"] = prev_hash_req;
+                            message_j["full_hash_co"] = my_full_hash;
+                            message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+                            message_j["rsa_pub_key"] = rsa_pub_key;
+                            message_j["ip"] = ip_of_peer_;
+
+                            to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+                            to_sign_j["rsa_pub_key"] = rsa_pub_key;
+                            to_sign_j["email"] = email_of_req;
+                            std::string to_sign_s = to_sign_j.dump();
+                            ECDSA<ECP, SHA256>::PrivateKey private_key;
+                            std::string signature;
+                            crypto->ecdsa_load_private_key_from_string(private_key);
+                            if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
                             {
-                                delete poco;
-
-                                // create_block ...
-                                // resp_msg_ = ...
-                                // inform room_.deliver(resp_msg_);
-                                nlohmann::json to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
-                                
-                                std::string hash_email = crypto->bech32_encode_sha256(email_of_req);
-                                PrevHash ph;
-                                std::string prev_hash = ph.get_last_prev_hash_from_blocks();
-                                std::cout << "prev_hash: " << prev_hash << std::endl;
-                                std::string hash_email_prev_hash_app = hash_email + prev_hash;
-                                std::string full_hash_of_new_peer = crypto->bech32_encode_sha256(hash_email_prev_hash_app);
-                                
-                                to_block_j["full_hash"] = full_hash_of_new_peer;
-                                to_block_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                                to_block_j["rsa_pub_key"] = rsa_pub_key;
-
-                                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
-                                s_shptr->push(to_block_j.dump());
-                                merkle_tree mt;
-                                s_shptr = mt.calculate_root_hash(s_shptr);
-                                entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-                                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                                entry_transactions_j.push_back(entry_tx_j);
-                                exit_tx_j["full_hash"] = "";
-                                exit_transactions_j.push_back(exit_tx_j);
-                                std::string datetime = mt.time_now();
-                                std::string root_hash_data = s_shptr->top();
-                                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                                std::cout << "my_latest_block: " << my_latest_block << std::endl;
-                                std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
-
-                                // Update rocksdb
-                                rocksdb_j["version"] = "O.1";
-                                rocksdb_j["ip"] = ip_of_peer_;
-                                rocksdb_j["server"] = true;
-                                rocksdb_j["fullnode"] = true;
-                                rocksdb_j["hash_email"] = hash_email;
-                                rocksdb_j["block"] = 1;
-                                rocksdb_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                                rocksdb_j["rsa_pub_key"] = rsa_pub_key;
-                                std::string rocksdb_s = rocksdb_j.dump();
-                                Poco* poco = new Poco();
-                                poco->Put(full_hash_of_new_peer, rocksdb_s);
-                                delete poco;
-                                std::cout << "zijn we ook hier? " << std::endl;
-
-                                // send latest block to peer
-                                nlohmann::json msg;
-                                msg["req"] = "new_block";
-                                msg["block_nr"] = my_latest_block;
-                                msg["block"] = block_j;
-                                set_resp_msg(msg.dump());
-                                std::cout << "Block sent! " << std::endl;
+                                message_j["signature"] = crypto->base64_encode(signature);
                             }
-                            else
+
+                            Tcp tcp;
+                            std::string key, val;
+                            for (auto &[key, val] : parts)
                             {
-                                std::cout << "More than 1 totalamountofpeers! " << std::endl;
+                                std::cout << "key: " << key        // string (key)
+                                        << ", val: "  
+                                        << val        // string's value
+                                        << std::endl;
+                                
+                                Poco* poco = new Poco();
+
+                                std::string peer_id = poco->FindChosenOne(val); // lookup in rocksdb
+                                nlohmann::json value_j = nlohmann::json::parse(poco->Get(peer_id));
+                                std::string peer_ip = value_j["ip"];
 
                                 delete poco;
 
-                                // communicate intro_peers to chosen_one's with a new_peer req
+                                // if peer ip == mother ip --> send new_peer to kids
+                                // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
+                                // --> if more then t.client to same layer co
+                                // in bucket --> createblock --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
-                                Protocol proto;
-                                std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
-
-                                std::string srv_ip = ""; // only for nat traversal
-                                std::string peer_hash = ""; // dunno, still dunno
-
-                                nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
-                                message_j["req"] = "new_peer";
-                                message_j["email_of_req"] = email_of_req;
-                                message_j["prev_hash_of_req"] = prev_hash_req;
-                                message_j["full_hash_co"] = my_full_hash;
-                                message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                                message_j["rsa_pub_key"] = rsa_pub_key;
-                                message_j["ip"] = ip_of_peer_;
-
-                                to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                                to_sign_j["rsa_pub_key"] = rsa_pub_key;
-                                to_sign_j["email"] = email_of_req;
-                                std::string to_sign_s = to_sign_j.dump();
-                                ECDSA<ECP, SHA256>::PrivateKey private_key;
-                                std::string signature;
-                                crypto->ecdsa_load_private_key_from_string(private_key);
-                                if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+                                // inform the underlying network
+                                if (req_ip == peer_ip)
                                 {
-                                    message_j["signature"] = crypto->base64_encode(signature);
+                                    // inform server's underlying network
+                                    std::cout << "Inform my underlying network as co" << std::endl;
+
+                                    // message to connected peer_
+                                    set_resp_msg(message_j.dump());
+
+                                    std::map<std::string, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, parts["2"]);
+                                    // set_resp_msg_() + from_to(my_hash, next_hash) {if ip_of_peer_ == ip_from_to(my_hash, next_hash)} --> new_peer
+                                    std::string key2, val2;
+                                    for (auto &[key2, val2] : parts_underlying)
+                                    {
+                                        Poco* poco = new Poco();
+
+                                        std::string peer_id = poco->FindChosenOne(val2); // lookup in rocksdb
+                                        nlohmann::json value_j = nlohmann::json::parse(poco->Get(peer_id));
+                                        std::string underlying_peer_ip = value_j["ip"];
+
+                                        delete poco;
+
+                                        std::cout << "Non-connected underlying peers - client" << std::endl;
+                                        // message to non-connected peers
+                                        std::string message = message_j.dump();
+                                        tcp.client(srv_ip, underlying_peer_ip, peer_hash, message);
+                                    }
                                 }
-
-                                Poco* poco = new Poco();
-                                Tcp tcp;
-                                std::string key, val;
-                                for (auto &[key, val] : parts)
+                                else
                                 {
-                                    std::cout << key        // string (key)
-                                            << ':'  
-                                            << val        // string's value
-                                            << std::endl;
-
-                                    std::string peer_ip = poco->FindNextPeer(val); // lookup in rocksdb
+                                    // inform the other peer's in the same layer (as coordinator)
+                                    std::cout << "Inform my equal layer as coordinator" << std::endl;
 
                                     std::string message = message_j.dump();
                                     tcp.client(srv_ip, peer_ip, peer_hash, message);
                                 }
-
-                                // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-                                CreateBlock cb(message_j);
-
-                                // TODO: rocksdb should be updated when the block is created
-                                // so: the new peer should receive the message that the block is created
-                                // and then a message should be sent with the rocksdb entries
-
-                                // TODO: CreateBlock isn't final, the hash of the block should point to the chosen_one
-
-                                std::string hash_of_new_block = cb.get_hash_of_new_block();
-                                if (hash_of_new_block != "")
-                                {
-                                    std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
-                                    if (co_for_new_block == my_full_hash)
-                                    {
-                                        // I'm the chosen one for creating the block!!!
-                                        std::cout << "I'm the chosen_one for block creation!!" << std::endl;
-                                    }
-                                    else
-                                    {
-                                        // I'm NOT the chosen one for creating the block!!!
-                                        std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
-                                    }
-                                }
-
-                                delete poco;
                             }
+
+                            // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+                            CreateBlock cb(message_j);
+
+                            // TODO: rocksdb should be updated when the block is created
+                            // so: the new peer should receive the message that the block is created
+                            // and then a message should be sent with the rocksdb entries
+
+                            // TODO: CreateBlock isn't final, the hash of the block should point to the chosen_one
+
+                            std::string hash_of_new_block = cb.get_hash_of_new_block();
+
+                            if (hash_of_new_block != "")
+                            {
+                                std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                                if (co_for_new_block == my_full_hash)
+                                {
+                                    // I'm the chosen one for creating the block!!!
+                                    std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+                                }
+                                else
+                                {
+                                    // I'm NOT the chosen one for creating the block!!!
+                                    std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
+                                }
+                            }
+
+                            //delete poco;
+                            // }
                         }
                         else
                         {
@@ -536,7 +582,7 @@ private:
             }
             else if (buf_j["req"] == "update_your_blocks")
             {
-                std::cout << "update_your_blocks" << std::endl;
+                std::cout << "update_your_blocks server" << std::endl;
                 // save blocks to blockchain folder
 
                 nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();

@@ -48,7 +48,6 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["full_hash_co"] = "0";
             message_j["latest_block"] = proto.get_last_block_nr();
             
-            
             message_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
             message_j["rsa_pub_key"] = cred["rsa_pub_key"];
 
@@ -98,6 +97,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
             std::string srv_ip = "";
             std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+            message_j["ip"] = ip_mother_peer;
             std::string peer_hash = "";
             std::string message = message_j.dump();
             t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer

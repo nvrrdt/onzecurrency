@@ -279,35 +279,35 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
     return all_blocks_j.dump();
 }
 
-void Protocol::save_blocks_to_blockchain(std::string &msg)
-{
-    nlohmann::json json = nlohmann::json::parse(msg);
-    //std::cout << "msggggg: " << json.dump() << std::endl;
-    std::string block_nr = json["block_nr"].get<std::string>();
-    std::string block_nr_plus_one = Protocol::block_plus_one(block_nr);
-    std::string block = json["block"].dump();
+// void Protocol::save_blocks_to_blockchain(std::string &msg)
+// {
+//     nlohmann::json json = nlohmann::json::parse(msg);
+//     //std::cout << "msggggg: " << json.dump() << std::endl;
+//     std::string block_nr = json["block_nr"].get<std::string>();
+//     std::string block_nr_plus_one = Protocol::block_plus_one(block_nr);
+//     std::string block = json["block"].dump();
 
-    ConfigDir cd;
-    uint32_t first_chars = 11 - block_nr_plus_one.length();
-    std::string number = "";
-    for (int i = 0; i <= first_chars; i++)
-    {
-        number.append("0");
-    }
-    number.append(block_nr_plus_one);
+//     ConfigDir cd;
+//     uint32_t first_chars = 11 - block_nr_plus_one.length();
+//     std::string number = "";
+//     for (int i = 0; i <= first_chars; i++)
+//     {
+//         number.append("0");
+//     }
+//     number.append(block_nr_plus_one);
     
-    std::string block_file = "blockchain/block_" + number + ".json";
-    std::cout << "blockfile: " << block_file << std::endl;
+//     std::string block_file = "blockchain/block_" + number + ".json";
+//     std::cout << "blockfile: " << block_file << std::endl;
 
-    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
+//     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
 
-    if (!boost::filesystem::exists(blockchain_folder_path))
-    {
-        boost::filesystem::create_directory(blockchain_folder_path);
-    }
+//     if (!boost::filesystem::exists(blockchain_folder_path))
+//     {
+//         boost::filesystem::create_directory(blockchain_folder_path);
+//     }
 
-    cd.CreateFileInConfigDir(block_file, block);
-}
+//     cd.CreateFileInConfigDir(block_file, block);
+// }
 
 
 std::string Protocol::block_plus_one(std::string &block_nr)
