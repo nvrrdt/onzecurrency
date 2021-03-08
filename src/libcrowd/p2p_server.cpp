@@ -71,17 +71,17 @@ public:
         participants_.erase(participant);
     }
 
-    void deliver(const p2p_message &msg)
+    void deliver(const p2p_message &msg, p2p_participant_ptr participant)
     {
         recent_msgs_.push_back(msg);
         while (recent_msgs_.size() > max_recent_msgs)
             recent_msgs_.pop_front();
 
-        for (auto participant : participants_)
+        for (auto p : participants_)
         {
-            if (participant->get_id() == participant->get_find_id())
+            if (p == participant)
             {
-                participant->deliver(msg);
+                p->deliver(msg);
             }
         }
     }
@@ -635,7 +635,7 @@ private:
             std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
             i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
-            room_.deliver(resp_msg_);
+            room_.deliver(resp_msg_, shared_from_this());
         }
     }
 
