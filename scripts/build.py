@@ -42,26 +42,34 @@ def main():
             ' && cmake -DCMAKE_BUILD_TYPE=Debug ..' \
             ' && make', shell=True)
     if args.ninja:
-        subprocess.call('cd ' + project_path("build") + \
-            ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..' \
-            ' && ninja', shell=True)
+        ninja()
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
         subprocess.call('cd ' + project_path("build") + ' && ./tests/libcrowd/tests_crowd --log_level=message \
             && ./tests/liblogin/tests_login --log_level=message', shell=True)
     if args.execute:
+        ninja()
+        packinstall()
         subprocess.call('onze-terminal', shell=True)
     if args.packinstall:
-        subprocess.call('cd ' + project_path("build") + \
-            ' && cpack' \
-            ' && dpkg -i `find . -type f -name \*.deb`' \
-            ' && apt-get -f install', shell=True)
+        packinstall()
     if args.send:
         ips = ["51.158.68.232", "51.15.226.67"]
         for ip in ips:
             t = threading.Thread(target=worker, args=(ip,))
             t.start()
+
+def ninja():
+    subprocess.call('echo xxx && cd ' + project_path("build") + \
+            ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..' \
+            ' && ninja', shell=True)
+
+def packinstall():
+    subprocess.call('cd ' + project_path("build") + \
+            ' && cpack' \
+            ' && dpkg -i `find . -type f -name \*.deb`' \
+            ' && apt-get -f install', shell=True)
 
 def worker(ip):
     """thread worker function"""
