@@ -42,5 +42,5 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
                 )
 
-INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcrowd/libcrowd.so DESTINATION lib/onze)
-INSTALL(FILES ${all_HEADERS} DESTINATION include/onze)
+INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)
+INSTALL(FILES ${all_HEADERS} DESTINATION include/onze COMPONENT headers)

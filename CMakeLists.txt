@@ -24,6 +24,9 @@ add_test (NAME Test COMMAND Test)
 ### enable CPack
 
 SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-all-dev(>=1.71), librocksdb-dev(>=5.17)")
+SET(CPACK_COMPONENTS_ALL applications libraries headers)
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nico Verrijdt") #required
 
 INCLUDE(CPack)

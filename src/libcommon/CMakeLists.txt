@@ -26,5 +26,5 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/bech32.hpp"
                 )
 
-INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/libcommon/libcommon.so DESTINATION lib/onze)
-INSTALL(FILES ${all_HEADERS} DESTINATION include/onze)
+INSTALL(TARGETS common ARCHIVE DESTINATION lib/onze COMPONENT libraries)
+INSTALL(FILES ${all_HEADERS} DESTINATION include/onze COMPONENT headers)

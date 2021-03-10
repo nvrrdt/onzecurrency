@@ -19,5 +19,5 @@ target_include_directories(login PUBLIC
 
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp")
 
-INSTALL(FILES ${PROJECT_SOURCE_DIR}/build/src/liblogin/liblogin.so DESTINATION lib/onze)
-INSTALL(FILES ${all_HEADERS} DESTINATION include/onze)
+INSTALL(TARGETS login ARCHIVE DESTINATION lib/onze COMPONENT libraries)
+INSTALL(FILES ${all_HEADERS} DESTINATION include/onze COMPONENT headers)

@@ -30,4 +30,8 @@ target_link_libraries(onze-terminal
 
 ### install:
 
-install(FILES ${PROJECT_SOURCE_DIR}/build/src/ui/terminal/onze-terminal DESTINATION bin)
+install(TARGETS onze-terminal
+        RUNTIME
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+        DESTINATION bin
+        COMPONENT applications)

@@ -19,6 +19,8 @@ def main():
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
     parser.add_argument("-t", "--tests", help = "Run tests", action="store_true")
     parser.add_argument("-e", "--execute", help = "Execute binary after install", action="store_true")
+    parser.add_argument("-p", "--pack", help = "CPack", action="store_true")
+    parser.add_argument("-s", "--send", help = "Send deb to servers", action="store_true")
     
     # Read arguments from command line
     args = parser.parse_args()
@@ -53,6 +55,13 @@ def main():
             && ./tests/liblogin/tests_login --log_level=message', shell=True)
     if args.execute:
         subprocess.call('onze-terminal', shell=True)
+    if args.pack:
+        subprocess.call('cd ' + project_path("build") + \
+            ' && cpack', shell=True)
+    if args.send:
+        subprocess.call('cd ' + project_path("build") + \
+            ' && scp `find . -type f -name \*.deb` root@51.158.68.232:~/onzecurrency' \
+            ' && scp `find . -type f -name \*.deb` root@51.15.226.67:~/onzecurrency', shell=True)
 
 def project_path(sub_dir):
     # find the path of the build folder
