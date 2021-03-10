@@ -37,13 +37,13 @@ ConfigDir::ConfigDir()
 
 std::string ConfigDir::GetConfigDir()
 {
-    return configdir1;
+    return configdir;
 }
 
 int ConfigDir::CreateFileInConfigDir(std::string &filename, std::string &content)
 {
     std::ofstream ofs;
-    ofs.open (configdir1 + filename, std::ofstream::out | std::ofstream::app);
+    ofs.open (configdir + filename, std::ofstream::out | std::ofstream::app);
 
     ofs << content;
 

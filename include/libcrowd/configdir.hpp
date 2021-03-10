@@ -26,6 +26,5 @@ namespace Crowd
     private:
         const char *homedir;
         std::string configdir;
-        std::string configdir1;
     };
 }
