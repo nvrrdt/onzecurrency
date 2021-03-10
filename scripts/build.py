@@ -19,7 +19,7 @@ def main():
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
     parser.add_argument("-t", "--tests", help = "Run tests", action="store_true")
     parser.add_argument("-e", "--execute", help = "Execute binary after install", action="store_true")
-    parser.add_argument("-p", "--pack", help = "CPack", action="store_true")
+    parser.add_argument("-p", "--packinstall", help = "CPack + installation of deb", action="store_true")
     parser.add_argument("-s", "--send", help = "Send deb to servers", action="store_true")
     
     # Read arguments from command line
@@ -39,15 +39,11 @@ def main():
     if args.make:
         subprocess.call('cd ' + project_path("build") + \
             ' && cmake -DCMAKE_BUILD_TYPE=Debug ..' \
-            ' && make' \
-            ' && make install' \
-            ' && chmod +x /usr/local/bin/onze-terminal', shell=True)
+            ' && make', shell=True)
     if args.ninja:
         subprocess.call('cd ' + project_path("build") + \
             ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..' \
-            ' && ninja' \
-            ' && ninja install' \
-            ' && chmod +x /usr/local/bin/onze-terminal', shell=True)
+            ' && ninja', shell=True)
     if args.uninstall:
         subprocess.call('cd ' + project_path("build") + ' && xargs rm < install_manifest.txt', shell=True)
     if args.tests:
@@ -55,9 +51,11 @@ def main():
             && ./tests/liblogin/tests_login --log_level=message', shell=True)
     if args.execute:
         subprocess.call('onze-terminal', shell=True)
-    if args.pack:
+    if args.packinstall:
         subprocess.call('cd ' + project_path("build") + \
-            ' && cpack', shell=True)
+            ' && cpack' \
+            ' && dpkg -i `find . -type f -name \*.deb`' \
+            ' && apt-get -f install', shell=True)
     if args.send:
         subprocess.call('cd ' + project_path("build") + \
             ' && scp `find . -type f -name \*.deb` root@51.158.68.232:~/onzecurrency' \
