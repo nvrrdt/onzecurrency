@@ -3,6 +3,7 @@ import sys
 import os
 import subprocess
 from pathlib import Path
+import threading
 
 def main():
     # Cd to scripts/build.py directory
@@ -57,9 +58,16 @@ def main():
             ' && dpkg -i `find . -type f -name \*.deb`' \
             ' && apt-get -f install', shell=True)
     if args.send:
-        subprocess.call('cd ' + project_path("build") + \
-            ' && scp `find . -type f -name \*.deb` root@51.158.68.232:~/onzecurrency' \
-            ' && scp `find . -type f -name \*.deb` root@51.15.226.67:~/onzecurrency', shell=True)
+        ips = ["51.158.68.232", "51.15.226.67"]
+        for ip in ips:
+            t = threading.Thread(target=worker, args=(ip,))
+            t.start()
+
+def worker(ip):
+    """thread worker function"""
+    work = subprocess.call('cd ' + project_path("build") + \
+            ' && scp `find . -maxdepth 1 -type f -name *.deb` root@' + ip + ':~/onzecurrency', shell=True)
+    return work
 
 def project_path(sub_dir):
     # find the path of the build folder
