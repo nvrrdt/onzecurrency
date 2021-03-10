@@ -12,24 +12,21 @@ ConfigDir::ConfigDir()
     {
         // char * homedir;
         // getcwd(homedir, sizeof(homedir));
-        homedir = "/onzecurrency/build";
+        homedir = "/onzecurrency/";
     }
     
     
     configdir = homedir;
-    configdir += "/.config/";
-    configdir1 = configdir + "onzehub/";
+    configdir = configdir + ".config/onzehub/";
 
     boost::system::error_code c;
     boost::filesystem::path path(configdir);
-    boost::filesystem::path path1(configdir1);
 
-    if (!boost::filesystem::exists(path1))
+    if (!boost::filesystem::exists(path))
     {
         try
         {
-            boost::filesystem::create_directory(path);
-            boost::filesystem::create_directory(path1);
+            boost::filesystem::create_directories(path);
         }
         catch (boost::filesystem::filesystem_error &e)
         {
