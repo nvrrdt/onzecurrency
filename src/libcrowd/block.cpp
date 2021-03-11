@@ -156,7 +156,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
 
     if (!boost::filesystem::exists(blockchain_folder_path))
     {
-        boost::filesystem::create_directory(blockchain_folder_path);
+        boost::filesystem::create_directories(blockchain_folder_path);
     }
 
     bool isDir = boost::filesystem::is_directory(blockchain_folder_path, c);

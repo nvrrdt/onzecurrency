@@ -38,6 +38,7 @@ std::string PrevHash::get_my_prev_hash_from_file()
     else
     {
         std::cout << "Prev_hash file doesn't exist!!" << std::endl;
+        ph = "";
     }
 
     return ph;
