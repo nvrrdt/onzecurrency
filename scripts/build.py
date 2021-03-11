@@ -53,6 +53,7 @@ def main():
         packinstall()
         subprocess.call('onze-terminal', shell=True)
     if args.packinstall:
+        ninja()
         packinstall()
     if args.send:
         ips = ["51.158.68.232", "51.15.226.67"]
@@ -68,13 +69,13 @@ def ninja():
 def packinstall():
     subprocess.call('cd ' + project_path("build") + \
             ' && cpack' \
-            ' && dpkg -i `find . -type f -name \*.deb`' \
+            ' && dpkg -i `find . -type f -name *.deb`' \
             ' && apt-get -f install', shell=True)
 
 def worker(ip):
     """thread worker function"""
     work = subprocess.call('cd ' + project_path("build") + \
-            ' && scp `find . -maxdepth 1 -type f -name *.deb` root@' + ip + ':~/onzecurrency', shell=True)
+            ' && scp `find . -maxdepth 1 -type f -name *.deb` root@' + ip + ':~/', shell=True)
     return work
 
 def project_path(sub_dir):
