@@ -59,6 +59,15 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::calculate_root_hash(std::s
 
     // add 0's to the stack till a size of 2^n
     size_t current_stack_size = s_shptr->size();
+    if (current_stack_size == 1)
+    {
+        std::string parent_conc, parent_hashed;
+
+        Crypto crypto;
+        parent_hashed = crypto.bech32_encode_sha256(s_shptr->top());
+        s_shptr->pop();
+        s_shptr->push(parent_hashed);
+    }
     //std::cout << n << " " << current_stack_size << endl;
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
@@ -103,12 +112,10 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
 
 nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j)
 {
-    nlohmann::json hash_co_j = nlohmann::json::parse(root_hash_data);
-    std::string hash_co_s = hash_co_j["full_hash"];
     // creation of the block's data for storage
     nlohmann::json j = {
         {"starttime", datetime},
-        {"hash_co", hash_co_s}
+        {"hash_co", root_hash_data}
     };
 
     int user_count = 0;
