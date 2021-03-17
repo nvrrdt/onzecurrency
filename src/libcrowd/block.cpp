@@ -93,7 +93,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree::pop_two_and_hash(std::shar
             std::string parent_conc = uneven + even, parent_hashed;
 
             Crypto crypto;
-            parent_conc = crypto.bech32_encode_sha256(parent_conc);
+            parent_hashed = crypto.bech32_encode_sha256(parent_conc);
             s1_shptr->push(parent_hashed);
         }
 
