@@ -97,14 +97,109 @@ private:
 
 //----------------------------------------------------------------------
 
+class MessageVec
+{
+public:
+    static void add_to_message_j_vec(nlohmann::json &message_j)
+    {
+        message_j_vec_.push_back(message_j);
+    }
+
+    static std::vector<nlohmann::json> get_message_j_vec()
+    {
+        return message_j_vec_;
+    }
+
+    static void reset_message_j_vec()
+    {
+        message_j_vec_.clear();
+    }
+private:
+    static std::vector<nlohmann::json> message_j_vec_;
+};
+
+std::vector<nlohmann::json> MessageVec::message_j_vec_ = {};
+
+//----------------------------------------------------------------------
+
+class CreateBlock
+{
+public:
+    CreateBlock(std::vector<nlohmann::json> &message_j_vec)
+    {
+        merkle_tree mt;
+
+        nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+        nlohmann::json to_block_j;
+        std::string fh_s;
+std::cout << "--------2: " << std::endl;
+        while (!message_j_vec.empty())
+        {
+            m_j = message_j_vec.back();
+            message_j_vec.pop_back();
+
+            std::string email_of_req = m_j["email_of_req"];
+            Crypto crypto;
+            std::string hash_email = crypto.bech32_encode_sha256(email_of_req);
+            PrevHash ph;
+            std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+            std::string hash_email_prev_hash_appended = hash_email + prev_hash;
+            std::string full_hash_of_new_peer = crypto.bech32_encode_sha256(hash_email_prev_hash_appended);
+
+            to_block_j["full_hash"] = full_hash_of_new_peer;
+            to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+            to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+            s_shptr_->push(to_block_j.dump());
+
+            entry_tx_j["full_hash"] = to_block_j["full_hash"];
+            entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+            entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+            entry_transactions_j.push_back(entry_tx_j);
+            exit_tx_j["full_hash"] = "";
+            exit_transactions_j.push_back(exit_tx_j);
+        }
+std::cout << "--------3: " << std::endl;
+        s_shptr_ = mt.calculate_root_hash(s_shptr_);
+        std::string datetime = mt.time_now();
+        std::string root_hash_data = s_shptr_->top();
+std::cout << "--------4: " << datetime << " :::: " << root_hash_data << std::endl;
+        nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+std::cout << "--------4: " << std::endl;
+        Protocol proto;
+std::cout << "--------4: " << std::endl;
+        std::string my_latest_block = proto.get_last_block_nr();
+std::cout << "--------4: " << std::endl;
+        std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+std::cout << "--------5: " << std::endl;
+        set_hash_of_new_block(block_s);
+    }
+
+    std::string get_hash_of_new_block()
+    {
+        return hash_of_block_;
+    }
+private:
+    void set_hash_of_new_block(std::string block)
+    {
+        Crypto crypto;
+        hash_of_block_ = crypto.bech32_encode(block);
+    }
+private:
+    std::shared_ptr<std::stack<std::string>> s_shptr_ = make_shared<std::stack<std::string>>();
+    std::string hash_of_block_;
+};
+
+//----------------------------------------------------------------------
+
 class p2p_session
     : public p2p_participant,
       public std::enable_shared_from_this<p2p_session>
 {
 public:
-    p2p_session(tcp::socket socket, p2p_room &room)
+    p2p_session(tcp::socket socket, p2p_room &room, MessageVec message_j_vec)
         : socket_(std::move(socket)),
-          room_(room)
+          room_(room),
+          message_j_vec_(message_j_vec)
     {
     }
 
@@ -130,6 +225,7 @@ private:
         boost::asio::async_read(socket_,
                                 boost::asio::buffer(read_msg_.data(), p2p_message::header_length),
                                 [this, self](boost::system::error_code ec, std::size_t /*length*/) {
+                                    std::cout << "ec server: " << ec << std::endl;
                                     if (!ec && read_msg_.decode_header())
                                     {
                                         do_read_body();
@@ -169,7 +265,7 @@ private:
             // process json message
             std::string str_read_msg(read_msg_.body());
             buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
-            
+
             nlohmann::json buf_j = nlohmann::json::parse(buf_);
             if (ec)
                 throw boost::system::system_error(ec); // Some other error.
@@ -457,8 +553,21 @@ private:
                                 }
                             }
 
-                            // wait 30 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-                            CreateBlock cb(message_j);
+                            // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+                            message_j_vec_.add_to_message_j_vec(message_j);
+                            
+                            if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+                            {
+                                // create block
+                            }
+                            else if (message_j_vec_.get_message_j_vec().size() == 1)
+                            {
+                                // wait 20 secs
+                                // then create block
+
+                                std::thread t(&p2p_session::get_sleep_and_create_block, this);
+                                t.detach();
+                            }
 
                             // TODO: rocksdb should be updated when the block is created
                             // so: the new peer should receive the message that the block is created
@@ -466,30 +575,31 @@ private:
 
                             // TODO: CreateBlock isn't final, the hash of the block should point to the chosen_one
 
-                            std::string hash_of_new_block = cb.get_hash_of_new_block();
+                            // std::string hash_of_new_block = cb->get_hash_of_new_block();
 
-                            if (hash_of_new_block != "")
-                            {
-                                Poco* poco = new Poco();
-                                std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
-                                delete poco;
-                                if (co_for_new_block == my_full_hash)
-                                {
-                                    // I'm the chosen one for creating the block!!!
-                                    std::cout << "I'm the coordinator for block creation!!" << std::endl;
+                            // if (hash_of_new_block != "")
+                            // {
+                            //     Poco* poco = new Poco();
+                            //     std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                            //     delete poco;
+                            //     if (co_for_new_block == my_full_hash)
+                            //     {
+                            //         // I'm the chosen one for creating the block!!!
+                            //         std::cout << "I'm the coordinator for block creation!!" << std::endl;
 
-                                    // contact co with new_block
-                                    // verify hash of block and store percentage of correspondence
-                                    // save_block
-                                    // send new_block to underlying layer
-                                }
-                                else
-                                {
-                                    // I'm NOT the chosen one for creating the block!!!
-                                    std::cout << "I'm NOT the coordinator for block creation!!" << std::endl;
-                                }
-                            }
+                            //         // contact co with new_block
+                            //         // verify hash of block and store percentage of correspondence
+                            //         // save_block
+                            //         // send new_block to underlying layer
+                            //     }
+                            //     else
+                            //     {
+                            //         // I'm NOT the chosen one for creating the block!!!
+                            //         std::cout << "I'm NOT the coordinator for block creation!!" << std::endl;
+                            //     }
+                            // }
 
+                            //delete cb;
                             //delete poco;
                             // }
                         }
@@ -558,34 +668,52 @@ private:
             {
                 std::cout << "new_peer: " << std::endl;
                 // should read the timestamp of the first new_peer request received
-                CreateBlock cb(buf_j);
-
-                Auth a;
-                std::string my_full_hash = a.get_my_full_hash();
-
-                std::string hash_of_new_block = cb.get_hash_of_new_block();
-                if (hash_of_new_block != "")
+                
+                // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+                message_j_vec_.add_to_message_j_vec(buf_j);
+                
+                if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                 {
-                    Poco* poco = new Poco();
-                    std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
-                    if (co_for_new_block == my_full_hash)
-                    {
-                        // I'm the chosen one for creating the block!!!
-                        std::cout << "I'm the chosen_one for block creation!!" << std::endl;
-
-                        // tcp.client to all chosen_ones with all new_peers
-                        // the hash block and compare hash and verify some other stuff
-                        // if ok then save block and tcp.client to all next_layer peers in your bucket
-                        // then update rocksdb
-                        // then test the whole
-                    }
-                    else
-                    {
-                        // I'm NOT the chosen one for creating the block!!!
-                        std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
-                    }
-                    delete poco;
+                    // create block
                 }
+                else if (message_j_vec_.get_message_j_vec().size() == 1)
+                {
+                    // if I'm chosen_one
+                    // wait 20 secs
+                    // then create block
+// !!!!!!!!!!!!!!!!!! chosen one
+                    std::thread t(&p2p_session::get_sleep_and_create_block, this);
+                    t.detach();
+                }
+
+
+                // Auth a;
+                // std::string my_full_hash = a.get_my_full_hash();
+
+                // std::string hash_of_new_block = cb->get_hash_of_new_block();
+                // if (hash_of_new_block != "")
+                // {
+                //     Poco* poco = new Poco();
+                //     std::string co_for_new_block = poco->FindChosenOne(hash_of_new_block);
+                //     if (co_for_new_block == my_full_hash)
+                //     {
+                //         // I'm the chosen one for creating the block!!!
+                //         std::cout << "I'm the chosen_one for block creation!!" << std::endl;
+
+                //         // tcp.client to all chosen_ones with all new_peers
+                //         // the hash block and compare hash and verify some other stuff
+                //         // if ok then save block and tcp.client to all next_layer peers in your bucket
+                //         // then update rocksdb
+                //         // then test the whole
+                //     }
+                //     else
+                //     {
+                //         // I'm NOT the chosen one for creating the block!!!
+                //         std::cout << "I'm NOT the chosen_one for block creation!!" << std::endl;
+                //     }
+                //     delete poco;
+                // }
+                // delete cb;
             }
             else if (buf_j["req"] == "update_your_blocks")
             {
@@ -602,6 +730,17 @@ private:
                 mt.save_block_to_file(block_j, block_nr);
             }
         }
+    }
+
+    void get_sleep_and_create_block()
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(20));
+
+        std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+
+        std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+        CreateBlock cb(m_j_v);
+        std::cout << "Block created!!" << std::endl;
     }
 
     std::vector<std::string> split(const std::string& str, int splitLength)
@@ -664,6 +803,9 @@ private:
 
     tcp::socket socket_;
     p2p_room &room_;
+
+    MessageVec message_j_vec_;
+
     p2p_message read_msg_;
     p2p_message_queue write_msgs_;
     std::string buf_;
@@ -690,7 +832,7 @@ private:
             [this](boost::system::error_code ec, tcp::socket socket) {
                 if (!ec)
                 {
-                    std::make_shared<p2p_session>(std::move(socket), room_)->start();
+                    std::make_shared<p2p_session>(std::move(socket), room_, mv_)->start();
                 }
 
                 do_accept();
@@ -699,6 +841,8 @@ private:
 
     tcp::acceptor acceptor_;
     p2p_room room_;
+
+    MessageVec mv_;
 };
 
 //----------------------------------------------------------------------

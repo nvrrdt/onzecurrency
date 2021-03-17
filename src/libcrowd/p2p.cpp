@@ -16,8 +16,6 @@
 
 using namespace Crowd;
 
-// https://stackoverflow.com/questions/19856665/how-to-use-vector-of-objects-in-different-files
-std::vector<std::string> CreateBlock::list_of_new_peers_;
 std::string Auth::my_full_hash_;
 
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
@@ -129,6 +127,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 exit_transactions_j.push_back(exit_tx_j);
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr->top();
+std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 std::string block_nr = "0";
                 mt.save_block_to_file(block_j, block_nr);
