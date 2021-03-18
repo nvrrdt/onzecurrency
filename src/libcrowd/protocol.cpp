@@ -185,8 +185,9 @@ std::map<std::string, std::string> Protocol::partition_in_buckets(std::string &m
                                                                                                     // based on the current state of rocksdb
     // 2 layers, layer 2: t.client({"msg": "communicate_to", "you_hash": "103", "next_hash": "104"})
 
-    Poco poco;
-    uint256_t count = poco.CountPeersFromTo(my_hash, next_hash);
+    Poco *poco = new Poco();
+    uint256_t count = poco->CountPeersFromTo(my_hash, next_hash);
+    delete poco;
 
     std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
 
@@ -279,6 +280,76 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
     return all_blocks_j.dump();
 }
 
+std::string Protocol::get_all_users_from(std::string &latest_block_peer)
+{
+    nlohmann::json all_users;
+
+    ConfigDir cd;
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+
+    try
+    {
+        if (boost::filesystem::exists(p))    // does p actually exist?
+        {
+        if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+            cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+
+        else if (boost::filesystem::is_directory(p))      // is p a directory?
+        {
+            cout << p << " is a directory containing the next:\n";
+
+            typedef std::vector<boost::filesystem::path> vec;             // store paths,
+            vec v;                                // so we can sort them later
+
+            copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+            sort(v.begin(), v.end());             // sort, since directory iteration
+                                                // is not ordered on some file systems
+
+            nlohmann::json block_j;
+            for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+            {
+                cout << "   " << *it << '\n';
+
+                std::string str = it->stem().string();
+                std::uint64_t value_this_blockchain_dir;
+                std::istringstream iss(str.substr(6,18));
+                iss >> value_this_blockchain_dir;
+                std::uint64_t value_peer;
+
+                std::istringstream isss(latest_block_peer);
+                isss >> value_peer;
+                std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
+                if (value_this_blockchain_dir >= value_peer)
+                {
+                    std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
+                    std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                    nlohmann::json contents_j = nlohmann::json::parse(contents);
+
+                    for (auto& element : contents_j["entry"])
+                    {
+                        std::string full_hash;
+                        full_hash = element["full_hash"];
+
+                        all_users.push_back(full_hash);
+                    }
+                }
+            }
+        }
+        else
+            cout << p << " exists, but is neither a regular file nor a directory\n";
+        }
+        else
+            cout << p << " does not exist\n";
+    }
+
+    catch (const boost::filesystem::filesystem_error& ex)
+    {
+        cout << ex.what() << '\n';
+    }
+
+    return all_users.dump();
+}
 // void Protocol::save_blocks_to_blockchain(std::string &msg)
 // {
 //     nlohmann::json json = nlohmann::json::parse(msg);

@@ -25,6 +25,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
         Poco* poco = new Poco();
         if (poco->TotalAmountOfPeers() <= 1)
         {
+            delete poco;
             Tcp t;
             Crypto crypto;
             Protocol proto;
@@ -143,10 +144,10 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
                 rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
+                Poco* poco = new Poco();
                 poco->Put(full_hash, rocksdb_s);
-                std::cout << "zijn we hier? " << std::endl;
-
                 delete poco;
+                std::cout << "zijn we hier? " << std::endl;
 
                 std::packaged_task<void()> task1([] {
                     Tcp t;
@@ -172,6 +173,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         }
         else
         {
+            delete poco;
             // 2 or more peers ...
             // get ip of online peer in rocksdb
             // then t.client to that peer

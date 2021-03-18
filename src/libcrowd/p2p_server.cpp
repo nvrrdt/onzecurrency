@@ -363,10 +363,11 @@ private:
 
                             room_.join(shared_from_this());
                             
+                            // update blockchains and rockdb's
                             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
                             {
                                 // TODO: upload blockchain to the requester starting from latest block
-                                // send latest block to peer
+                                // Update blockchain: send latest block to peer
                                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
                                 //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
                                 uint64_t value;
@@ -385,12 +386,32 @@ private:
                                     msg["block"] = block_j;
                                     set_resp_msg(msg.dump());
                                 }
+
+                                // Update rockdb's:
+                                // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
+                                // , then lookup those user_id's in rocksdb and send
+                                nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                                                  // maybe even a stack is better ...
+                                Poco* poco = new Poco();        // TODO need to handle the online presence of the other users!!!!!
+                                for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
+                                {
+                                    nlohmann::json msg;
+                                    msg["req"] = "update_your_rocksdb";
+                                    msg["key"] = user;
+
+                                    std::string u = user.dump();
+                                    std::string value = poco->Get(u);
+                                    msg["value"] = value;
+
+                                    set_resp_msg(msg.dump());
+                                }
+                                delete poco;
                             }
                             else if (req_latest_block > my_latest_block)
                             {
                                 // TODO: update your own blockchain
                                 nlohmann::json msg;
-                                msg["req"] = "update_my_blocks";
+                                msg["req"] = "update_my_blocks_and_rocksdb";
                                 msg["block_nr"] = my_latest_block;
                                 set_resp_msg(msg.dump());
                             }
@@ -496,14 +517,12 @@ private:
                             {
                                 // wait 20 secs
                                 // then create block
+                                // if root_hash == me as coordinator ... connect to all co's
+                                // ... see below at new_peer
 
                                 std::thread t(&p2p_session::get_sleep_and_create_block, this);
                                 t.detach();
                             }
-
-                            // wait 20 secs
-                            // then create block
-                            // if root_hash == me as coordinator ... connect to all co's
                         }
                         else
                         {
@@ -576,15 +595,16 @@ private:
                 
                 if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                 {
-                    // create block
+                    // TODO: create block
                 }
                 else if (message_j_vec_.get_message_j_vec().size() == 1)
                 {
                     // wait 20 secs
-                    // then create block
+                    // then create block --> don't forget the counter in the search for a coordinator
                     // if root_hash == me as coordinator ... connect to all co's
 // !!!!!!!!!!!!!!!!!! coordinator
-                    // TODO review the co algo above
+                    // TODO review the co if-else algo above
+                    // TODO leave room_ intro_peer en new_peer
                     std::thread t(&p2p_session::get_sleep_and_create_block, this);
                     t.detach();
                 }
@@ -602,6 +622,17 @@ private:
 
                 merkle_tree mt;
                 mt.save_block_to_file(block_j, block_nr);
+            }
+            else if (buf_j["req"] == "update_your_rocksdb")
+            {
+                std::cout << "update_your_rocksdb server" << std::endl;
+
+                std::string key_s = buf_j["key"];
+                std::string value_s = buf_j["value"];
+
+                Poco* poco = new Poco();
+                poco->Put(key_s, value_s);
+                delete poco;
             }
         }
     }

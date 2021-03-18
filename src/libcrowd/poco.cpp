@@ -11,6 +11,10 @@ Poco::Poco()
     rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
     std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
 }
+Poco::~Poco()
+{
+    delete db;
+}
 std::string Poco::Get(std::string &key)
 {
     s = db->Get(rocksdb::ReadOptions(), key, &value);

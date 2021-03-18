@@ -35,10 +35,7 @@ namespace Crowd
         std::string usersdb_folder_path = cd.GetConfigDir() + "usersdb";
     public:
         Poco();
-        ~Poco()
-        {
-            s = db->Close();
-        }
+        ~Poco();
         std::string Get(std::string &key);
         bool Put(std::string &key, std::string &value);
         bool Delete(std::string &key);

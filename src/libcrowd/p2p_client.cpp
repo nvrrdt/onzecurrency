@@ -181,9 +181,20 @@ private:
                 merkle_tree mt;
                 mt.save_block_to_file(block_j, block_nr);
             }
-            else if (buf_j["req"] == "update_my_blocks")
+            else if (buf_j["req"] == "update_your_rocksdb")
             {
-                std::cout << "update_my_blocks client" << std::endl;
+                std::cout << "update_your_rocksdb client" << std::endl;
+
+                std::string key_s = buf_j["key"];
+                std::string value_s = buf_j["value"];
+
+                Poco* poco = new Poco();
+                poco->Put(key_s, value_s);
+                delete poco;
+            }
+            else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
+            {
+                std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
                 // send blocks to peer
 
                 Protocol proto;
@@ -208,6 +219,24 @@ private:
                     msg["block"] = block_j;
                     set_resp_msg(msg.dump());
                 }
+
+                // Update rockdb's:
+                nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                                    // maybe even a stack is better ...
+                Poco* poco = new Poco();
+                for (auto& user : list_of_users_j)
+                {
+                    nlohmann::json msg;
+                    msg["req"] = "update_your_rocksdb";
+                    msg["key"] = user;
+
+                    std::string u = user.dump();
+                    std::string value = poco->Get(u);
+                    msg["value"] = value;
+
+                    set_resp_msg(msg.dump());
+                }
+                delete poco;
             }
             else if (buf_j["req"] == "new_peer")
             {
