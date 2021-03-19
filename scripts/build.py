@@ -62,7 +62,7 @@ def main():
             t.start()
 
 def ninja():
-    subprocess.call('echo xxx && cd ' + project_path("build") + \
+    subprocess.call('cd ' + project_path("build") + \
             ' && cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..' \
             ' && ninja', shell=True)
 
