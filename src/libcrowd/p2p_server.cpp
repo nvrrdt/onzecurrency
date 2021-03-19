@@ -133,7 +133,7 @@ public:
         nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
         nlohmann::json to_block_j;
         std::string fh_s;
-std::cout << "--------2: " << std::endl;
+
         while (!message_j_vec.empty())
         {
             m_j = message_j_vec.back();
@@ -159,17 +159,14 @@ std::cout << "--------2: " << std::endl;
             exit_tx_j["full_hash"] = "";
             exit_transactions_j.push_back(exit_tx_j);
         }
-std::cout << "--------3: " << std::endl;
+
         s_shptr_ = mt.calculate_root_hash(s_shptr_);
         std::string datetime = mt.time_now();
         std::string root_hash_data = s_shptr_->top();
-std::cout << "--------4: " << datetime << " :::: " << root_hash_data << std::endl;
         nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-std::cout << "--------4: " << std::endl;
         Protocol proto;
-std::cout << "--------4: " << std::endl;
         std::string my_latest_block_nr = proto.get_last_block_nr();
-std::cout << "--------4: " << std::endl;
+
         // send hash of this block with the block contents to the co's, forget save_block_to_file
         // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
@@ -177,7 +174,7 @@ std::cout << "--------4: " << std::endl;
         Poco poco;
         poco.inform_chosen_ones(my_latest_block_nr, block_j);
 
-        std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
+        //std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
 std::cout << "--------5: " << std::endl;
         set_hash_of_new_block(block_s);
     }
@@ -643,6 +640,16 @@ private:
                 Rocksy* rocksy = new Rocksy();
                 rocksy->Put(key_s, value_s);
                 delete rocksy;
+            }
+            else if (buf_j["req"] == "intro_block")
+            {
+                // intro_block
+                std::cout << "Intro_block: " << std::endl;
+            }
+            else if (buf_j["req"] == "new_block")
+            {
+                // new_block
+                std::cout << "New_block: " << std::endl;
             }
         }
     }

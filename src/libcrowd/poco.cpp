@@ -49,6 +49,8 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
     std::string key, val;
     for (auto &[key, val] : parts)
     {
+        if (key == my_full_hash) continue;
+
         Rocksy* rocksy = new Rocksy();
 
         std::string peer_id = rocksy->FindChosenOne(val); // lookup in rocksdb
