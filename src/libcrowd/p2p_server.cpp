@@ -168,16 +168,16 @@ std::cout << "--------4: " << datetime << " :::: " << root_hash_data << std::end
 std::cout << "--------4: " << std::endl;
         Protocol proto;
 std::cout << "--------4: " << std::endl;
-        std::string my_latest_block = proto.get_last_block_nr();
+        std::string my_latest_block_nr = proto.get_last_block_nr();
 std::cout << "--------4: " << std::endl;
         // send hash of this block with the block contents to the co's, forget save_block_to_file
         // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
         // send intro_block to co's
-        //Poco poco;
-        //consensus.inform_co_s(my_latest_block, block_j);
+        Poco poco;
+        poco.inform_chosen_ones(my_latest_block_nr, block_j);
 
-        std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
+        std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
 std::cout << "--------5: " << std::endl;
         set_hash_of_new_block(block_s);
     }
@@ -546,8 +546,6 @@ private:
                         // std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
                         // std::cout << "to_sign_s: " << "X" << to_verify_s << "X" << std::endl;
                         // std::cout << "signature: " << "X" << signature << "X" << std::endl;
-
-                        room_.leave(shared_from_this());
                     }
                 }
                 else
@@ -561,6 +559,8 @@ private:
                 }
 
                 delete crypto;
+
+                room_.leave(shared_from_this());
 
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
                 // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
@@ -616,6 +616,8 @@ private:
                     std::thread t(&p2p_session::get_sleep_and_create_block, this);
                     t.detach();
                 }
+
+                room_.leave(shared_from_this());
             }
             else if (buf_j["req"] == "update_your_blocks")
             {

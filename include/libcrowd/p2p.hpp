@@ -13,11 +13,6 @@
 #include "crypto.hpp"
 #include "merkle_tree.hpp"
 
-#include <atomic>
-#include <condition_variable>
-#include <thread>
-#include <chrono>
-
 #include <stack>
 #include <memory>
 
