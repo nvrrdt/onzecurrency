@@ -7,7 +7,7 @@
 
 #include <boost/array.hpp>
 
-#include "poco.hpp"
+#include "rocksy.hpp"
 #include "json.hpp"
 #include "prev_hash.hpp"
 #include "crypto.hpp"
@@ -102,8 +102,8 @@ namespace Crowd
     public:
         LookupPeer(std::string &peer_hash)
         {
-            key_ = poco_.FindChosenOne(peer_hash);
-            value_j_ = nlohmann::json::parse(poco_.Get(key_));
+            key_ = rocksy_.FindChosenOne(peer_hash);
+            value_j_ = nlohmann::json::parse(rocksy_.Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];
             server_ = value_j_["server"];
@@ -126,7 +126,7 @@ namespace Crowd
             return server_ == "true" ? true : false;
         }
     private:
-        Poco poco_;
+        Rocksy rocksy_;
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;
@@ -141,8 +141,8 @@ namespace Crowd
     public:
         LookupPeerIsServer(std::string &peer_hash)
         {
-            key_ = poco_.FindServerPeer(peer_hash);
-            value_j_ = nlohmann::json::parse(poco_.Get(key_));
+            key_ = rocksy_.FindServerPeer(peer_hash);
+            value_j_ = nlohmann::json::parse(rocksy_.Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];
             server_ = value_j_["server"];
@@ -161,7 +161,7 @@ namespace Crowd
             return pub_key_;
         }
     private:
-        Poco poco_;
+        Rocksy rocksy_;
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;

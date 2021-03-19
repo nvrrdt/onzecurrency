@@ -2,7 +2,7 @@
 
 #include "interface.hpp"
 #include "p2p.hpp"
-#include "poco.hpp"
+#include "rocksy.hpp"
 
 using namespace Crowd;
 
@@ -17,9 +17,9 @@ using namespace Crowd;
 //      * - search your upnp provider and say hello to the network
 //      */
 
-//     Poco poco;
-//     uint32_t upnp_peer_key = poco.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
-//     nlohmann::json upnp_peer_value = nlohmann::json::parse(poco.Get(upnp_peer_key));
+//     Rocksy rocksy;
+//     uint32_t upnp_peer_key = rocksy.FindUpnpPeer(static_cast<uint32_t>(std::stoul(my_user_login_hash)));
+//     nlohmann::json upnp_peer_value = nlohmann::json::parse(rocksy.Get(upnp_peer_key));
 
 //     Upnp upnp;
 //     Udp udp;

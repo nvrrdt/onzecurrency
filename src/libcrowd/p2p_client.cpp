@@ -6,7 +6,7 @@
 #include "p2p_message.hpp"
 #include "p2p.hpp"
 #include "json.hpp"
-#include "poco.hpp"
+#include "rocksy.hpp"
 #include "merkle_tree.hpp"
 
 using namespace Crowd;
@@ -188,9 +188,9 @@ private:
                 std::string key_s = buf_j["key"];
                 std::string value_s = buf_j["value"];
 
-                Poco* poco = new Poco();
-                poco->Put(key_s, value_s);
-                delete poco;
+                Rocksy* rocksy = new Rocksy();
+                rocksy->Put(key_s, value_s);
+                delete rocksy;
             }
             else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
             {
@@ -223,7 +223,7 @@ private:
                 // Update rockdb's:
                 nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                                     // maybe even a stack is better ...
-                Poco* poco = new Poco();
+                Rocksy* rocksy = new Rocksy();
                 for (auto& user : list_of_users_j)
                 {
                     nlohmann::json msg;
@@ -231,12 +231,12 @@ private:
                     msg["key"] = user;
 
                     std::string u = user.dump();
-                    std::string value = poco->Get(u);
+                    std::string value = rocksy->Get(u);
                     msg["value"] = value;
 
                     set_resp_msg(msg.dump());
                 }
-                delete poco;
+                delete rocksy;
             }
             else if (buf_j["req"] == "new_peer")
             {

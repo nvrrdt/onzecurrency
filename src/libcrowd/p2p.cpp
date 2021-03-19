@@ -4,7 +4,7 @@
 
 #include "json.hpp"
 #include "p2p.hpp"
-#include "poco.hpp"
+#include "rocksy.hpp"
 #include "crypto.hpp"
 #include "merkle_tree.hpp"
 #include "auth.hpp"
@@ -22,10 +22,10 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
     if (cred["new_peer"] == "true")
     {
-        Poco* poco = new Poco();
-        if (poco->TotalAmountOfPeers() <= 1)
+        Rocksy* rocksy = new Rocksy();
+        if (rocksy->TotalAmountOfPeers() <= 1)
         {
-            delete poco;
+            delete rocksy;
             Tcp t;
             Crypto crypto;
             Protocol proto;
@@ -144,9 +144,9 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
                 rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
-                Poco* poco = new Poco();
-                poco->Put(full_hash, rocksdb_s);
-                delete poco;
+                Rocksy* rocksy = new Rocksy();
+                rocksy->Put(full_hash, rocksdb_s);
+                delete rocksy;
                 std::cout << "zijn we hier? " << std::endl;
 
                 std::packaged_task<void()> task1([] {
@@ -173,7 +173,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         }
         else
         {
-            delete poco;
+            delete rocksy;
             // 2 or more peers ...
             // get ip of online peer in rocksdb
             // then t.client to that peer
@@ -251,7 +251,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
 
     //     std::string email_hashed = cred["email_hashed"];
     //     std::packaged_task<void()> task1([email_hashed] {
-    //         Poco p;
+    //         Rocksy r;
     //         std::string server_peer = p.FindServerPeer(email_hashed);
     //         Tcp t;
     //         t.client(server_peer, "", "", "register", "pub_key"); // server should keep connection open to be able to communicate

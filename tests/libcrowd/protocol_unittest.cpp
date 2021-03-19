@@ -4,9 +4,9 @@
 #include "p2p.hpp"
 using namespace Crowd;
 
-// class PocoT : public Poco {};
+// class RocksyT : public Rocksy {};
 
-// BOOST_FIXTURE_TEST_SUITE(DbFolderPath, PocoT)
+// BOOST_FIXTURE_TEST_SUITE(DbFolderPath, RocksyT)
 
 // // use any protected methods inside your tests
 // BOOST_AUTO_TEST_CASE(PathTest)

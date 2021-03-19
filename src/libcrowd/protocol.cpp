@@ -9,7 +9,7 @@
 
 #include "interface.hpp"
 #include "p2p.hpp"
-#include "poco.hpp"
+#include "rocksy.hpp"
 #include "configdir.hpp"
 #include "crypto.hpp"
 
@@ -185,9 +185,9 @@ std::map<std::string, std::string> Protocol::partition_in_buckets(std::string &m
                                                                                                     // based on the current state of rocksdb
     // 2 layers, layer 2: t.client({"msg": "communicate_to", "you_hash": "103", "next_hash": "104"})
 
-    Poco *poco = new Poco();
-    uint256_t count = poco->CountPeersFromTo(my_hash, next_hash);
-    delete poco;
+    Rocksy *rocksy = new Rocksy();
+    uint256_t count = rocksy->CountPeersFromTo(my_hash, next_hash);
+    delete rocksy;
 
     std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
 

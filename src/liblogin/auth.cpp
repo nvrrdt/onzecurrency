@@ -7,7 +7,7 @@
 
 #include "auth.hpp"
 #include "configdir.hpp"
-#include "poco.hpp"
+#include "rocksy.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
 #include "prev_hash.hpp"
@@ -70,9 +70,9 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     std::string prev_hash = ph.get_my_prev_hash_from_file();
     std::string my_full_hash_s = hash_email + prev_hash;
     my_full_hash_ =  crypto.bech32_encode_sha256(my_full_hash_s);
-    Poco* p = new Poco();
-    std::string database_response = p->Get(my_full_hash_);
-    delete p;
+    Rocksy* rocksy = new Rocksy();
+    std::string database_response = rocksy->Get(my_full_hash_);
+    delete rocksy;
 
     std::map<std::string, std::string> cred;
     std::string private_key;

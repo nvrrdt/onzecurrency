@@ -11,11 +11,12 @@ add_library(crowd SHARED
                      p2p_client.cpp
                      p2p_server.cpp
                      p2p.cpp
-                     poco.cpp
+                     rocksy.cpp
                      protocol.cpp
                      prev_hash.cpp
                      upnp.cpp
                      verification.cpp
+                     poco.cpp
 )
 
 target_include_directories(crowd PUBLIC
@@ -36,10 +37,11 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/merkle_tree.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_message.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/rocksy.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/random.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/prev_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)

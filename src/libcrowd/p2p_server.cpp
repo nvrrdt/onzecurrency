@@ -19,6 +19,7 @@
 #include "crypto.hpp"
 #include "prev_hash.hpp"
 #include "merkle_tree.hpp"
+#include "poco.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -169,6 +170,13 @@ std::cout << "--------4: " << std::endl;
 std::cout << "--------4: " << std::endl;
         std::string my_latest_block = proto.get_last_block_nr();
 std::cout << "--------4: " << std::endl;
+        // send hash of this block with the block contents to the co's, forget save_block_to_file
+        // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+        // send intro_block to co's
+        //Poco poco;
+        //consensus.inform_co_s(my_latest_block, block_j);
+
         std::string block_s = mt.save_block_to_file(block_j, my_latest_block);
 std::cout << "--------5: " << std::endl;
         set_hash_of_new_block(block_s);
@@ -319,10 +327,10 @@ private:
                 std::string email__prev_hash_app = email_of_req + prev_hash_req;
                 std::string full_hash_req =  crypto->bech32_encode_sha256(email__prev_hash_app);
 
-                Poco* poco = new Poco();
-                if (poco->Get(full_hash_req) == "")
+                Rocksy* rocksy = new Rocksy();
+                if (rocksy->Get(full_hash_req) == "")
                 {
-                    delete poco;
+                    delete rocksy;
 
                     nlohmann::json to_verify_j;
                     to_verify_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
@@ -343,10 +351,10 @@ private:
                         // std::cout << "signature_bin: " << "X" << signature_bin << "X" << std::endl; 
 
                         std::cout << "verified" << std::endl;
-                        Poco* poco = new Poco();
+                        Rocksy* rocksy = new Rocksy();
                         std::string to_find_co = crypto->bech32_encode_sha256(full_hash_req);
-                        std::string co_from_this_db = poco->FindChosenOne(to_find_co);
-                        delete poco;
+                        std::string co_from_this_db = rocksy->FindChosenOne(to_find_co);
+                        delete rocksy;
                         std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
                         std::cout << "co_from_req: " << co_from_req << std::endl;
                         // Do the chosen_one communicated correspond to the chosen_one lookup in db?
@@ -392,7 +400,7 @@ private:
                                 // , then lookup those user_id's in rocksdb and send
                                 nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                                                   // maybe even a stack is better ...
-                                Poco* poco = new Poco();        // TODO need to handle the online presence of the other users!!!!!
+                                Rocksy* rocksy = new Rocksy();        // TODO need to handle the online presence of the other users!!!!!
                                 for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
                                 {
                                     nlohmann::json msg;
@@ -400,12 +408,12 @@ private:
                                     msg["key"] = user;
 
                                     std::string u = user.dump();
-                                    std::string value = poco->Get(u);
+                                    std::string value = rocksy->Get(u);
                                     msg["value"] = value;
 
                                     set_resp_msg(msg.dump());
                                 }
-                                delete poco;
+                                delete rocksy;
                             }
                             else if (req_latest_block > my_latest_block)
                             {
@@ -455,13 +463,13 @@ private:
                                         << val        // string's value
                                         << std::endl;
                                 
-                                Poco* poco = new Poco();
+                                Rocksy* rocksy = new Rocksy();
 
-                                std::string peer_id = poco->FindChosenOne(val); // lookup in rocksdb
-                                nlohmann::json value_j = nlohmann::json::parse(poco->Get(peer_id));
+                                std::string peer_id = rocksy->FindChosenOne(val); // lookup in rocksdb
+                                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(peer_id));
                                 std::string peer_ip = value_j["ip"];
 
-                                delete poco;
+                                delete rocksy;
 
                                 // if peer ip == mother ip --> send new_peer to kids
                                 // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
@@ -482,13 +490,13 @@ private:
                                     std::string key2, val2;
                                     for (auto &[key2, val2] : parts_underlying)
                                     {
-                                        Poco* poco = new Poco();
+                                        Rocksy* rocksy = new Rocksy();
 
-                                        std::string peer_id = poco->FindChosenOne(val2); // lookup in rocksdb
-                                        nlohmann::json value_j = nlohmann::json::parse(poco->Get(peer_id));
+                                        std::string peer_id = rocksy->FindChosenOne(val2); // lookup in rocksdb
+                                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(peer_id));
                                         std::string underlying_peer_ip = value_j["ip"];
 
-                                        delete poco;
+                                        delete rocksy;
 
                                         std::cout << "Non-connected underlying peers - client" << std::endl;
                                         // message to non-connected peers
@@ -544,12 +552,12 @@ private:
                 }
                 else
                 {
-                    delete poco;
+                    delete rocksy;
 
                     // user exists already in rocksdb
                     // respond with user_exists
 
-                    std::cout << "!poco->Get(full_hash_req) == \"\" " << std::endl;
+                    std::cout << "!rocksy->Get(full_hash_req) == \"\" " << std::endl;
                 }
 
                 delete crypto;
@@ -630,9 +638,9 @@ private:
                 std::string key_s = buf_j["key"];
                 std::string value_s = buf_j["value"];
 
-                Poco* poco = new Poco();
-                poco->Put(key_s, value_s);
-                delete poco;
+                Rocksy* rocksy = new Rocksy();
+                rocksy->Put(key_s, value_s);
+                delete rocksy;
             }
         }
     }

@@ -9,7 +9,7 @@ add_executable(tests_crowd main.cpp
                            configdir_unittest.cpp
                            interface_unittest.cpp
                            p2p_unittest.cpp
-                           poco_unittest.cpp
+                           rocksy_unittest.cpp
                            protocol_unittest.cpp
                            verification_unittest.cpp
 )
