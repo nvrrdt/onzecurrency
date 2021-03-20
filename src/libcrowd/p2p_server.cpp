@@ -439,7 +439,10 @@ private:
 
                             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                             message_j["req"] = "new_peer";
-                            message_j["email_of_req"] = email_of_req;
+                            // message_j["email_of_req"] = email_of_req; // new_peers don't need to knwo this
+                            email_prev_hash_concatenated = email_of_req + prev_hash.get_prev_hash_from_the_last_block();
+                            full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
+                            message_j["full_hash_req"] = full_hash_req; // refreshed full_hash_req
                             message_j["prev_hash_of_req"] = prev_hash_req;
                             message_j["full_hash_co"] = my_full_hash;
                             message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
@@ -534,6 +537,10 @@ private:
                                 std::thread t(&p2p_session::get_sleep_and_create_block, this);
                                 t.detach();
                             }
+
+                            // TODO wait for flag when a new block is communicated, then communicate its full_hash to the new peer
+                            // wait or flag
+                            // room_.deliver(full_hash) --> client should save full_hash
                         }
                         else
                         {
@@ -662,6 +669,13 @@ private:
             {
                 // intro_block
                 std::cout << "Intro_block: " << std::endl;
+
+                // Compare the block from the coordinator with this block
+                // Hash the block if correct
+                // tcp.client to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
+                // Communicate hash to all
+                // Then inform your underlying network
+                // Put block in waiting list until it's the only block in the chain --> that's a nice idea, how much disk space does it take?
             }
             else if (buf_j["req"] == "new_block")
             {
