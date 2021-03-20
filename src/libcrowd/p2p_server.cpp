@@ -361,18 +361,17 @@ private:
                         // std::cout << "co_from_req: " << co_from_req << std::endl;
                         
                         // if (my_full_hash == co_from_this_server) update and recalculate full_hash!!! and create and communicate full_hash
-                        // else room_.deliver full_hash_req
+                        // else room_.deliver ip of co_from_this_server
                         Auth a;
                         std::string my_full_hash = a.get_my_full_hash();
                         if (my_full_hash == co_from_this_server)
                         {
-                            
                             std::cout << "my_full_hash: " << my_full_hash << std::endl;
 
                             Protocol proto;
                             std::string my_latest_block = proto.get_last_block_nr();
-                            std::cout << "My latest block: " << my_latest_block << std::endl;
-                            std::cout << "Req latest block: " << req_latest_block << std::endl;
+                            // std::cout << "My latest block: " << my_latest_block << std::endl;
+                            // std::cout << "Req latest block: " << req_latest_block << std::endl;
 
                             room_.join(shared_from_this());
                             
@@ -463,10 +462,7 @@ private:
                             std::string key, val;
                             for (auto &[key, val] : parts)
                             {
-                                std::cout << "key: " << key        // string (key)
-                                        << ", val: "  
-                                        << val        // string's value
-                                        << std::endl;
+                                // std::cout << "key: " << key << ", val: " << val << std::endl;
                                 
                                 Rocksy* rocksy = new Rocksy();
 
@@ -476,7 +472,7 @@ private:
 
                                 delete rocksy;
 
-                                // if peer ip == mother ip --> send new_peer to kids
+                                // if peer ip == this server's ip --> send new_peer to kids
                                 // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
                                 // --> if more then t.client to same layer co
                                 // in bucket --> createblock --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
@@ -524,7 +520,9 @@ private:
                             
                             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                             {
-                                // create block
+                                // Create block
+                                std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+                                CreateBlock cb(m_j_v);
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
@@ -620,7 +618,9 @@ private:
                 
                 if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                 {
-                    // TODO: create block
+                    // Create block
+                    std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+                    CreateBlock cb(m_j_v);
                 }
                 else if (message_j_vec_.get_message_j_vec().size() == 1)
                 {
