@@ -6,7 +6,6 @@ find_package(Threads)
 add_library(crowd SHARED
                      configdir.cpp
                      block.cpp
-                     interface.cpp
                      ip_peers.cpp
                      p2p_client.cpp
                      p2p_server.cpp
@@ -31,7 +30,6 @@ target_include_directories(crowd PUBLIC
 
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/configdir.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/interface.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/ip_peers.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/merkle_tree.hpp"
