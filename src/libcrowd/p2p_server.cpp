@@ -538,8 +538,8 @@ private:
                                 t.detach();
                             }
 
-                            // TODO wait for flag when a new block is communicated, then communicate its full_hash to the new peer
-                            // wait or flag
+                            // TODO wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
+                            // wait for flag
                             // room_.deliver(full_hash) --> client should save full_hash
                         }
                         else
