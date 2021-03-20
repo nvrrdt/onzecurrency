@@ -627,9 +627,6 @@ private:
                     // wait 20 secs
                     // then create block --> don't forget the counter in the search for a coordinator
                     // if root_hash == me as coordinator ... connect to all co's
-// !!!!!!!!!!!!!!!!!! coordinator
-                    // TODO review the co if-else algo above
-                    // TODO leave room_ intro_peer en new_peer
                     std::thread t(&p2p_session::get_sleep_and_create_block, this);
                     t.detach();
                 }
