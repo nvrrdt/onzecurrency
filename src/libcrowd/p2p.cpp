@@ -44,7 +44,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             message_j["email_of_req"] = cred["email"];
             message_j["hash_of_email"] = cred["email_hashed"]; // = id requester
             message_j["prev_hash_of_req"] = cred["prev_hash"];
-            message_j["full_hash_co"] = "0";
+            message_j["full_hash_co"] = "0"; // TODO proto.get_last_prev_hash()
             message_j["latest_block"] = proto.get_last_block_nr();
             
             message_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
@@ -156,6 +156,11 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 // Run task on new thread.
                 std::thread t1(std::move(task1));
                 t1.join();
+            }
+            else if (t.get_ip_new_co() != "")
+            {
+                std::string ip = t.get_ip_new_co();
+                t.client(srv_ip, ip, peer_hash, message);
             }
             else
             {

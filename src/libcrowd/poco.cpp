@@ -65,3 +65,8 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         tcp.client(srv_ip, peer_ip, peer_hash, message);
     }
 }
+
+// the block still needs to be hashed and the hashed sent
+// at receiver of intro_block side the block needs to be compared withe the list of new_peers the receiver has
+// we need to verify what decides the coordinator role, the hash is based on the txs or the complete block?
+// who decides you're the coordinator? verify again!

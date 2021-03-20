@@ -44,7 +44,7 @@ std::string PrevHash::get_my_prev_hash_from_file()
     return ph;
 }
 
-std::string PrevHash::get_last_prev_hash_from_blocks()
+std::string PrevHash::calculate_last_prev_hash_from_blocks()
 {
     std::string prev_hash;
 
@@ -96,9 +96,6 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
         cout << ex.what() << '\n';
     }
 
-
-
-
     // if (boost::filesystem::exists(cd.GetConfigDir() + "blockchain"))
     // {
     //     boost::filesystem::path p(cd.GetConfigDir() + "blockchain");
@@ -128,6 +125,52 @@ std::string PrevHash::get_last_prev_hash_from_blocks()
     // {
     //     std::cout << "Prev_hash not found in blockchain!!" << std::endl;
     // }
+
+    return prev_hash;
+}
+
+std::string PrevHash::get_prev_hash_from_the_last_block()
+{
+    std::string prev_hash;
+
+    ConfigDir cd;
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+
+    try
+    {
+        if (boost::filesystem::exists(p))    // does p actually exist?
+        {
+        if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+            cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+
+        else if (boost::filesystem::is_directory(p))      // is p a directory?
+        {
+            cout << p << " is a directory containing the next:\n";
+
+            typedef std::vector<boost::filesystem::path> vec;             // store paths,
+            vec v;                                // so we can sort them later
+
+            copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+            sort(v.begin(), v.end());             // sort, since directory iteration
+                                                // is not ordered on some file systems
+
+            std::ifstream stream(v.end()->string(), std::ios::in | std::ios::binary);
+            std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+            nlohmann::json contents_j = nlohmann::json::parse(contents);
+            prev_hash = contents_j["prev_hash"];
+        }
+        else
+            cout << p << " exists, but is neither a regular file nor a directory\n";
+        }
+        else
+            cout << p << " does not exist\n";
+    }
+
+    catch (const boost::filesystem::filesystem_error& ex)
+    {
+        cout << ex.what() << '\n';
+    }
 
     return prev_hash;
 }

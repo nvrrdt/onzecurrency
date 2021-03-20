@@ -242,6 +242,12 @@ private:
             {
                 //
             }
+            else if (buf_j["req"] == "new_co")
+            {
+                // send flag to start_p2p function
+                std::string peer_ip = buf_j["ip_co"];
+                t.set_ip_new_co(peer_ip);
+            }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }

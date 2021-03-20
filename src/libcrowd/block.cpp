@@ -179,7 +179,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
         {
             std::cout << "Directory not empty" << std::endl;
             PrevHash ph;
-            block_j["prev_hash"] = ph.get_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
+            block_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_s = block_j.dump();
 
             uint32_t first_chars = 11 - latest_block.length();

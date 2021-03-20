@@ -143,7 +143,7 @@ public:
             Crypto crypto;
             std::string hash_email = crypto.bech32_encode_sha256(email_of_req);
             PrevHash ph;
-            std::string prev_hash = ph.get_last_prev_hash_from_blocks();
+            std::string prev_hash = ph.calculate_last_prev_hash_from_blocks(); /// !!!
             std::string hash_email_prev_hash_appended = hash_email + prev_hash;
             std::string full_hash_of_new_peer = crypto.bech32_encode_sha256(hash_email_prev_hash_appended);
 
@@ -176,7 +176,7 @@ public:
 
         //std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
 std::cout << "--------5: " << std::endl;
-        set_hash_of_new_block(block_s);
+        //set_hash_of_new_block(block_s);
     }
 
     std::string get_hash_of_new_block()
@@ -321,8 +321,9 @@ private:
                 std::string req_ip = buf_j["ip"];
 
                 Crypto* crypto = new Crypto();
-                std::string email__prev_hash_app = email_of_req + prev_hash_req;
-                std::string full_hash_req =  crypto->bech32_encode_sha256(email__prev_hash_app);
+                PrevHash prev_hash;
+                std::string email_prev_hash_concatenated = email_of_req + prev_hash.get_prev_hash_from_the_last_block();
+                std::string full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
 
                 Rocksy* rocksy = new Rocksy();
                 if (rocksy->Get(full_hash_req) == "")
@@ -348,17 +349,24 @@ private:
                         // std::cout << "signature_bin: " << "X" << signature_bin << "X" << std::endl; 
 
                         std::cout << "verified" << std::endl;
+
+                        // if it's mother peer who has been contacted then lookup chosen_one and communicate that co
+                        // then room_.leave()
+                        // if co then updates ...
+
                         Rocksy* rocksy = new Rocksy();
-                        std::string to_find_co = crypto->bech32_encode_sha256(full_hash_req);
-                        std::string co_from_this_db = rocksy->FindChosenOne(to_find_co);
+                        std::string co_from_this_server = rocksy->FindChosenOne(full_hash_req);
                         delete rocksy;
-                        std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
-                        std::cout << "co_from_req: " << co_from_req << std::endl;
-                        // Do the chosen_one communicated correspond to the chosen_one lookup in db?
-                        if (co_from_this_db == co_from_req || co_from_req == "0")
+                        // std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
+                        // std::cout << "co_from_req: " << co_from_req << std::endl;
+                        
+                        // if (my_full_hash == co_from_this_server) update and recalculate full_hash!!! and create and communicate full_hash
+                        // else room_.deliver full_hash_req
+                        Auth a;
+                        std::string my_full_hash = a.get_my_full_hash();
+                        if (my_full_hash == co_from_this_server)
                         {
-                            Auth a;
-                            std::string my_full_hash = a.get_my_full_hash();
+                            
                             std::cout << "my_full_hash: " << my_full_hash << std::endl;
 
                             Protocol proto;
@@ -531,8 +539,20 @@ private:
                         }
                         else
                         {
-                            // Req does't yet exist in rocksdb or there's another chosen one, reply with error
-                            std::cerr << "ERROR: no full_hash_req was sent or chosen_one is someone else!" << std::endl;
+                            // There's another chosen_one, reply with the correct chosen_one
+                            std::cout << "Chosen_one is someone else!" << std::endl;
+
+                            // room_.deliver() co_from_this_server with new_co request
+                            nlohmann::json message_j;
+                            message_j["req"] = "new_co";
+
+                            Rocksy* rocksy = new Rocksy();
+                            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(co_from_this_server));
+                            std::string peer_ip = value_j["ip"];
+                            delete rocksy;
+
+                            message_j["ip_co"] = peer_ip;
+                            set_resp_msg(message_j.dump());
                         }
                     }
                     else

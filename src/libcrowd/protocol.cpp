@@ -7,7 +7,6 @@
 
 #include "json.hpp"
 
-#include "interface.hpp"
 #include "p2p.hpp"
 #include "rocksy.hpp"
 #include "configdir.hpp"

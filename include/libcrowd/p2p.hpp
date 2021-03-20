@@ -53,8 +53,17 @@ namespace Crowd
         {
             return close_client_;
         }
+        void set_ip_new_co(std::string &ip)
+        {
+            ip_new_co_ = ip;
+        }
+        std::string get_ip_new_co()
+        {
+            return ip_new_co_;
+        }
     private:
         bool close_client_;
+        std::string ip_new_co_;
     };
 
     class Upnp
