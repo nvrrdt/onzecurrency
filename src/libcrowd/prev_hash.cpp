@@ -155,7 +155,9 @@ std::string PrevHash::get_prev_hash_from_the_last_block()
             sort(v.begin(), v.end());             // sort, since directory iteration
                                                 // is not ordered on some file systems
 
-            std::ifstream stream(v.end()->string(), std::ios::in | std::ios::binary);
+            uint64_t n = v.size();
+
+            std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
             std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
             nlohmann::json contents_j = nlohmann::json::parse(contents);
             prev_hash = contents_j["prev_hash"];

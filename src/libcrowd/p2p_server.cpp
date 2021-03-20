@@ -139,15 +139,9 @@ public:
             m_j = message_j_vec.back();
             message_j_vec.pop_back();
 
-            std::string email_of_req = m_j["email_of_req"];
-            Crypto crypto;
-            std::string hash_email = crypto.bech32_encode_sha256(email_of_req);
-            PrevHash ph;
-            std::string prev_hash = ph.calculate_last_prev_hash_from_blocks(); /// !!!
-            std::string hash_email_prev_hash_appended = hash_email + prev_hash;
-            std::string full_hash_of_new_peer = crypto.bech32_encode_sha256(hash_email_prev_hash_appended);
+            std::string full_hash_req = m_j["full_hash_req"];
 
-            to_block_j["full_hash"] = full_hash_of_new_peer;
+            to_block_j["full_hash"] = full_hash_req;
             to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
             to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
             s_shptr_->push(to_block_j.dump());
