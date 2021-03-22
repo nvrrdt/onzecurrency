@@ -134,10 +134,9 @@ public:
         nlohmann::json to_block_j;
         std::string fh_s;
 
-        while (!message_j_vec.empty())
+        for (int i = 0; i < message_j_vec.size(); i++)
         {
-            m_j = message_j_vec.back();
-            message_j_vec.pop_back();
+            m_j = message_j_vec[i];
 
             std::string full_hash_req = m_j["full_hash_req"];
 
@@ -170,7 +169,32 @@ public:
 
         //std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
 std::cout << "--------5: " << std::endl;
-        //set_hash_of_new_block(block_s);
+        std::string block_s = block_j.dump();
+        set_hash_of_new_block(block_s);
+
+        // TODO intro_peer is doesn't know its full_hash until new_block is send
+        // but the other users don't know the whereabouts of intro_peer
+        // wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
+        // wait for flag
+        // tcp.client(full_hash) --> client should save full_hash
+
+        for (int i = 0; i < message_j_vec.size(); i++)
+        {
+            m_j = message_j_vec[i];
+            nlohmann::json msg_j;
+            msg_j["req"] = "your_full_hash";
+            msg_j["full_hash"] = m_j["full_hash_req"];
+            msg_j["block"] = block_s;
+            msg_j["hash_of_block"] = get_hash_of_new_block();
+
+            std::string srv_ip = "";
+            std::string peer_ip = m_j["ip"];
+            std::string peer_hash = "";
+            std::string msg_s = msg_j.dump();
+            
+            Tcp tcp;
+            tcp.client(srv_ip, peer_ip, peer_hash, msg_s);
+        }
     }
 
     std::string get_hash_of_new_block()
@@ -536,12 +560,6 @@ private:
                                 std::thread t(&p2p_session::get_sleep_and_create_block, this);
                                 t.detach();
                             }
-
-                            // TODO intro_peer is doesn't know its full_hash until new_block is send
-                            // but the other users don't know the whereabouts of intro_peer
-                            // wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
-                            // wait for flag
-                            // room_.deliver(full_hash) --> client should save full_hash
                         }
                         else
                         {
@@ -754,7 +772,7 @@ private:
                                      }
                                  });
     }
-
+    
     tcp::socket socket_;
     p2p_room &room_;
 

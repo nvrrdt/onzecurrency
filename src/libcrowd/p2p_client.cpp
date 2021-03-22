@@ -248,6 +248,12 @@ private:
                 std::string peer_ip = buf_j["ip_co"];
                 t.set_ip_new_co(peer_ip);
             }
+            else if (buf_j["req"] == "your_full_hash")
+            {
+                // my full hash
+                std::string full_hash = buf_j["full_hash"];
+                std::cout << "Client's full_hash: " << full_hash << std::endl;
+            }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }
