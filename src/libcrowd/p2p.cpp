@@ -98,6 +98,24 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
             message_j["ip"] = ip_mother_peer;
             std::string peer_hash = "";
+
+            rocksdb_j["version"] = "O.1";
+            rocksdb_j["ip"] = ip_mother_peer;
+            rocksdb_j["server"] = true;
+            rocksdb_j["fullnode"] = true;
+            rocksdb_j["hash_email"] = message_j["hash_of_email"];
+            rocksdb_j["prev_hash"] = cred["prev_hash"];
+            std::string hash_email = cred["email_hashed"];
+            std::string prev_hash = cred["prev_hash"];
+            std::string email_prev_hash_app = hash_email + prev_hash;
+            std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
+            rocksdb_j["full_hash"] = full_hash;
+            rocksdb_j["block_nr"] = proto.get_last_block_nr();
+            std::cout << "get last block number from the first block: " << rocksdb_j["block_nr"] << std::endl;
+            rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
+            rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
+
+            message_j["rocksdb"] = rocksdb_j;
             std::string message = message_j.dump();
             t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer
 
@@ -106,11 +124,6 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 std::cout << "Connection was closed, probably no server reachable!" << std::endl;
 
                 // you are the only peer and can create a block
-
-                std::string hash_email = cred["email_hashed"];
-                std::string prev_hash = cred["prev_hash"];
-                std::string email_prev_hash_app = hash_email + prev_hash;
-                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
 
                 to_block_j["full_hash"] = full_hash;
                 to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
@@ -130,19 +143,10 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 std::string root_hash_data = s_shptr->top();
 std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                std::string block_nr = "0";
+                std::string block_nr = proto.get_last_block_nr();
                 mt.save_block_to_file(block_j, block_nr);
 
                 // Update rocksdb
-                rocksdb_j["version"] = "O.1";
-                rocksdb_j["ip"] = ip_mother_peer;
-                rocksdb_j["server"] = true;
-                rocksdb_j["fullnode"] = true;
-                rocksdb_j["hash_email"] = message_j["hash_of_email"];
-                rocksdb_j["salt"] = message_j["salt_of_req"];
-                rocksdb_j["block"] = block_nr;
-                rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
-                rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
                 Rocksy* rocksy = new Rocksy();
                 rocksy->Put(full_hash, rocksdb_s);

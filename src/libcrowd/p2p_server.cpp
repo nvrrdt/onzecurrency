@@ -130,7 +130,7 @@ public:
     {
         merkle_tree mt;
 
-        nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
+        nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
         nlohmann::json to_block_j;
         std::string fh_s;
 
@@ -305,7 +305,7 @@ private:
                 // process buf_j["hash_of_req"] to find ip of the peer who should update you
                 std::string co_from_req = buf_j["full_hash_co"];
                 std::string email_of_req = buf_j["email_of_req"];
-                std::string prev_hash_req = buf_j["prev_hash_of_req"];
+                // std::string prev_hash_req = buf_j["prev_hash_of_req"];
                 std::string ecdsa_pub_key_s = buf_j["ecdsa_pub_key"];
                 std::string rsa_pub_key = buf_j["rsa_pub_key"];
                 //std::cout << "1p: " << buf_j.dump() << std::endl;
@@ -316,7 +316,8 @@ private:
 
                 Crypto* crypto = new Crypto();
                 PrevHash prev_hash;
-                std::string email_prev_hash_concatenated = email_of_req + prev_hash.get_prev_hash_from_the_last_block();
+                std::string real_prev_hash_req = prev_hash.get_prev_hash_from_the_last_block();
+                std::string email_prev_hash_concatenated = email_of_req + real_prev_hash_req;
                 std::string full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
 
                 Rocksy* rocksy = new Rocksy();
@@ -433,11 +434,11 @@ private:
 
                             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                             message_j["req"] = "new_peer";
-                            // message_j["email_of_req"] = email_of_req; // new_peers don't need to knwo this
-                            email_prev_hash_concatenated = email_of_req + prev_hash.get_prev_hash_from_the_last_block();
+                            // message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
+                            email_prev_hash_concatenated = email_of_req + real_prev_hash_req;
                             full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
                             message_j["full_hash_req"] = full_hash_req; // refreshed full_hash_req
-                            message_j["prev_hash_of_req"] = prev_hash_req;
+                            message_j["prev_hash_of_req"] = real_prev_hash_req;
                             message_j["full_hash_co"] = my_full_hash;
                             message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                             message_j["rsa_pub_key"] = rsa_pub_key;
@@ -512,6 +513,10 @@ private:
                                 }
                             }
 
+                            // Update rocksdb
+                            message_j["rocksdb"]["prev_hash"] = real_prev_hash_req;
+                            message_j["rocksdb"]["full_hash"] = full_hash_req;
+
                             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                             message_j_vec_.add_to_message_j_vec(message_j);
                             
@@ -532,7 +537,9 @@ private:
                                 t.detach();
                             }
 
-                            // TODO wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
+                            // TODO intro_peer is doesn't know its full_hash until new_block is send
+                            // but the other users don't know the whereabouts of intro_peer
+                            // wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
                             // wait for flag
                             // room_.deliver(full_hash) --> client should save full_hash
                         }
