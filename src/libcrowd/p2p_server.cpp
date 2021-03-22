@@ -174,8 +174,6 @@ std::cout << "--------5: " << std::endl;
 
         // TODO intro_peer is doesn't know its full_hash until new_block is send
         // but the other users don't know the whereabouts of intro_peer
-        // wait for flag when a new_block is communicated, then communicate its full_hash to the new peer
-        // wait for flag
         // tcp.client(full_hash) --> client should save full_hash
 
         for (int i = 0; i < message_j_vec.size(); i++)
