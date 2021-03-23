@@ -698,10 +698,11 @@ private:
                 std::string prev_hash_coordinator = buf_j["prev_hash"];
 
                 std::vector<nlohmann::json> message_j_vec_size_as_coordinator;
+                std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
 
                 for(int i = 0; i < block_size_coordinator; i++)
                 {
-                    message_j_vec_size_as_coordinator.push_back(message_j_vec_[i]);
+                    message_j_vec_size_as_coordinator.push_back(m_j_v[i]);
                 }
 
                 merkle_tree mt;
@@ -734,7 +735,9 @@ private:
                 std::string root_hash_data = s_shptr->top();
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 std::string block_s = block_j.dump();
+                Crypto* crypto = new Crypto;
                 std::string prev_hash_chosen_one = crypto->bech32_encode_sha256(block_s);
+                delete crypto;
 
                 if (prev_hash_coordinator == prev_hash_chosen_one)
                 {
@@ -742,10 +745,10 @@ private:
 
                     // Is the coordinator the truthful real coordinator for this block
 
-                    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"]
+                    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
                     Rocksy* rocksy = new Rocksy;
-                    std::string full_hash_coord_from_this_server = rocksy->FindChosenOne(prev_hash_coordinator)
-                    delete rocksy
+                    std::string full_hash_coord_from_this_server = rocksy->FindChosenOne(prev_hash_coordinator);
+                    delete rocksy;
                     if (full_hash_coord_from_coord == full_hash_coord_from_this_server)
                     {
                         std::cout << "Successful comparison of coordinator full_hashes" << std::endl;
