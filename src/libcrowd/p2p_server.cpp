@@ -739,14 +739,28 @@ private:
                 if (prev_hash_coordinator == prev_hash_chosen_one)
                 {
                     std::cout << "Successful comparison of prev_hashes" << std::endl;
+
+                    // Is the coordinator the truthful real coordinator for this block
+
+                    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"]
+                    Rocksy* rocksy = new Rocksy;
+                    std::string full_hash_coord_from_this_server = rocksy->FindChosenOne(prev_hash_coordinator)
+                    delete rocksy
+                    if (full_hash_coord_from_coord == full_hash_coord_from_this_server)
+                    {
+                        std::cout << "Successful comparison of coordinator full_hashes" << std::endl;
+
+                        // TODO then tcp.client() to all calculated other chosen_ones
+                    }
+                    else
+                    {
+                        std::cout << "Unsuccessful comparison of coordinator full_hashes" << std::endl;
+                    }
                 }
                 else
                 {
                     std::cout << "Unsuccessful comparison of prev_hashes" << std::endl;
                 }
-
-                // now tcp.client() to all calculated other chosen_ones
-                
             }
             else if (buf_j["req"] == "new_block")
             {
