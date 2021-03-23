@@ -29,6 +29,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         message_j["req"] = "intro_block";
         message_j["latest_block_nr"] = my_latest_block_nr;
         message_j["block"] = block_j;
+        message_j["prev_hash"] = hash_of_block;
         message_j["full_hash_coord"] = my_full_hash;
 
         std::string k, v;
@@ -39,6 +40,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
 
         to_sign_j["latest_block_nr"] = my_latest_block_nr;
         to_sign_j["block"] = block_j;
+        to_sign_j["prev_hash"] = hash_of_block;
         to_sign_j["full_hash_coord"] = my_full_hash;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         std::string to_sign_s = to_sign_j.dump();

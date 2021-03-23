@@ -693,6 +693,60 @@ private:
                 // Communicate hash to all
                 // Then inform your underlying network
                 // Put block in waiting list until it's the only block in the chain --> that's a nice idea, how much disk space does it take?
+
+                ssize_t block_size_coordinator = buf_j["block"]["entry"].size();
+                std::string prev_hash_coordinator = buf_j["prev_hash"];
+
+                std::vector<nlohmann::json> message_j_vec_size_as_coordinator;
+
+                for(int i = 0; i < block_size_coordinator; i++)
+                {
+                    message_j_vec_size_as_coordinator.push_back(message_j_vec_[i]);
+                }
+
+                merkle_tree mt;
+
+                nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                nlohmann::json to_block_j;
+                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+
+                for (int i = 0; i < message_j_vec_size_as_coordinator.size(); i++)
+                {
+                    m_j = message_j_vec_size_as_coordinator[i];
+
+                    std::string full_hash_req = m_j["full_hash_req"];
+
+                    to_block_j["full_hash"] = full_hash_req;
+                    to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+                    to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                    s_shptr->push(to_block_j.dump());
+
+                    entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                    entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                    entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                    entry_transactions_j.push_back(entry_tx_j);
+                    exit_tx_j["full_hash"] = "";
+                    exit_transactions_j.push_back(exit_tx_j);
+                }
+
+                s_shptr = mt.calculate_root_hash(s_shptr);
+                std::string datetime = mt.time_now();
+                std::string root_hash_data = s_shptr->top();
+                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                std::string block_s = block_j.dump();
+                std::string prev_hash_chosen_one = crypto->bech32_encode_sha256(block_s);
+
+                if (prev_hash_coordinator == prev_hash_chosen_one)
+                {
+                    std::cout << "Successful comparison of prev_hashes" << std::endl;
+                }
+                else
+                {
+                    std::cout << "Unsuccessful comparison of prev_hashes" << std::endl;
+                }
+
+                // now tcp.client() to all calculated other chosen_ones
+                
             }
             else if (buf_j["req"] == "new_block")
             {
