@@ -35,7 +35,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         std::string k, v;
         for (auto &[k, v] : parts)
         {
-            message_j[k] = v;
+            message_j["chosen_ones"][k] = v;
         }
 
         to_sign_j["latest_block_nr"] = my_latest_block_nr;
