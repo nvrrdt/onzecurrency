@@ -753,7 +753,42 @@ private:
                     {
                         std::cout << "Successful comparison of coordinator full_hashes" << std::endl;
 
-                        // TODO then tcp.client() to all calculated other chosen_ones
+                        // then tcp.client() to all calculated other chosen_ones
+                        // this is in fact the start of the consensus algorithm
+                        // you don't need full consensus in order to create a succesful block
+                        // but full consensus improves your chances of course greatly
+                        nlohmann::json chosen_ones = buf_j["chosen_ones"];
+                        Auth a;
+                        std::string my_full_hash = a.get_my_full_hash();
+
+                        int j;
+
+                        for (int i = 0; i < chosen_ones.size(); i++)
+                        {
+                            if (chosen_ones[i] == my_full_hash)
+                            {
+                                j = i;
+                            }
+                        }
+
+                        for (int i = 0; i < chosen_ones.size(); i++)
+                        {
+                            if (i > j)
+                            {
+                                std::string srv_ip = "";
+                                std::string c_one = chosen_ones[i];
+                                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
+                                std::string peer_ip = value_j["ip"];
+                                std::string peer_hash = "";
+                                nlohmann::json msg_j;
+                                msg_j["req"] = "hash_comparison";
+                                msg_j["hash"] = prev_hash_chosen_one;
+                                std::string msg_s = msg_j.dump();
+
+                                Tcp tcp;
+                                tcp.client(srv_ip, peer_ip, peer_hash, msg_s);
+                            }
+                        }
                     }
                     else
                     {

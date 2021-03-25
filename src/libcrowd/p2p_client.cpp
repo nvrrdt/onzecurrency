@@ -254,6 +254,11 @@ private:
                 std::string full_hash = buf_j["full_hash"];
                 std::cout << "Client's full_hash: " << full_hash << std::endl;
             }
+            else if (buf_j["req"] = "hash_comparison")
+            {
+                // compare the received hash
+                std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+            }
 
             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
         }
