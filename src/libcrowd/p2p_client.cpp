@@ -8,6 +8,8 @@
 #include "json.hpp"
 #include "rocksy.hpp"
 #include "merkle_tree.hpp"
+#include "create_block.hpp"
+#include "message_vec.hpp"
 
 using namespace Crowd;
 using boost::asio::ip::tcp;
@@ -239,8 +241,29 @@ private:
             }
             else if (buf_j["req"] == "new_peer")
             {
+                // TODO there are 2 new_peer functions that need to be the same, so put them in one function somewhere
+
                 // new_peer
                 std::cout << "new_peer: " << std::endl;
+                // should read the timestamp of the first new_peer request received
+                
+                // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+                message_j_vec_.add_to_message_j_vec(buf_j);
+                
+                if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+                {
+                    // Create block
+                    std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+                    CreateBlock cb(m_j_v);
+                }
+                else if (message_j_vec_.get_message_j_vec().size() == 1)
+                {
+                    // wait 20 secs
+                    // then create block --> don't forget the counter in the search for a coordinator
+                    // if root_hash == me as coordinator ... connect to all co's
+                    std::thread t(&p2p_client::get_sleep_and_create_block, this);
+                    t.detach();
+                }
             }
             else if (buf_j["req"] == "new_co")
             {
@@ -324,6 +347,17 @@ private:
         return ret;
     }
 
+    void get_sleep_and_create_block() // TODO in p2p_server is also thsi function, they should be merged as they need to be the same
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(20));
+
+        std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+
+        std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+        CreateBlock cb(m_j_v);
+        std::cout << "Block created!!" << std::endl;
+    }
+
 private:
     boost::asio::io_context &io_context_;
     tcp::socket socket_;
@@ -334,6 +368,8 @@ private:
     std::string peer_hash_;
 
     bool close_client_;
+
+    MessageVec message_j_vec_;
 
     friend struct ::unit_test::FooTester;
 };

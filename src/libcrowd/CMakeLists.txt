@@ -16,6 +16,8 @@ add_library(crowd SHARED
                      upnp.cpp
                      verification.cpp
                      poco.cpp
+                     create_block.cpp
+                     message_vec.cpp
 )
 
 target_include_directories(crowd PUBLIC
@@ -40,6 +42,8 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/prev_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/create_block.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/message_vec.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)
