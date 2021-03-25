@@ -174,7 +174,6 @@ private:
 
                 nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
                 std::string block_nr = buf_j["block_nr"];
-                if (block_nr == "no blockchain present in folder") block_nr = "0";
                 // std::cout << "block_s: " << buf_j["block"] << std::endl;
                 // std::cout << "block_nr: " << block_nr << std::endl;
 
@@ -240,11 +239,13 @@ private:
             }
             else if (buf_j["req"] == "new_peer")
             {
-                //
+                // new_peer
+                std::cout << "new_peer: " << std::endl;
             }
             else if (buf_j["req"] == "new_co")
             {
                 // send flag to start_p2p function
+                std::cout << "new_co: " << std::endl;
                 std::string peer_ip = buf_j["ip_co"];
                 t.set_ip_new_co(peer_ip);
             }
