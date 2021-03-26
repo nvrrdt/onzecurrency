@@ -162,7 +162,7 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
                 }
             }
         }
-        // std::cout << "coc: " << chosen_ones_counter[i] << std::endl;
+        // std::cout << "coc: " << i << " " << chosen_ones_counter[i] << std::endl;
         // total_counter += chosen_ones_counter[i];
     }
     std::cout << "amount of peers to verify: " << total_counter << std::endl;
@@ -170,7 +170,7 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
     return chosen_ones_counter;
 }
 
-std::map<std::string, std::string> Protocol::partition_in_buckets(std::string &my_hash, std::string &next_hash)
+std::map<int, std::string> Protocol::partition_in_buckets(std::string &my_hash, std::string &next_hash)
 {
     // the input is rocksdb, where you will get the total amount of peers from
     // starting with the hash of the chosen one
@@ -193,12 +193,30 @@ std::map<std::string, std::string> Protocol::partition_in_buckets(std::string &m
     return Protocol::get_calculated_hashes(my_hash, chosen_ones_counter);
 }
 
-std::map<std::string, std::string> Protocol::get_calculated_hashes(std::string &my_hash, std::map<uint32_t, uint256_t> &chosen_ones_counter)
+std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash, std::map<uint32_t, uint256_t> &chosen_ones_counter)
 {
     // Get the hashes from rocksdb, the count is accessible now
     
-    std::map<std::string, std::string> calculated_hashes;
-    calculated_hashes[my_hash] = my_hash;
+    std::map<int, std::string> calculated_hashes;
+    std::string the_hash;
+    Rocksy* rocksy = new Rocksy;
+    for (int i = 1; i <= chosen_ones_counter.size(); i++)
+    {
+        uint256_t val = chosen_ones_counter[i];
+
+        if (i == 1)
+        {
+            calculated_hashes[i] = my_hash;
+            the_hash = rocksy->FindPeerFromTillCount(my_hash, val);
+        }
+        else
+        {
+            calculated_hashes[i] = the_hash;
+            the_hash = rocksy->FindPeerFromTillCount(the_hash, val);
+            // the last counted hash should be approximately my_hash and so doesn't need to be saved in the map
+        }
+    }
+    delete rocksy;
     return calculated_hashes;
 }
 

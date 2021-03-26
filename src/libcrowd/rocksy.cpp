@@ -233,3 +233,38 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
 
     return count;
 }
+
+std::string Rocksy::FindPeerFromTillCount(std::string &key, uint256_t &count)
+{
+    std::string string_key_counted_peer;
+    uint256_t counter = 0;
+
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next())
+    {
+        if (count == 0)
+        {
+            string_key_counted_peer = "0";
+            break;
+        }
+
+        // std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
+        if (it->key().ToString() > key)
+        {
+            counter++;
+
+            if (counter == count)
+            {
+                string_key_counted_peer = it->key().ToString();
+                break;
+            }
+        }
+        else
+        {
+            // if next peer is the first in whole level db, go search from start
+        }
+    }
+    delete it;
+
+    return string_key_counted_peer;
+}

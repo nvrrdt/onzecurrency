@@ -55,23 +55,26 @@ std::cout << "--------5: " << std::endl;
     // but the other users don't know the whereabouts of intro_peer
     // tcp.client(full_hash) --> client should save full_hash
 
+    Tcp* tcp = new Tcp;
     for (int i = 0; i < message_j_vec.size(); i++)
     {
         m_j = message_j_vec[i];
         nlohmann::json msg_j;
         msg_j["req"] = "your_full_hash";
         msg_j["full_hash"] = m_j["full_hash_req"];
-        msg_j["block"] = block_s;
+        msg_j["block"] = block_j;
         msg_j["hash_of_block"] = get_hash_of_new_block();
 
         std::string srv_ip = "";
         std::string peer_ip = m_j["ip"];
+std::cout << "--peer_ip: " << peer_ip << std::endl;
         std::string peer_hash = "";
         std::string msg_s = msg_j.dump();
         
-        Tcp tcp;
-        tcp.client(srv_ip, peer_ip, peer_hash, msg_s);
+        bool t = true;
+        tcp->client(srv_ip, peer_ip, peer_hash, msg_s);
     }
+    delete tcp;
 }
 
 std::string CreateBlock::get_hash_of_new_block()

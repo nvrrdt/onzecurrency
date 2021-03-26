@@ -23,7 +23,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         std::cout << "Inform my fellow chosen_ones as coordinator" << std::endl;
 
         Protocol proto;
-        std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block";
@@ -61,12 +61,12 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            if (key == my_full_hash) continue;
+            if (val == my_full_hash || val == "0") continue;
 
             Rocksy* rocksy = new Rocksy();
 
-            std::string peer_id = rocksy->FindChosenOne(val); // lookup in rocksdb
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(peer_id));
+            // lookup in rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             std::string peer_ip = value_j["ip"];
 
             delete rocksy;

@@ -276,7 +276,7 @@ private:
             {
                 // my full hash
                 std::string full_hash = buf_j["full_hash"];
-                std::cout << "Client's full_hash: " << full_hash << std::endl;
+                std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
             }
             else if (buf_j["req"] = "hash_comparison")
             {
@@ -305,6 +305,7 @@ private:
                                      }
                                      else
                                      {
+                                         std::cout << "ec error: " << ec << std::endl;
                                          socket_.close();
                                          set_close_client(true);
                                          std::cout << "Connection closed!" << std::endl;
@@ -355,7 +356,7 @@ private:
 
         std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
         CreateBlock cb(m_j_v);
-        std::cout << "Block created!!" << std::endl;
+        std::cout << "Block created client!!" << std::endl;
     }
 
 private:

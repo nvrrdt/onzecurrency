@@ -337,7 +337,7 @@ private:
 
                             // communicate intro_peers to chosen_one's with a new_peer req
 
-                            std::map<std::string, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+                            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
                             std::string srv_ip = ""; // only for nat traversal
                             std::string peer_hash = ""; // dunno, still dunno
@@ -366,16 +366,19 @@ private:
                                 message_j["signature"] = crypto->base64_encode(signature);
                             }
 
-                            Tcp tcp;
+                            Tcp* tcp = new Tcp;
                             std::string key, val;
-                            for (auto &[key, val] : parts)
+                            for (int i = 1; i <= parts.size(); i++)
                             {
-                                // std::cout << "key: " << key << ", val: " << val << std::endl;
+                                std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+                                if (parts[i] == "0") continue;
+
                                 
                                 Rocksy* rocksy = new Rocksy();
 
-                                std::string peer_id = rocksy->FindChosenOne(val); // lookup in rocksdb
-                                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(peer_id));
+                                // lookup in rocksdb
+                                std::string val = parts[i];
+                                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
                                 std::string peer_ip = value_j["ip"];
 
                                 delete rocksy;
@@ -394,34 +397,40 @@ private:
                                     // message to connected peer_
                                     set_resp_msg(message_j.dump());
 
-                                    std::map<std::string, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, parts["2"]);
+                                    std::string next_hash = parts[2];
+                                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
                                     // set_resp_msg_() + from_to(my_hash, next_hash) {if ip_of_peer_ == ip_from_to(my_hash, next_hash)} --> new_peer
                                     std::string key2, val2;
-                                    for (auto &[key2, val2] : parts_underlying)
+                                    Rocksy* rocksy = new Rocksy();
+                                    for (int i = 1; i <= parts_underlying.size(); i++)
                                     {
-                                        Rocksy* rocksy = new Rocksy();
+                                        //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
+                                        if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
 
-                                        std::string peer_id = rocksy->FindChosenOne(val2); // lookup in rocksdb
-                                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(peer_id));
+                                        // lookup in rocksdb
+                                        std::string val2 = parts_underlying[i];
+                                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
                                         std::string underlying_peer_ip = value_j["ip"];
 
-                                        delete rocksy;
-
-                                        std::cout << "Non-connected underlying peers - client" << std::endl;
+                                        std::cout << "Non-connected underlying peers - client: " << underlying_peer_ip << std::endl;
                                         // message to non-connected peers
                                         std::string message = message_j.dump();
-                                        tcp.client(srv_ip, underlying_peer_ip, peer_hash, message);
+                                        tcp->client(srv_ip, underlying_peer_ip, peer_hash, message);
                                     }
+                                    delete rocksy;
                                 }
                                 else
                                 {
+                                    if (peer_ip == "") continue;
+
                                     // inform the other peer's in the same layer (as coordinator)
-                                    std::cout << "Inform my equal layer as coordinator" << std::endl;
+                                    std::cout << "Inform my equal layer as coordinator: " << peer_ip << std::endl;
 
                                     std::string message = message_j.dump();
-                                    tcp.client(srv_ip, peer_ip, peer_hash, message);
+                                    tcp->client(srv_ip, peer_ip, peer_hash, message);
                                 }
                             }
+                            delete tcp;
 
                             // Update rocksdb
                             message_j["rocksdb"]["prev_hash"] = real_prev_hash_req;
@@ -659,6 +668,7 @@ private:
                             }
                         }
 
+                        Tcp* tcp = new Tcp;
                         for (int i = 0; i < chosen_ones.size(); i++)
                         {
                             if (i > j)
@@ -673,10 +683,10 @@ private:
                                 msg_j["hash"] = prev_hash_chosen_one;
                                 std::string msg_s = msg_j.dump();
 
-                                Tcp tcp;
-                                tcp.client(srv_ip, peer_ip, peer_hash, msg_s);
+                                tcp->client(srv_ip, peer_ip, peer_hash, msg_s);
                             }
                         }
+                        delete tcp;
                     }
                     else
                     {
@@ -693,6 +703,17 @@ private:
                 // new_block
                 std::cout << "New_block: " << std::endl;
             }
+            else if (buf_j["req"] == "your_full_hash")
+            {
+                // my full hash
+                std::string full_hash = buf_j["full_hash"];
+                std::cout << "New peer's full_hash (server): " << full_hash << std::endl;
+            }
+            else if (buf_j["req"] = "hash_comparison")
+            {
+                // compare the received hash
+                std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+            }
         }
     }
 
@@ -704,7 +725,7 @@ private:
 
         std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
         CreateBlock cb(m_j_v);
-        std::cout << "Block created!!" << std::endl;
+        std::cout << "Block created server!!" << std::endl;
     }
 
     std::vector<std::string> split(const std::string& str, int splitLength)
