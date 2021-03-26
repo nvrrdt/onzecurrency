@@ -370,7 +370,7 @@ private:
                             std::string key, val;
                             for (int i = 1; i <= parts.size(); i++)
                             {
-                                std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+                                //std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
                                 if (parts[i] == "0") continue;
 
                                 
@@ -444,6 +444,11 @@ private:
                                 // Create block
                                 std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                                 CreateBlock cb(m_j_v);
+                                std::vector<std::string> msg_v = cb.update_new_peers_with_full_hash();
+                                for (uint32_t i = 0; i < msg_v.size(); i++)
+                                {
+                                    set_resp_msg(msg_v[i]);
+                                }
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
