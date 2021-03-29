@@ -444,11 +444,16 @@ private:
                                 // Create block
                                 std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                                 CreateBlock cb(m_j_v);
-                                std::vector<std::string> msg_v = cb.update_new_peers_with_full_hash();
-                                for (uint32_t i = 0; i < msg_v.size(); i++)
-                                {
-                                    set_resp_msg(msg_v[i]);
-                                }
+                                nlohmann::json block_j = cb.get_block_j();
+
+                                nlohmann::json msg_j;
+                                msg_j["req"] = "your_full_hash";
+                                msg_j["full_hash"] = full_hash_req;
+                                msg_j["block"] = block_j;
+                                msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+
+                                std::string msg_s = msg_j.dump();
+                                set_resp_msg(msg_s);
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
@@ -457,7 +462,7 @@ private:
                                 // if root_hash == me as coordinator ... connect to all co's
                                 // ... see below at new_peer
 
-                                std::thread t(&p2p_session::get_sleep_and_create_block, this);
+                                std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this(), full_hash_req);
                                 t.detach();
                             }
                         }
@@ -501,7 +506,7 @@ private:
 
                 delete crypto;
 
-                room_.leave(shared_from_this());
+                room_.leave(shared_from_this());                
 
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
                 // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
@@ -553,7 +558,7 @@ private:
                     // wait 20 secs
                     // then create block --> don't forget the counter in the search for a coordinator
                     // if root_hash == me as coordinator ... connect to all co's
-                    std::thread t(&p2p_session::get_sleep_and_create_block, this);
+                    std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this(), "");
                     t.detach();
                 }
 
@@ -719,17 +724,43 @@ private:
                 // compare the received hash
                 std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
             }
+
+            buf_ = "";
         }
     }
 
-    void get_sleep_and_create_block()
+    void get_sleep_and_create_block(std::string full_hash_req)
     {
-        std::this_thread::sleep_for(std::chrono::seconds(20));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
 
         std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
         std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
         CreateBlock cb(m_j_v);
+        nlohmann::json block_j = cb.get_block_j();
+
+        nlohmann::json msg_j;
+        msg_j["req"] = "your_full_hash";
+        msg_j["full_hash"] = full_hash_req;
+        msg_j["block"] = block_j;
+        msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+
+        std::string msg_s = msg_j.dump();
+        //set_resp_msg(msg_s); // tcp.client to ip_of_peer_ ... then intro_block ... and then a vid
+
+// room_.leave(shared_from_this());
+// boost::system::error_code ec;
+// socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+// socket_.close();
+
+        std::string srv_ip = "";
+        std::string peer_hash = "";
+        Tcp* tcp = new Tcp();
+        // std::thread t(&TcpClient::client, tc, std::ref(srv_ip), std::ref(ip_of_peer_), std::ref(peer_hash), std::ref(msg_s));
+        // t.join();
+        tcp->client(srv_ip, ip_of_peer_, peer_hash, msg_s);
+        delete tcp;
+
         std::cout << "Block created server!!" << std::endl;
     }
 

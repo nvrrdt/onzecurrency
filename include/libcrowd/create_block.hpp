@@ -12,7 +12,7 @@ namespace Crowd
     {
     public:
         CreateBlock(std::vector<nlohmann::json> &message_j_vec);
-        std::vector<std::string> update_new_peers_with_full_hash();
+        nlohmann::json get_block_j();
         std::string get_hash_of_new_block();
     private:
         void set_hash_of_new_block(std::string block);
