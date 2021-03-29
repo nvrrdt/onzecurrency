@@ -255,13 +255,15 @@ private:
                     // Create block
                     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                     CreateBlock cb(m_j_v);
+
+                    message_j_vec_.reset_message_j_vec();
                 }
                 else if (message_j_vec_.get_message_j_vec().size() == 1)
                 {
                     // wait 20 secs
                     // then create block --> don't forget the counter in the search for a coordinator
                     // if root_hash == me as coordinator ... connect to all co's
-                    std::thread t(&p2p_client::get_sleep_and_create_block, this, "");
+                    std::thread t(&p2p_client::get_sleep_and_create_block, this);
                     t.detach();
                 }
             }
@@ -349,7 +351,7 @@ private:
         return ret;
     }
 
-    void get_sleep_and_create_block(std::string full_hash_req) // TODO in p2p_server is also thsi function, they should be merged as they need to be the same
+    void get_sleep_and_create_block() // TODO in p2p_server is also this function, they should be merged as they need to be the same
     {
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -359,22 +361,12 @@ private:
         CreateBlock cb(m_j_v);
         nlohmann::json block_j = cb.get_block_j();
 
+        // TODO look into p2p_session for the same function and adapt accordingly
+        // this function is not yet used, it starts getting used when nat traversal is introcuded
 
+        message_j_vec_.reset_message_j_vec();
 
-        // Auth a;
-        // if (a.get_my_full_hash() != "")
-        // {
-        //     nlohmann::json msg_j;
-        //     msg_j["req"] = "your_full_hash";
-        //     msg_j["full_hash"] = full_hash_req;
-        //     msg_j["block"] = block_j;
-        //     msg_j["hash_of_block"] = cb.get_hash_of_new_block();
-
-        //     std::string msg_s = msg_j.dump();
-        //     set_resp_msg(msg_s);
-        // }
-
-        std::cout << "Block created client!!" << "" << "a.get_my_full_hash()" << std::endl;
+        std::cout << "Block created client!!" << std::endl;
     }
 
 private:

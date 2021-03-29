@@ -89,6 +89,22 @@ public:
         }
     }
 
+    void deliver_your_hash(const p2p_message &msg, p2p_participant_ptr participant)
+    {
+        recent_msgs_.push_back(msg);
+        while (recent_msgs_.size() > max_recent_msgs)
+            recent_msgs_.pop_front();
+
+        for (auto p : participants_)
+        {
+            if (p == participant)
+            {
+                p->deliver(msg);
+            }
+        }
+    }
+
+    static std::map<p2p_participant_ptr, std::string> all_full_hashes_;
 private:
     std::set<p2p_participant_ptr> participants_;
     enum
@@ -97,6 +113,8 @@ private:
     };
     p2p_message_queue recent_msgs_;
 };
+
+std::map<p2p_participant_ptr, std::string> p2p_room::all_full_hashes_ = std::map<p2p_participant_ptr, std::string>();
 
 //----------------------------------------------------------------------
 
@@ -438,6 +456,9 @@ private:
 
                             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                             message_j_vec_.add_to_message_j_vec(message_j);
+
+                            p2p_room pr;
+                            pr.all_full_hashes_[shared_from_this()] = full_hash_req; // TODO you have to reset this
                             
                             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                             {
@@ -446,14 +467,21 @@ private:
                                 CreateBlock cb(m_j_v);
                                 nlohmann::json block_j = cb.get_block_j();
 
-                                nlohmann::json msg_j;
-                                msg_j["req"] = "your_full_hash";
-                                msg_j["full_hash"] = full_hash_req;
-                                msg_j["block"] = block_j;
-                                msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+                                for (auto &[key, value] : pr.all_full_hashes_)
+                                {
+                                    nlohmann::json msg_j;
+                                    msg_j["req"] = "your_full_hash";
+                                    msg_j["full_hash"] = value;
+                                    msg_j["block"] = block_j;
+                                    msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+                                    std::string msg_s = msg_j.dump();
 
-                                std::string msg_s = msg_j.dump();
-                                set_resp_msg(msg_s);
+                                    set_resp_your_hash(key, msg_s);
+
+                                    room_.leave(key);
+                                }
+
+                                message_j_vec_.reset_message_j_vec();
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
@@ -462,7 +490,7 @@ private:
                                 // if root_hash == me as coordinator ... connect to all co's
                                 // ... see below at new_peer
 
-                                std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this(), full_hash_req);
+                                std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this());
                                 t.detach();
                             }
                         }
@@ -506,8 +534,7 @@ private:
 
                 delete crypto;
 
-                room_.leave(shared_from_this());                
-
+                
                 // verify message, lookup peer in rocksdb and verify that you are the chose_one,
                 // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'
 
@@ -552,13 +579,15 @@ private:
                     // Create block
                     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                     CreateBlock cb(m_j_v);
+
+                    message_j_vec_.reset_message_j_vec();
                 }
                 else if (message_j_vec_.get_message_j_vec().size() == 1)
                 {
                     // wait 20 secs
                     // then create block --> don't forget the counter in the search for a coordinator
                     // if root_hash == me as coordinator ... connect to all co's
-                    std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this(), "");
+                    std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this());
                     t.detach();
                 }
 
@@ -729,7 +758,7 @@ private:
         }
     }
 
-    void get_sleep_and_create_block(std::string full_hash_req)
+    void get_sleep_and_create_block()
     {
         std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -739,27 +768,22 @@ private:
         CreateBlock cb(m_j_v);
         nlohmann::json block_j = cb.get_block_j();
 
-        nlohmann::json msg_j;
-        msg_j["req"] = "your_full_hash";
-        msg_j["full_hash"] = full_hash_req;
-        msg_j["block"] = block_j;
-        msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+        p2p_room pr;
+        for (auto &[key, value] : pr.all_full_hashes_)
+        {
+            nlohmann::json msg_j;
+            msg_j["req"] = "your_full_hash";
+            msg_j["full_hash"] = value;
+            msg_j["block"] = block_j;
+            msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+            std::string msg_s = msg_j.dump();
 
-        std::string msg_s = msg_j.dump();
-        //set_resp_msg(msg_s); // tcp.client to ip_of_peer_ ... then intro_block ... and then a vid
+            set_resp_your_hash(key, msg_s);
 
-// room_.leave(shared_from_this());
-// boost::system::error_code ec;
-// socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-// socket_.close();
+            room_.leave(key);
+        }
 
-        std::string srv_ip = "";
-        std::string peer_hash = "";
-        Tcp* tcp = new Tcp();
-        // std::thread t(&TcpClient::client, tc, std::ref(srv_ip), std::ref(ip_of_peer_), std::ref(peer_hash), std::ref(msg_s));
-        // t.join();
-        tcp->client(srv_ip, ip_of_peer_, peer_hash, msg_s);
-        delete tcp;
+        message_j_vec_.reset_message_j_vec();
 
         std::cout << "Block created server!!" << std::endl;
     }
@@ -796,6 +820,22 @@ private:
             i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
             room_.deliver(resp_msg_, shared_from_this());
+        }
+    }
+
+    void set_resp_your_hash(p2p_participant_ptr participant, std::string msg)
+    {
+        std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+        for (int i = 0; i < splitted.size(); i++)
+        {
+            char s[p2p_message::max_body_length + 1];
+            strncpy(s, splitted[i].c_str(), sizeof(s));
+
+            resp_msg_.body_length(std::strlen(s));
+            std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
+            i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+            room_.deliver_your_hash(resp_msg_, participant);
         }
     }
 
