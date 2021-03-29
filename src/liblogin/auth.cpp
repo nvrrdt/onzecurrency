@@ -161,5 +161,5 @@ bool Auth::validateEmail(const std::string& email)
 
 std::string Auth::get_my_full_hash()
 {
-    return my_full_hash_;
+    return my_full_hash_; // TODO should read a file !!! on disk
 }
