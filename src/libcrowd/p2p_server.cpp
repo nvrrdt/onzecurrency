@@ -104,7 +104,21 @@ public:
         }
     }
 
-    static std::map<p2p_participant_ptr, std::string> all_full_hashes_;
+    void add_to_all_full_hashes(p2p_participant_ptr participant, std::string full_hash_req)
+    {
+        all_full_hashes_[participant] = full_hash_req;
+    }
+
+    std::map<p2p_participant_ptr, std::string> get_all_full_hashes()
+    {
+        return all_full_hashes_;
+    }
+
+    void reset_all_full_hashes()
+    {
+        all_full_hashes_.clear();
+    }
+    
 private:
     std::set<p2p_participant_ptr> participants_;
     enum
@@ -112,6 +126,7 @@ private:
         max_recent_msgs = 100
     };
     p2p_message_queue recent_msgs_;
+    static std::map<p2p_participant_ptr, std::string> all_full_hashes_;
 };
 
 std::map<p2p_participant_ptr, std::string> p2p_room::all_full_hashes_ = std::map<p2p_participant_ptr, std::string>();
@@ -458,7 +473,7 @@ private:
                             message_j_vec_.add_to_message_j_vec(message_j);
 
                             p2p_room pr;
-                            pr.all_full_hashes_[shared_from_this()] = full_hash_req; // TODO you have to reset this
+                            pr.add_to_all_full_hashes(shared_from_this(), full_hash_req); // TODO you have to reset this
                             
                             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                             {
@@ -467,7 +482,7 @@ private:
                                 CreateBlock cb(m_j_v);
                                 nlohmann::json block_j = cb.get_block_j();
 
-                                for (auto &[key, value] : pr.all_full_hashes_)
+                                for (auto &[key, value] : pr.get_all_full_hashes())
                                 {
                                     nlohmann::json msg_j;
                                     msg_j["req"] = "your_full_hash";
@@ -482,6 +497,7 @@ private:
                                 }
 
                                 message_j_vec_.reset_message_j_vec();
+                                pr.reset_all_full_hashes();
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
@@ -769,7 +785,7 @@ private:
         nlohmann::json block_j = cb.get_block_j();
 
         p2p_room pr;
-        for (auto &[key, value] : pr.all_full_hashes_)
+        for (auto &[key, value] : pr.get_all_full_hashes())
         {
             nlohmann::json msg_j;
             msg_j["req"] = "your_full_hash";
@@ -784,6 +800,7 @@ private:
         }
 
         message_j_vec_.reset_message_j_vec();
+        pr.reset_all_full_hashes();
 
         std::cout << "Block created server!!" << std::endl;
     }
