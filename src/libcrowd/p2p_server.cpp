@@ -427,9 +427,6 @@ private:
                                     // inform server's underlying network
                                     std::cout << "Inform my underlying network as co" << std::endl;
 
-                                    // message to connected peer_
-                                    set_resp_msg(message_j.dump());
-
                                     std::string next_hash = parts[2];
                                     std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
                                     // set_resp_msg_() + from_to(my_hash, next_hash) {if ip_of_peer_ == ip_from_to(my_hash, next_hash)} --> new_peer
