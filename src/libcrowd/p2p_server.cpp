@@ -65,8 +65,8 @@ public:
     {
         std::cout << "participant: " << participant << std::endl;
         participants_.insert(participant);
-        for (auto msg : recent_msgs_)
-            participant->deliver(msg);
+        // for (auto msg : recent_msgs_)
+        //     participant->deliver(msg);
     }
 
     void leave(p2p_participant_ptr participant)
@@ -781,7 +781,7 @@ private:
         std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
         std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-        CreateBlock cb(m_j_v);
+        CreateBlock cb(m_j_v); // chosen ones are being informed here
         nlohmann::json block_j = cb.get_block_j();
 
         p2p_room pr;
