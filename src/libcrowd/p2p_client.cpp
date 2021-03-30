@@ -176,6 +176,16 @@ private:
 
                 nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
                 std::string block_nr = buf_j["block_nr"];
+                if (block_nr == "0")
+                {
+                    block_nr = "no blockchain present in folder";
+                }
+                else
+                {
+                    int nr = std::stoi(block_nr);
+                    nr--;
+                    block_nr = std::to_string(nr);
+                }
                 // std::cout << "block_s: " << buf_j["block"] << std::endl;
                 // std::cout << "block_nr: " << block_nr << std::endl;
 
@@ -278,7 +288,17 @@ private:
             {
                 // my full hash
                 std::string full_hash = buf_j["full_hash"];
+                nlohmann::json block_j = buf_j["block"];
+                std::string hash_of_block = buf_j["hash_of_block"];
                 std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
+                std::cout << "New peer's hash_of_block (client): " << hash_of_block << std::endl;
+                std::string prev_hash = block_j["prev_hash"];
+                std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
+
+                merkle_tree mt;
+                Protocol proto;
+                std::string my_latest_block_nr = proto.get_last_block_nr();
+                std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
             }
             else if (buf_j["req"] = "hash_comparison")
             {

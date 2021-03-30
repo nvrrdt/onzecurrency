@@ -48,9 +48,8 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
     Poco poco;
     poco.inform_chosen_ones(my_latest_block_nr, block_j_);
 
-    //std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
+    std::string block_s = mt.save_block_to_file(block_j_, my_latest_block_nr);
 std::cout << "--------5: " << std::endl;
-    std::string block_s = block_j_.dump();
     set_hash_of_new_block(block_s);
 }
 
