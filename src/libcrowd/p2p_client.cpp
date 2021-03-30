@@ -297,8 +297,8 @@ private:
 
                 merkle_tree mt;
                 Protocol proto;
-                std::string my_latest_block_nr = proto.get_last_block_nr();
-                std::string block_s = mt.save_block_to_file(block_j, my_latest_block_nr);
+                std::string my_last_block_nr = proto.get_last_block_nr();
+                std::string block_s = mt.save_block_to_file(block_j, my_last_block_nr); //
             }
             else if (buf_j["req"] = "hash_comparison")
             {

@@ -38,18 +38,23 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
     std::string datetime = mt.time_now();
     std::string root_hash_data = s_shptr_->top();
     block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+    PrevHash ph;
+    block_j_["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+
     Protocol proto;
-    std::string my_latest_block_nr = proto.get_last_block_nr();
+    std::string my_last_block_nr = proto.get_last_block_nr();
 
     // send hash of this block with the block contents to the co's, forget save_block_to_file
     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
     // send intro_block to co's
     Poco poco;
-    poco.inform_chosen_ones(my_latest_block_nr, block_j_);
+    poco.inform_chosen_ones(my_last_block_nr, block_j_);
 
-    std::string block_s = mt.save_block_to_file(block_j_, my_latest_block_nr);
+    std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
 std::cout << "--------5: " << std::endl;
+std::cout << "comparison_1: " << block_s << std::endl;
     set_hash_of_new_block(block_s);
 }
 
