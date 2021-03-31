@@ -377,7 +377,7 @@ private:
 
                             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                             message_j["req"] = "new_peer";
-                            // message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
+                            message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
                             email_prev_hash_concatenated = email_of_req + real_prev_hash_req;
                             full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
                             message_j["full_hash_req"] = full_hash_req; // refreshed full_hash_req

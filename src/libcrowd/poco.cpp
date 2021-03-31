@@ -5,13 +5,12 @@
 
 using namespace Crowd;
 
-void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json block_j)
+void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block_j)
 {
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
     Crypto* crypto = new Crypto();
-    std::string block_s = block_j.dump();
-    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    std::string hash_of_block = block_j["prev_hash"];
     delete crypto;
     Rocksy* rocksy = new Rocksy();
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
@@ -27,7 +26,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
 
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block";
-        message_j["latest_block_nr"] = my_latest_block_nr;
+        message_j["latest_block_nr"] = my_last_block_nr;
         message_j["block"] = block_j;
         message_j["prev_hash"] = hash_of_block;
         message_j["full_hash_coord"] = my_full_hash;
@@ -38,7 +37,7 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
             message_j["chosen_ones"][k] = v;
         }
 
-        to_sign_j["latest_block_nr"] = my_latest_block_nr;
+        to_sign_j["last_block_nr"] = my_last_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = hash_of_block;
         to_sign_j["full_hash_coord"] = my_full_hash;
@@ -61,13 +60,14 @@ void Poco::inform_chosen_ones(std::string my_latest_block_nr, nlohmann::json blo
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            if (val == my_full_hash || val == "0") continue;
+            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
 
             Rocksy* rocksy = new Rocksy();
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             std::string peer_ip = value_j["ip"];
+            message_j["rocksdb"] = value_j;
 
             delete rocksy;
             

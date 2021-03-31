@@ -151,7 +151,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 Rocksy* rocksy = new Rocksy();
                 rocksy->Put(full_hash, rocksdb_s);
                 delete rocksy;
-                std::cout << "zijn we hier? " << std::endl;
+                std::cout << "Rocksdb updated and server started! " << std::endl;
 
                 std::packaged_task<void()> task1([] {
                     Tcp t;

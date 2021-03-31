@@ -2,6 +2,7 @@
 #include "merkle_tree.hpp"
 #include "poco.hpp"
 #include "p2p.hpp"
+#include "rocksy.hpp"
 
 using namespace Crowd;
 
@@ -32,6 +33,28 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
         entry_transactions_j.push_back(entry_tx_j);
         exit_tx_j["full_hash"] = "";
         exit_transactions_j.push_back(exit_tx_j);
+
+        Crypto crypto;
+        // update rocksdb
+        nlohmann::json rocksdb_j;
+        rocksdb_j["version"] = "O.1";
+        rocksdb_j["ip"] = m_j["ip"];
+        rocksdb_j["server"] = true;
+        rocksdb_j["fullnode"] = true;
+        std::string email_of_req = m_j["email_of_req"];
+        rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
+        PrevHash ph;
+        rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+        rocksdb_j["full_hash"] = full_hash_req;
+        Protocol proto;
+        rocksdb_j["block_nr"] = proto.get_last_block_nr();
+        rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+        rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+        std::string rocksdb_s = rocksdb_j.dump();
+
+        Rocksy* rocksy = new Rocksy();
+        rocksy->Put(full_hash_req, rocksdb_s);
+        delete rocksy;
     }
 
     s_shptr_ = mt.calculate_root_hash(s_shptr_);
@@ -54,7 +77,7 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
 
     std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
 std::cout << "--------5: " << std::endl;
-std::cout << "comparison_1: " << block_s << std::endl;
+
     set_hash_of_new_block(block_s);
 }
 

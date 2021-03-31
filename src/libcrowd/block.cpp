@@ -181,7 +181,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
             //PrevHash ph;
             //block_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_s = block_j.dump();
-std::cout << "comparison_2: " << block_s << std::endl;
+
             uint32_t first_chars = 11 - latest_block.length();
             std::string number = "";
             for (int i = 0; i <= first_chars; i++)
