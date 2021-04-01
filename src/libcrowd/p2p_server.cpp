@@ -403,8 +403,8 @@ private:
                             std::string key, val;
                             for (int i = 1; i <= parts.size(); i++)
                             {
-                                //std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
-                                if (parts[i] == "0") continue;
+                                std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+                                if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
 
                                 
                                 Rocksy* rocksy = new Rocksy();
@@ -502,6 +502,8 @@ private:
                                 // then create block
                                 // if root_hash == me as coordinator ... connect to all co's
                                 // ... see below at new_peer
+
+                                std::cout << "Get_sleep_and_create_block" << std::endl;
 
                                 std::thread t(&p2p_session::get_sleep_and_create_block, shared_from_this());
                                 t.detach();
