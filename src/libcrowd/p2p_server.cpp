@@ -403,7 +403,7 @@ private:
                             std::string key, val;
                             for (int i = 1; i <= parts.size(); i++)
                             {
-                                std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+                                // std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
                                 if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
 
                                 
