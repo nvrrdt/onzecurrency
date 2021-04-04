@@ -15,6 +15,7 @@ def main():
     # Adding optional arguments
     parser.add_argument("-r", "--remove-build-dir", help = "Remove build directory", action="store_true")
     parser.add_argument("-c", "--cryptopp", help = "Install cryptopp with make", action="store_true")
+    parser.add_argument("-d", "--enet", help = "Install ENet with make", action="store_true")
     parser.add_argument("-m", "--make", help = "Make", action="store_true")
     parser.add_argument("-n", "--ninja", help = "Make", action="store_true")
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
@@ -37,6 +38,12 @@ def main():
             ' && wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt' \
             ' && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake' \
             ' && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && make install', shell=True)
+    if args.enet:
+        subprocess.call('cd ' + project_path("build") + \
+            ' && git clone --recursive https://github.com/lsalzman/enet.git' \
+            ' && cd enet' \
+            ' && git checkout e0e7045' \
+            ' && autoreconf -i && ./configure && make && make install', shell=True)
     if args.make:
         subprocess.call('cd ' + project_path("build") + \
             ' && cmake -DCMAKE_BUILD_TYPE=Debug ..' \
@@ -81,6 +88,7 @@ def worker(ip):
 def project_path(sub_dir):
     # find the path of the build folder
     full_path = str(Path(os.getcwd()).parent / sub_dir)
+    #full_path = os.path.abspath(os.path.join(os.getcwd(),sub_dir))
 
     if not os.path.exists(full_path):
         os.makedirs(full_path)
