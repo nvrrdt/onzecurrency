@@ -23,22 +23,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
     if (cred["new_peer"] == "true")
     {
         Rocksy* rocksy = new Rocksy();
-        if (rocksy->TotalAmountOfPeers() <= 1)
+        if (rocksy->TotalAmountOfPeers() < 1)
         {
             delete rocksy;
             Tcp t;
             Crypto crypto;
             Protocol proto;
             nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
-
-            message_j.empty();
-            to_sign_j.empty();
-            to_block_j.empty();
-            entry_tx_j.empty();
-            entry_transactions_j.empty();
-            exit_tx_j.empty();
-            exit_transactions_j.empty();
-            rocksdb_j.empty();
             
             message_j["req"] = "intro_peer";
             message_j["email_of_req"] = cred["email"];
@@ -117,13 +108,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
             message_j["rocksdb"] = rocksdb_j;
             std::string message = message_j.dump();
-            t.client(srv_ip, ip_mother_peer, peer_hash, message); // mother server must respond with ip_peer and ip_server_peer
 
-            if (t.get_tcp_closed_client())
+            t.client(srv_ip, ip_mother_peer, peer_hash, message);
+            if (t.get_tcp_closed_client() == "closed_conn")
             {
-                std::cout << "Connection was closed, probably no server reachable!" << std::endl;
+                std::cout << "Connection was closed, probably no server reachable, maybe you are genesis" << std::endl;
 
-                // you are the only peer and can create a block
+                // you are the only peer (genesis) and can create a block
 
                 to_block_j["full_hash"] = full_hash;
                 to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
@@ -151,7 +142,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 Rocksy* rocksy = new Rocksy();
                 rocksy->Put(full_hash, rocksdb_s);
                 delete rocksy;
-                std::cout << "Rocksdb updated and server started! " << std::endl;
+                std::cout << "Rocksdb updated and server started" << std::endl;
 
                 std::packaged_task<void()> task1([] {
                     Tcp t;
@@ -161,29 +152,69 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::thread t1(std::move(task1));
                 t1.join();
             }
-            else if (t.get_ip_new_co() != "")
+            else if (t.get_tcp_closed_client() == "time_wait")
             {
-                std::string ip = t.get_ip_new_co();
-                t.client(srv_ip, ip, peer_hash, message);
-            }
-            else
-            {
-                std::cout << "The t.client did it's job succesfully and you should be added in the blockchain!" << std::endl;
+                // wait 4 minutes == tcp's TIME_WAIT
+                // the t.client() -> these blocks and rocksdb of client dhould be update -> then block should be created at server -> wait 4 minutes
+                // your full_hash is hemail+hprev_hash, so remember that_prev_hash even when the program is closed
+                // no one can inform you of your full_hash so you to figure it out yourself
+                // but hemail should be in the rocksdb you download
 
-                std::packaged_task<void()> task1([] {
-                    Tcp t;
-                    t.server();
-                });
-                // Run task on new thread.
-                std::thread t1(std::move(task1));
-                t1.join();
+                std::cout << "Connection closed and TIME_WAIT initialised: waiting 4 minutes ..." << std::endl;
+
+                std::this_thread::sleep_for(std::chrono::seconds(240 + 1)); // 4 minutes + 1 second --> TIME_WAIT delay
+
+                srv_ip = "";
+                std::string ip_peer = rocksy->FindNextPeer(full_hash);
+                peer_hash = "";
+                nlohmann::json msg_j;
+                msg_j["req"] = "update_client";
+                std::string msg_s = message_j.dump();
+                t.client(srv_ip, ip_peer, peer_hash, msg_s);
+
+                if (t.get_tcp_closed_client() == "updated")
+                {
+                    std::cout << "Rocksdb updated and server started" << std::endl;
+
+                    std::packaged_task<void()> task1([] {
+                        Tcp t;
+                        t.server();
+                    });
+                    // Run task on new thread.
+                    std::thread t1(std::move(task1));
+                    t1.join();
+                }
+                else
+                {
+                    std::cout << "Something went wrong while updating" << std::endl;
+                }
             }
+            // else if (t.get_ip_new_co() != "")
+            // {
+            //     std::string ip = t.get_ip_new_co();
+            //     t.client(srv_ip, ip, peer_hash, message);
+            // }
+            // else
+            // {
+            //     std::cout << "The t.client did it's job succesfully and you should be added in the blockchain!" << std::endl;
+
+            //     std::packaged_task<void()> task1([] {
+            //         Tcp t;
+            //         t.server();
+            //     });
+            //     // Run task on new thread.
+            //     std::thread t1(std::move(task1));
+            //     t1.join();
+            // }
             return true;
         }
         else
         {
             delete rocksy;
-            // 2 or more peers ...
+
+            std::cout << "1 or more peers ..." << std::endl;
+
+            // 1 or more peers ...
             // get ip of online peer in rocksdb
             // then t.client to that peer
             // and that peer must create the block

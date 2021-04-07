@@ -50,16 +50,6 @@ public:
         boost::asio::post(io_context_, [this]() { socket_.close(); });
     }
 
-    void set_close_client(bool close) // preparation for closing the client should still be used somewhere
-    {
-        close_client_ = close;
-    }
-
-    bool get_close_client()
-    {
-        return close_client_;
-    }
-
 private:
     void do_connect(const tcp::resolver::results_type &endpoints)
     {
@@ -330,7 +320,8 @@ private:
                                      {
                                          std::cout << "ec error: " << ec << std::endl;
                                          socket_.close();
-                                         set_close_client(true);
+                                         Tcp t;
+                                         t.set_tcp_closed_client("closed_conn");
                                          std::cout << "Connection closed!" << std::endl;
                                      }
                                  });
@@ -398,7 +389,7 @@ private:
     p2p_message resp_msg_;
     std::string peer_hash_;
 
-    bool close_client_;
+    std::string closed_client_;
 
     MessageVec message_j_vec_;
 
@@ -455,10 +446,9 @@ std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &
 
         while (true) // ugly, but this client should be able to receive and send messages, it doesn't work without this while
         {
-            if (c.get_close_client())
+            Tcp t;
+            if (t.get_tcp_closed_client() == "closed_conn" || t.get_tcp_closed_client() == "time_wait")
             {
-                bool t = true;
-                set_tcp_closed_client(t);
                 break;
             }
         }
