@@ -16,7 +16,7 @@ namespace Crowd
         int p2p_server();
         int p2p_client(char *ip);
     private:
-        char buffer_[512];
+        char buffer_[p2p_message::max_body_length];
 
         ENetHost  *client_;
         ENetHost   *server_;

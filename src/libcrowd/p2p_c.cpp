@@ -40,7 +40,7 @@ int P2pNetwork::p2p_client(char *ip)
         printf("Connection to %s succeeded.\n", ip);
         connected++;
 
-        strncpy(buffer_, "hello", 512);
+        strncpy(buffer_, "hello", p2p_message::max_body_length);
         packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, ENET_PACKET_FLAG_RELIABLE);
         enet_peer_send(peer_, 0, packet_);
 
@@ -70,11 +70,11 @@ int P2pNetwork::p2p_client(char *ip)
 
         if (connected)
         {
-            strncpy(buffer_, "buffer___", 512);
+            strncpy(buffer_, "buffer___", p2p_message::max_body_length);
 
             if (strlen(buffer_) == 0) { continue; }
 
-            if (strncmp("q", buffer_, 512) == 0)
+            if (strncmp("q", buffer_, p2p_message::max_body_length) == 0)
             {
                 connected=0;
                 enet_peer_disconnect(peer_, 0);
