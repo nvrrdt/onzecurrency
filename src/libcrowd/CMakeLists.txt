@@ -18,6 +18,8 @@ add_library(crowd SHARED
                      poco.cpp
                      create_block.cpp
                      message_vec.cpp
+                     p2p_c.cpp
+                     p2p_s.cpp
 )
 
 target_include_directories(crowd PUBLIC
@@ -26,6 +28,7 @@ target_include_directories(crowd PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
                         "${PROJECT_SOURCE_DIR}/build/cryptopp"
+                        ${ENET_INCLUDE_DIRS}
                           )
 
 ### install:
@@ -44,6 +47,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/create_block.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/message_vec.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)
