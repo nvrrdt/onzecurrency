@@ -2,20 +2,20 @@
 
 using namespace Crowd;
 
-void P2pNetwork::do_read_header()
+void P2pNetwork::do_read_header_server()
 {
     if (read_msg_.decode_header() == true)
     {
-        do_read_body();
+        do_read_body_server();
     }
 }
 
-void P2pNetwork::do_read_body()
+void P2pNetwork::do_read_body_server()
 {
-    handle_read();
+    handle_read_server();
 }
 
-void P2pNetwork::handle_read()
+void P2pNetwork::handle_read_server()
 {
     if ( !read_msg_.get_eom_flag()) {
         std::string str_read_msg(read_msg_.body());
@@ -314,7 +314,7 @@ void P2pNetwork::handle_read()
 
                             std::cout << "Get_sleep_and_create_block" << std::endl;
 
-                            std::thread t(&P2pNetwork::get_sleep_and_create_block, this);
+                            std::thread t(&P2pNetwork::get_sleep_and_create_block_server, this);
                             t.detach();
                         }
                     }
@@ -411,7 +411,7 @@ void P2pNetwork::handle_read()
                 // wait 20 secs
                 // then create block --> don't forget the counter in the search for a coordinator
                 // if root_hash == me as coordinator ... connect to all co's
-                std::thread t(&P2pNetwork::get_sleep_and_create_block, this);
+                std::thread t(&P2pNetwork::get_sleep_and_create_block_server, this);
                 t.detach();
             }
         }
@@ -597,7 +597,7 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
     }
 }
 
-void P2pNetwork::get_sleep_and_create_block()
+void P2pNetwork::get_sleep_and_create_block_server()
 {
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
@@ -657,7 +657,7 @@ int P2pNetwork::p2p_server()
 
                 case ENET_EVENT_TYPE_RECEIVE:
                     sprintf(read_msg_.data(), "%s", (char*) event_.packet->data);
-                    do_read_header();
+                    do_read_header_server();
 
 
 

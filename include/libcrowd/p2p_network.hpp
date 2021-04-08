@@ -39,11 +39,16 @@ namespace Crowd
         }
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);
-        void do_read_header();
-        void do_read_body();
-        void handle_read();
+        void do_read_header_server();
+        void do_read_body_server();
+        void do_read_header_client();
+        void do_read_body_client();
+        void handle_read_server();
+        void handle_read_client();
         void set_resp_msg_server(std::string msg);
-        void get_sleep_and_create_block();
+        void set_resp_msg_client(std::string msg);
+        void get_sleep_and_create_block_server();
+        void get_sleep_and_create_block_client();
         void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
