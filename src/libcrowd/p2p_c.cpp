@@ -334,7 +334,8 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
             switch (event_.type)
             {
                 case ENET_EVENT_TYPE_RECEIVE:
-                    puts( (char*) event_.packet->data);
+                    //puts( (char*) event_.packet->data);
+                    sprintf(read_msg_.data(), "%s", (char*) event_.packet->data);
                     do_read_header_client();
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
