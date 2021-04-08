@@ -2,6 +2,7 @@
 #include "p2p.hpp"
 #include "auth.hpp"
 #include "crypto.hpp"
+#include "p2p_network.hpp"
 
 using namespace Crowd;
 
@@ -56,7 +57,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
         std::string srv_ip = ""; // only for nat traversal
         std::string peer_hash = ""; // dunno, still dunno
 
-        Tcp tcp;
+        P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -73,8 +74,8 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
             
             std::string message = message_j.dump();
 
-            // tcp.client() to all chosen ones with intro_peer request
-            tcp.client(srv_ip, peer_ip, peer_hash, message);
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message);
         }
     }
     else
