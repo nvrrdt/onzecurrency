@@ -167,42 +167,17 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::thread t1(std::move(task1));
                 t1.join();
             }
-            else if (pn.get_closed_client() == "time_wait")
+            else if (pn.get_closed_client() == "close_this_conn")
             {
-                // wait 4 minutes == tcp's TIME_WAIT
-                // the t.client() -> these blocks and rocksdb of client dhould be update -> then block should be created at server -> wait 4 minutes
-                // your full_hash is hemail+hprev_hash, so remember that_prev_hash even when the program is closed
-                // no one can inform you of your full_hash so you to figure it out yourself
-                // but hemail should be in the rocksdb you download
+                std::cout << "Connection closed by other server, start this server" << std::endl;
 
-                std::cout << "Connection closed and TIME_WAIT initialised: waiting 4 minutes ..." << std::endl;
-
-                std::this_thread::sleep_for(std::chrono::seconds(240 + 1)); // 4 minutes + 1 second --> TIME_WAIT delay
-
-                srv_ip = "";
-                std::string ip_peer = rocksy->FindNextPeer(full_hash);
-                peer_hash = "";
-                nlohmann::json msg_j;
-                msg_j["req"] = "update_client";
-                std::string msg_s = message_j.dump();
-                pn.p2p_client(ip_peer, msg_s);
-
-                if (pn.get_closed_client() == "updated")
-                {
-                    std::cout << "Rocksdb updated and server started" << std::endl;
-
-                    std::packaged_task<void()> task1([] {
-                        P2pNetwork pn;
-                        pn.p2p_server();
-                    });
-                    // Run task on new thread.
-                    std::thread t1(std::move(task1));
-                    t1.join();
-                }
-                else
-                {
-                    std::cout << "Something went wrong while updating" << std::endl;
-                }
+                std::packaged_task<void()> task1([] {
+                    P2pNetwork pn;
+                    pn.p2p_server();
+                });
+                // Run task on new thread.
+                std::thread t1(std::move(task1));
+                t1.join();
             }
             // else if (t.get_ip_new_co() != "")
             // {

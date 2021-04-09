@@ -201,10 +201,16 @@ void P2pNetwork::handle_read_client()
             std::string my_last_block_nr = proto.get_last_block_nr();
             std::string block_s = mt.save_block_to_file(block_j, my_last_block_nr); //
         }
-        else if (buf_j["req"] = "hash_comparison")
+        else if (buf_j["req"] == "hash_comparison")
         {
             // compare the received hash
             std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+        }
+        else if (buf_j["req"] == "close_this_conn")
+        {
+            // you may close this connection
+
+            set_closed_client("close_this_conn");
         }
 
         buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
@@ -344,22 +350,10 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                     return 2;
             }
         }
-
-        if (connected)
+        
+        if (get_closed_client() == "close_this_conn")
         {
-            strncpy(buffer_, "buffer___", p2p_message::max_body_length);
-
-            if (strlen(buffer_) == 0) { continue; }
-
-            if (strncmp("q", buffer_, p2p_message::max_body_length) == 0)
-            {
-                connected=0;
-                enet_peer_disconnect(peer_, 0);
-                continue;
-            } 
-
-            packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, ENET_PACKET_FLAG_RELIABLE);
-            enet_peer_send(peer_, 0, packet_);
+            enet_peer_disconnect(peer_, 0);
         }
     }
 

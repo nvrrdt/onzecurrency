@@ -171,6 +171,12 @@ void P2pNetwork::handle_read_server()
                             set_resp_msg_server(msg.dump());
                         }
 
+
+                        // Disconect from client
+                        nlohmann::json msg_j;
+                        msg_j["req"] = "close_this_conn";
+                        set_resp_msg_server(msg_j.dump());
+
                         std::cout << "1 or more totalamountofpeers! " << std::endl;
 
                         // communicate intro_peers to chosen_one's with a new_peer req
@@ -194,10 +200,10 @@ void P2pNetwork::handle_read_server()
                         enet_uint32 ipAddress = event_.peer->address.host; // TODO put this ip address conversion in another function
                         char ipAddr[16];
                         if (ipAddress) {
-                            snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0xff000000) >> 24 
-                                                                        ,(ipAddress & 0x00ff0000) >> 16
+                            snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
                                                                         ,(ipAddress & 0x0000ff00) >> 8
-                                                                        ,(ipAddress & 0x000000ff));
+                                                                        ,(ipAddress & 0x00ff0000) >> 16
+                                                                        ,(ipAddress & 0xff000000) >> 24);
                         }
                         message_j["ip"] = ipAddr;
 
@@ -690,6 +696,7 @@ int P2pNetwork::p2p_server()
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
+                    std::cout << "Peer has disconnected." << std::endl;
                     sprintf(buffer_, "%s has disconnected.", (char*) event_.peer->data);
                     packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
                     enet_host_broadcast(server_, 1, packet_);
