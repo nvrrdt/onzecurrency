@@ -593,9 +593,27 @@ void P2pNetwork::handle_read_server()
 
             nlohmann::json msg_j;
             msg_j["req"] = "update_my_blocks_and_rocksdb";
+            Protocol proto;
+            msg_j["block_nr"] = proto.get_last_block_nr();
             std::string msg = msg_j.dump();
             
-            p2p_client(peer_ip, msg);
+            enet_uint32 ipAddress = event_.peer->address.host; // TODO put this ip address conversion in another function
+            char ipAddr[16];
+            if (ipAddress) {
+                snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
+                                                            ,(ipAddress & 0x0000ff00) >> 8
+                                                            ,(ipAddress & 0x00ff0000) >> 16
+                                                            ,(ipAddress & 0xff000000) >> 24);
+            }
+
+            if (peer_ip != ipAddr)
+            {
+                p2p_client(peer_ip, msg);
+            }
+            else
+            {
+                set_resp_msg_server(msg);
+            }
             
         }
         else if (buf_j["req"] = "hash_comparison")
@@ -605,7 +623,7 @@ void P2pNetwork::handle_read_server()
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
-            std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
+            std::cout << "update_your_blocks_and_rocksdb client" << std::endl;
             // send blocks to peer
 
             Protocol proto;
@@ -621,14 +639,14 @@ void P2pNetwork::handle_read_server()
             for (uint64_t i = 0; i <= value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                // std::cout << "block_j: " << block_j << std::endl;
+    std::cout << "block_j: " << block_j << std::endl;
                 nlohmann::json msg;
                 msg["req"] = "update_your_blocks";
                 std::ostringstream o;
                 o << i;
                 msg["block_nr"] = o.str();
                 msg["block"] = block_j;
-                set_resp_msg_client(msg.dump());
+                set_resp_msg_server(msg.dump());
             }
 
             // Update rockdb's:
@@ -641,11 +659,11 @@ void P2pNetwork::handle_read_server()
                 msg["req"] = "update_your_rocksdb";
                 msg["key"] = user;
 
-                std::string u = user.dump();
+                std::string u = user;
                 std::string value = rocksy->Get(u);
                 msg["value"] = value;
 
-                set_resp_msg_client(msg.dump());
+                set_resp_msg_server(msg.dump());
             }
             delete rocksy;
         }
