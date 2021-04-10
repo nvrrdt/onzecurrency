@@ -6,7 +6,7 @@
 
 using namespace Crowd;
 
-void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block_j)
+void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block_j, std::map<ENetPeer *, std::string> &all_full_hashes)
 {
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
@@ -74,8 +74,23 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
             
             std::string message = message_j.dump();
 
-            // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(peer_ip, message);
+            for (auto &[key, value] : all_full_hashes)
+            {
+                enet_uint32 ipAddress = key->address.host; // TODO put this ip address conversion in another function
+                char ipAddr[16];
+                if (ipAddress) {
+                    snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
+                                                                ,(ipAddress & 0x0000ff00) >> 8
+                                                                ,(ipAddress & 0x00ff0000) >> 16
+                                                                ,(ipAddress & 0xff000000) >> 24);
+                }
+                
+                if (peer_ip != ipAddr)
+                {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    pn.p2p_client(peer_ip, message);
+                }
+            }
         }
     }
     else

@@ -6,7 +6,7 @@
 
 using namespace Crowd;
 
-CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
+CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<ENetPeer *, std::string> &all_full_hashes)
 {
     message_j_vec_ = message_j_vec;
 
@@ -73,7 +73,7 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec)
 
     // send intro_block to co's
     Poco poco;
-    poco.inform_chosen_ones(my_last_block_nr, block_j_);
+    poco.inform_chosen_ones(my_last_block_nr, block_j_, all_full_hashes);
 
     std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
 std::cout << "--------5: " << std::endl;

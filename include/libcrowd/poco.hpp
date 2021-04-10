@@ -3,6 +3,7 @@
 #include "json.hpp"
 
 #include <iostream>
+#include <enet/enet.h>
 
 namespace Crowd
 {
@@ -13,7 +14,7 @@ namespace Crowd
     class Poco
     {
     public:
-        void inform_chosen_ones(std::string my_latest_block, nlohmann::json block_j);
+        void inform_chosen_ones(std::string my_latest_block, nlohmann::json block_j, std::map<ENetPeer *, std::string> &all_full_hashes);
     private:
         //
     };

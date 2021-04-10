@@ -1,464 +1,464 @@
-#include <cstdlib>
-#include <deque>
-#include <iostream>
-#include <thread>
-#include <boost/asio.hpp>
-#include "p2p_message.hpp"
-#include "p2p.hpp"
-#include "json.hpp"
-#include "rocksy.hpp"
-#include "merkle_tree.hpp"
-#include "create_block.hpp"
-#include "message_vec.hpp"
+// #include <cstdlib>
+// #include <deque>
+// #include <iostream>
+// #include <thread>
+// #include <boost/asio.hpp>
+// #include "p2p_message.hpp"
+// #include "p2p.hpp"
+// #include "json.hpp"
+// #include "rocksy.hpp"
+// #include "merkle_tree.hpp"
+// #include "create_block.hpp"
+// #include "message_vec.hpp"
 
-using namespace Crowd;
-using boost::asio::ip::tcp;
+// using namespace Crowd;
+// using boost::asio::ip::tcp;
 
-typedef std::deque<p2p_message> p2p_message_queue;
+// typedef std::deque<p2p_message> p2p_message_queue;
 
-class p2p_client
-{
-public:
-    p2p_client(boost::asio::io_context &io_context,
-                const tcp::resolver::results_type &endpoints)
-        : io_context_(io_context),
-          socket_(io_context)
-    {
-        do_connect(endpoints);
-    }
+// class p2p_client
+// {
+// public:
+//     p2p_client(boost::asio::io_context &io_context,
+//                 const tcp::resolver::results_type &endpoints)
+//         : io_context_(io_context),
+//           socket_(io_context)
+//     {
+//         do_connect(endpoints);
+//     }
 
-    void write(const p2p_message &msg)
-    {
-        boost::asio::post(io_context_,
-                          [this, msg]() {
-                              bool write_in_progress = !write_msgs_.empty();
-                              write_msgs_.push_back(msg);
-                              if (!write_in_progress)
-                              {
-                                  do_write();
-                              }
-                          });
-    }
+//     void write(const p2p_message &msg)
+//     {
+//         boost::asio::post(io_context_,
+//                           [this, msg]() {
+//                               bool write_in_progress = !write_msgs_.empty();
+//                               write_msgs_.push_back(msg);
+//                               if (!write_in_progress)
+//                               {
+//                                   do_write();
+//                               }
+//                           });
+//     }
 
-    void set_peer_hash(std::string peer_hash)
-    {
-        peer_hash_ = peer_hash;
-    }
+//     void set_peer_hash(std::string peer_hash)
+//     {
+//         peer_hash_ = peer_hash;
+//     }
 
-    void close()
-    {
-        boost::asio::post(io_context_, [this]() { socket_.close(); });
-    }
+//     void close()
+//     {
+//         boost::asio::post(io_context_, [this]() { socket_.close(); });
+//     }
 
-private:
-    void do_connect(const tcp::resolver::results_type &endpoints)
-    {
-        boost::asio::async_connect(socket_, endpoints,
-                                   [this](boost::system::error_code ec, tcp::endpoint) {
-                                       if (!ec)
-                                       {
-                                           do_read_header();
-                                       }
-                                   });
-    }
+// private:
+//     void do_connect(const tcp::resolver::results_type &endpoints)
+//     {
+//         boost::asio::async_connect(socket_, endpoints,
+//                                    [this](boost::system::error_code ec, tcp::endpoint) {
+//                                        if (!ec)
+//                                        {
+//                                            do_read_header();
+//                                        }
+//                                    });
+//     }
 
-    void do_read_header()
-    {
-        boost::asio::async_read(socket_,
-                                boost::asio::buffer(read_msg_.data(), p2p_message::header_length),
-                                [this](boost::system::error_code ec, std::size_t /*length*/) {
-                                    if (!ec && read_msg_.decode_header())
-                                    {
-                                        do_read_body();
-                                    }
-                                    else
-                                    {
-                                        socket_.close();
-                                    }
-                                });
-    }
+//     void do_read_header()
+//     {
+//         boost::asio::async_read(socket_,
+//                                 boost::asio::buffer(read_msg_.data(), p2p_message::header_length),
+//                                 [this](boost::system::error_code ec, std::size_t /*length*/) {
+//                                     if (!ec && read_msg_.decode_header())
+//                                     {
+//                                         do_read_body();
+//                                     }
+//                                     else
+//                                     {
+//                                         socket_.close();
+//                                     }
+//                                 });
+//     }
 
-    void do_read_body()
-    {
-        boost::asio::async_read(socket_,
-                                boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
-                                [this](boost::system::error_code ec, std::size_t /*length*/) {
-                                    if (!ec)
-                                    {
-                                        // std::cout << "do_read_body: ";
-                                        // std::cout.write(read_msg_.body(), read_msg_.body_length());
-                                        // std::cout << "\n";
-                                        handle_read(ec);
-                                        do_read_header();
-                                    }
-                                    else
-                                    {
-                                        socket_.close();
-                                    }
-                                });
-    }
+//     void do_read_body()
+//     {
+//         boost::asio::async_read(socket_,
+//                                 boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+//                                 [this](boost::system::error_code ec, std::size_t /*length*/) {
+//                                     if (!ec)
+//                                     {
+//                                         // std::cout << "do_read_body: ";
+//                                         // std::cout.write(read_msg_.body(), read_msg_.body_length());
+//                                         // std::cout << "\n";
+//                                         handle_read(ec);
+//                                         do_read_header();
+//                                     }
+//                                     else
+//                                     {
+//                                         socket_.close();
+//                                     }
+//                                 });
+//     }
 
-    void handle_read(boost::system::error_code ec)
-    {
-        if ( !read_msg_.get_eom_flag()) {
-            std::string str_read_msg(read_msg_.body());
-            buf_ += str_read_msg;
-        } else {
-            // process json message
-            std::string str_read_msg(read_msg_.body());
-            buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+//     void handle_read(boost::system::error_code ec)
+//     {
+//         if ( !read_msg_.get_eom_flag()) {
+//             std::string str_read_msg(read_msg_.body());
+//             buf_ += str_read_msg;
+//         } else {
+//             // process json message
+//             std::string str_read_msg(read_msg_.body());
+//             buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
 
-            Tcp t;
+//             Tcp t;
 
-            nlohmann::json buf_j = nlohmann::json::parse(buf_);
-            if (ec)
-            {
-                throw boost::system::system_error(ec); // Some other error.
-            }
-            else if (buf_j["register"] == "ack")
-            {
-                // TODO: what if there was no response from the server?
+//             nlohmann::json buf_j = nlohmann::json::parse(buf_);
+//             if (ec)
+//             {
+//                 throw boost::system::system_error(ec); // Some other error.
+//             }
+//             else if (buf_j["register"] == "ack")
+//             {
+//                 // TODO: what if there was no response from the server?
 
-                std::cout << "Ack for registering this client to a server" << std::endl;
-            }
-            else if (buf_j["req"] == "connect")
-            {
-                if (buf_j["connect"] == "ok")
-                {
-                    std::cout << "connect = ok" << std::endl;
-                    nlohmann::json message_j;
-                    message_j["connect"] = "true";
+//                 std::cout << "Ack for registering this client to a server" << std::endl;
+//             }
+//             else if (buf_j["req"] == "connect")
+//             {
+//                 if (buf_j["connect"] == "ok")
+//                 {
+//                     std::cout << "connect = ok" << std::endl;
+//                     nlohmann::json message_j;
+//                     message_j["connect"] = "true";
 
-                    // Establishing NAT Traversal
-                    // TODO: needs to be tested that there is really a connection between the two peers
-                    if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
-                    {
-                        std::cout << "message send to id_to from id_from" << std::endl;
-                        std::string srv_ip = "";
-                        std::string peer_ip = buf_j["ip_to"];
-                        std::string peer_hash = buf_j["hash_to"];
-                        std::string message = message_j.dump();
-                        std::string pub_key = "pub_key";
-                        t.client(srv_ip, peer_ip, peer_hash, message);
-                        t.server();
-                    }
-                    else
-                    {
-                        std::cout << "message send to id_from from id_to" << std::endl;
-                        std::string srv_ip = "";
-                        std::string peer_ip = buf_j["ip_from"];
-                        std::string peer_hash = buf_j["hash_from"];
-                        std::string message = message_j.dump();
-                        std::string pub_key = "pub_key";
-                        t.client(srv_ip, peer_ip, peer_hash, message);
-                        t.server();
-                    }
-                }
-            }
-            else if (buf_j["connect"] == "true")
-            {
-                std::cout << "connection established" << std::endl;
-            }
-            else if (buf_j["req"] == "update_your_blocks")
-            {
-                std::cout << "update_your_blocks client" << std::endl;
-                // save blocks to blockchain folder
+//                     // Establishing NAT Traversal
+//                     // TODO: needs to be tested that there is really a connection between the two peers
+//                     if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
+//                     {
+//                         std::cout << "message send to id_to from id_from" << std::endl;
+//                         std::string srv_ip = "";
+//                         std::string peer_ip = buf_j["ip_to"];
+//                         std::string peer_hash = buf_j["hash_to"];
+//                         std::string message = message_j.dump();
+//                         std::string pub_key = "pub_key";
+//                         t.client(srv_ip, peer_ip, peer_hash, message);
+//                         t.server();
+//                     }
+//                     else
+//                     {
+//                         std::cout << "message send to id_from from id_to" << std::endl;
+//                         std::string srv_ip = "";
+//                         std::string peer_ip = buf_j["ip_from"];
+//                         std::string peer_hash = buf_j["hash_from"];
+//                         std::string message = message_j.dump();
+//                         std::string pub_key = "pub_key";
+//                         t.client(srv_ip, peer_ip, peer_hash, message);
+//                         t.server();
+//                     }
+//                 }
+//             }
+//             else if (buf_j["connect"] == "true")
+//             {
+//                 std::cout << "connection established" << std::endl;
+//             }
+//             else if (buf_j["req"] == "update_your_blocks")
+//             {
+//                 std::cout << "update_your_blocks client" << std::endl;
+//                 // save blocks to blockchain folder
 
-                nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
-                std::string block_nr = buf_j["block_nr"];
-                if (block_nr == "0")
-                {
-                    block_nr = "no blockchain present in folder";
-                }
-                else
-                {
-                    int nr = std::stoi(block_nr);
-                    nr--;
-                    block_nr = std::to_string(nr);
-                }
-                // std::cout << "block_s: " << buf_j["block"] << std::endl;
-                // std::cout << "block_nr: " << block_nr << std::endl;
+//                 nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
+//                 std::string block_nr = buf_j["block_nr"];
+//                 if (block_nr == "0")
+//                 {
+//                     block_nr = "no blockchain present in folder";
+//                 }
+//                 else
+//                 {
+//                     int nr = std::stoi(block_nr);
+//                     nr--;
+//                     block_nr = std::to_string(nr);
+//                 }
+//                 // std::cout << "block_s: " << buf_j["block"] << std::endl;
+//                 // std::cout << "block_nr: " << block_nr << std::endl;
 
-                merkle_tree mt;
-                mt.save_block_to_file(block_j, block_nr);
-            }
-            else if (buf_j["req"] == "update_your_rocksdb")
-            {
-                std::cout << "update_your_rocksdb client" << std::endl;
+//                 merkle_tree mt;
+//                 mt.save_block_to_file(block_j, block_nr);
+//             }
+//             else if (buf_j["req"] == "update_your_rocksdb")
+//             {
+//                 std::cout << "update_your_rocksdb client" << std::endl;
 
-                std::string key_s = buf_j["key"];
-                std::string value_s = buf_j["value"];
+//                 std::string key_s = buf_j["key"];
+//                 std::string value_s = buf_j["value"];
 
-                Rocksy* rocksy = new Rocksy();
-                rocksy->Put(key_s, value_s);
-                delete rocksy;
-            }
-            else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
-            {
-                std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
-                // send blocks to peer
+//                 Rocksy* rocksy = new Rocksy();
+//                 rocksy->Put(key_s, value_s);
+//                 delete rocksy;
+//             }
+//             else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
+//             {
+//                 std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
+//                 // send blocks to peer
 
-                Protocol proto;
-                std::string my_latest_block = proto.get_last_block_nr();
-                std::string req_latest_block = buf_j["block_nr"];
+//                 Protocol proto;
+//                 std::string my_latest_block = proto.get_last_block_nr();
+//                 std::string req_latest_block = buf_j["block_nr"];
 
-                nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
+//                 nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
 
-                uint64_t value;
-                std::istringstream iss(my_latest_block);
-                iss >> value;
+//                 uint64_t value;
+//                 std::istringstream iss(my_latest_block);
+//                 iss >> value;
 
-                for (uint64_t i = 0; i <= value; i++)
-                {
-                    nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                    // std::cout << "block_j: " << block_j << std::endl;
-                    nlohmann::json msg;
-                    msg["req"] = "update_your_blocks";
-                    std::ostringstream o;
-                    o << i;
-                    msg["block_nr"] = o.str();
-                    msg["block"] = block_j;
-                    set_resp_msg(msg.dump());
-                }
+//                 for (uint64_t i = 0; i <= value; i++)
+//                 {
+//                     nlohmann::json block_j = list_of_blocks_j[i]["block"];
+//                     // std::cout << "block_j: " << block_j << std::endl;
+//                     nlohmann::json msg;
+//                     msg["req"] = "update_your_blocks";
+//                     std::ostringstream o;
+//                     o << i;
+//                     msg["block_nr"] = o.str();
+//                     msg["block"] = block_j;
+//                     set_resp_msg(msg.dump());
+//                 }
 
-                // Update rockdb's:
-                nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
-                                                                                                                    // maybe even a stack is better ...
-                Rocksy* rocksy = new Rocksy();
-                for (auto& user : list_of_users_j)
-                {
-                    nlohmann::json msg;
-                    msg["req"] = "update_your_rocksdb";
-                    msg["key"] = user;
+//                 // Update rockdb's:
+//                 nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+//                                                                                                                     // maybe even a stack is better ...
+//                 Rocksy* rocksy = new Rocksy();
+//                 for (auto& user : list_of_users_j)
+//                 {
+//                     nlohmann::json msg;
+//                     msg["req"] = "update_your_rocksdb";
+//                     msg["key"] = user;
 
-                    std::string u = user.dump();
-                    std::string value = rocksy->Get(u);
-                    msg["value"] = value;
+//                     std::string u = user.dump();
+//                     std::string value = rocksy->Get(u);
+//                     msg["value"] = value;
 
-                    set_resp_msg(msg.dump());
-                }
-                delete rocksy;
-            }
-            else if (buf_j["req"] == "new_peer")
-            {
-                // TODO there are 2 new_peer functions that need to be the same, so put them in one function somewhere
+//                     set_resp_msg(msg.dump());
+//                 }
+//                 delete rocksy;
+//             }
+//             else if (buf_j["req"] == "new_peer")
+//             {
+//                 // TODO there are 2 new_peer functions that need to be the same, so put them in one function somewhere
 
-                // new_peer
-                std::cout << "new_peer: " << std::endl;
-                // should read the timestamp of the first new_peer request received
+//                 // new_peer
+//                 std::cout << "new_peer: " << std::endl;
+//                 // should read the timestamp of the first new_peer request received
                 
-                // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-                message_j_vec_.add_to_message_j_vec(buf_j);
+//                 // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+//                 message_j_vec_.add_to_message_j_vec(buf_j);
                 
-                if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
-                {
-                    // Create block
-                    std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                    CreateBlock cb(m_j_v);
+//                 if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+//                 {
+//                     // Create block
+//                     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+//                     CreateBlock cb(m_j_v);
 
-                    message_j_vec_.reset_message_j_vec();
-                }
-                else if (message_j_vec_.get_message_j_vec().size() == 1)
-                {
-                    // wait 20 secs
-                    // then create block --> don't forget the counter in the search for a coordinator
-                    // if root_hash == me as coordinator ... connect to all co's
-                    std::thread t(&p2p_client::get_sleep_and_create_block, this);
-                    t.detach();
-                }
-            }
-            else if (buf_j["req"] == "new_co")
-            {
-                // send flag to start_p2p function
-                std::cout << "new_co: " << std::endl;
-                std::string peer_ip = buf_j["ip_co"];
-                t.set_ip_new_co(peer_ip);
-            }
-            else if (buf_j["req"] == "your_full_hash")
-            {
-                // my full hash
-                std::string full_hash = buf_j["full_hash"];
-                nlohmann::json block_j = buf_j["block"];
-                std::string hash_of_block = buf_j["hash_of_block"];
-                std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
-                std::cout << "New peer's hash_of_block (client): " << hash_of_block << std::endl;
-                std::string prev_hash = block_j["prev_hash"];
-                std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
+//                     message_j_vec_.reset_message_j_vec();
+//                 }
+//                 else if (message_j_vec_.get_message_j_vec().size() == 1)
+//                 {
+//                     // wait 20 secs
+//                     // then create block --> don't forget the counter in the search for a coordinator
+//                     // if root_hash == me as coordinator ... connect to all co's
+//                     std::thread t(&p2p_client::get_sleep_and_create_block, this);
+//                     t.detach();
+//                 }
+//             }
+//             else if (buf_j["req"] == "new_co")
+//             {
+//                 // send flag to start_p2p function
+//                 std::cout << "new_co: " << std::endl;
+//                 std::string peer_ip = buf_j["ip_co"];
+//                 t.set_ip_new_co(peer_ip);
+//             }
+//             else if (buf_j["req"] == "your_full_hash")
+//             {
+//                 // my full hash
+//                 std::string full_hash = buf_j["full_hash"];
+//                 nlohmann::json block_j = buf_j["block"];
+//                 std::string hash_of_block = buf_j["hash_of_block"];
+//                 std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
+//                 std::cout << "New peer's hash_of_block (client): " << hash_of_block << std::endl;
+//                 std::string prev_hash = block_j["prev_hash"];
+//                 std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
 
-                merkle_tree mt;
-                Protocol proto;
-                std::string my_last_block_nr = proto.get_last_block_nr();
-                std::string block_s = mt.save_block_to_file(block_j, my_last_block_nr); //
-            }
-            else if (buf_j["req"] = "hash_comparison")
-            {
-                // compare the received hash
-                std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
-            }
+//                 merkle_tree mt;
+//                 Protocol proto;
+//                 std::string my_last_block_nr = proto.get_last_block_nr();
+//                 std::string block_s = mt.save_block_to_file(block_j, my_last_block_nr); //
+//             }
+//             else if (buf_j["req"] = "hash_comparison")
+//             {
+//                 // compare the received hash
+//                 std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+//             }
 
-            buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
-        }
-    }
+//             buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
+//         }
+//     }
 
-    void do_write()
-    {
-        boost::asio::async_write(socket_,
-                                 boost::asio::buffer(write_msgs_.front().data(),
-                                                     write_msgs_.front().length()),
-                                 [this](boost::system::error_code ec, std::size_t /*length*/) {
-                                     if (!ec)
-                                     {
-                                         std::cout << "ec1: " << ec << std::endl;
-                                         //std::cout << "ec1: " << write_msgs_.front().data() << std::endl;
-                                         write_msgs_.pop_front();
-                                         if (!write_msgs_.empty())
-                                         {
-                                             do_write();
-                                         }
-                                     }
-                                     else
-                                     {
-                                         std::cout << "ec error: " << ec << std::endl;
-                                         socket_.close();
-                                         Tcp t;
-                                         t.set_tcp_closed_client("closed_conn");
-                                         std::cout << "Connection closed!" << std::endl;
-                                     }
-                                 });
-    }
+//     void do_write()
+//     {
+//         boost::asio::async_write(socket_,
+//                                  boost::asio::buffer(write_msgs_.front().data(),
+//                                                      write_msgs_.front().length()),
+//                                  [this](boost::system::error_code ec, std::size_t /*length*/) {
+//                                      if (!ec)
+//                                      {
+//                                          std::cout << "ec1: " << ec << std::endl;
+//                                          //std::cout << "ec1: " << write_msgs_.front().data() << std::endl;
+//                                          write_msgs_.pop_front();
+//                                          if (!write_msgs_.empty())
+//                                          {
+//                                              do_write();
+//                                          }
+//                                      }
+//                                      else
+//                                      {
+//                                          std::cout << "ec error: " << ec << std::endl;
+//                                          socket_.close();
+//                                          Tcp t;
+//                                          t.set_tcp_closed_client("closed_conn");
+//                                          std::cout << "Connection closed!" << std::endl;
+//                                      }
+//                                  });
+//     }
 
-    void set_resp_msg(std::string msg)
-    {
-        std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
-        for (int i = 0; i < splitted.size(); i++)
-        {
-            char s[p2p_message::max_body_length + 1];
-            strncpy(s, splitted[i].c_str(), sizeof(s));
+//     void set_resp_msg(std::string msg)
+//     {
+//         std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+//         for (int i = 0; i < splitted.size(); i++)
+//         {
+//             char s[p2p_message::max_body_length + 1];
+//             strncpy(s, splitted[i].c_str(), sizeof(s));
 
-            resp_msg_.body_length(std::strlen(s));
-            std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
-            i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+//             resp_msg_.body_length(std::strlen(s));
+//             std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
+//             i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
-            write(resp_msg_);
-        }
-    }
+//             write(resp_msg_);
+//         }
+//     }
 
-    std::vector<std::string> split(const std::string& str, int splitLength)
-    {
-        int NumSubstrings = str.length() / splitLength;
-        std::vector<std::string> ret;
+//     std::vector<std::string> split(const std::string& str, int splitLength)
+//     {
+//         int NumSubstrings = str.length() / splitLength;
+//         std::vector<std::string> ret;
 
-        for (auto i = 0; i < NumSubstrings; i++)
-        {
-            ret.push_back(str.substr(i * splitLength, splitLength));
-        }
+//         for (auto i = 0; i < NumSubstrings; i++)
+//         {
+//             ret.push_back(str.substr(i * splitLength, splitLength));
+//         }
 
-        // If there are leftover characters, create a shorter item at the end.
-        if (str.length() % splitLength != 0)
-        {
-            ret.push_back(str.substr(splitLength * NumSubstrings));
-        }
+//         // If there are leftover characters, create a shorter item at the end.
+//         if (str.length() % splitLength != 0)
+//         {
+//             ret.push_back(str.substr(splitLength * NumSubstrings));
+//         }
 
-        return ret;
-    }
+//         return ret;
+//     }
 
-    void get_sleep_and_create_block() // TODO in p2p_server is also this function, they should be merged as they need to be the same
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(10));
+//     void get_sleep_and_create_block() // TODO in p2p_server is also this function, they should be merged as they need to be the same
+//     {
+//         std::this_thread::sleep_for(std::chrono::seconds(10));
 
-        std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+//         std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
-        std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-        CreateBlock cb(m_j_v);
-        nlohmann::json block_j = cb.get_block_j();
+//         std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
+//         CreateBlock cb(m_j_v);
+//         nlohmann::json block_j = cb.get_block_j();
 
-        // TODO look into p2p_session for the same function and adapt accordingly
-        // this function is not yet used, it starts getting used when nat traversal is introcuded
+//         // TODO look into p2p_session for the same function and adapt accordingly
+//         // this function is not yet used, it starts getting used when nat traversal is introcuded
 
-        message_j_vec_.reset_message_j_vec();
+//         message_j_vec_.reset_message_j_vec();
 
-        std::cout << "Block created client!!" << std::endl;
-    }
+//         std::cout << "Block created client!!" << std::endl;
+//     }
 
-private:
-    boost::asio::io_context &io_context_;
-    tcp::socket socket_;
-    p2p_message read_msg_;
-    p2p_message_queue write_msgs_;
-    std::string buf_;
-    p2p_message resp_msg_;
-    std::string peer_hash_;
+// private:
+//     boost::asio::io_context &io_context_;
+//     tcp::socket socket_;
+//     p2p_message read_msg_;
+//     p2p_message_queue write_msgs_;
+//     std::string buf_;
+//     p2p_message resp_msg_;
+//     std::string peer_hash_;
 
-    std::string closed_client_;
+//     std::string closed_client_;
 
-    MessageVec message_j_vec_;
+//     MessageVec message_j_vec_;
 
-    friend struct ::unit_test::FooTester;
-};
+//     friend struct ::unit_test::FooTester;
+// };
 
-std::vector<std::string> split(const std::string& str, int splitLength)
-{
-   int NumSubstrings = str.length() / splitLength;
-   std::vector<std::string> ret;
+// std::vector<std::string> split(const std::string& str, int splitLength)
+// {
+//    int NumSubstrings = str.length() / splitLength;
+//    std::vector<std::string> ret;
 
-   for (auto i = 0; i < NumSubstrings; i++)
-   {
-        ret.push_back(str.substr(i * splitLength, splitLength));
-   }
+//    for (auto i = 0; i < NumSubstrings; i++)
+//    {
+//         ret.push_back(str.substr(i * splitLength, splitLength));
+//    }
 
-   // If there are leftover characters, create a shorter item at the end.
-   if (str.length() % splitLength != 0)
-   {
-        ret.push_back(str.substr(splitLength * NumSubstrings));
-   }
+//    // If there are leftover characters, create a shorter item at the end.
+//    if (str.length() % splitLength != 0)
+//    {
+//         ret.push_back(str.substr(splitLength * NumSubstrings));
+//    }
 
-   return ret;
-}
+//    return ret;
+// }
 
-std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message)
-{
-    try
-    {
-        boost::asio::io_context io_context;
+// std::string Tcp::client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message)
+// {
+//     try
+//     {
+//         boost::asio::io_context io_context;
 
-        tcp::resolver resolver(io_context);
-        tcp::resolver::results_type endpoints;
-        endpoints = resolver.resolve(peer_ip, "1975");
+//         tcp::resolver resolver(io_context);
+//         tcp::resolver::results_type endpoints;
+//         endpoints = resolver.resolve(peer_ip, "1975");
         
-        p2p_client c(io_context, endpoints);
+//         p2p_client c(io_context, endpoints);
 
-        std::thread t([&io_context]() { io_context.run(); });
+//         std::thread t([&io_context]() { io_context.run(); });
 
-        std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
-        for (int i = 0; i < splitted.size(); i++)
-        {
-            char s[p2p_message::max_body_length + 1];
-            strncpy(s, splitted[i].c_str(), sizeof(s));
+//         std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
+//         for (int i = 0; i < splitted.size(); i++)
+//         {
+//             char s[p2p_message::max_body_length + 1];
+//             strncpy(s, splitted[i].c_str(), sizeof(s));
 
-            p2p_message msg;
-            msg.body_length(std::strlen(s));
-            std::memcpy(msg.body(), s, msg.body_length());
-            i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+//             p2p_message msg;
+//             msg.body_length(std::strlen(s));
+//             std::memcpy(msg.body(), s, msg.body_length());
+//             i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
-            if (peer_hash != "") c.set_peer_hash(peer_hash);
-            c.write(msg);
-        }
+//             if (peer_hash != "") c.set_peer_hash(peer_hash);
+//             c.write(msg);
+//         }
 
-        while (true) // ugly, but this client should be able to receive and send messages, it doesn't work without this while
-        {
-            Tcp t;
-            if (t.get_tcp_closed_client() == "closed_conn" || t.get_tcp_closed_client() == "time_wait")
-            {
-                break;
-            }
-        }
-        c.close();
-        t.join();
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << "Exception: " << e.what() << "\n";
-    }
+//         while (true) // ugly, but this client should be able to receive and send messages, it doesn't work without this while
+//         {
+//             Tcp t;
+//             if (t.get_tcp_closed_client() == "closed_conn" || t.get_tcp_closed_client() == "time_wait")
+//             {
+//                 break;
+//             }
+//         }
+//         c.close();
+//         t.join();
+//     }
+//     catch (std::exception &e)
+//     {
+//         std::cerr << "Exception: " << e.what() << "\n";
+//     }
 
-    return "0";
-}
+//     return "0";
+// }

@@ -165,7 +165,8 @@ void P2pNetwork::handle_read_client()
             {
                 // Create block
                 std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                CreateBlock cb(m_j_v);
+                std::map<ENetPeer *, std::string> a_f_h = get_all_full_hashes();
+                CreateBlock cb(m_j_v, a_f_h);
 
                 message_j_vec_.reset_message_j_vec();
             }
@@ -224,7 +225,8 @@ void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is al
     std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-    CreateBlock cb(m_j_v);
+    std::map<ENetPeer *, std::string> a_f_h = get_all_full_hashes();
+    CreateBlock cb(m_j_v, a_f_h);
     nlohmann::json block_j = cb.get_block_j();
 
     // TODO look into p2p_session for the same function and adapt accordingly

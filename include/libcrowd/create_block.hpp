@@ -3,6 +3,7 @@
 #include <stack>
 #include <string>
 #include <memory>
+#include <enet/enet.h>
 
 #include "json.hpp"
 
@@ -11,7 +12,7 @@ namespace Crowd
     class CreateBlock
     {
     public:
-        CreateBlock(std::vector<nlohmann::json> &message_j_vec);
+        CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<ENetPeer *, std::string> &all_full_hashes);
         nlohmann::json get_block_j();
         std::string get_hash_of_new_block();
     private:
