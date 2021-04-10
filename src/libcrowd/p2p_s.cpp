@@ -154,7 +154,7 @@ void P2pNetwork::handle_read_server()
                                 msg["req"] = "update_your_rocksdb";
                                 msg["key"] = user;
 
-                                std::string u = user.dump();
+                                std::string u = user;
                                 std::string value = rocksy->Get(u);
                                 msg["value"] = value;
 
@@ -587,10 +587,8 @@ void P2pNetwork::handle_read_server()
             // p2p_client connection to chosen_one and update blockchain and rocksdb
             Rocksy *rocksy = new Rocksy();
             std::string chosen_one = rocksy->FindChosenOne(full_hash);
-std::cout << "chosen_one: " << chosen_one << std::endl;
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(chosen_one));
             std::string peer_ip = value_j["ip"];
-std::cout << "peer_ip: " << peer_ip << std::endl;
             delete rocksy;
 
             nlohmann::json msg_j;
