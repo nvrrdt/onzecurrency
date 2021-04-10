@@ -583,13 +583,73 @@ void P2pNetwork::handle_read_server()
             std::cout << "New peer's full_hash (server): " << full_hash << std::endl;
 
             // save full_hash
-            // p2p_client to chosen_one and update blockchain and rocksdb
+            P2p p2p;
+            p2p.save_full_hash_to_file(full_hash);
+
+            // p2p_client connection to chosen_one and update blockchain and rocksdb
+            Rocksy *rocksy = new Rocksy();
+            std::string chosen_one = rocksy->FindChosenOne(full_hash);
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(chosen_one));
+            std::string peer_ip = value_j["ip"];
+            delete rocksy;
+
+            nlohmann::json msg_j;
+            msg_j["req"] = "update_my_blocks_and_rocksdb";
+            std::string msg = msg_j.dump();
+            
+            p2p_client(peer_ip, msg);
             
         }
         else if (buf_j["req"] = "hash_comparison")
         {
             // compare the received hash
             std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+        }
+        else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
+        {
+            std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
+            // send blocks to peer
+
+            Protocol proto;
+            std::string my_latest_block = proto.get_last_block_nr();
+            std::string req_latest_block = buf_j["block_nr"];
+
+            nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
+
+            uint64_t value;
+            std::istringstream iss(my_latest_block);
+            iss >> value;
+
+            for (uint64_t i = 0; i <= value; i++)
+            {
+                nlohmann::json block_j = list_of_blocks_j[i]["block"];
+                // std::cout << "block_j: " << block_j << std::endl;
+                nlohmann::json msg;
+                msg["req"] = "update_your_blocks";
+                std::ostringstream o;
+                o << i;
+                msg["block_nr"] = o.str();
+                msg["block"] = block_j;
+                set_resp_msg_client(msg.dump());
+            }
+
+            // Update rockdb's:
+            nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                                // maybe even a stack is better ...
+            Rocksy* rocksy = new Rocksy();
+            for (auto& user : list_of_users_j)
+            {
+                nlohmann::json msg;
+                msg["req"] = "update_your_rocksdb";
+                msg["key"] = user;
+
+                std::string u = user.dump();
+                std::string value = rocksy->Get(u);
+                msg["value"] = value;
+
+                set_resp_msg_client(msg.dump());
+            }
+            delete rocksy;
         }
 
         buf_ = "";

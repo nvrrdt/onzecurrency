@@ -38,6 +38,8 @@ namespace Crowd
         void to_json(nlohmann::json& j, const std::vector<std::string>& str) {
             j = nlohmann::json{{"ip_list", str}};
         }
+        void save_full_hash_to_file(std::string& full_hash);
+        std::string get_full_hash_from_file();
     };
     
     class Tcp
