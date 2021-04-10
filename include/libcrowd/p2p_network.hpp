@@ -47,6 +47,7 @@ namespace Crowd
         void handle_read_client();
         void set_resp_msg_server(std::string msg);
         void set_resp_msg_client(std::string msg);
+        void set_resp_your_hash_server(ENetPeer *participant, std::string msg);
         void get_sleep_and_create_block_server();
         void get_sleep_and_create_block_client();
         void set_closed_client(std::string closed)
@@ -55,10 +56,10 @@ namespace Crowd
         }
         void add_to_all_full_hashes(ENetPeer *participant, std::string full_hash_req)
         {
-            all_full_hashes_[participant->incomingPeerID] = full_hash_req;
+            all_full_hashes_[participant] = full_hash_req;
         }
 
-        std::map<enet_uint16, std::string> get_all_full_hashes()
+        std::map<ENetPeer*, std::string> get_all_full_hashes()
         {
             return all_full_hashes_;
         }
@@ -82,7 +83,7 @@ namespace Crowd
         p2p_message resp_msg_;
         std::string buf_;
         MessageVec message_j_vec_;
-        std::map<enet_uint16, std::string> all_full_hashes_;
+        std::map<ENetPeer*, std::string> all_full_hashes_;
 
         std::string closed_client_;
     };

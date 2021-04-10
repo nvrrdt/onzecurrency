@@ -305,7 +305,7 @@ void P2pNetwork::handle_read_server()
                                 msg_j["hash_of_block"] = cb.get_hash_of_new_block();
                                 std::string msg_s = msg_j.dump();
 
-                                //set_resp_your_hash(key, msg_s); TODOOOO
+                                set_resp_your_hash_server(key, msg_s);
                             }
 
                             message_j_vec_.reset_message_j_vec();
@@ -581,6 +581,10 @@ void P2pNetwork::handle_read_server()
             // my full hash
             std::string full_hash = buf_j["full_hash"];
             std::cout << "New peer's full_hash (server): " << full_hash << std::endl;
+
+            // save full_hash
+            // p2p_client to chosen_one and update blockchain and rocksdb
+            
         }
         else if (buf_j["req"] = "hash_comparison")
         {
@@ -611,6 +615,25 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
     }
 }
 
+void P2pNetwork::set_resp_your_hash_server(ENetPeer *participant, std::string msg)
+{
+    std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+    for (int i = 0; i < splitted.size(); i++)
+    {
+        char s[p2p_message::max_body_length + 1];
+        strncpy(s, splitted[i].c_str(), sizeof(s));
+
+        resp_msg_.body_length(std::strlen(s));
+        std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
+        i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+        // sprintf(buffer_, "%s", (char*) resp_j.dump());
+        packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, 0);
+        enet_peer_send(participant, 0, packet_);
+        enet_host_flush(server_);
+    }
+}
+
 void P2pNetwork::get_sleep_and_create_block_server()
 {
     std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -630,7 +653,7 @@ void P2pNetwork::get_sleep_and_create_block_server()
         msg_j["hash_of_block"] = cb.get_hash_of_new_block();
         std::string msg_s = msg_j.dump();
 
-        ///set_resp_your_hash(key, msg_s); // TODOOOO
+        set_resp_your_hash_server(key, msg_s);
     }
 
     message_j_vec_.reset_message_j_vec();
