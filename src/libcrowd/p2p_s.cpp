@@ -183,9 +183,6 @@ void P2pNetwork::handle_read_server()
 
                         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
-                        std::string srv_ip = ""; // only for nat traversal
-                        std::string peer_hash = ""; // dunno, still dunno
-
                         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                         message_j["req"] = "new_peer";
                         message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
@@ -550,11 +547,9 @@ void P2pNetwork::handle_read_server()
                     {
                         if (i > j)
                         {
-                            std::string srv_ip = "";
                             std::string c_one = chosen_ones[i];
                             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
                             std::string peer_ip = value_j["ip"];
-                            std::string peer_hash = "";
                             nlohmann::json msg_j;
                             msg_j["req"] = "hash_comparison";
                             msg_j["hash"] = prev_hash_chosen_one;
@@ -592,8 +587,10 @@ void P2pNetwork::handle_read_server()
             // p2p_client connection to chosen_one and update blockchain and rocksdb
             Rocksy *rocksy = new Rocksy();
             std::string chosen_one = rocksy->FindChosenOne(full_hash);
+std::cout << "chosen_one: " << chosen_one << std::endl;
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(chosen_one));
             std::string peer_ip = value_j["ip"];
+std::cout << "peer_ip: " << peer_ip << std::endl;
             delete rocksy;
 
             nlohmann::json msg_j;

@@ -45,9 +45,7 @@ void P2pNetwork::handle_read_client()
                 if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
                 {
                     std::cout << "message send to id_to from id_from" << std::endl;
-                    std::string srv_ip = "";
                     std::string peer_ip = buf_j["ip_to"];
-                    std::string peer_hash = buf_j["hash_to"];
                     std::string message = message_j.dump();
                     std::string pub_key = "pub_key";
                     p2p_client(peer_ip, message);
@@ -56,9 +54,7 @@ void P2pNetwork::handle_read_client()
                 else
                 {
                     std::cout << "message send to id_from from id_to" << std::endl;
-                    std::string srv_ip = "";
                     std::string peer_ip = buf_j["ip_from"];
-                    std::string peer_hash = buf_j["hash_from"];
                     std::string message = message_j.dump();
                     std::string pub_key = "pub_key";
                     p2p_client(peer_ip, message);

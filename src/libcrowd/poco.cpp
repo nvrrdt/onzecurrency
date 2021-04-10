@@ -53,9 +53,6 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-        
-        std::string srv_ip = ""; // only for nat traversal
-        std::string peer_hash = ""; // dunno, still dunno
 
         P2pNetwork pn;
         std::string key, val;

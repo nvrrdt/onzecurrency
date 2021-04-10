@@ -99,10 +99,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
             // end test
 
-            std::string srv_ip = "";
             std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
             message_j["ip"] = ip_mother_peer;
-            std::string peer_hash = "";
 
             rocksdb_j["version"] = "O.1";
             rocksdb_j["ip"] = ip_mother_peer;
