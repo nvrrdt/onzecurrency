@@ -639,7 +639,7 @@ void P2pNetwork::handle_read_server()
             for (uint64_t i = 0; i <= value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
-    std::cout << "block_j: " << block_j << std::endl;
+                // std::cout << "block_j: " << block_j << std::endl;
                 nlohmann::json msg;
                 msg["req"] = "update_your_blocks";
                 std::ostringstream o;

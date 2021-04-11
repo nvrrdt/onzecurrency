@@ -102,7 +102,7 @@ void P2pNetwork::handle_read_client()
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
-            std::cout << "update_my_blocks_and_rocksdb client" << std::endl;
+            std::cout << "update_your_blocks_and_rocksdb client" << std::endl;
             // send blocks to peer
 
             Protocol proto;
@@ -115,7 +115,7 @@ void P2pNetwork::handle_read_client()
             std::istringstream iss(my_latest_block);
             iss >> value;
 
-            for (uint64_t i = 0; i <= value; i++)
+            for (uint64_t i = 0; i < value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
                 // std::cout << "block_j: " << block_j << std::endl;
