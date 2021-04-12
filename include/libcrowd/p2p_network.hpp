@@ -22,6 +22,7 @@
 #include "message_vec.hpp"
 #include "create_block.hpp"
 #include "merkle_tree.hpp"
+#include "all_full_hashes.hpp"
 
 // This is the port for the p2p_server and p2p_client
 #define PORT (1975)
@@ -47,26 +48,12 @@ namespace Crowd
         void handle_read_client();
         void set_resp_msg_server(std::string msg);
         void set_resp_msg_client(std::string msg);
-        void set_resp_your_hash_server(ENetPeer *participant, std::string msg);
+        void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
         void get_sleep_and_create_block_server();
         void get_sleep_and_create_block_client();
         void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
-        }
-        void add_to_all_full_hashes(ENetPeer *participant, std::string full_hash_req)
-        {
-            all_full_hashes_[participant] = full_hash_req;
-        }
-
-        std::map<ENetPeer*, std::string> get_all_full_hashes()
-        {
-            return all_full_hashes_;
-        }
-
-        void reset_all_full_hashes()
-        {
-            all_full_hashes_.clear();
         }
         
     private:
@@ -83,7 +70,7 @@ namespace Crowd
         p2p_message resp_msg_;
         std::string buf_;
         MessageVec message_j_vec_;
-        std::map<ENetPeer*, std::string> all_full_hashes_;
+        AllFullHashes all_full_hashes_;
 
         std::string closed_client_;
     };

@@ -20,6 +20,7 @@ add_library(crowd SHARED
                      message_vec.cpp
                      p2p_c.cpp
                      p2p_s.cpp
+                     all_full_hashes.cpp
 )
 
 target_include_directories(crowd PUBLIC
@@ -48,6 +49,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/create_block.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/message_vec.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/all_full_hashes.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)

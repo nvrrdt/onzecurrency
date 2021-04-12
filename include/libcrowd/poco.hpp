@@ -14,7 +14,7 @@ namespace Crowd
     class Poco
     {
     public:
-        void inform_chosen_ones(std::string my_latest_block, nlohmann::json block_j, std::map<ENetPeer *, std::string> &all_full_hashes);
+        void inform_chosen_ones(std::string my_latest_block, nlohmann::json block_j, std::map<enet_uint32, std::string> &all_full_hashes);
     private:
         //
     };

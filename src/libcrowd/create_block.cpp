@@ -6,7 +6,7 @@
 
 using namespace Crowd;
 
-CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<ENetPeer *, std::string> &all_full_hashes)
+CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std::string> &all_full_hashes)
 {
     message_j_vec_ = message_j_vec;
 

@@ -12,7 +12,7 @@ namespace Crowd
     class CreateBlock
     {
     public:
-        CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<ENetPeer *, std::string> &all_full_hashes);
+        CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std::string> &all_full_hashes);
         nlohmann::json get_block_j();
         std::string get_hash_of_new_block();
     private:

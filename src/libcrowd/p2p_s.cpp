@@ -284,13 +284,13 @@ void P2pNetwork::handle_read_server()
                         // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                         message_j_vec_.add_to_message_j_vec(message_j);
 
-                        add_to_all_full_hashes(event_.peer, full_hash_req); // TODO you have to reset this
-                        
+                        all_full_hashes_.add_to_all_full_hashes(event_.peer->address.host, full_hash_req); // TODO you have to reset this
+
                         if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                         {
                             // Create block
                             std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                            std::map<ENetPeer *, std::string> a_f_h = get_all_full_hashes();
+                            std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
                             CreateBlock cb(m_j_v, a_f_h);
                             nlohmann::json block_j = cb.get_block_j();
 
@@ -303,7 +303,7 @@ void P2pNetwork::handle_read_server()
                                 msg_j["hash_of_block"] = cb.get_hash_of_new_block();
                                 std::string msg_s = msg_j.dump();
 
-                                enet_uint32 ipAddress = key->address.host; // TODO put this ip address conversion in another function
+                                enet_uint32 ipAddress = key; // TODO put this ip address conversion in another function
                                 char ipAddr[16];
                                 if (ipAddress) {
                                     snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
@@ -316,7 +316,7 @@ void P2pNetwork::handle_read_server()
                             }
 
                             message_j_vec_.reset_message_j_vec();
-                            reset_all_full_hashes();
+                            all_full_hashes_.reset_all_full_hashes();
                         }
                         else if (message_j_vec_.get_message_j_vec().size() == 1)
                         {
@@ -415,7 +415,7 @@ void P2pNetwork::handle_read_server()
             {
                 // Create block
                 std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                std::map<ENetPeer *, std::string> a_f_h = get_all_full_hashes();
+                std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
                 CreateBlock cb(m_j_v, a_f_h);
 
                 message_j_vec_.reset_message_j_vec();
@@ -584,37 +584,25 @@ void P2pNetwork::handle_read_server()
             P2p p2p;
             p2p.save_full_hash_to_file(full_hash);
 
-            // p2p_client connection to chosen_one and update blockchain and rocksdb
-            Rocksy *rocksy = new Rocksy();
-            std::string chosen_one = rocksy->FindChosenOne(full_hash);
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(chosen_one));
-            std::string peer_ip = value_j["ip"];
-            delete rocksy;
-
-            nlohmann::json msg_j;
-            msg_j["req"] = "update_my_blocks_and_rocksdb";
-            Protocol proto;
-            msg_j["block_nr"] = proto.get_last_block_nr();
-            std::string msg = msg_j.dump();
+            // Save buf_j["block"] to file
+            nlohmann::json block_j = buf_j["block"];
             
-            enet_uint32 ipAddress = event_.peer->address.host; // TODO put this ip address conversion in another function
-            char ipAddr[16];
-            if (ipAddress) {
-                snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
-                                                            ,(ipAddress & 0x0000ff00) >> 8
-                                                            ,(ipAddress & 0x00ff0000) >> 16
-                                                            ,(ipAddress & 0xff000000) >> 24);
-            }
-
-            if (peer_ip != ipAddr)
-            {
-                p2p_client(peer_ip, msg);
-            }
-            else
-            {
-                set_resp_msg_server(msg);
-            }
+            std::string block_nr = buf_j["block_nr"];
+            uint64_t value;
+            std::istringstream iss(block_nr); // TODO here starts an ugly hack, the block number is 1 number to high
+            iss >> value;                     // get_last_block_nr() in protocol.cpp: n should be n = v.size() - 1; --> so -1
+            value--;
+            std::ostringstream o;
+            o << value;
+            block_nr = o.str();
             
+            merkle_tree mt;
+            mt.save_block_to_file(block_j, block_nr);
+
+            // Disconect from client
+            nlohmann::json m_j;
+            m_j["req"] = "close_this_conn";
+            set_resp_msg_server(m_j.dump());
         }
         else if (buf_j["req"] = "hash_comparison")
         {
@@ -623,7 +611,7 @@ void P2pNetwork::handle_read_server()
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
-            std::cout << "update_your_blocks_and_rocksdb client" << std::endl;
+            std::cout << "update_your_blocks_and_rocksdb server" << std::endl;
             // send blocks to peer
 
             Protocol proto;
@@ -636,7 +624,7 @@ void P2pNetwork::handle_read_server()
             std::istringstream iss(my_latest_block);
             iss >> value;
 
-            for (uint64_t i = 0; i <= value; i++)
+            for (uint64_t i = 0; i < value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
                 // std::cout << "block_j: " << block_j << std::endl;
@@ -691,25 +679,6 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
     }
 }
 
-void P2pNetwork::set_resp_your_hash_server(ENetPeer *participant, std::string msg)
-{
-    std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
-    for (int i = 0; i < splitted.size(); i++)
-    {
-        char s[p2p_message::max_body_length + 1];
-        strncpy(s, splitted[i].c_str(), sizeof(s));
-
-        resp_msg_.body_length(std::strlen(s));
-        std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
-        i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
-
-        // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, 0);
-        enet_peer_send(participant, 0, packet_);
-        enet_host_flush(server_);
-    }
-}
-
 void P2pNetwork::get_sleep_and_create_block_server()
 {
     std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -717,7 +686,7 @@ void P2pNetwork::get_sleep_and_create_block_server()
     std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-    std::map<ENetPeer *, std::string> a_f_h = get_all_full_hashes();
+    std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
     CreateBlock cb(m_j_v, a_f_h); // chosen ones are being informed here
     nlohmann::json block_j = cb.get_block_j();
 
@@ -727,10 +696,12 @@ void P2pNetwork::get_sleep_and_create_block_server()
         msg_j["req"] = "your_full_hash";
         msg_j["full_hash"] = value;
         msg_j["block"] = block_j;
+        Protocol proto;
+        msg_j["block_nr"] = proto.get_last_block_nr();
         msg_j["hash_of_block"] = cb.get_hash_of_new_block();
         std::string msg_s = msg_j.dump();
 
-        enet_uint32 ipAddress = key->address.host; // TODO put this ip address conversion in another function
+        enet_uint32 ipAddress = key; // TODO put this ip address conversion in another function
         char ipAddr[16];
         if (ipAddress) {
             snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
@@ -738,12 +709,13 @@ void P2pNetwork::get_sleep_and_create_block_server()
                                                         ,(ipAddress & 0x00ff0000) >> 16
                                                         ,(ipAddress & 0xff000000) >> 24);
         }
-
+        
+        std::cout << "ip: " << ipAddr << ", value: " << value << std::endl;
         p2p_client(ipAddr, msg_s);
     }
 
     message_j_vec_.reset_message_j_vec();
-    reset_all_full_hashes();
+    all_full_hashes_.reset_all_full_hashes();
 
     std::cout << "Block created server!!" << std::endl;
 }
