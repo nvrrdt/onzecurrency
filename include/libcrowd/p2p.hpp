@@ -42,32 +42,6 @@ namespace Crowd
         std::string get_full_hash_from_file();
     };
     
-    class Tcp
-    {
-    public:
-        int server();
-        std::string client(std::string &srv_ip, std::string &peer_ip, std::string &peer_hash, std::string &message); // TODO: add a reference & to these strings
-        void set_tcp_closed_client(std::string closed)
-        {
-            closed_client_ = closed;
-        }
-        std::string get_tcp_closed_client()
-        {
-            return closed_client_;
-        }
-        void set_ip_new_co(std::string &ip)
-        {
-            ip_new_co_ = ip;
-        }
-        std::string get_ip_new_co()
-        {
-            return ip_new_co_;
-        }
-    private:
-        std::string closed_client_;
-        std::string ip_new_co_;
-    };
-
     class Upnp
     {
     public:

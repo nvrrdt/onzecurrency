@@ -18,8 +18,6 @@ add_library(crowd SHARED
                      poco.cpp
                      create_block.cpp
                      message_vec.cpp
-                     p2p_c.cpp
-                     p2p_s.cpp
                      all_full_hashes.cpp
 )
 
