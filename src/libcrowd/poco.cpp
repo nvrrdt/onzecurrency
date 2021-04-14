@@ -64,7 +64,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            std::string peer_ip = value_j["ip"];
+            uint32_t peer_ip = value_j["ip"];
             message_j["rocksdb"] = value_j;
 
             delete rocksy;
@@ -73,19 +73,16 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
 
             for (auto &[key, value] : all_full_hashes)
             {
-                enet_uint32 ipAddress = key; // TODO put this ip address conversion in another function
-                char ipAddr[16];
-                if (ipAddress) {
-                    snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
-                                                                ,(ipAddress & 0x0000ff00) >> 8
-                                                                ,(ipAddress & 0x00ff0000) >> 16
-                                                                ,(ipAddress & 0xff000000) >> 24);
-                }
-                
-                if (peer_ip != ipAddr)
+
+                std::cout << "kloterij" << peer_ip << " " << to_string(key) << std::endl;
+                if (peer_ip != key)
                 {
+                    std::string peer_ip_from_key;
+                    P2p p2p;
+                    p2p.number_to_ip_string(key, peer_ip_from_key);
+
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
+                    pn.p2p_client(peer_ip_from_key, message);
                 }
             }
         }

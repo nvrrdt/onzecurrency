@@ -62,7 +62,7 @@ void P2pNetwork::handle_read_server()
             std::string signature = buf_j["signature"];
             //std::cout << "2p: " << std::endl;
             std::string req_latest_block = buf_j["latest_block"];
-            std::string req_ip = buf_j["ip"];
+            enet_uint32 req_ip = buf_j["ip"];
 
             Crypto* crypto = new Crypto();
             PrevHash prev_hash;
@@ -193,16 +193,7 @@ void P2pNetwork::handle_read_server()
                         message_j["full_hash_co"] = my_full_hash;
                         message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                         message_j["rsa_pub_key"] = rsa_pub_key;
-
-                        enet_uint32 ipAddress = event_.peer->address.host; // TODO put this ip address conversion in another function
-                        char ipAddr[16];
-                        if (ipAddress) {
-                            snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
-                                                                        ,(ipAddress & 0x0000ff00) >> 8
-                                                                        ,(ipAddress & 0x00ff0000) >> 16
-                                                                        ,(ipAddress & 0xff000000) >> 24);
-                        }
-                        message_j["ip"] = ipAddr;
+                        message_j["ip"] = event_.peer->address.host;
 
                         to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
                         to_sign_j["rsa_pub_key"] = rsa_pub_key;
@@ -228,7 +219,13 @@ void P2pNetwork::handle_read_server()
                             // lookup in rocksdb
                             std::string val = parts[i];
                             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                            std::string peer_ip = value_j["ip"];
+                            enet_uint32 ip = value_j["ip"];
+                            std::string peer_ip;
+                            P2p p2p;
+                            p2p.number_to_ip_string(ip, peer_ip);
+
+                            std::string req_ip_quad;
+                            p2p.number_to_ip_string(req_ip, req_ip_quad);
 
                             delete rocksy;
 
@@ -238,14 +235,13 @@ void P2pNetwork::handle_read_server()
                             // in bucket --> createblock --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
                             // inform the underlying network
-                            if (req_ip == peer_ip)
+                            if (req_ip_quad == peer_ip)
                             {
                                 // inform server's underlying network
                                 std::cout << "Inform my underlying network as co" << std::endl;
 
                                 std::string next_hash = parts[2];
                                 std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
-                                // set_resp_msg_() + from_to(my_hash, next_hash) {if ip_of_peer_ == ip_from_to(my_hash, next_hash)} --> new_peer
                                 std::string key2, val2;
                                 Rocksy* rocksy = new Rocksy();
                                 for (int i = 1; i <= parts_underlying.size(); i++)
@@ -256,12 +252,14 @@ void P2pNetwork::handle_read_server()
                                     // lookup in rocksdb
                                     std::string val2 = parts_underlying[i];
                                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
-                                    std::string underlying_peer_ip = value_j["ip"];
+                                    enet_uint32 ip = value_j["ip"];
+                                    std::string peer_ip_underlying;
+                                    p2p.number_to_ip_string(ip, peer_ip_underlying);
 
-                                    std::cout << "Non-connected underlying peers - client: " << underlying_peer_ip << std::endl;
+                                    std::cout << "Non-connected underlying peers - client: " << peer_ip << std::endl;
                                     // message to non-connected peers
                                     std::string message = message_j.dump();
-                                    p2p_client(underlying_peer_ip, message);
+                                    p2p_client(peer_ip_underlying, message);
                                 }
                                 delete rocksy;
                             }
@@ -271,7 +269,7 @@ void P2pNetwork::handle_read_server()
 
                                 // inform the other peer's in the same layer (as coordinator)
                                 std::cout << "Inform my equal layer as coordinator: " << peer_ip << std::endl;
-
+                                
                                 std::string message = message_j.dump();
                                 p2p_client(peer_ip, message);
                             }
@@ -303,16 +301,11 @@ void P2pNetwork::handle_read_server()
                                 msg_j["hash_of_block"] = cb.get_hash_of_new_block();
                                 std::string msg_s = msg_j.dump();
 
-                                enet_uint32 ipAddress = key; // TODO put this ip address conversion in another function
-                                char ipAddr[16];
-                                if (ipAddress) {
-                                    snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
-                                                                                ,(ipAddress & 0x0000ff00) >> 8
-                                                                                ,(ipAddress & 0x00ff0000) >> 16
-                                                                                ,(ipAddress & 0xff000000) >> 24);
-                                }
+                                std::string peer_ip;
+                                P2p p2p;
+                                p2p.number_to_ip_string(key, peer_ip);
 
-                                p2p_client(ipAddr, msg_s);
+                                p2p_client(peer_ip, msg_s);
                             }
 
                             message_j_vec_.reset_message_j_vec();
@@ -342,7 +335,7 @@ void P2pNetwork::handle_read_server()
 
                         Rocksy* rocksy = new Rocksy();
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(co_from_this_server));
-                        std::string peer_ip = value_j["ip"];
+                        enet_uint32 peer_ip = value_j["ip"];
                         delete rocksy;
 
                         message_j["ip_co"] = peer_ip;
@@ -410,6 +403,9 @@ void P2pNetwork::handle_read_server()
             
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
             message_j_vec_.add_to_message_j_vec(buf_j);
+
+            std::string full_hash_req = buf_j["full_hash_req"];
+            all_full_hashes_.add_to_all_full_hashes(buf_j["ip"], full_hash_req);
             
             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
             {
@@ -419,6 +415,7 @@ void P2pNetwork::handle_read_server()
                 CreateBlock cb(m_j_v, a_f_h);
 
                 message_j_vec_.reset_message_j_vec();
+                all_full_hashes_.reset_all_full_hashes();
             }
             else if (message_j_vec_.get_message_j_vec().size() == 1)
             {
@@ -549,7 +546,12 @@ void P2pNetwork::handle_read_server()
                         {
                             std::string c_one = chosen_ones[i];
                             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
-                            std::string peer_ip = value_j["ip"];
+
+                            enet_uint32 ip = value_j["ip"];
+                            std::string peer_ip;
+                            P2p p2p;
+                            p2p.number_to_ip_string(ip, peer_ip);
+                            
                             nlohmann::json msg_j;
                             msg_j["req"] = "hash_comparison";
                             msg_j["hash"] = prev_hash_chosen_one;
@@ -701,17 +703,12 @@ void P2pNetwork::get_sleep_and_create_block_server()
         msg_j["hash_of_block"] = cb.get_hash_of_new_block();
         std::string msg_s = msg_j.dump();
 
-        enet_uint32 ipAddress = key; // TODO put this ip address conversion in another function
-        char ipAddr[16];
-        if (ipAddress) {
-            snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
-                                                        ,(ipAddress & 0x0000ff00) >> 8
-                                                        ,(ipAddress & 0x00ff0000) >> 16
-                                                        ,(ipAddress & 0xff000000) >> 24);
-        }
+        std::string peer_ip;
+        P2p p2p;
+        p2p.number_to_ip_string(key, peer_ip);
         
-        std::cout << "ip: " << ipAddr << ", value: " << value << std::endl;
-        p2p_client(ipAddr, msg_s);
+        std::cout << "key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+        p2p_client(peer_ip, msg_s);
     }
 
     message_j_vec_.reset_message_j_vec();

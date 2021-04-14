@@ -206,8 +206,17 @@ void P2pNetwork::handle_read_client()
         else if (buf_j["req"] == "close_this_conn")
         {
             // you may close this connection
+            std::cout << "Connection closed by other server, start this server" << std::endl;
 
             set_closed_client("close_this_conn");
+
+            std::packaged_task<void()> task1([] {
+                P2pNetwork pn;
+                pn.p2p_server();
+            });
+            // Run task on new thread.
+            std::thread t1(std::move(task1));
+            t1.join();
         }
 
         buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string

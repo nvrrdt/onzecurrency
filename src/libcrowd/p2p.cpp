@@ -100,10 +100,13 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             // end test
 
             std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
-            message_j["ip"] = ip_mother_peer;
+            uint32_t ip_mother_peer_number;
+            ip_string_to_number(ip_mother_peer.c_str(), ip_mother_peer_number);
+
+            message_j["ip"] = ip_mother_peer_number;
 
             rocksdb_j["version"] = "O.1";
-            rocksdb_j["ip"] = ip_mother_peer;
+            rocksdb_j["ip"] = ip_mother_peer_number;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
             rocksdb_j["hash_email"] = message_j["hash_of_email"];
@@ -318,6 +321,50 @@ std::string P2p::get_full_hash_from_file()
     }
 
     return fh;
+}
+
+int P2p::ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr)
+{
+    unsigned int            byte3;
+    unsigned int            byte2;
+    unsigned int            byte1;
+    unsigned int            byte0;
+    char              dummyString[2];
+
+    /* The dummy string with specifier %1s searches for a non-whitespace char
+    * after the last number. If it is found, the result of sscanf will be 5
+    * instead of 4, indicating an erroneous format of the ip-address.
+    */
+    if (sscanf (pDottedQuad, "%u.%u.%u.%u%1s", &byte3, &byte2, &byte1, &byte0, dummyString) == 4)
+    {
+        if ((byte3 < 256) && (byte2 < 256) && (byte1 < 256) && (byte0 < 256))
+        {
+            pIpAddr  = (byte0 << 24)
+                     + (byte1 << 16)
+                     + (byte2 << 8)
+                     +  byte3;
+
+            std::cout << "Here could big endian be introduced ..." << " " << pIpAddr << std::endl;
+            return 1;
+        }
+    }
+
+    std::cout << "Here could big endian be introduced ..." << " " << pIpAddr << std::endl;
+    return 0;
+}
+
+int P2p::number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string)
+{
+    char ipAddr[16];
+    if (ipAddress) {
+        snprintf(ipAddr,sizeof ipAddr,"%u.%u.%u.%u" ,(ipAddress & 0x000000ff) 
+                                                    ,(ipAddress & 0x0000ff00) >> 8
+                                                    ,(ipAddress & 0x00ff0000) >> 16
+                                                    ,(ipAddress & 0xff000000) >> 24);
+    }
+    ip_string = ipAddr;
+
+    return 0;
 }
 
 /*

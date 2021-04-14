@@ -16,6 +16,8 @@
 #include <stack>
 #include <memory>
 
+#include <enet/enet.h>
+
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
@@ -40,6 +42,8 @@ namespace Crowd
         }
         void save_full_hash_to_file(std::string& full_hash);
         std::string get_full_hash_from_file();
+        int ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr);
+        int number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string);
     };
     
     class Upnp
