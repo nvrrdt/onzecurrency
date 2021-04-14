@@ -589,17 +589,19 @@ void P2pNetwork::handle_read_server()
             // Save buf_j["block"] to file
             nlohmann::json block_j = buf_j["block"];
             
-            std::string block_nr = buf_j["block_nr"];
-            uint64_t value;
-            std::istringstream iss(block_nr); // TODO here starts an ugly hack, the block number is 1 number to high
-            iss >> value;                     // get_last_block_nr() in protocol.cpp: n should be n = v.size() - 1; --> so -1
-            value--;
-            std::ostringstream o;
-            o << value;
-            block_nr = o.str();
-            
-            merkle_tree mt;
-            mt.save_block_to_file(block_j, block_nr);
+            std::string req_latest_block = buf_j["block_nr"];
+
+            Protocol proto;
+            std::string my_latest_block = proto.get_last_block_nr();
+
+            if (req_latest_block > my_latest_block)
+            {
+                // TODO: update your own blockchain
+                nlohmann::json msg;
+                msg["req"] = "update_my_blocks_and_rocksdb";
+                msg["block_nr"] = my_latest_block;
+                set_resp_msg_server(msg.dump());
+            }
 
             // Disconect from client
             nlohmann::json m_j;
