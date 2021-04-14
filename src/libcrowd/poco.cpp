@@ -11,7 +11,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
     Crypto* crypto = new Crypto();
-    std::string hash_of_block = block_j["prev_hash"];
+    std::string hash_of_block = block_j["prev_hash"]; // TODO: should be full_hash_co? or hash of block_j?________________
     delete crypto;
     Rocksy* rocksy = new Rocksy();
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
@@ -73,8 +73,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
 
             for (auto &[key, value] : all_full_hashes)
             {
-
-                std::cout << "kloterij" << peer_ip << " " << to_string(key) << std::endl;
+                std::cout << "Preparation for intro_block: " << peer_ip << " " << to_string(key) << std::endl;
                 if (peer_ip != key)
                 {
                     std::string peer_ip_from_key;

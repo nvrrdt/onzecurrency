@@ -15,12 +15,13 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<en
     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
     nlohmann::json to_block_j;
     std::string fh_s;
+    std::string full_hash_req;
 
     for (int i = 0; i < message_j_vec_.size(); i++)
     {
         m_j = message_j_vec_[i];
 
-        std::string full_hash_req = m_j["full_hash_req"];
+        full_hash_req = m_j["full_hash_req"];
 
         to_block_j["full_hash"] = full_hash_req;
         to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
@@ -33,7 +34,32 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<en
         entry_transactions_j.push_back(entry_tx_j);
         exit_tx_j["full_hash"] = "";
         exit_transactions_j.push_back(exit_tx_j);
+    }
 
+    s_shptr_ = mt.calculate_root_hash(s_shptr_);
+    std::string datetime = mt.time_now();
+    std::string root_hash_data = s_shptr_->top();
+    block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+    PrevHash ph;
+    block_j_["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+
+    Protocol proto;
+    std::string my_last_block_nr = proto.get_last_block_nr();
+
+    // send hash of this block with the block contents to the co's, forget save_block_to_file
+    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+    // send intro_block to co's
+    Poco poco;
+    poco.inform_chosen_ones(my_last_block_nr, block_j_, all_full_hashes);
+
+    std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
+
+    for (int i = 0; i < message_j_vec_.size(); i++)
+    {
+        m_j = message_j_vec_[i];
+        
         Crypto crypto;
         // update rocksdb
         nlohmann::json rocksdb_j;
@@ -57,25 +83,6 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<en
         delete rocksy;
     }
 
-    s_shptr_ = mt.calculate_root_hash(s_shptr_);
-    std::string datetime = mt.time_now();
-    std::string root_hash_data = s_shptr_->top();
-    block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-
-    PrevHash ph;
-    block_j_["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
-
-    Protocol proto;
-    std::string my_last_block_nr = proto.get_last_block_nr();
-
-    // send hash of this block with the block contents to the co's, forget save_block_to_file
-    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
-
-    // send intro_block to co's
-    Poco poco;
-    poco.inform_chosen_ones(my_last_block_nr, block_j_, all_full_hashes);
-
-    std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
 std::cout << "--------5: " << std::endl;
 
     set_hash_of_new_block(block_s);
