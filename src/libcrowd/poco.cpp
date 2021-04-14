@@ -74,14 +74,14 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
             for (auto &[key, value] : all_full_hashes)
             {
                 std::cout << "Preparation for intro_block: " << peer_ip << " " << to_string(key) << std::endl;
-                if (peer_ip != key)
+                if (peer_ip == key)
                 {
-                    std::string peer_ip_from_key;
+                    std::string ip_from_key;
                     P2p p2p;
-                    p2p.number_to_ip_string(key, peer_ip_from_key);
+                    p2p.number_to_ip_string(key, ip_from_key);
 
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip_from_key, message);
+                    pn.p2p_client(ip_from_key, message);
                 }
             }
         }
