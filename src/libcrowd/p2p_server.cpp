@@ -248,7 +248,7 @@ void P2pNetwork::handle_read_server()
                                 {
                                     //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
                                     if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
-
+//std::cout << "parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
                                     // lookup in rocksdb
                                     std::string val2 = parts_underlying[i];
                                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
@@ -256,7 +256,7 @@ void P2pNetwork::handle_read_server()
                                     std::string peer_ip_underlying;
                                     p2p.number_to_ip_string(ip, peer_ip_underlying);
 
-                                    std::cout << "Non-connected underlying peers - client: " << peer_ip << std::endl;
+                                    std::cout << "Non-connected underlying peers - client: " << peer_ip_underlying << std::endl;
                                     // message to non-connected peers
                                     std::string message = message_j.dump();
                                     p2p_client(peer_ip_underlying, message);
