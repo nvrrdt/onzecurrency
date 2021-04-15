@@ -180,23 +180,37 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::thread t1(std::move(task1));
                 t1.join();
             }
-            // else if (t.get_ip_new_co() != "")
-            // {
-            //     std::string ip = t.get_ip_new_co();
-            //     t.client(srv_ip, ip, peer_hash, message);
-            // }
-            // else
-            // {
-            //     std::cout << "The t.client did it's job succesfully and you should be added in the blockchain!" << std::endl;
+            else if (pn.get_closed_client() == "new_co")
+            {
+                uint32_t ip_new_co = pn.get_ip_new_co();
+                P2p p2p;
+                std::string ip_new_co_s;
+                p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
+                pn.p2p_client(ip_new_co_s, message);
 
-            //     std::packaged_task<void()> task1([] {
-            //         Tcp t;
-            //         t.server();
-            //     });
-            //     // Run task on new thread.
-            //     std::thread t1(std::move(task1));
-            //     t1.join();
-            // }
+                std::cout << "The p2p_client did it's job and the new_co too" << std::endl;
+
+                std::packaged_task<void()> task1([] {
+                    P2pNetwork pn;
+                    pn.p2p_server();
+                });
+                // Run task on new thread.
+                std::thread t1(std::move(task1));
+                t1.join();
+            }
+            else
+            {
+                // Is this else necessary, looks like a fallback ...
+                std::cout << "The p2p_client did it's job succesfully" << std::endl;
+
+                std::packaged_task<void()> task1([] {
+                    P2pNetwork pn;
+                    pn.p2p_server();
+                });
+                // Run task on new thread.
+                std::thread t1(std::move(task1));
+                t1.join();
+            }
             return true;
         }
         else

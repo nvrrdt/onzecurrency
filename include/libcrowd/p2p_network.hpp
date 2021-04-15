@@ -38,6 +38,10 @@ namespace Crowd
         {
             return closed_client_;
         }
+        uint32_t get_ip_new_co()
+        {
+            return ip_new_co_;
+        }
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);
         void do_read_header_server();
@@ -54,6 +58,10 @@ namespace Crowd
         void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
+        }
+        void set_ip_new_co(uint32_t ip)
+        {
+            ip_new_co_ = ip;
         }
         
     private:
@@ -73,5 +81,6 @@ namespace Crowd
         AllFullHashes all_full_hashes_;
 
         std::string closed_client_;
+        uint32_t ip_new_co_;
     };
 }

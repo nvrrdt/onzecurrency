@@ -179,8 +179,9 @@ void P2pNetwork::handle_read_client()
         {
             // send flag to start_p2p function
             std::cout << "new_co: " << std::endl;
-            std::string peer_ip = buf_j["ip_co"];
-            // t.set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
+            uint32_t peer_ip = buf_j["ip_co"];
+            set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
+            set_closed_client("new_co");
         }
         else if (buf_j["req"] == "your_full_hash")
         {
