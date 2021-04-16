@@ -6,7 +6,7 @@
 
 using namespace Crowd;
 
-void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block_j, std::map<enet_uint32, std::string> &all_full_hashes)
+void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::map<enet_uint32, std::string> &all_full_hashes)
 {
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
@@ -27,7 +27,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
 
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block";
-        message_j["latest_block_nr"] = my_last_block_nr;
+        message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
         message_j["prev_hash"] = hash_of_block;
         message_j["full_hash_coord"] = my_full_hash;
@@ -38,7 +38,7 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
             message_j["chosen_ones"][k] = v;
         }
 
-        to_sign_j["last_block_nr"] = my_last_block_nr;
+        to_sign_j["last_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = hash_of_block;
         to_sign_j["full_hash_coord"] = my_full_hash;
@@ -85,6 +85,11 @@ void Poco::inform_chosen_ones(std::string my_last_block_nr, nlohmann::json block
                 }
             }
         }
+
+        merkle_tree mt;
+        std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
+
+        set_hash_of_new_block(block_s);
     }
     else
     {

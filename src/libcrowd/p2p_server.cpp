@@ -129,7 +129,7 @@ void P2pNetwork::handle_read_server()
                             std::istringstream iss(my_latest_block);
                             iss >> value;
 
-                            for (uint64_t i = 0; i < value; i++)
+                            for (uint64_t i = 0; i <= value; i++)
                             {
                                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
                                 //std::cout << "block_j: " << block_j << std::endl;
@@ -434,7 +434,6 @@ void P2pNetwork::handle_read_server()
 
             nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
             std::string block_nr = buf_j["block_nr"];
-            if (block_nr == "no blockchain present in folder") block_nr = "0";
             // std::cout << "block_s: " << buf_j["block"] << std::endl;
             // std::cout << "block_nr: " << block_nr << std::endl;
 
@@ -626,11 +625,15 @@ std::cout << "Intro_block4: " << std::endl;
 
             nlohmann::json list_of_blocks_j = nlohmann::json::parse(proto.get_blocks_from(req_latest_block));
 
-            uint64_t value;
+            uint64_t my_value;
             std::istringstream iss(my_latest_block);
-            iss >> value;
+            iss >> my_value;
 
-            for (uint64_t i = 0; i < value; i++)
+            uint64_t req_value;
+            std::istringstream isss(my_latest_block);
+            isss >> req_value;
+
+            for (uint64_t i = req_value; i <= my_value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
                 // std::cout << "block_j: " << block_j << std::endl;

@@ -42,7 +42,7 @@ std::string Protocol::get_last_block_nr()
         //     cout << "   " << *it << '\n';
         // }
 
-        uint64_t n = v.size(); // TODO: perhaps verify with the number in de filename
+        uint64_t n = v.size() - 1; // TODO: perhaps verify with the number in de filename
 
         o << n;
     }
@@ -265,7 +265,8 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     {
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-                        block_j["block_nr"] = value_this_blockchain_dir;
+                        value_peer++;
+                        block_j["block_nr"] = value_peer;
                         nlohmann::json contents_j = nlohmann::json::parse(contents);
                         block_j["block"] = contents_j;
                         all_blocks_j.push_back(block_j);

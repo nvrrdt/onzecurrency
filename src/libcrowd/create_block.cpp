@@ -47,14 +47,21 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<en
     Protocol proto;
     std::string my_last_block_nr = proto.get_last_block_nr();
 
+    std::string my_next_block_nr;
+    uint64_t value;
+    std::istringstream iss(my_last_block_nr);
+    iss >> value;
+    value++;
+    std::ostringstream oss;
+    oss << value;
+    my_next_block_nr = oss.str();
+
     // send hash of this block with the block contents to the co's, forget save_block_to_file
     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
     // send intro_block to co's
     Poco poco;
-    poco.inform_chosen_ones(my_last_block_nr, block_j_, all_full_hashes);
-
-    std::string block_s = mt.save_block_to_file(block_j_, my_last_block_nr);
+    poco.inform_chosen_ones(my_next_block_nr, block_j_, all_full_hashes);
 
     for (int i = 0; i < message_j_vec_.size(); i++)
     {
@@ -84,8 +91,6 @@ CreateBlock::CreateBlock(std::vector<nlohmann::json> &message_j_vec, std::map<en
     }
 
 std::cout << "--------5: " << std::endl;
-
-    set_hash_of_new_block(block_s);
 }
 
 nlohmann::json CreateBlock::get_block_j()
