@@ -70,7 +70,7 @@ namespace Crowd
         std::string get_last_block_nr();
         std::map<int, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
-        std::string get_blocks_from(std::string &latest_block_peer);
+        nlohmann::json get_blocks_from(std::string &latest_block_peer);
         std::string get_all_users_from(std::string &latest_block_peer);
         std::string block_plus_one(std::string &block_nr);
     private:

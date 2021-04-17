@@ -220,7 +220,7 @@ std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash,
     return calculated_hashes;
 }
 
-std::string Protocol::get_blocks_from(std::string &latest_block_peer)
+nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
 {
     nlohmann::json all_blocks_j;
 
@@ -247,6 +247,9 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                                                 // is not ordered on some file systems
 
             nlohmann::json block_j;
+            std::uint64_t value_peer;
+            std::istringstream isss(latest_block_peer);
+            isss >> value_peer;
             for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
             {
                 cout << "   " << *it << '\n';
@@ -255,32 +258,33 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                 std::uint64_t value_this_blockchain_dir;
                 std::istringstream iss(str.substr(6,18));
                 iss >> value_this_blockchain_dir;
-                std::uint64_t value_peer;
                 if (latest_block_peer != "no blockchain present in folder")
                 {
-                    std::istringstream isss(latest_block_peer);
-                    isss >> value_peer;
                     std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
-                    if (value_this_blockchain_dir > value_peer)
+                    if (value_this_blockchain_dir == value_peer)
                     {
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-                        std::ostringstream oss;
-                        oss << ++value_peer;
-                        block_j["block_nr"] = oss.str();
                         nlohmann::json contents_j = nlohmann::json::parse(contents);
                         block_j["block"] = contents_j;
-                        all_blocks_j.push_back(block_j);
+                        std::ostringstream oss;
+                        oss << value_peer;
+                        block_j["block_nr"] = oss.str();
+                        all_blocks_j[value_peer] = block_j;
+
+                        value_peer++;
                     }
                 }
                 else
                 {
                     std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-                    block_j["block_nr"] = value_this_blockchain_dir;
                     nlohmann::json contents_j = nlohmann::json::parse(contents);
                     block_j["block"] = contents_j;
-                    all_blocks_j.push_back(block_j);
+                    std::ostringstream oss;
+                    oss << value_this_blockchain_dir;
+                    block_j["block_nr"] = oss.str();
+                    all_blocks_j[value_this_blockchain_dir] = block_j;
                 }
             }
         }
@@ -296,7 +300,7 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
         cout << ex.what() << '\n';
     }
 
-    return all_blocks_j.dump();
+    return all_blocks_j;
 }
 
 std::string Protocol::get_all_users_from(std::string &latest_block_peer)
