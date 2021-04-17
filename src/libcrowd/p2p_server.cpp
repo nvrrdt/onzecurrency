@@ -232,7 +232,7 @@ void P2pNetwork::handle_read_server()
                             // if peer ip == this server's ip --> send new_peer to kids
                             // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
                             // --> if more then t.client to same layer co
-                            // in bucket --> createblock --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
+                            // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
                             // inform the underlying network
                             if (req_ip_quad == peer_ip)
@@ -289,8 +289,8 @@ void P2pNetwork::handle_read_server()
                             // Create block
                             std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                             std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-                            CreateBlock cb(m_j_v, a_f_h);
-                            nlohmann::json block_j = cb.get_block_j();
+                            Poco poco(m_j_v, a_f_h);
+                            nlohmann::json block_j = poco.get_block_j();
 
                             for (auto &[key, value] : a_f_h)
                             {
@@ -298,7 +298,7 @@ void P2pNetwork::handle_read_server()
                                 msg_j["req"] = "your_full_hash";
                                 msg_j["full_hash"] = value;
                                 msg_j["block"] = block_j;
-                                msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+                                msg_j["hash_of_block"] = poco.get_hash_of_new_block();
                                 std::string msg_s = msg_j.dump();
 
                                 std::string peer_ip;
@@ -387,9 +387,9 @@ void P2pNetwork::handle_read_server()
             //     // 3) then: update the network with room_.deliver(msg)
             //     // 4) add peer to ip_list
 
-            //     CreateBlock cb(email_of_peer, hash_of_peer); // moet bij new_peer
+            //     Poco poco(email_of_peer, hash_of_peer); // moet bij new_peer
             //     std::cout << "Is this reached? " << hash_of_peer << std::endl;
-            //     // if cb ok: update blockchain and update rocksdb will be received through the chosen one's
+            //     // if poco ok: update blockchain and update rocksdb will be received through the chosen one's
             // }
             // else
             // {
@@ -413,7 +413,7 @@ void P2pNetwork::handle_read_server()
                 // Create block
                 std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
                 std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-                CreateBlock cb(m_j_v, a_f_h);
+                Poco poco(m_j_v, a_f_h);
 
                 message_j_vec_.reset_message_j_vec();
                 all_full_hashes_.reset_all_full_hashes();
@@ -692,12 +692,12 @@ void P2pNetwork::get_sleep_and_create_block_server()
 {
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
-    std::cout << "message_j_vec.size() in CreateBlock: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+    std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
     std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
     std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-    CreateBlock cb(m_j_v, a_f_h); // chosen ones are being informed here
-    nlohmann::json block_j = cb.get_block_j();
+    Poco poco(m_j_v, a_f_h); // chosen ones are being informed here
+    nlohmann::json block_j = poco.get_block_j();
 
     // save block_j to static to be used in intro_block this_block_j
     
@@ -711,7 +711,7 @@ void P2pNetwork::get_sleep_and_create_block_server()
         msg_j["block"] = block_j;
         Protocol proto;
         msg_j["block_nr"] = proto.get_last_block_nr();
-        msg_j["hash_of_block"] = cb.get_hash_of_new_block();
+        msg_j["hash_of_block"] = poco.get_hash_of_new_block();
         std::string msg_s = msg_j.dump();
 
         std::string peer_ip;
