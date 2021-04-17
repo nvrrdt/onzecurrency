@@ -179,21 +179,40 @@ void P2pNetwork::handle_read_client()
         }
         else if (buf_j["req"] == "your_full_hash")
         {
-            std::cout << "Your_full_hash client: " << buf_j["hash"] << std::endl;
-
             // my full hash
             std::string full_hash = buf_j["full_hash"];
-            nlohmann::json block_j = buf_j["block"];
-            std::string hash_of_block = buf_j["hash_of_block"];
             std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
-            std::cout << "New peer's hash_of_block (client): " << hash_of_block << std::endl;
-            std::string prev_hash = block_j["prev_hash"];
-            std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
 
-            merkle_tree mt;
+            // save full_hash
+            P2p p2p;
+            p2p.save_full_hash_to_file(full_hash);
+            
+            std::string req_latest_block = buf_j["block_nr"];
+
             Protocol proto;
-            std::string my_last_block_nr = proto.get_last_block_nr();
-            std::string block_s = mt.save_block_to_file(block_j, my_last_block_nr); //
+            std::string my_latest_block = proto.get_last_block_nr();
+
+            if (req_latest_block > my_latest_block)
+            {
+                // TODO: update your own blockchain
+                nlohmann::json msg;
+                msg["req"] = "update_my_blocks_and_rocksdb";
+                msg["block_nr"] = my_latest_block;
+                set_resp_msg_server(msg.dump());
+            }
+
+            std::cout << "Connection closed by other server, start this server" << std::endl; // TODO here starts duplicate code
+
+            // Disconect from server
+            set_closed_client("close_this_conn");
+
+            std::packaged_task<void()> task1([] {
+                P2pNetwork pn;
+                pn.p2p_server();
+            });
+            // Run task on new thread.
+            std::thread t1(std::move(task1));
+            t1.join();
         }
         else if (buf_j["req"] == "hash_comparison")
         {

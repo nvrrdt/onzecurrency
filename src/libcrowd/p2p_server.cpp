@@ -297,8 +297,7 @@ void P2pNetwork::handle_read_server()
                                 nlohmann::json msg_j;
                                 msg_j["req"] = "your_full_hash";
                                 msg_j["full_hash"] = value;
-                                msg_j["block"] = block_j;
-                                msg_j["hash_of_block"] = poco.get_hash_of_new_block();
+                                msg_j["block_nr"] = proto.get_last_block_nr();
                                 std::string msg_s = msg_j.dump();
 
                                 std::string peer_ip;
@@ -586,9 +585,6 @@ std::cout << "Intro_block4: " << std::endl;
             // save full_hash
             P2p p2p;
             p2p.save_full_hash_to_file(full_hash);
-
-            // Save buf_j["block"] to file
-            nlohmann::json block_j = buf_j["block"];
             
             std::string req_latest_block = buf_j["block_nr"];
 
@@ -708,10 +704,8 @@ void P2pNetwork::get_sleep_and_create_block_server()
         nlohmann::json msg_j;
         msg_j["req"] = "your_full_hash";
         msg_j["full_hash"] = value;
-        msg_j["block"] = block_j;
         Protocol proto;
         msg_j["block_nr"] = proto.get_last_block_nr();
-        msg_j["hash_of_block"] = poco.get_hash_of_new_block();
         std::string msg_s = msg_j.dump();
 
         std::string peer_ip;
