@@ -265,8 +265,9 @@ std::string Protocol::get_blocks_from(std::string &latest_block_peer)
                     {
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
                         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-                        value_peer++;
-                        block_j["block_nr"] = value_peer;
+                        std::ostringstream oss;
+                        oss << ++value_peer;
+                        block_j["block_nr"] = oss.str();
                         nlohmann::json contents_j = nlohmann::json::parse(contents);
                         block_j["block"] = contents_j;
                         all_blocks_j.push_back(block_j);

@@ -71,9 +71,9 @@ void P2pNetwork::handle_read_client()
             std::cout << "update_your_blocks client" << std::endl;
             // save blocks to blockchain folder
 
-            nlohmann::json block_j = buf_j["block"].get<nlohmann::json>();
+            nlohmann::json block_j = buf_j["block"];
             std::string block_nr = buf_j["block_nr"];
-            // std::cout << "block_s: " << buf_j["block"] << std::endl;
+            // std::cout << "block_s: " << block_j.dump() << std::endl;
             // std::cout << "block_nr: " << block_nr << std::endl;
 
             merkle_tree mt;
@@ -106,18 +106,19 @@ void P2pNetwork::handle_read_client()
             iss >> my_value;
 
             uint64_t req_value;
-            std::istringstream isss(my_latest_block);
+            std::istringstream isss(req_latest_block);
             isss >> req_value;
 
-            for (uint64_t i = req_value; i <= my_value; i++)
+std::cout << "req_value: " << req_value << ", my_value:" << my_value << std::endl;
+            for (uint64_t i = req_value; i < my_value; i++)
             {
                 nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                // std::cout << "block_j: " << block_j << std::endl;
+std::cout << "block_j: " << block_j << std::endl;
                 nlohmann::json msg;
                 msg["req"] = "update_your_blocks";
-                std::ostringstream o;
-                o << i;
-                msg["block_nr"] = o.str();
+                std::string block_nr_j = list_of_blocks_j[i]["block_nr"];
+                msg["block_nr"] = block_nr_j;
+std::cout << "block_nr_j: " << block_nr_j << std::endl;
                 msg["block"] = block_j;
                 set_resp_msg_client(msg.dump());
             }
