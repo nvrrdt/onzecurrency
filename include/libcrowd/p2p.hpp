@@ -67,13 +67,11 @@ namespace Crowd
     class Protocol
     {
     public:
-        int hello_and_setup(std::string& my_user_login_hash);
         std::string get_last_block_nr();
         std::map<int, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
         std::string get_blocks_from(std::string &latest_block_peer);
         std::string get_all_users_from(std::string &latest_block_peer);
-        //void save_blocks_to_blockchain(std::string &msg);
         std::string block_plus_one(std::string &block_nr);
     private:
         int verify_latest_block(std::string &latest_block_peer);

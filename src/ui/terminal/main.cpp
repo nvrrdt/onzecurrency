@@ -101,10 +101,5 @@ int main(int argc, char *argv[])
     // lookup next_upnp_peer to connect to previous next_peer
     // from previous next_peer communicate to layer 0 and so on
 
-    // Protocol p;
-    // p.hello_and_setup(cred["full_hash"]);
-    // std::map<std::string, uint32_t> x = p.layer_management(cred["full_hash"]);
-
-
     return 0;
 }
