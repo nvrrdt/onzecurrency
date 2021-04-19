@@ -289,7 +289,6 @@ std::cout << "Does it stop here?" << std::endl;
                             // Create block
                             Poco poco;
                             poco.create_and_send_block ();
-                            nlohmann::json block_j = poco.get_block_j();
 
                             for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
                             {

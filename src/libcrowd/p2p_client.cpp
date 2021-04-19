@@ -242,7 +242,6 @@ void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is al
 
     Poco poco;
     poco.create_and_send_block();
-    nlohmann::json block_j = poco.get_block_j();
 
     // TODO look into p2p_session for the same function and adapt accordingly
     // this function is not yet used, it starts getting used when nat traversal is introcuded
