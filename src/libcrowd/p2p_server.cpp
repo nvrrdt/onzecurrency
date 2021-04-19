@@ -274,7 +274,7 @@ void P2pNetwork::handle_read_server()
                                 p2p_client(peer_ip, message);
                             }
                         }
-
+std::cout << "Does it stop here?" << std::endl;
                         // Update rocksdb
                         message_j["rocksdb"]["prev_hash"] = real_prev_hash_req;
                         message_j["rocksdb"]["full_hash"] = full_hash_req;
@@ -287,12 +287,11 @@ void P2pNetwork::handle_read_server()
                         if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                         {
                             // Create block
-                            std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                            std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-                            Poco poco(m_j_v, a_f_h);
+                            Poco poco;
+                            poco.create_and_send_block ();
                             nlohmann::json block_j = poco.get_block_j();
 
-                            for (auto &[key, value] : a_f_h)
+                            for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
                             {
                                 nlohmann::json msg_j;
                                 msg_j["req"] = "your_full_hash";
@@ -410,9 +409,8 @@ void P2pNetwork::handle_read_server()
             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
-                std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-                Poco poco(m_j_v, a_f_h);
+                Poco poco;
+                poco.create_and_send_block();
 
                 message_j_vec_.reset_message_j_vec();
                 all_full_hashes_.reset_all_full_hashes();
@@ -467,8 +465,34 @@ std::cout << "Intro_block2: " << block_size_coordinator << std::endl;
             std::string prev_hash_coordinator = buf_j["prev_hash"];
 std::cout << "Intro_block3: " << std::endl;
             MessageVec message_j_vec_size_as_coordinator;
-            std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
 std::cout << "Intro_block4: " << std::endl;
+
+            Poco poco;
+            nlohmann::json block_j = poco.get_block_j();
+
+            // Send your_full_hash request to intro_peer's
+            for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
+            {
+                nlohmann::json msg_j;
+                msg_j["req"] = "your_full_hash";
+                msg_j["full_hash"] = value;
+                msg_j["block"] = block_j;
+                Protocol proto;
+                msg_j["block_nr"] = proto.get_last_block_nr();
+                std::string msg_s = msg_j.dump();
+
+                std::string peer_ip;
+                P2p p2p;
+                p2p.number_to_ip_string(key, peer_ip);
+                
+                std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+                p2p_client(peer_ip, msg_s);
+            }
+
+            all_full_hashes_.reset_all_full_hashes();
+
+
+
 //             for(int i = 0; i < block_size_coordinator; i++)
 //             {
 //                 message_j_vec_size_as_coordinator.add_to_message_j_vec(m_j_v) push_back(m_j_v[i]);
@@ -591,19 +615,12 @@ std::cout << "Intro_block4: " << std::endl;
             P2p p2p;
             p2p.save_full_hash_to_file(full_hash);
             
-            std::string req_latest_block = buf_j["block_nr"];
-
-            Protocol proto;
-            std::string my_latest_block = proto.get_last_block_nr();
-
-            if (req_latest_block > my_latest_block)
-            {
-                // TODO: update your own blockchain
-                nlohmann::json msg;
-                msg["req"] = "update_my_blocks_and_rocksdb";
-                msg["block_nr"] = my_latest_block;
-                set_resp_msg_server(msg.dump());
-            }
+            nlohmann::json block_j = buf_j["block"];
+            std::string req_latest_block_nr = buf_j["block_nr"];
+std::cout << "block_nr: " << req_latest_block_nr << std::endl;
+std::cout << "block: " << block_j.dump() << std::endl;
+            merkle_tree mt;
+            mt.save_block_to_file(block_j,req_latest_block_nr);
 
             // Disconect from client
             nlohmann::json m_j;
@@ -699,35 +716,9 @@ void P2pNetwork::get_sleep_and_create_block_server()
 
     std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
-    std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-    std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-    Poco poco(m_j_v, a_f_h); // chosen ones are being informed here
-    nlohmann::json block_j = poco.get_block_j();
-
-    // save block_j to static to be used in intro_block this_block_j
+    Poco poco;
+    poco.create_and_send_block(); // chosen ones are being informed here
     
-
-    // Send your_full_hash request to intro_peer's
-    for (auto &[key, value] : a_f_h)
-    {
-        nlohmann::json msg_j;
-        msg_j["req"] = "your_full_hash";
-        msg_j["full_hash"] = value;
-        Protocol proto;
-        msg_j["block_nr"] = proto.get_last_block_nr();
-        std::string msg_s = msg_j.dump();
-
-        std::string peer_ip;
-        P2p p2p;
-        p2p.number_to_ip_string(key, peer_ip);
-        
-        std::cout << "key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-        p2p_client(peer_ip, msg_s);
-    }
-
-    message_j_vec_.reset_message_j_vec();
-    all_full_hashes_.reset_all_full_hashes();
-
     std::cout << "Block created server!!" << std::endl;
 }
 

@@ -7,10 +7,8 @@
 
 using namespace Crowd;
 
-Poco::Poco(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std::string> &all_full_hashes)
+void Poco::create_and_send_block()
 {
-    message_j_vec_ = message_j_vec;
-
     merkle_tree mt;
 
     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
@@ -18,9 +16,9 @@ Poco::Poco(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std
     std::string fh_s;
     std::string full_hash_req;
 
-    for (int i = 0; i < message_j_vec_.size(); i++)
+    for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
     {
-        m_j = message_j_vec_[i];
+        m_j = message_j_vec_.get_message_j_vec()[i];
 
         full_hash_req = m_j["full_hash_req"];
 
@@ -61,11 +59,11 @@ Poco::Poco(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std
     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
     // send intro_block to co's
-    inform_chosen_ones(my_next_block_nr, block_j_, all_full_hashes);
+    inform_chosen_ones(my_next_block_nr, block_j_);
 
-    for (int i = 0; i < message_j_vec_.size(); i++)
+    for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
     {
-        m_j = message_j_vec_[i];
+        m_j = message_j_vec_.get_message_j_vec()[i];
         
         Crypto crypto;
         // update rocksdb
@@ -93,7 +91,7 @@ Poco::Poco(std::vector<nlohmann::json> &message_j_vec, std::map<enet_uint32, std
 std::cout << "--------5: " << std::endl;
 }
 
-void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::map<enet_uint32, std::string> &all_full_hashes)
+void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j)
 {
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
@@ -158,7 +156,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             
             std::string message = message_j.dump();
 
-            for (auto &[key, value] : all_full_hashes)
+            for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
             {
                 std::cout << "Preparation for intro_block: " << peer_ip << " " << to_string(key) << std::endl;
                 if (peer_ip == key)
@@ -177,6 +175,30 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
 
         set_hash_of_new_block(block_s);
+
+        std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
+
+        // Send your_full_hash request to intro_peer's
+        for (auto &[key, value] : a_f_h)
+        {
+            nlohmann::json msg_j;
+            msg_j["req"] = "your_full_hash";
+            msg_j["full_hash"] = value;
+            msg_j["block"] = block_j;
+            Protocol proto;
+            msg_j["block_nr"] = proto.get_last_block_nr();
+            std::string msg_s = msg_j.dump();
+
+            std::string peer_ip;
+            P2p p2p;
+            p2p.number_to_ip_string(key, peer_ip);
+            
+            std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+            P2pNetwork pn;
+            pn.p2p_client(peer_ip, msg_s);
+        }
+
+        all_full_hashes_.reset_all_full_hashes();
     }
     else
     {

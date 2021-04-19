@@ -158,9 +158,8 @@ void P2pNetwork::handle_read_client()
             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
-                std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-                std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-                Poco poco(m_j_v, a_f_h);
+                Poco poco;
+                poco.create_and_send_block();
 
                 message_j_vec_.reset_message_j_vec();
             }
@@ -191,19 +190,11 @@ void P2pNetwork::handle_read_client()
             P2p p2p;
             p2p.save_full_hash_to_file(full_hash);
             
-            std::string req_latest_block = buf_j["block_nr"];
+            nlohmann::json block_j = buf_j["block"];
+            std::string req_latest_block_nr = buf_j["block_nr"];
 
-            Protocol proto;
-            std::string my_latest_block = proto.get_last_block_nr();
-
-            if (req_latest_block > my_latest_block)
-            {
-                // TODO: update your own blockchain
-                nlohmann::json msg;
-                msg["req"] = "update_my_blocks_and_rocksdb";
-                msg["block_nr"] = my_latest_block;
-                set_resp_msg_server(msg.dump());
-            }
+            merkle_tree mt;
+            mt.save_block_to_file(block_j,req_latest_block_nr);
 
             std::cout << "Connection closed by other server, start this server" << std::endl; // TODO here starts duplicate code
 
@@ -249,9 +240,8 @@ void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is al
 
     std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
-    std::vector<nlohmann::json> m_j_v = message_j_vec_.get_message_j_vec();
-    std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-    Poco poco(m_j_v, a_f_h);
+    Poco poco;
+    poco.create_and_send_block();
     nlohmann::json block_j = poco.get_block_j();
 
     // TODO look into p2p_session for the same function and adapt accordingly
