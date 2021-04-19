@@ -16,7 +16,6 @@ add_library(crowd SHARED
                      upnp.cpp
                      verification.cpp
                      poco.cpp
-                     create_block.cpp
                      message_vec.cpp
                      all_full_hashes.cpp
 )
@@ -44,7 +43,6 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/prev_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/create_block.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/message_vec.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/all_full_hashes.hpp"
