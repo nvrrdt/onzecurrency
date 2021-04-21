@@ -232,7 +232,7 @@ void P2pNetwork::handle_read_client()
         else if (buf_j["req"] == "close_this_conn_without_server")
         {
             // you may close this connection
-            std::cout << "Connection closed by other server, start this server" << std::endl;
+            std::cout << "Connection closed by other server, no server start" << std::endl;
 
             set_closed_client("close_this_conn");
         }
