@@ -724,6 +724,8 @@ void P2pNetwork::get_sleep_and_create_block_server()
 
     Poco poco;
     poco.create_and_send_block(); // chosen ones are being informed here
+
+    message_j_vec_.reset_message_j_vec();
     
     std::cout << "Block created server!!" << std::endl;
 }
