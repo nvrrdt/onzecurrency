@@ -211,6 +211,7 @@ void P2pNetwork::handle_read_server()
                         for (int i = 1; i <= parts.size(); i++)
                         {
                             // std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+                            if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                             if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
 
                             
@@ -247,6 +248,7 @@ void P2pNetwork::handle_read_server()
                                 for (int i = 1; i <= parts_underlying.size(); i++)
                                 {
                                     //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
+                                    if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                                     if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
 //std::cout << "parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
                                     // lookup in rocksdb
