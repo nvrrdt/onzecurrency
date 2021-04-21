@@ -19,13 +19,13 @@ void P2pNetwork::handle_read_client()
 {
     if ( !read_msg_.get_eom_flag()) {
         std::string str_read_msg(read_msg_.body());
-        buf_ += str_read_msg;
+        buf_client_ += str_read_msg;
     } else {
         // process json message
         std::string str_read_msg(read_msg_.body());
-        buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+        buf_client_ += str_read_msg.substr(0, read_msg_.get_body_length());
 
-        nlohmann::json buf_j = nlohmann::json::parse(buf_);
+        nlohmann::json buf_j = nlohmann::json::parse(buf_client_);
         if (buf_j["register"] == "ack")
         {
             // TODO: what if there was no response from the server?
@@ -229,8 +229,15 @@ void P2pNetwork::handle_read_client()
             std::thread t1(std::move(task1));
             t1.join();
         }
+        else if (buf_j["req"] == "close_this_conn_without_server")
+        {
+            // you may close this connection
+            std::cout << "Connection closed by other server, start this server" << std::endl;
 
-        buf_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
+            set_closed_client("close_this_conn");
+        }
+
+        buf_client_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
     }
 }
 
@@ -366,9 +373,10 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                     return 2;
             }
         }
-        
+
         if (get_closed_client() == "close_this_conn")
         {
+            connected=0;
             enet_peer_disconnect(peer_, 0);
         }
     }

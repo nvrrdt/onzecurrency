@@ -76,7 +76,8 @@ namespace Crowd
 
         p2p_message read_msg_;
         p2p_message resp_msg_;
-        std::string buf_;
+        std::string buf_client_;
+        std::string buf_server_;
         MessageVec message_j_vec_;
         AllFullHashes all_full_hashes_;
 

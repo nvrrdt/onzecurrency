@@ -19,14 +19,14 @@ void P2pNetwork::handle_read_server()
 {
     if ( !read_msg_.get_eom_flag()) {
         std::string str_read_msg(read_msg_.body());
-        buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+        buf_server_ += str_read_msg.substr(0, read_msg_.get_body_length());
         
     } else {
         // process json message
         std::string str_read_msg(read_msg_.body());
-        buf_ += str_read_msg.substr(0, read_msg_.get_body_length());
+        buf_server_ += str_read_msg.substr(0, read_msg_.get_body_length());
 
-        nlohmann::json buf_j = nlohmann::json::parse(buf_);
+        nlohmann::json buf_j = nlohmann::json::parse(buf_server_);
         if (buf_j["req"] == "register")
         {
             nlohmann::json resp_j;
@@ -274,7 +274,7 @@ void P2pNetwork::handle_read_server()
                                 p2p_client(peer_ip, message);
                             }
                         }
-std::cout << "Does it stop here?" << std::endl;
+
                         // Update rocksdb
                         message_j["rocksdb"]["prev_hash"] = real_prev_hash_req;
                         message_j["rocksdb"]["full_hash"] = full_hash_req;
@@ -422,6 +422,11 @@ std::cout << "Does it stop here?" << std::endl;
                 std::thread t(&P2pNetwork::get_sleep_and_create_block_server, this);
                 t.detach();
             }
+
+            // Disconect from client
+            nlohmann::json m_j;
+            m_j["req"] = "close_this_conn_without_server";
+            set_resp_msg_server(m_j.dump());
         }
         else if (buf_j["req"] == "update_your_blocks")
         {
@@ -686,7 +691,7 @@ std::cout << "block: " << block_j.dump() << std::endl;
             delete rocksy;
         }
 
-        buf_ = "";
+        buf_server_ = "";
     }
 }
 
