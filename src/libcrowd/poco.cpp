@@ -202,6 +202,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         pn.p2p_client(peer_ip, msg_s);
     }
 
+    message_j_vec_.reset_message_j_vec();
     all_full_hashes_.reset_all_full_hashes();
 }
 
