@@ -284,7 +284,7 @@ void P2pNetwork::handle_read_server()
                         // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                         message_j_vec_.add_to_message_j_vec(message_j);
 
-                        all_full_hashes_.add_to_all_full_hashes(event_.peer->address.host, full_hash_req); // TODO you have to reset this
+                        all_full_hashes_.add_to_all_full_hashes(message_j["ip"], full_hash_req); // TODO you have to reset this
 
                         if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                         {
@@ -403,10 +403,6 @@ void P2pNetwork::handle_read_server()
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
             message_j_vec_.add_to_message_j_vec(buf_j);
 
-            // TODO !!! add_to_all_full_hashes of new_peer shouldn't be stored, the intro_peer co updates the intro_peer
-            std::string full_hash_req = buf_j["full_hash_req"];
-            all_full_hashes_.add_to_all_full_hashes(buf_j["ip"], full_hash_req);
-            
             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
@@ -473,29 +469,9 @@ std::cout << "Intro_block3: " << std::endl;
             MessageVec message_j_vec_size_as_coordinator;
 std::cout << "Intro_block4: " << std::endl;
 
-            Poco poco;
-            nlohmann::json block_j = poco.get_block_j();
 
-            // Send your_full_hash request to intro_peer's
-            for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
-            {
-                nlohmann::json msg_j;
-                msg_j["req"] = "your_full_hash";
-                msg_j["full_hash"] = value;
-                msg_j["block"] = block_j;
-                Protocol proto;
-                msg_j["block_nr"] = proto.get_last_block_nr();
-                std::string msg_s = msg_j.dump();
-
-                std::string peer_ip;
-                P2p p2p;
-                p2p.number_to_ip_string(key, peer_ip);
-                
-                std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-                p2p_client(peer_ip, msg_s);
-            }
-
-            all_full_hashes_.reset_all_full_hashes();
+            // compare the block and the rocksdb first!!!!
+            // then save the block
 
 
 

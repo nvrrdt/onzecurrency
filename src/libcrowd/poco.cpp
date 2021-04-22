@@ -175,36 +175,34 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
 
         set_hash_of_new_block(block_s);
-
-        std::map<enet_uint32, std::string> a_f_h = all_full_hashes_.get_all_full_hashes();
-
-        // Send your_full_hash request to intro_peer's
-        for (auto &[key, value] : a_f_h)
-        {
-            nlohmann::json msg_j;
-            msg_j["req"] = "your_full_hash";
-            msg_j["full_hash"] = value;
-            msg_j["block"] = block_j;
-            Protocol proto;
-            msg_j["block_nr"] = proto.get_last_block_nr();
-            std::string msg_s = msg_j.dump();
-
-            std::string peer_ip;
-            P2p p2p;
-            p2p.number_to_ip_string(key, peer_ip);
-            
-            std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-            P2pNetwork pn;
-            pn.p2p_client(peer_ip, msg_s);
-        }
-
-        all_full_hashes_.reset_all_full_hashes();
     }
     else
     {
         // You're not the coordinator!
         std::cout << "You're not the coordinator!" << std::endl;
     }
+
+    // Send your_full_hash request to intro_peer's
+    for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
+    {
+        nlohmann::json msg_j;
+        msg_j["req"] = "your_full_hash";
+        msg_j["full_hash"] = value;
+        msg_j["block"] = block_j;
+        Protocol proto;
+        msg_j["block_nr"] = proto.get_last_block_nr();
+        std::string msg_s = msg_j.dump();
+
+        std::string peer_ip;
+        P2p p2p;
+        p2p.number_to_ip_string(key, peer_ip);
+        
+        std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+        P2pNetwork pn;
+        pn.p2p_client(peer_ip, msg_s);
+    }
+
+    all_full_hashes_.reset_all_full_hashes();
 }
 
 // the block still needs to be hashed and the hash sent
