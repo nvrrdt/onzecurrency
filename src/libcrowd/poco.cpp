@@ -61,36 +61,6 @@ void Poco::create_and_send_block()
     // send intro_block to co's
     inform_chosen_ones(my_next_block_nr, block_j_);
 
-    for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
-    {
-        m_j = message_j_vec_.get_message_j_vec()[i];
-        
-        Crypto crypto;
-        // update rocksdb
-        nlohmann::json rocksdb_j;
-        rocksdb_j["version"] = "O.1";
-        rocksdb_j["ip"] = m_j["ip"];
-        rocksdb_j["server"] = true;
-        rocksdb_j["fullnode"] = true;
-        std::string email_of_req = m_j["email_of_req"];
-        rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-        PrevHash ph;
-        rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
-        rocksdb_j["full_hash"] = full_hash_req;
-        Protocol proto;
-        rocksdb_j["block_nr"] = proto.get_last_block_nr();
-        rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-        rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-        std::string rocksdb_s = rocksdb_j.dump();
-
-        Rocksy* rocksy = new Rocksy();
-        rocksy->Put(full_hash_req, rocksdb_s);
-        delete rocksy;
-    }
-
-    message_j_vec_.reset_message_j_vec();
-    all_full_hashes_.reset_all_full_hashes();
-
 std::cout << "--------5: " << std::endl;
 }
 
@@ -174,6 +144,39 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
 
         set_hash_of_new_block(block_s);
+
+        nlohmann::json m_j;
+        for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
+        {
+            m_j = message_j_vec_.get_message_j_vec()[i];
+
+            std::string full_hash_req = m_j["full_hash_req"];
+            
+            Crypto crypto;
+            // update rocksdb
+            nlohmann::json rocksdb_j;
+            rocksdb_j["version"] = "O.1";
+            rocksdb_j["ip"] = m_j["ip"];
+            rocksdb_j["server"] = true;
+            rocksdb_j["fullnode"] = true;
+            std::string email_of_req = m_j["email_of_req"];
+            rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
+            PrevHash ph;
+            rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+            rocksdb_j["full_hash"] = full_hash_req;
+            Protocol proto;
+            rocksdb_j["block_nr"] = proto.get_last_block_nr();
+            rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+            rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+            std::string rocksdb_s = rocksdb_j.dump();
+
+            Rocksy* rocksy = new Rocksy();
+            rocksy->Put(full_hash_req, rocksdb_s);
+            delete rocksy;
+        }
+
+        message_j_vec_.reset_message_j_vec();
+        all_full_hashes_.reset_all_full_hashes();
     }
     else
     {
@@ -215,6 +218,11 @@ nlohmann::json Poco::get_block_j()
     return block_j_;
 }
 
+void Poco::set_block_j(nlohmann::json block_j)
+{
+    block_j_ = block_j;
+}
+
 std::string Poco::get_hash_of_new_block()
 {
     return hash_of_block_;
@@ -227,3 +235,4 @@ void Poco::set_hash_of_new_block(std::string block)
 }
 
 std::string Poco::hash_of_block_ = "";
+nlohmann::json Poco::block_j_ = {};

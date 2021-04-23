@@ -21,13 +21,14 @@ namespace Crowd
     {
     public:
         void create_and_send_block();
-        nlohmann::json get_block_j();
+        static nlohmann::json get_block_j();
+        static void set_block_j(nlohmann::json block_j);
         static std::string get_hash_of_new_block();
+        static void set_hash_of_new_block(std::string block);
     private:
         void inform_chosen_ones(std::string my_next_block, nlohmann::json block_j);
     private:
-        static void set_hash_of_new_block(std::string block);
-        nlohmann::json block_j_;
+        static nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
         static std::string hash_of_block_;
         MessageVec message_j_vec_;
