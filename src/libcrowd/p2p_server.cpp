@@ -470,14 +470,18 @@ void P2pNetwork::handle_read_server()
             std::string prev_hash_me = poco.get_hash_of_new_block(); // overdone
             Rocksy* rocksy = new Rocksy;
             std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
+            if (full_hash_coord_from_me == buf_j["full_hash_req"])
+            {
+                full_hash_coord_from_me = rocksy->FindNextPeer(full_hash_coord_from_me);
+            }
             delete rocksy;
-std::cout << "tja____ " << prev_hash_me << " , " << full_hash_coord_from_coord << " , " << full_hash_coord_from_me << std::endl;
+
             if (full_hash_coord_from_coord == full_hash_coord_from_me)
             {
                 std::cout << "Coordinator is truthful" << std::endl;
 
                 std::string prev_hash_coordinator = buf_j["prev_hash"];
-
+std::cout << "tja____ " << prev_hash_me << " , " << prev_hash_coordinator << std::endl;
                 if (prev_hash_coordinator == prev_hash_me)
                 {
                     std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;
@@ -544,43 +548,9 @@ std::cout << "tja____ " << prev_hash_me << " , " << full_hash_coord_from_coord <
                 std::cout << "Coordinator is not truthful" << std::endl;
             }
 
-            // Update rocksdb
-            nlohmann::json m_j;
-            for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
-            {
-                m_j = message_j_vec_.get_message_j_vec()[i];
-
-                std::string full_hash_req = m_j["full_hash_req"];
-                
-                Crypto crypto;
-                // update rocksdb
-                nlohmann::json rocksdb_j;
-                rocksdb_j["version"] = "O.1";
-                rocksdb_j["ip"] = m_j["ip"];
-                rocksdb_j["server"] = true;
-                rocksdb_j["fullnode"] = true;
-                std::string email_of_req = m_j["email_of_req"];
-                rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-                PrevHash ph;
-                rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
-                rocksdb_j["full_hash"] = full_hash_req;
-                Protocol proto;
-                rocksdb_j["block_nr"] = proto.get_last_block_nr();
-                rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-                rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-                std::string rocksdb_s = rocksdb_j.dump();
-
-                Rocksy* rocksy = new Rocksy();
-                rocksy->Put(full_hash_req, rocksdb_s);
-                delete rocksy;
-            }
-
-            message_j_vec_.reset_message_j_vec();
-            all_full_hashes_.reset_all_full_hashes();
-
             // Disconect from client
-            nlohmann::json msg_j;
-            msg_j["req"] = "close_this_conn";
+            nlohmann::json m_j;
+            m_j["req"] = "close_this_conn";
             set_resp_msg_server(m_j.dump());
         }
         else if (buf_j["req"] == "new_block")

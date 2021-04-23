@@ -73,7 +73,7 @@ std::string Rocksy::FindNextPeer(std::string &key)
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
+        //std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
         if (it->key().ToString() > key)
         {
             string_key_next_peer = it->key().ToString();
