@@ -253,8 +253,6 @@ void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is al
     // TODO look into p2p_session for the same function and adapt accordingly
     // this function is not yet used, it starts getting used when nat traversal is introcuded
 
-    message_j_vec_.reset_message_j_vec();
-
     std::cout << "Block created client!!" << std::endl;
 }
 

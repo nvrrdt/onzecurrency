@@ -88,6 +88,9 @@ void Poco::create_and_send_block()
         delete rocksy;
     }
 
+    message_j_vec_.reset_message_j_vec();
+    all_full_hashes_.reset_all_full_hashes();
+
 std::cout << "--------5: " << std::endl;
 }
 
@@ -143,6 +146,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+            if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
 
             Rocksy* rocksy = new Rocksy();
@@ -156,19 +160,14 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             
             std::string message = message_j.dump();
 
-            for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
-            {
-                std::cout << "Preparation for intro_block: " << peer_ip << " " << to_string(key) << std::endl;
-                if (peer_ip == key)
-                {
-                    std::string ip_from_key;
-                    P2p p2p;
-                    p2p.number_to_ip_string(key, ip_from_key);
+            std::cout << "Preparation for intro_block: " << peer_ip << std::endl;
 
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(ip_from_key, message);
-                }
-            }
+            std::string ip_from_peer;
+            P2p p2p;
+            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(ip_from_peer, message);
         }
 
         merkle_tree mt;
@@ -201,9 +200,6 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         P2pNetwork pn;
         pn.p2p_client(peer_ip, msg_s);
     }
-
-    message_j_vec_.reset_message_j_vec();
-    all_full_hashes_.reset_all_full_hashes();
 }
 
 // the block still needs to be hashed and the hash sent
@@ -229,3 +225,5 @@ void Poco::set_hash_of_new_block(std::string block)
     Crypto crypto;
     hash_of_block_ = crypto.bech32_encode(block);
 }
+
+std::string Poco::hash_of_block_ = "";

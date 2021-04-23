@@ -22,14 +22,14 @@ namespace Crowd
     public:
         void create_and_send_block();
         nlohmann::json get_block_j();
-        std::string get_hash_of_new_block();
+        static std::string get_hash_of_new_block();
     private:
         void inform_chosen_ones(std::string my_next_block, nlohmann::json block_j);
     private:
-        void set_hash_of_new_block(std::string block);
+        static void set_hash_of_new_block(std::string block);
         nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
-        std::string hash_of_block_;
+        static std::string hash_of_block_;
         MessageVec message_j_vec_;
         AllFullHashes all_full_hashes_;
     };
