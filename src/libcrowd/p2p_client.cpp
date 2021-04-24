@@ -212,7 +212,7 @@ void P2pNetwork::handle_read_client()
         else if (buf_j["req"] == "hash_comparison")
         {
             // compare the received hash
-            std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+            std::cout << "The hash comparison is: " << buf_j["hash_comp"] << std::endl;
         }
         else if (buf_j["req"] == "close_this_conn")
         {

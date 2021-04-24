@@ -498,6 +498,14 @@ void P2pNetwork::handle_read_server()
                     std::cout << "Unsuccessful comparison of prev_hashes" << std::endl;
                 }
 
+                // Inform coordinator of succesfullness of hash comparison
+                nlohmann::json m_j;
+                m_j["req"] = "hash_comparison";
+                m_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
+                std::string msg_s = m_j.dump();
+
+                set_resp_msg_server(msg_s);
+
                 // p2p_client() to all calculated other chosen_ones
                 // this is in fact the start of the consensus algorithm
                 // you don't need full consensus in order to create a succesful block
@@ -518,10 +526,12 @@ void P2pNetwork::handle_read_server()
 
                 for (int i = 0; i < chosen_ones.size(); i++)
                 {
-                    if (i > j)
+                    if (i < j)
                     {
                         std::string c_one = chosen_ones[i];
+                        Rocksy* rocksy = new Rocksy;
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
+                        delete rocksy;
 
                         enet_uint32 ip = value_j["ip"];
                         std::string peer_ip;
@@ -530,7 +540,7 @@ void P2pNetwork::handle_read_server()
                         
                         nlohmann::json msg_j;
                         msg_j["req"] = "hash_comparison";
-                        msg_j["hash"] = prev_hash_me == prev_hash_coordinator;
+                        msg_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
                         std::string msg_s = msg_j.dump();
 
                         p2p_client(peer_ip, msg_s);
@@ -538,15 +548,6 @@ void P2pNetwork::handle_read_server()
                     else if (i == j)
                     {
                         continue;
-                    }
-                    else
-                    {
-                        nlohmann::json msg_j;
-                        msg_j["req"] = "hash_comparison";
-                        msg_j["hash"] = prev_hash_me == prev_hash_coordinator;
-                        std::string msg_s = msg_j.dump();
-
-                        set_resp_msg_server(msg_s);
                     }
                 }
             }
@@ -590,7 +591,7 @@ void P2pNetwork::handle_read_server()
         else if (buf_j["req"] = "hash_comparison")
         {
             // compare the received hash
-            std::cout << "The hash to compare is: " << buf_j["hash"] << std::endl;
+            std::cout << "The hash comparison is: " << buf_j["hash_comp"] << std::endl;
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
