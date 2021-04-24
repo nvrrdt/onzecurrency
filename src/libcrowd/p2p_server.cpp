@@ -492,6 +492,10 @@ void P2pNetwork::handle_read_server()
                 if (prev_hash_coordinator == prev_hash_me)
                 {
                     std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;
+
+                    merkle_tree mt;
+                    std::string latest_block_nr = buf_j["latest_block_nr"];
+                    mt.save_block_to_file(block_j_me, latest_block_nr);
                 }
                 else
                 {
