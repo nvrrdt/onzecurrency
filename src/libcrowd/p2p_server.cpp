@@ -464,10 +464,17 @@ void P2pNetwork::handle_read_server()
             // Is the coordinator the truthful real coordinator for this block
 
             std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+
+            nlohmann::json starttime_coord = buf_j["block"]["starttime"];
+
+            Crypto crypto;
             Poco poco;
-            poco.set_block_j(buf_j["block"]);                        // overdone
-            poco.set_hash_of_new_block(poco.get_block_j().dump());   // overdone
-            std::string prev_hash_me = poco.get_hash_of_new_block(); // overdone
+            
+            nlohmann::json block_j_me = poco.get_block_j();
+            block_j_me["starttime"] = starttime_coord;
+            std::string block_s_me = block_j_me.dump();
+            std::string prev_hash_me = crypto.bech32_encode_sha256(block_s_me);
+
             Rocksy* rocksy = new Rocksy;
             std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
             if (full_hash_coord_from_me == buf_j["full_hash_req"])
@@ -481,7 +488,7 @@ void P2pNetwork::handle_read_server()
                 std::cout << "Coordinator is truthful" << std::endl;
 
                 std::string prev_hash_coordinator = buf_j["prev_hash"];
-std::cout << "tja____ " << prev_hash_me << " , " << prev_hash_coordinator << std::endl;
+
                 if (prev_hash_coordinator == prev_hash_me)
                 {
                     std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;

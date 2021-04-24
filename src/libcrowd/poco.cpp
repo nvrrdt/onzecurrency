@@ -101,7 +101,8 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     Auth a;
     std::string my_full_hash = a.get_my_full_hash();
     Crypto* crypto = new Crypto();
-    std::string hash_of_block = block_j["prev_hash"]; // TODO: should be full_hash_co? or hash of block_j?________________
+    std::string block_s = block_j.dump();
+    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Rocksy* rocksy = new Rocksy();
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
@@ -233,7 +234,7 @@ std::string Poco::get_hash_of_new_block()
 void Poco::set_hash_of_new_block(std::string block)
 {
     Crypto crypto;
-    hash_of_block_ = crypto.bech32_encode(block);
+    hash_of_block_ = crypto.bech32_encode_sha256(block);
 }
 
 std::string Poco::hash_of_block_ = "";
