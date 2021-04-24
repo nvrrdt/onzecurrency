@@ -2,6 +2,9 @@
 
 using namespace Crowd;
 
+std::string P2pNetwork::closed_client_ = "";
+uint32_t P2pNetwork::ip_new_co_ = 0;
+
 void P2pNetwork::do_read_header_client()
 {
     if (read_msg_.decode_header() == true)

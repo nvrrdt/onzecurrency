@@ -34,11 +34,11 @@ namespace Crowd
     public:
         int p2p_server();
         int p2p_client(std::string ip_s, std::string message);
-        std::string get_closed_client()
+        static std::string get_closed_client()
         {
             return closed_client_;
         }
-        uint32_t get_ip_new_co()
+        static uint32_t get_ip_new_co()
         {
             return ip_new_co_;
         }
@@ -55,11 +55,11 @@ namespace Crowd
         void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
         void get_sleep_and_create_block_server();
         void get_sleep_and_create_block_client();
-        void set_closed_client(std::string closed)
+        static void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
         }
-        void set_ip_new_co(uint32_t ip)
+        static void set_ip_new_co(uint32_t ip)
         {
             ip_new_co_ = ip;
         }
@@ -81,7 +81,7 @@ namespace Crowd
         MessageVec message_j_vec_;
         AllFullHashes all_full_hashes_;
 
-        std::string closed_client_;
-        uint32_t ip_new_co_;
+        static std::string closed_client_;
+        static uint32_t ip_new_co_;
     };
 }
