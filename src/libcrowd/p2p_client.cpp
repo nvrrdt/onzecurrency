@@ -199,6 +199,17 @@ void P2pNetwork::handle_read_client()
             merkle_tree mt;
             mt.save_block_to_file(block_j,req_latest_block_nr);
 
+            // Put in rocksdb
+            for (auto &[key, value] : buf_j["rocksdb"].items())
+            {
+                std::string key_s = value["full_hash"];
+                std::string value_s = value.dump();
+
+                Rocksy* rocksy = new Rocksy();
+                rocksy->Put(key_s, value_s);
+                delete rocksy;
+            }
+
             std::cout << "Connection closed by other server, start this server" << std::endl; // TODO here starts duplicate code
 
             // Disconect from server
@@ -375,7 +386,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
             }
         }
 
-        if (get_closed_client() == "close_this_conn")
+        if (get_closed_client() == "close_this_conn" || get_closed_client() == "new_co")
         {
             connected=0;
             enet_peer_disconnect(peer_, 0);

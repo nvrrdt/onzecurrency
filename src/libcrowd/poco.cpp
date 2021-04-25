@@ -61,35 +61,6 @@ void Poco::create_and_send_block()
     // send intro_block to co's
     inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
 
-    for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
-    {
-        m_j = message_j_vec_.get_message_j_vec()[i];
-
-        std::string full_hash_req = m_j["full_hash_req"];
-        
-        Crypto crypto;
-        // update rocksdb
-        nlohmann::json rocksdb_j;
-        rocksdb_j["version"] = "O.1";
-        rocksdb_j["ip"] = m_j["ip"];
-        rocksdb_j["server"] = true;
-        rocksdb_j["fullnode"] = true;
-        std::string email_of_req = m_j["email_of_req"];
-        rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-        PrevHash ph;
-        rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
-        rocksdb_j["full_hash"] = full_hash_req;
-        Protocol proto;
-        rocksdb_j["block_nr"] = proto.get_last_block_nr();
-        rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-        rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-        std::string rocksdb_s = rocksdb_j.dump();
-
-        Rocksy* rocksy = new Rocksy();
-        rocksy->Put(full_hash_req, rocksdb_s);
-        delete rocksy;
-    }
-
     message_j_vec_.reset_message_j_vec();
     all_full_hashes_.reset_all_full_hashes();
 
@@ -108,6 +79,8 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
+    nlohmann::json message_j;
+
     if (co_from_this_block == my_full_hash)
     {
         // You are the coordinator!
@@ -116,7 +89,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
-        nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+        nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
@@ -130,12 +103,51 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             message_j["chosen_ones"][k] = v;
         }
 
-        to_sign_j["last_block_nr"] = my_next_block_nr;
+        // this for loop should be in inform_chosen_ones coordinator and send with an intro_block and a new_block
+        // intro_block and new_block should put this in rocksdb
+        // also a your_full_hash should receive and store this
+        // and then the coordinator should put in rocksdb
+        for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
+        {
+            nlohmann::json m_j;
+            m_j = message_j_vec_.get_message_j_vec()[i];
+
+            std::string full_hash_req = m_j["full_hash_req"];
+            
+            Crypto crypto;
+            // update rocksdb
+            nlohmann::json rocksdb_j;
+            rocksdb_j["version"] = "O.1";
+            rocksdb_j["ip"] = m_j["ip"];
+            rocksdb_j["server"] = true;
+            rocksdb_j["fullnode"] = true;
+            std::string email_of_req = m_j["email_of_req"];
+            rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
+            PrevHash ph;
+            rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+            rocksdb_j["full_hash"] = full_hash_req;
+            Protocol proto;
+            rocksdb_j["block_nr"] = proto.get_last_block_nr();
+            rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+            rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+            std::string rocksdb_s = rocksdb_j.dump();
+
+            // Store to rocksdb for coordinator
+            Rocksy* rocksy = new Rocksy();
+            rocksy->Put(full_hash_req, rocksdb_s);
+            delete rocksy;
+
+            // Send rocksdb to into_block chosen_ones
+            message_j["rocksdb"][i] = rocksdb_j;
+        }
+
+        to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = hash_of_block;
         to_sign_j["full_hash_req"] = full_hash_req;
         to_sign_j["full_hash_coord"] = my_full_hash;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+        to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
         ECDSA<ECP, SHA256>::PrivateKey private_key;
         std::string signature;
@@ -154,13 +166,12 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             if (key == 1) continue;
             if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-
+            
             Rocksy* rocksy = new Rocksy();
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];
-            message_j["rocksdb"] = value_j;
 
             delete rocksy;
             
@@ -196,6 +207,9 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         msg_j["block"] = block_j;
         Protocol proto;
         msg_j["block_nr"] = proto.get_last_block_nr();
+
+        msg_j["rocksdb"] = message_j["rocksdb"];
+
         std::string msg_s = msg_j.dump();
 
         std::string peer_ip;

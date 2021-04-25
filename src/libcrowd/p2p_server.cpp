@@ -69,7 +69,7 @@ void P2pNetwork::handle_read_server()
             std::string real_prev_hash_req = prev_hash.get_prev_hash_from_the_last_block();
             std::string email_prev_hash_concatenated = email_of_req + real_prev_hash_req;
             std::string full_hash_req =  crypto->bech32_encode_sha256(email_prev_hash_concatenated);
-
+std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " << full_hash_req << std::endl;
             Rocksy* rocksy = new Rocksy();
             if (rocksy->Get(full_hash_req) == "")
             {
@@ -109,6 +109,7 @@ void P2pNetwork::handle_read_server()
                     // else room_.deliver ip of co_from_this_server
                     Auth a;
                     std::string my_full_hash = a.get_my_full_hash();
+std::cout << "my full hash:______ " << my_full_hash << std::endl;
                     if (my_full_hash == co_from_this_server)
                     {
                         std::cout << "my_full_hash: " << my_full_hash << std::endl;
@@ -331,8 +332,10 @@ void P2pNetwork::handle_read_server()
                         // room_.deliver() co_from_this_server with new_co request
                         nlohmann::json message_j;
                         message_j["req"] = "new_co";
+std::cout << "co from this server:______ " << co_from_this_server << std::endl;
 
                         Rocksy* rocksy = new Rocksy();
+std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(co_from_this_server));
                         enet_uint32 peer_ip = value_j["ip"];
                         delete rocksy;
@@ -493,9 +496,21 @@ void P2pNetwork::handle_read_server()
                 {
                     std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;
 
+                    // Save block
                     merkle_tree mt;
                     std::string latest_block_nr = buf_j["latest_block_nr"];
                     mt.save_block_to_file(block_j_me, latest_block_nr);
+
+                    // Put in rocksdb
+                    for (auto &[key, value] : buf_j["rocksdb"].items())
+                    {
+                        std::string key_s = value["full_hash"];
+                        std::string value_s = value.dump();
+
+                        Rocksy* rocksy = new Rocksy();
+                        rocksy->Put(key_s, value_s);
+                        delete rocksy;
+                    }
                 }
                 else
                 {
@@ -586,6 +601,17 @@ void P2pNetwork::handle_read_server()
             // std::cout << "block: " << block_j.dump() << std::endl;
             merkle_tree mt;
             mt.save_block_to_file(block_j,req_latest_block_nr);
+
+            // Put in rocksdb
+            for (auto &[key, value] : buf_j["rocksdb"].items())
+            {
+                std::string key_s = value["full_hash"];
+                std::string value_s = value.dump();
+
+                Rocksy* rocksy = new Rocksy();
+                rocksy->Put(key_s, value_s);
+                delete rocksy;
+            }
 
             // Disconect from client
             nlohmann::json m_j;
