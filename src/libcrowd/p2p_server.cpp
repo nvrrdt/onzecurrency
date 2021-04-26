@@ -541,13 +541,23 @@ std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
                 // but full consensus improves your chances of course greatly
                 nlohmann::json chosen_ones = buf_j["chosen_ones"];
                 Auth a;
-                std::string my_full_hash = a.get_my_full_hash();
+                P2p p2p;
+                std::string my_full_hash = p2p.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+                if (my_full_hash != "") // TODO why does this if else exist? why doesn't get_my_ful_hash give the right answer?
+                {
+                    std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+                }
+                else
+                {
+                    my_full_hash = a.get_my_full_hash();
+                    std::cout << "My_full_hash not present in file: " << my_full_hash << std::endl;
+                }
 
                 int j;
 
                 for (int i = 0; i < chosen_ones.size(); i++)
                 {
-                    if (chosen_ones[i] == my_full_hash)
+                    if (chosen_ones[i] == buf_j["full_hash_req"])
                     {
                         j = i;
                     }
@@ -557,6 +567,8 @@ std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
                 {
                     if (i < j)
                     {
+                        if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
+
                         std::string c_one = chosen_ones[i];
                         Rocksy* rocksy = new Rocksy;
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
@@ -566,7 +578,7 @@ std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
                         std::string peer_ip;
                         P2p p2p;
                         p2p.number_to_ip_string(ip, peer_ip);
-                        
+
                         nlohmann::json msg_j;
                         msg_j["req"] = "hash_comparison";
                         msg_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
@@ -631,7 +643,7 @@ std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
         else if (buf_j["req"] = "hash_comparison")
         {
             // compare the received hash
-            std::cout << "The hash comparison is: " <<  buf_j["hash_comp"] << std::endl;
+            std::cout << "The hash comparison is (server): " <<  buf_j["hash_comp"] << std::endl;
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {

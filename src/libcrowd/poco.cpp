@@ -70,7 +70,17 @@ std::cout << "--------5: " << std::endl;
 void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
     Auth a;
-    std::string my_full_hash = a.get_my_full_hash();
+    P2p p2p;
+    std::string my_full_hash = p2p.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    if (my_full_hash != "") // TODO why does this if else exist? why doesn't get_my_ful_hash give the right answer?
+    {
+        std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;
+    }
+    else
+    {
+        my_full_hash = a.get_my_full_hash();
+        std::cout << "My_full_hash not present in file:__ " << my_full_hash << std::endl;
+    }
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
@@ -97,10 +107,11 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         message_j["full_hash_req"] = full_hash_req;
         message_j["full_hash_coord"] = my_full_hash;
 
-        std::string k, v;
+        int k;
+        std::string v;
         for (auto &[k, v] : parts)
         {
-            message_j["chosen_ones"][k] = v;
+            message_j["chosen_ones"].push_back(v);
         }
 
         // this for loop should be in inform_chosen_ones coordinator and send with an intro_block and a new_block
