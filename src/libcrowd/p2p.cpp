@@ -160,6 +160,9 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 delete rocksy;
                 std::cout << "Rocksdb updated and server started" << std::endl;
 
+                // Save the full_hash to file
+                save_full_hash_to_file(full_hash);
+
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
                     pn.p2p_server();
@@ -324,7 +327,7 @@ std::string P2p::get_full_hash_from_file()
     ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "full_hash"))
     {
-        std::ifstream stream(cd.GetConfigDir() + "prev_hash", std::ios::in | std::ios::binary);
+        std::ifstream stream(cd.GetConfigDir() + "full_hash", std::ios::in | std::ios::binary);
         std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
         fh = contents;
     }

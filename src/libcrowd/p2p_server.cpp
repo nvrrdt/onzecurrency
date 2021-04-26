@@ -108,8 +108,18 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                     // if (my_full_hash == co_from_this_server) update and recalculate full_hash!!! and create and communicate full_hash
                     // else room_.deliver ip of co_from_this_server
                     Auth a;
-                    std::string my_full_hash = a.get_my_full_hash();
-std::cout << "my full hash:______ " << my_full_hash << std::endl;
+                    P2p p2p;
+                    std::string my_full_hash = p2p.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+                    if (my_full_hash != "") // TODO why does this if else exist? why doesn't get_my_ful_hash give the right answer?
+                    {
+                        std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+                    }
+                    else
+                    {
+                        my_full_hash = a.get_my_full_hash();
+                        std::cout << "My_full_hash not present in file: " << my_full_hash << std::endl;
+                    }
+
                     if (my_full_hash == co_from_this_server)
                     {
                         std::cout << "my_full_hash: " << my_full_hash << std::endl;
