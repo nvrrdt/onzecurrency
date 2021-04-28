@@ -6,7 +6,7 @@
 - python3 ./scripts/build.py -rcd   # to install cryptopp and enet
 - python3 ./scripts/build.py -p     # to build and package the current state of onzecurrency
 - rm -rf ./config && onze-terminal
-- ./build/tests --log_level=message # there aren't many tests ...
+- python3 ./scripts/build.py -t     # there aren't many tests ...
 
 #### test procedure with 4 servers
 - foresee 4 servers (in the cloud)
