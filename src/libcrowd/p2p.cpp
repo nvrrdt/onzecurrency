@@ -23,17 +23,17 @@ std::string Auth::my_full_hash_;
 
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
-    // std::string ip_mother_peer = "51.158.68.232";
-    // nlohmann::json message_j;
-    // message_j["req"] = "register";
-    // P2pNetwork pn;
-    // pn.p2p_client(ip_mother_peer, message_j.dump());
-
-    // if (pn.get_closed_client() == "closed_conn")
-    // {
+    // TODO Somehow I think these:
+    // std::packaged_task<void()> task1([] {
+    //     P2pNetwork pn;
     //     pn.p2p_server();
-    // }
-
+    // });
+    // // Run task on new thread.
+    // std::thread t1(std::move(task1));
+    // t1.join();
+    // aren't necessary (everyhere), but tests show it doesn't work without
+    // didn't go deep into the test though ...
+    // There's imediately a join so ...
 
     if (cred["new_peer"] == "true")
     {
