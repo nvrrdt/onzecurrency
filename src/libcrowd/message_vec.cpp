@@ -2,11 +2,6 @@
 
 using namespace Crowd;
 
-MessageVec::MessageVec()
-{
-    message_j_vec_.resize(2048);
-}
-
 void MessageVec::add_to_message_j_vec(nlohmann::json &message_j)
 {
     message_j_vec_.push_back(std::make_shared<nlohmann::json>(message_j));
