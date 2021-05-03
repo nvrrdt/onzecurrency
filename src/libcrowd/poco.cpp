@@ -18,7 +18,7 @@ void Poco::create_and_send_block()
 
     for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
     {
-        m_j = message_j_vec_.get_message_j_vec()[i];
+        m_j = *message_j_vec_.get_message_j_vec()[i];
 
         full_hash_req = m_j["full_hash_req"];
 
@@ -121,7 +121,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
         {
             nlohmann::json m_j;
-            m_j = message_j_vec_.get_message_j_vec()[i];
+            m_j = *message_j_vec_.get_message_j_vec()[i];
 
             std::string full_hash_req = m_j["full_hash_req"];
             
