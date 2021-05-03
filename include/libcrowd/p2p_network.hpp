@@ -78,7 +78,7 @@ namespace Crowd
         p2p_message resp_msg_;
         std::string buf_client_;
         std::string buf_server_;
-        MessageVec message_j_vec_;
+        MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
         AllFullHashes all_full_hashes_;
 
         static std::string closed_client_;
