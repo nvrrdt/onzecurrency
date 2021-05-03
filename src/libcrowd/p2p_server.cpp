@@ -307,7 +307,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                             {
                                 nlohmann::json msg_j;
                                 msg_j["req"] = "your_full_hash";
-                                msg_j["full_hash"] = value;
+                                msg_j["full_hash"] = *value;
                                 msg_j["block_nr"] = proto.get_last_block_nr();
                                 std::string msg_s = msg_j.dump();
 

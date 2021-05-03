@@ -214,7 +214,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     {
         nlohmann::json msg_j;
         msg_j["req"] = "your_full_hash";
-        msg_j["full_hash"] = value;
+        msg_j["full_hash"] = *value;
         msg_j["block"] = block_j;
         Protocol proto;
         msg_j["block_nr"] = proto.get_last_block_nr();

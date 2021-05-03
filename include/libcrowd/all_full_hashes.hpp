@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <enet/enet.h>
 
 namespace Crowd
@@ -10,9 +11,9 @@ namespace Crowd
     {
     public:
         static void add_to_all_full_hashes(enet_uint32 participant, std::string full_hash_req);
-        static std::map<enet_uint32, std::string> get_all_full_hashes();
+        static std::map<enet_uint32, std::shared_ptr<std::string>> get_all_full_hashes();
         static void reset_all_full_hashes();
     private:
-        static std::map<enet_uint32, std::string> all_full_hashes_;
+        static std::map<enet_uint32, std::shared_ptr<std::string>> all_full_hashes_;
     };
 }
