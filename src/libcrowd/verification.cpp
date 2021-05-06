@@ -1,53 +1,44 @@
 #include "verification.hpp"
 
-Verification::Verification()
-{
-    // - hello network!
-    // - blockchain folder is_empty; download
-    // - blockchain folder not_empty; what is latest block
-    // - latest block not_latest; update
-    // - new user in network
-    // - goodbye network
-    
-    //std::cout << "blockchain_folder_path: " << blockchain_folder_path << std::endl;
-    boost::system::error_code c;
-    boost::filesystem::path path(blockchain_folder_path);
+#include "prev_hash.hpp"
+#include "crypto.hpp"
 
-    if (!boost::filesystem::exists(path))
+using namespace Crowd;
+
+bool Verification::verify_all_blocks()
+{
+    // Verify the blocks's prev_hash:
+    // read first block and create hash
+    // read next block and get prev hash --> compare hashes
+    // create hash from the last block and continue for the following blocks
+
+    PrevHash ph;
+    auto prev_hashes_vec = ph.get_prev_hashes_vec_from_files();
+    auto blocks_vec = ph.get_blocks_vec_from_files();
+
+    for (uint64_t i = 0; i < blocks_vec.size(); i++)
     {
-        try
+        Crypto crypto;
+
+        if (i == blocks_vec.size() - 1) break; // avoid going past prev_hashes_vec
+
+        if (prev_hashes_vec[i+1] == crypto.sha256_create(blocks_vec[i]))
         {
-            if (boost::filesystem::create_directory(path))
+            if (i == blocks_vec.size() - 1 - 1) // because last block can't be verified because of the lack of a prev_hash
             {
-                Verification::Download();
+                std::cout << "Blockchain verified and ok" << std::endl;
+                return true;
+            }
+            else
+            {
+                continue;
             }
         }
-        catch (boost::filesystem::filesystem_error &e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-    }
-    else
-    {
-        bool isEmpty = boost::filesystem::is_empty(path);
-        if (isEmpty)
-        {
-            Verification::Download();
-        }
+
+        std::cout << "Blockchain verified but not ok" << std::endl;
+        return false;
     }
 
-    Verification::Update();
-}
-bool Verification::Download()
-{
-    // Add 1 to own user_id and search for next chosen_one in rocksdb that is online
-
-    return false;
-}
-bool Verification::Update()
-{
-    // check for the latest block in blockchain folder and verify if that's the latest in the chain
-    // if not the latest: update
-
+    std::cout << "Blockchain not verified and not ok" << std::endl;
     return false;
 }

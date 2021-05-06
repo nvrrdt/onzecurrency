@@ -2,28 +2,18 @@
 
 #include <iostream>
 #include <string>
-
-#include <boost/filesystem.hpp>
-#include <boost/system/error_code.hpp>
-
-#include "configdir.hpp"
-
-using namespace Crowd;
+#include <vector>
 
 namespace Crowd
 {
     /**
-     * V is?
+     * Verificiation of the integrity of the blockchain 
      */
 
     class Verification
     {
-    private:
-        ConfigDir cd;
-        std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
     public:
-        Verification();
-        bool Download();
-        bool Update();
+        bool verify_all_blocks();
+    private:
     };
 }

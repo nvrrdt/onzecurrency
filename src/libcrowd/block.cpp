@@ -20,6 +20,7 @@
 #include <boost/system/error_code.hpp>
 
 #include "verification.hpp"
+#include "configdir.hpp"
 
 #include "crypto.hpp"
 #include "prev_hash.hpp"

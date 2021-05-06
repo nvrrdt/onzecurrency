@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 namespace Crowd
@@ -12,6 +13,8 @@ namespace Crowd
         std::string get_my_prev_hash_from_file();
         std::string calculate_last_prev_hash_from_blocks();
         std::string get_prev_hash_from_the_last_block();
+        std::vector<std::string> get_prev_hashes_vec_from_files();
+        std::vector<std::string> get_blocks_vec_from_files();
     private:
     };
 }

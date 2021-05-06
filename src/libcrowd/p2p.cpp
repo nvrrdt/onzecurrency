@@ -8,6 +8,7 @@
 #include "crypto.hpp"
 #include "merkle_tree.hpp"
 #include "auth.hpp"
+#include "verification.hpp"
 
 #include <vector>
 
@@ -235,79 +236,31 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
     else if (cred["new_peer"] == "false")
     {
         // existing user
-        // t.client with {"online": "true"}
+
+        std::cout << "Existing peer" << std::endl;
+
+        // verify blockchain ...
+        // p2p_client with {"full_hash": "xxxx", "online": "true", "latest_block_nr": "xxx"} to 'try' FindNextPeer() and update blockchain and rocksy
+        // then p2p_server()
+
+        Verification verifi;
+        if (verifi.verify_all_blocks())
+        {
+            //ok, continue
+        }
+        else
+        {
+            //not ok
+            return false;
+        }
     }
     else
     {
         // something wrong cred["new_peer"] not present or correct
         std::cerr << "Wrong cred[\"new_peer\"]" << std::endl;
+
+        return false;
     }
-
-    // // get ip_peer from mother_peer
-    // Tcp t;
-    // nlohmann::json message_j;
-    // message_j["req"] = "ip_peer";
-    // message_j["hash_of_req"] = cred["email_hashed"];
-    // nlohmann::json response = nlohmann::json::parse(t.client("", ip_mother_peer, "hash_of_mother_peer", message_j.dump(), "pub_key")); // mother server must respond with ip_peer and ip_server_peer
-
-    // // update your blockchain and rocksdb
-    // if (response["ip_peer"] != "") {
-    //     if (response["ip_server_peer"] != "") {
-    //         t.client(response["ip_server_peer"], response["ip_peer"], response["hash_peer"], "update", "pub_key"); // server must respond with packets updating rocksdb and blockchain
-    //     } else {
-    //         t.client("", response["ip_peer"], response["hash_peer"], "update", "pub_key"); // server must respond with packets updating rocksdb and blockchain
-    //     }
-    // } else {
-    //     return false;
-    // }
-    
-    // // prepare for becoming a peer and update the rocksdb of all peers with my presence
-    // if (t.server() == 0) { // wait 5 seconds, mother_peer tries to connect
-    //     if (response["ip_server_peer"] != "") {
-    //         t.client(response["ip_server_peer"], response["ip_peer"], response["hash_peer"], "server", "pub_key"); // server must update all peers with my ip, my id, my server being
-    //     } else {        
-    //         t.client("", response["ip_peer"], response["hash_peer"], "server", "pub_key"); // server must update all peers with my ip, my id, my server being
-    //     }
-
-    //     std::packaged_task<void()> task1([] {
-    //         Tcp t;
-    //         t.server();
-    //     });
-    //     // Run task on new thread.
-    //     std::thread t1(std::move(task1));
-    //     t1.join();
-    // } else if (Upnp u; u.Upnp_main() == 0) { // try upnp to become a server or else
-    //     if (response["ip_server_peer"] != "") {
-    //         t.client(response["ip_server_peer"], response["ip_peer"], response["hash_peer"], "server", "pub_key"); // server must update all peers with my ip, my id, my server being
-    //     } else {
-    //         t.client("", response["ip_peer"], response["hash_peer"], "server", "pub_key"); // server must update all peers with my ip, my id, my server being
-    //     }
-
-    //     std::packaged_task<void()> task1([] {
-    //         Tcp t;
-    //         t.server();
-    //     });
-    //     // Run task on new thread.
-    //     std::thread t1(std::move(task1));
-    //     t1.join();
-    // } else {
-    //     if (response["ip_server_peer"] != "") {
-    //         t.client(response["ip_server_peer"], response["ip_peer"], response["hash_peer"], "client", "pub_key"); // server must update all peers with my ip, my id, my client being
-    //     } else {
-    //         t.client("", response["ip_peer"], response["hash_peer"], "client", "pub_key"); // server must update all peers with my ip, my id, my client being
-    //     }
-
-    //     std::string email_hashed = cred["email_hashed"];
-    //     std::packaged_task<void()> task1([email_hashed] {
-    //         Rocksy r;
-    //         std::string server_peer = p.FindServerPeer(email_hashed);
-    //         Tcp t;
-    //         t.client(server_peer, "", "", "register", "pub_key"); // server should keep connection open to be able to communicate
-    //     });
-    //     // Run task on new thread.
-    //     std::thread t1(std::move(task1));
-    //     t1.join();
-    // }
      
     return true;
 }
