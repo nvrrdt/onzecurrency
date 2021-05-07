@@ -243,8 +243,8 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         // p2p_client with {"full_hash": "xxxx", "online": "true", "latest_block_nr": "xxx"} to 'try' FindNextPeer() and update blockchain and rocksy
         // then p2p_server()
 
-        Verification verifi;
-        if (verifi.verify_all_blocks())
+        Verification verification;
+        if (verification.verify_all_blocks())
         {
             //ok, continue
         }
