@@ -70,8 +70,8 @@ std::cout << "--------5: " << std::endl;
 void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
     Auth a;
-    P2p p2p;
-    std::string my_full_hash = p2p.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
     if (my_full_hash != "") // TODO why does this if else exist? why doesn't get_my_ful_hash give the right answer?
     {
         std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;

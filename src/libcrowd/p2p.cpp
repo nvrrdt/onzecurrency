@@ -162,7 +162,8 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::cout << "Rocksdb updated and server started" << std::endl;
 
                 // Save the full_hash to file
-                save_full_hash_to_file(full_hash);
+                FullHash fh;
+                fh.save_full_hash_to_file(full_hash);
 
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
@@ -263,34 +264,6 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
     }
      
     return true;
-}
-
-void P2p::save_full_hash_to_file(std::string& full_hash)
-{
-    ConfigDir cd;
-    std::string file = "full_hash";
-    cd.CreateFileInConfigDir(file, full_hash);
-}
-
-std::string P2p::get_full_hash_from_file()
-{
-    std::string fh;
-
-    // read full_hash file
-    ConfigDir cd;
-    if (boost::filesystem::exists(cd.GetConfigDir() + "full_hash"))
-    {
-        std::ifstream stream(cd.GetConfigDir() + "full_hash", std::ios::in | std::ios::binary);
-        std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        fh = contents;
-    }
-    else
-    {
-        std::cout << "Full_hash file doesn't exist!!" << std::endl;
-        fh = "";
-    }
-
-    return fh;
 }
 
 int P2p::ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr)

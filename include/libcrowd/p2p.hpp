@@ -12,6 +12,7 @@
 #include "prev_hash.hpp"
 #include "crypto.hpp"
 #include "merkle_tree.hpp"
+#include "full_hash.hpp"
 
 #include <stack>
 #include <memory>
@@ -40,8 +41,6 @@ namespace Crowd
         void to_json(nlohmann::json& j, const std::vector<std::string>& str) {
             j = nlohmann::json{{"ip_list", str}};
         }
-        void save_full_hash_to_file(std::string& full_hash);
-        std::string get_full_hash_from_file();
         int ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr);
         int number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string);
     };
