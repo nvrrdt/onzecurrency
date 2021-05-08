@@ -85,6 +85,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
 
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
+        cred["prev_hash"] = prev_hash;
+        cred["full_hash"] = full_hash;
 
         // generate a new keypair for the signature
         crypto.ecdsa_generate_and_save_keypair();

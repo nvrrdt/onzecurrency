@@ -13,6 +13,7 @@
 #include "crypto.hpp"
 #include "merkle_tree.hpp"
 #include "full_hash.hpp"
+#include "auth.hpp"
 
 #include <stack>
 #include <memory>

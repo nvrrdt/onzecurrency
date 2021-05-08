@@ -41,7 +41,7 @@ void Poco::create_and_send_block()
     block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
     PrevHash ph;
-    block_j_["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+    block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
 
     Protocol proto;
     std::string my_last_block_nr = proto.get_last_block_nr();
@@ -127,7 +127,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             std::string email_of_req = m_j["email_of_req"];
             rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
             PrevHash ph;
-            rocksdb_j["prev_hash"] = ph.calculate_last_prev_hash_from_blocks();
+            rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
             rocksdb_j["full_hash"] = full_hash_req;
             Protocol proto;
             rocksdb_j["block_nr"] = proto.get_last_block_nr();

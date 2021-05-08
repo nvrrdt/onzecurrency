@@ -18,7 +18,7 @@ std::string Crypto::sha256_create(std::string &msg)
     std::string digest;
 
     SHA256 hash;
-    StringSource(msg, true, new HashFilter(hash, new StringSink(digest)));
+    StringSource(msg, true, new HashFilter(hash, new HexEncoder(new StringSink(digest))));
 
     return digest;
 }
@@ -50,16 +50,19 @@ std::string Crypto::bech32_decode(const std::string &str)
 
     auto bech = bech32::Decode(str);
 
-    if (bech.first == "onze")
-    {
-        ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end());
-        std::string s(data.begin(), data.end());
-        return s;
-    }
-    else
-    {
-        return "false";
-    }
+std::cout << bech.first << " , " << std::endl;
+return "s____";
+
+    // if (bech.first == "onze")
+    // {
+    //     ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end());
+    //     std::string s(data.begin(), data.end());
+    //     return s;
+    // }
+    // else
+    // {
+    //     return "false";
+    // }
 }
 
 typedef unsigned char uchar;

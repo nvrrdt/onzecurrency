@@ -150,7 +150,15 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 std::string block_nr = proto.get_last_block_nr();
-                mt.save_block_to_file(block_j, block_nr);
+                std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
+
+                // The genesis prev_hash must be included in the first rocksdb injection
+                nlohmann::json block_temp_j = nlohmann::json::parse(block_temp_s);
+                std::string prev_hash = block_temp_j["prev_hash"]; // get genesis prev_hash from block.cpp
+                rocksdb_j["prev_hash"] = prev_hash;
+                std::string email_prev_hash_app = hash_email + prev_hash;
+                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
+                rocksdb_j["full_hash"] = full_hash;
 
                 // Update rocksdb
                 std::string rocksdb_s = rocksdb_j.dump();
