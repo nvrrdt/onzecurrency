@@ -20,8 +20,6 @@
 
 using namespace Crowd;
 
-std::string Auth::my_full_hash_;
-
 bool P2p::start_p2p(std::map<std::string, std::string> cred)
 {
     // TODO Somehow I think these:

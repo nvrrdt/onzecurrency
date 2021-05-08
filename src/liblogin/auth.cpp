@@ -11,6 +11,7 @@
 #include "json.hpp"
 #include "crypto.hpp"
 #include "prev_hash.hpp"
+#include "full_hash.hpp"
 
 using namespace Crowd;
 
@@ -65,19 +66,19 @@ bool Auth::setNetwork(std::string &network)
 std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
 {
     Crypto crypto;
-    PrevHash ph;
     std::string hash_email = crypto.bech32_encode_sha256(email);
+    PrevHash ph;
     std::string prev_hash = ph.get_my_prev_hash_from_file();
-    std::string my_full_hash_s = hash_email + prev_hash;
-    my_full_hash_ =  crypto.bech32_encode_sha256(my_full_hash_s);
+    FullHash fh;
+    std::string full_hash =  fh.get_full_hash_from_file();
     Rocksy* rocksy = new Rocksy();
-    std::string database_response = rocksy->Get(my_full_hash_);
+    std::string database_response = rocksy->Get(full_hash);
     delete rocksy;
 
     std::map<std::string, std::string> cred;
     std::string private_key;
     crypto.ecdsa_load_private_key_as_string(private_key);
-    if (private_key == "" && prev_hash == "")
+    if (private_key == "" && prev_hash == "" && full_hash == "")
     {
         // new user is created
         printf("A new user will be created!\n");
@@ -109,7 +110,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["prev_hash"] = prev_hash;
-        cred["full_hash"] = my_full_hash_;
+        cred["full_hash"] = full_hash;
 
         std::string ecdsa_pub_key_from_file;
         crypto.ecdsa_load_public_key_as_string(ecdsa_pub_key_from_file);
@@ -157,9 +158,4 @@ bool Auth::validateEmail(const std::string& email)
 
    // try to match the string with the regular expression
    return std::regex_match(email, pattern);
-}
-
-std::string Auth::get_my_full_hash()
-{
-    return my_full_hash_; // TODO should read a file !!! on disk
 }

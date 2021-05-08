@@ -15,8 +15,6 @@ namespace Crowd
         bool setNetwork(std::string &network);
         std::map<std::string, std::string> verifyCredentials(std::string &email, std::string &password);
         bool validateEmail(const std::string &email);
-        std::string get_my_full_hash();
     private:
-        static std::string my_full_hash_;
     };
 }
