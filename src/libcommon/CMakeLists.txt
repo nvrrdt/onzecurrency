@@ -7,6 +7,7 @@ add_library(common SHARED
                      crypto.cpp
                      base58.cpp
                      bech32.cpp
+                     strencodings.cpp
 )
 
 
@@ -24,6 +25,11 @@ target_include_directories(common PUBLIC
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/base58.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/bech32.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/attributes.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/span.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/strencodings.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/string.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/tinyformat.hpp"
                 )
 
 INSTALL(TARGETS common ARCHIVE DESTINATION lib/onze COMPONENT libraries)

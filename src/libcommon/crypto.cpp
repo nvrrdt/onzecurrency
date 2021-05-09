@@ -1,4 +1,7 @@
-#include <utility> 
+#include <utility>
+#include <iterator>  // ostream_iterator
+#include <sstream>   // ostringstream
+#include <algorithm> // copy
 
 #include "crypto.hpp"
 #include "bech32.hpp"
@@ -18,51 +21,58 @@ std::string Crypto::sha256_create(std::string &msg)
     std::string digest;
 
     SHA256 hash;
-    StringSource(msg, true, new HashFilter(hash, new HexEncoder(new StringSink(digest))));
+    StringSource(msg, true, new HashFilter(hash, new StringSink(digest)));
 
-    return digest;
+    return HexStr(digest);
 }
 
 std::string Crypto::bech32_encode_sha256(std::string &str)
 {
-    std::string hrp = "onze";
     std::string hash = sha256_create(str);
-    std::vector<unsigned char> data = {0};
-    data.reserve(str.size());
-    ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, hash.begin(), hash.end());
+    std::vector<uint8_t> v = ParseHex(hash);
+    std::vector<unsigned char> tmp = {0};
+    tmp.reserve(33);
+    ConvertBits<8, 5, true>([&](unsigned char c) { tmp.push_back(c); }, v.begin(), v.end());
 
-    return bech32::Encode(hrp, data);
+    std::string hrp = "onze";
+
+    return bech32::Encode(bech32::Encoding::BECH32, hrp, tmp);
 }
 
 const std::string Crypto::bech32_encode(std::string &str)
 {
-    const std::string hrp = "onze";
-    std::vector<unsigned char> data = {0};
-    data.reserve(str.size());
-    ConvertBits<8, 5, true>([&](unsigned char c) { data.push_back(c); }, str.begin(), str.end());
+    std::vector<uint8_t> v = ParseHex(str);
+    std::vector<unsigned char> tmp = {0};
+    tmp.reserve(33);
+    ConvertBits<8, 5, true>([&](unsigned char c) { tmp.push_back(c); }, v.begin(), v.end());
 
-    return bech32::Encode(hrp, data);
+    std::string hrp = "onze";
+
+    return bech32::Encode(bech32::Encoding::BECH32, hrp, tmp);
 }
 
 std::string Crypto::bech32_decode(const std::string &str)
 {
+    auto dec = bech32::Decode(str);
+
     std::vector<unsigned char> data;
+    int version = dec.data[0];
+    data.reserve(((dec.data.size() - 1) * 5) / 8);
 
-    auto bech = bech32::Decode(str);
+    if (ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, dec.data.begin() + 1, dec.data.end()))
+    {
+        if (version == 0 && dec.hrp == "onze")
+        {
+            if (data.size() == 32) {
+                std::ostringstream stream;
+                std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(stream));
+                std::string s = stream.str();
+                return HexStr(s);
+            }
+        }
+    }
 
-std::cout << bech.first << " , " << std::endl;
-return "s____";
-
-    // if (bech.first == "onze")
-    // {
-    //     ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, bech.second.begin() + 1, bech.second.end());
-    //     std::string s(data.begin(), data.end());
-    //     return s;
-    // }
-    // else
-    // {
-    //     return "false";
-    // }
+    return "false";
 }
 
 typedef unsigned char uchar;

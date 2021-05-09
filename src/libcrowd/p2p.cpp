@@ -246,6 +246,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
 
         std::cout << "Existing peer" << std::endl;
 
+        // veify if the email address with the saved prev_hash gives the full_hash, otherwise return false
         // verify blockchain ...
         // p2p_client with {"full_hash": "xxxx", "online": "true", "latest_block_nr": "xxx"} to 'try' FindNextPeer() and update blockchain and rocksy
         // then p2p_server()
