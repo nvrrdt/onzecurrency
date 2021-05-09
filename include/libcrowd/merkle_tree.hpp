@@ -20,7 +20,9 @@ namespace Crowd
         std::string time_now();
         std::shared_ptr<std::stack<std::string>> calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
         std::string save_block_to_file(nlohmann::json &block_j, std::string &latest_block);
+        std::string get_genesis_prev_hash_hashed();
     private:
         std::shared_ptr<std::stack<std::string>> pop_two_and_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
+        std::string genesis_prev_hash_hashed_;
     };
 }

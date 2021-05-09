@@ -131,13 +131,17 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
                 // you are the only peer (genesis) and can create a block
 
+                merkle_tree mt;
+                std::string prev_hash = mt.get_genesis_prev_hash_hashed();
+                std::string email_prev_hash_app = hash_email + prev_hash;
+                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
+
                 to_block_j["full_hash"] = full_hash;
                 to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
                 to_block_j["rsa_pub_key"] = cred["rsa_pub_key"];
 
                 std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
                 s_shptr->push(to_block_j.dump());
-                merkle_tree mt;
                 s_shptr = mt.calculate_root_hash(s_shptr);
                 entry_tx_j["full_hash"] = to_block_j["full_hash"];
                 entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
@@ -152,12 +156,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::string block_nr = proto.get_last_block_nr();
                 std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
 
-                // The genesis prev_hash must be included in the first rocksdb injection
-                nlohmann::json block_temp_j = nlohmann::json::parse(block_temp_s);
-                std::string prev_hash = block_temp_j["prev_hash"]; // get genesis prev_hash from block.cpp
                 rocksdb_j["prev_hash"] = prev_hash;
-                std::string email_prev_hash_app = hash_email + prev_hash;
-                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
                 rocksdb_j["full_hash"] = full_hash;
 
                 // Update rocksdb
@@ -181,7 +180,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
             }
             else if (pn.get_closed_client() == "close_this_conn")
             {
-                std::cout << "Connection closed by other server, start this server" << std::endl;
+                std::cout << "Connection closed by other server, start this server (p2p)" << std::endl;
 
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
