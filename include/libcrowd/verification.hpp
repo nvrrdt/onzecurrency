@@ -14,6 +14,7 @@ namespace Crowd
     {
     public:
         bool verify_all_blocks();
+        bool compare_email_with_saved_full_hash(std::string &email_address);
     private:
     };
 }
