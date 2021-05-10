@@ -112,7 +112,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
             rocksdb_j["prev_hash"] = cred["prev_hash"];
             std::string hash_email = cred["email_hashed"];
             std::string prev_hash = cred["prev_hash"];
-            std::string email_prev_hash_app = hash_email + prev_hash;
+            std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
             std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
             rocksdb_j["full_hash"] = full_hash;
             rocksdb_j["block_nr"] = proto.get_last_block_nr();
@@ -133,7 +133,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
                 merkle_tree mt;
                 std::string prev_hash = mt.get_genesis_prev_hash_hashed();
-                std::string email_prev_hash_app = hash_email + prev_hash;
+                std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
                 std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
 
                 to_block_j["full_hash"] = full_hash;

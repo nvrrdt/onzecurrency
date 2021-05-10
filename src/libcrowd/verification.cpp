@@ -50,7 +50,7 @@ bool Verification::compare_email_with_saved_full_hash(std::string & email_addres
     std::string hash_email = crypto.bech32_encode_sha256(email_address);
     PrevHash ph;
     std::string prev_hash = ph.get_my_prev_hash_from_file();
-    std::string email_prev_hash_app = hash_email + prev_hash;
+    std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
     std::string full_hash_calc = crypto.bech32_encode_sha256(email_prev_hash_app);
 
     FullHash fh;

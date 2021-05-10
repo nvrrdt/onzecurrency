@@ -74,7 +74,7 @@ void P2pNetwork::handle_read_server()
                 Crypto* crypto = new Crypto();
                 PrevHash prev_hash;
                 std::string real_prev_hash_req = prev_hash.calculate_hash_from_last_block();
-                std::string hash_of_email_prev_hash_concatenated = hash_of_email + real_prev_hash_req;
+                std::string hash_of_email_prev_hash_concatenated = hash_of_email + real_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
                 std::string full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
     std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " << full_hash_req << std::endl;
                 Rocksy* rocksy = new Rocksy();
@@ -195,7 +195,7 @@ void P2pNetwork::handle_read_server()
                             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                             message_j["req"] = "new_peer";
                             message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
-                            hash_of_email_prev_hash_concatenated = email_of_req + real_prev_hash_req;
+                            hash_of_email_prev_hash_concatenated = email_of_req + real_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
                             full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
                             message_j["full_hash_req"] = full_hash_req; // refreshed full_hash_req
                             message_j["prev_hash_of_req"] = real_prev_hash_req;
