@@ -106,6 +106,7 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
 
             rocksdb_j["version"] = "O.1";
             rocksdb_j["ip"] = ip_mother_peer_number;
+            rocksdb_j["online"] = true;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
             rocksdb_j["hash_email"] = message_j["hash_of_email"];
@@ -255,6 +256,70 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         if (verification.compare_email_with_saved_full_hash(email_address) && verification.verify_all_blocks())
         {
             //ok, continue
+
+            Rocksy rocksy;
+            FullHash fh;
+            std::string my_full_hash = fh.get_full_hash_from_file();
+            for (int i = 0; i < 100; i++)
+            {
+                std::string full_hash_peer = rocksy.FindNextPeer(my_full_hash);
+                nlohmann::json contents_j = nlohmann::json::parse(rocksy.Get(full_hash_peer));
+                
+                if (contents_j["ip"].empty())
+                {
+                    my_full_hash = full_hash_peer;
+                    continue;
+                }
+                else
+                {
+                    uint32_t ip = contents_j["ip"];
+                    std::string ip_next_peer;
+                    P2p p2p;
+                    p2p.number_to_ip_string(ip, ip_next_peer);
+
+                    nlohmann::json message_j, to_sign_j;
+                    message_j["req"] = "intro_online";
+                    message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
+                    Protocol protocol;
+                    message_j["latest_block_nr"] = protocol.get_last_block_nr();
+                    message_j["ip"] = ip;
+                    message_j["server"] = true;
+                    message_j["fullnode"] = true;
+
+                    to_sign_j["req"] = message_j["req"];
+                    to_sign_j["full_hash"] = message_j["full_hash"];
+                    to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+                    to_sign_j["ip"] = message_j["ip"];
+                    to_sign_j["server"] = message_j["server"];
+                    to_sign_j["fullnode"] = message_j["fullnode"];
+                    std::string to_sign_s = to_sign_j.dump();
+
+                    Crypto crypto;
+                    ECDSA<ECP, SHA256>::PrivateKey private_key;
+                    std::string signature;
+                    crypto.ecdsa_load_private_key_from_string(private_key);
+                    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+                    {
+                        message_j["signature"] = crypto.base64_encode(signature);
+                    }
+                    std::string message_s = message_j.dump();
+
+                    P2pNetwork pn;
+                    pn.p2p_client(ip_next_peer, message_s);
+
+                    break;
+                }
+            }
+
+            std::cout << "Start server ..." << std::endl;
+
+            std::packaged_task<void()> task1([] {
+                P2pNetwork pn;
+                pn.p2p_server();
+            });
+            // Run task on new thread.
+            std::thread t1(std::move(task1));
+            t1.join();
         }
         else
         {

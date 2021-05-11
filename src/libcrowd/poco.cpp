@@ -122,6 +122,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             nlohmann::json rocksdb_j;
             rocksdb_j["version"] = "O.1";
             rocksdb_j["ip"] = m_j["ip"];
+            rocksdb_j["online"] = true;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
             std::string email_of_req = m_j["email_of_req"];

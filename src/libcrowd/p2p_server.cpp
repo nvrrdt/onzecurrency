@@ -694,6 +694,247 @@ void P2pNetwork::handle_read_server()
             }
             delete rocksy;
         }
+        else if (buf_j["req"] == "intro_online")
+        {
+            std::cout << "intro new peer online: " << buf_j["full_hash"] << std::endl;
+            
+            nlohmann::json to_verify_j;
+            to_verify_j["req"] = buf_j["req"];
+            to_verify_j["full_hash"] = buf_j["full_hash"];
+            to_verify_j["latest_block_nr"] = buf_j["latest_block_nr"];
+            to_verify_j["ip"] = buf_j["ip"];
+            to_verify_j["server"] = buf_j["server"];
+            to_verify_j["fullnode"] = buf_j["fullnode"];
+
+            Rocksy* rocksy = new Rocksy();
+            std::string full_hash = buf_j["full_hash"];
+            nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash));
+            std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+
+            Crypto* crypto = new Crypto();
+            std::string to_verify_s = to_verify_j.dump();
+            ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+            crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+            std::string signature = buf_j["signature"];
+            std::string signature_bin = crypto->base64_decode(signature);
+            
+            if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
+            {
+                std::cout << "verified new online user" << std::endl;
+
+                // inform the network of new online presence
+                Protocol proto;
+                FullHash fh;
+                std::string my_full_hash = fh.get_full_hash_from_file();
+                std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+                nlohmann::json message_j, to_sign_j;
+                message_j["req"] = "new_online";
+                message_j["full_hash"] = full_hash;
+                message_j["ip"] = buf_j["ip"];
+                message_j["server"] = buf_j["server"];
+                message_j["fullnode"] = buf_j["fullnode"];
+
+                int k;
+                std::string v;
+                for (auto &[k, v] : parts)
+                {
+                    message_j["chosen_ones"].push_back(v);
+                }
+
+                to_sign_j["req"] = message_j["req"];
+                to_sign_j["full_hash"] = full_hash;
+                to_sign_j["ip"] = buf_j["ip"];
+                to_sign_j["server"] = buf_j["server"];
+                to_sign_j["fullnode"] = buf_j["fullnode"];
+                to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+                std::string to_sign_s = to_sign_j.dump();
+
+                Crypto crypto;
+                ECDSA<ECP, SHA256>::PrivateKey private_key;
+                std::string signature;
+                crypto.ecdsa_load_private_key_from_string(private_key);
+                if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+                {
+                    message_j["signature"] = crypto.base64_encode(signature);
+                }
+                std::string message_s = message_j.dump();
+
+                std::string key, val;
+                for (auto &[key, val] : parts)
+                {
+                    if (key == 1) continue;
+                    if (val == full_hash) continue;
+                    if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                    
+                    // lookup in rocksdb
+                    nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+                    uint32_t peer_ip = value_j["ip"];
+                    
+                    std::cout << "Preparation for new_online: " << peer_ip << std::endl;
+
+                    std::string ip_from_peer;
+                    P2p p2p;
+                    p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+                    // p2p_client() to all chosen ones with intro_peer request
+                    p2p_client(ip_from_peer, message_s);
+                }
+
+                // update this rocksdb
+                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(full_hash));
+                value_j["online"] = true;
+                value_j["ip"] = buf_j["ip"];
+                value_j["server"] = buf_j["server"];
+                value_j["fullnode"] = buf_j["fullnode"];
+                std::string value_s = value_j.dump();
+                rocksy->Put(full_hash, value_s);
+
+                // update new user's blockchain and rocksdb
+                std::string my_latest_block = proto.get_last_block_nr();
+                std::string req_latest_block = buf_j["latest_block_nr"];
+                
+                if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
+                {
+                    // TODO: upload blockchain to the requester starting from latest block
+                    // Update blockchain: send latest block to peer
+                    nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
+                    //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
+                    uint64_t value;
+                    std::istringstream iss(my_latest_block);
+                    iss >> value;
+
+                    for (uint64_t i = 0; i <= value; i++)
+                    {
+                        nlohmann::json block_j = list_of_blocks_j[i]["block"];
+                        //std::cout << "block_j: " << block_j << std::endl;
+                        nlohmann::json msg;
+                        msg["req"] = "update_your_blocks";
+                        std::ostringstream o;
+                        o << i;
+                        msg["block_nr"] = o.str();
+                        msg["block"] = block_j;
+                        set_resp_msg_server(msg.dump());
+                    }
+
+                    // Update rockdb's:
+                    // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
+                    // , then lookup those user_id's in rocksdb and send
+                    nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                                        // maybe even a stack is better ...
+                    for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
+                    {
+                        nlohmann::json msg;
+                        msg["req"] = "update_your_rocksdb";
+                        msg["key"] = user;
+
+                        std::string u = user;
+                        std::string value = rocksy->Get(u);
+                        msg["value"] = value;
+
+                        set_resp_msg_server(msg.dump());
+                    }
+                }
+            }
+
+            delete crypto;
+            delete rocksy;
+        }
+        else if (buf_j["req"] == "new_online")
+        {
+            std::cout << "new peer online: " << buf_j["full_hash"] << ", inform your bucket" << std::endl;
+
+            Protocol proto;
+            FullHash fh;
+            Rocksy* rocksy = new Rocksy();
+            std::string my_full_hash = fh.get_full_hash_from_file();
+            std::map<int, std::string> parts;
+
+            for (int i = 0; i < buf_j["chosen_ones"].size(); i++)
+            {
+                if (buf_j["chosen_ones"][i] == my_full_hash && i != buf_j["chosen_ones"].size() - 1)
+                {
+                    std::string next_full_hash = buf_j["chosen_ones"][i+1];
+                    parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+                }
+                else if (buf_j["chosen_ones"][i] == my_full_hash && i == buf_j["chosen_ones"].size() - 1)
+                {
+                    std::string next_full_hash = buf_j["chosen_ones"][0];
+                    parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+                }
+                else
+                {
+                    std::cout << "something went wrong" << std::endl;
+                }
+            }
+
+            nlohmann::json message_j, to_sign_j;
+            message_j["req"] = "new_online";
+            message_j["full_hash"] = buf_j["full_hash"];
+            message_j["ip"] = buf_j["ip"];
+            message_j["server"] = buf_j["server"];
+            message_j["fullnode"] = buf_j["fullnode"];
+
+            int k;
+            std::string v;
+            for (auto &[k, v] : parts)
+            {
+                message_j["chosen_ones"].push_back(v);
+            }
+
+            to_sign_j["req"] = message_j["req"];
+            to_sign_j["full_hash"] = buf_j["full_hash"];
+            to_sign_j["ip"] = buf_j["ip"];
+            to_sign_j["server"] = buf_j["server"];
+            to_sign_j["fullnode"] = buf_j["fullnode"];
+            to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+            std::string to_sign_s = to_sign_j.dump();
+
+            Crypto crypto;
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base64_encode(signature);
+            }
+
+            std::string full_hash = buf_j["full_hash"];
+
+            std::string key, val;
+            for (auto &[key, val] : parts)
+            {
+                if (key == 1) continue;
+                if (val == full_hash) continue;
+                if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                
+                // lookup in rocksdb
+                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+                uint32_t peer_ip = value_j["ip"];
+                
+                std::string message_s = message_j.dump();
+
+                std::cout << "Preparation for new_online: " << peer_ip << std::endl;
+
+                std::string ip_from_peer;
+                P2p p2p;
+                p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+                // p2p_client() to all chosen ones with intro_peer request
+                p2p_client(ip_from_peer, message_s);
+            }
+
+            // update this rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(full_hash));
+            value_j["online"] = true;
+            value_j["ip"] = buf_j["ip"];
+            value_j["server"] = buf_j["server"];
+            value_j["fullnode"] = buf_j["fullnode"];
+            std::string value_s = value_j.dump();
+            rocksy->Put(full_hash, value_s);
+
+            delete rocksy;
+        }
 
         buf_server_ = "";
     }
