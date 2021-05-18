@@ -17,7 +17,7 @@ add_library(crowd SHARED
                      verification.cpp
                      poco.cpp
                      message_vec.cpp
-                     all_full_hashes.cpp
+                     all_hashes.cpp
                      full_hash.cpp
 )
 
@@ -46,7 +46,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/poco.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/message_vec.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/all_full_hashes.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcrowd/all_hashes.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/full_hash.hpp"
                 )
 

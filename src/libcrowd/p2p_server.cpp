@@ -116,7 +116,7 @@ void P2pNetwork::handle_read_server()
                         // else room_.deliver ip of co_from_this_server
                         FullHash fh;
                         std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-                        std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+                        // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
                         
                         if (my_full_hash == co_from_this_server)
                         {
@@ -195,7 +195,7 @@ void P2pNetwork::handle_read_server()
                             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                             message_j["req"] = "new_peer";
                             message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
-                            hash_of_email_prev_hash_concatenated = email_of_req + real_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
+                            hash_of_email_prev_hash_concatenated = hash_of_email + real_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
                             full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
                             message_j["full_hash_req"] = full_hash_req; // refreshed full_hash_req
                             message_j["prev_hash_of_req"] = real_prev_hash_req;
@@ -293,7 +293,7 @@ void P2pNetwork::handle_read_server()
                             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
                             message_j_vec_.add_to_message_j_vec(message_j);
 
-                            all_full_hashes_.add_to_all_full_hashes(message_j["ip"], full_hash_req); // TODO you have to reset this
+                            all_hashes_.add_to_all_hashes(message_j["ip"], full_hash_req, real_prev_hash_req); // TODO you have to reset this
 
                             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                             {
@@ -301,11 +301,13 @@ void P2pNetwork::handle_read_server()
                                 Poco poco;
                                 poco.create_and_send_block ();
 
-                                for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
+                                for (auto &[key, value] : all_hashes_.get_all_hashes())
                                 {
                                     nlohmann::json msg_j;
                                     msg_j["req"] = "your_full_hash";
-                                    msg_j["full_hash"] = *value;
+                                    std::vector<std::string> vec = *value;
+                                    msg_j["full_hash"] = vec[0];
+                                    msg_j["prev_hash"] = vec[1];
                                     msg_j["block_nr"] = proto.get_last_block_nr();
                                     std::string msg_s = msg_j.dump();
 
@@ -317,7 +319,7 @@ void P2pNetwork::handle_read_server()
                                 }
 
                                 message_j_vec_.reset_message_j_vec();
-                                all_full_hashes_.reset_all_full_hashes();
+                                all_hashes_.reset_all_hashes();
                             }
                             else if (message_j_vec_.get_message_j_vec().size() == 1)
                             {
@@ -426,7 +428,7 @@ void P2pNetwork::handle_read_server()
                 poco.create_and_send_block();
 
                 message_j_vec_.reset_message_j_vec();
-                all_full_hashes_.reset_all_full_hashes();
+                all_hashes_.reset_all_hashes();
             }
             else if (message_j_vec_.get_message_j_vec().size() == 1)
             {
@@ -546,7 +548,7 @@ void P2pNetwork::handle_read_server()
 
                 FullHash fh;
                 std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-                std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+                // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
 
                 int j;
 
@@ -606,11 +608,17 @@ void P2pNetwork::handle_read_server()
         {
             // my full hash
             std::string full_hash = buf_j["full_hash"];
+            std::string prev_hash = buf_j["prev_hash"];
             std::cout << "New peer's full_hash (server): " << full_hash << std::endl;
+            std::cout << "New peer's prev_hash (server): " << prev_hash << std::endl;
 
             // save full_hash
             FullHash fh;
             fh.save_full_hash_to_file(full_hash);
+
+            // save prev_hash
+            PrevHash ph;
+            ph.save_my_prev_hash_to_file(prev_hash);
             
             nlohmann::json block_j = buf_j["block"];
             std::string req_latest_block_nr = buf_j["block_nr"];

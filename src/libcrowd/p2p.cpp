@@ -133,7 +133,8 @@ bool P2p::start_p2p(std::map<std::string, std::string> cred)
                 // you are the only peer (genesis) and can create a block
 
                 merkle_tree mt;
-                std::string prev_hash = mt.get_genesis_prev_hash_hashed();
+                mt.set_genesis_prev_hash();
+                std::string prev_hash = mt.get_genesis_prev_hash();
                 std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
                 std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
 
@@ -170,6 +171,10 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 // Save the full_hash to file
                 FullHash fh;
                 fh.save_full_hash_to_file(full_hash);
+
+                // Save the prev_hash to file
+                PrevHash ph;
+                ph.save_my_prev_hash_to_file(prev_hash);
 
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
@@ -244,7 +249,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
     {
         // existing user
 
-        std::cout << "Existing peer" << std::endl;
+        // std::cout << "Existing peer" << std::endl;
 
         // verify if the email address with the saved prev_hash gives the full_hash, otherwise return false
         // verify blockchain ...

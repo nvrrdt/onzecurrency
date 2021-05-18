@@ -62,7 +62,7 @@ void Poco::create_and_send_block()
     inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
 
     message_j_vec_.reset_message_j_vec();
-    all_full_hashes_.reset_all_full_hashes();
+    all_hashes_.reset_all_hashes();
 
 std::cout << "--------5: " << std::endl;
 }
@@ -71,7 +71,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
 {
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-    std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;
+    // std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;
 
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();
@@ -95,9 +95,10 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         message_j["req"] = "intro_block";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
-        message_j["prev_hash"] = hash_of_block;
+        PrevHash ph;
+        message_j["prev_hash"] = ph.calculate_hash_from_last_block();
         message_j["full_hash_req"] = full_hash_req;
-        message_j["full_hash_coord"] = my_full_hash;
+        message_j["full_hash_coord"] = hash_of_block;
 
         int k;
         std::string v;
@@ -127,7 +128,6 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             rocksdb_j["fullnode"] = true;
             std::string email_of_req = m_j["email_of_req"];
             rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-            PrevHash ph;
             rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
             rocksdb_j["full_hash"] = full_hash_req;
             Protocol proto;
@@ -147,9 +147,9 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
 
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
-        to_sign_j["prev_hash"] = hash_of_block;
+        to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
         to_sign_j["full_hash_req"] = full_hash_req;
-        to_sign_j["full_hash_coord"] = my_full_hash;
+        to_sign_j["full_hash_coord"] = hash_of_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
@@ -203,11 +203,13 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     }
 
     // Send your_full_hash request to intro_peer's
-    for (auto &[key, value] : all_full_hashes_.get_all_full_hashes())
+    for (auto &[key, value] : all_hashes_.get_all_hashes())
     {
         nlohmann::json msg_j;
         msg_j["req"] = "your_full_hash";
-        msg_j["full_hash"] = *value;
+        std::vector<std::string> vec = *value;
+        msg_j["full_hash"] = vec[0];
+        msg_j["prev_hash"] = vec[1];
         msg_j["block"] = block_j;
         Protocol proto;
         msg_j["block_nr"] = proto.get_last_block_nr();

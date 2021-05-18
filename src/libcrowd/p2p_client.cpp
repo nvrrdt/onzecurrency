@@ -187,11 +187,17 @@ void P2pNetwork::handle_read_client()
         {
             // my full hash
             std::string full_hash = buf_j["full_hash"];
+            std::string prev_hash = buf_j["prev_hash"];
             std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
+            std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
 
             // save full_hash
             FullHash fh;
             fh.save_full_hash_to_file(full_hash);
+
+            // save prev_hash
+            PrevHash ph;
+            ph.save_my_prev_hash_to_file(prev_hash);
             
             nlohmann::json block_j = buf_j["block"];
             std::string req_latest_block_nr = buf_j["block_nr"];

@@ -22,7 +22,7 @@
 #include "message_vec.hpp"
 #include "poco.hpp"
 #include "merkle_tree.hpp"
-#include "all_full_hashes.hpp"
+#include "all_hashes.hpp"
 
 // This is the port for the p2p_server and p2p_client
 #define PORT (1975)
@@ -79,7 +79,7 @@ namespace Crowd
         std::string buf_client_;
         std::string buf_server_;
         MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
-        AllFullHashes all_full_hashes_;
+        AllHashes all_hashes_;
 
         static std::string closed_client_;
         static uint32_t ip_new_co_;

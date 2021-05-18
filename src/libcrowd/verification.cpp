@@ -55,7 +55,8 @@ bool Verification::compare_email_with_saved_full_hash(std::string & email_addres
 
     FullHash fh;
     std::string full_hash_from_file =  fh.get_full_hash_from_file();
-
+// std::cout << "prev calc: " << prev_hash << std::endl;
+// std::cout << "full calc: " << full_hash_calc << ", full file: " << full_hash_from_file << std::endl;
     if (full_hash_calc == full_hash_from_file)
     {
         std::cout << "Full_hashes compared and ok" << std::endl;
