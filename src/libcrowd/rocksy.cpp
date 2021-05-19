@@ -82,6 +82,12 @@ std::string Rocksy::FindNextPeer(std::string &key)
         else
         {
             // if next peer is the first in whole level db, go search from start
+            for (it->SeekToFirst(); it->Valid(); it->Next())
+            {
+                string_key_next_peer = it->key().ToString();
+                break;
+            }
+            break;
         }
     }
     delete it;
