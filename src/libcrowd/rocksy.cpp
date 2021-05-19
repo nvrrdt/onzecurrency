@@ -52,23 +52,25 @@ std::string Rocksy::FindChosenOne(std::string &key)
             string_key_real_chosen_one = it->key().ToString();
             break;
         }
-        else
+    }
+
+    if (string_key_real_chosen_one == "")
+    {
+        // if next peer is the first in whole db, go search from start
+        for (it->SeekToFirst(); it->Valid(); it->Next())
         {
-            for (it->SeekToFirst(); it->Valid(); it->Next())
-            {
-                string_key_real_chosen_one = it->key().ToString();
-                break;
-            }
+            string_key_real_chosen_one = it->key().ToString();
             break;
         }
     }
+
     delete it;
 
     return string_key_real_chosen_one;
 }
 std::string Rocksy::FindNextPeer(std::string &key)
 {
-    std::string string_key_next_peer;
+    std::string string_key_next_peer = "";
 
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
@@ -79,17 +81,18 @@ std::string Rocksy::FindNextPeer(std::string &key)
             string_key_next_peer = it->key().ToString();
             break;
         }
-        else
+    }
+
+    if (string_key_next_peer == "")
+    {
+        // if next peer is the first in whole db, go search from start
+        for (it->SeekToFirst(); it->Valid(); it->Next())
         {
-            // if next peer is the first in whole level db, go search from start
-            for (it->SeekToFirst(); it->Valid(); it->Next())
-            {
-                string_key_next_peer = it->key().ToString();
-                break;
-            }
+            string_key_next_peer = it->key().ToString();
             break;
         }
     }
+
     delete it;
 
     return string_key_next_peer;

@@ -63,6 +63,19 @@ namespace Crowd
         {
             ip_new_co_ = ip;
         }
+        void register_for_nat_traversal(nlohmann::json buf_j);
+        void connect_to_nat(nlohmann::json buf_j);
+        void intro_peer(nlohmann::json buf_j);
+        void new_peer(nlohmann::json buf_j);
+        void update_your_blocks(nlohmann::json buf_j);
+        void update_your_rocksdb(nlohmann::json buf_j);
+        void intro_block(nlohmann::json buf_j);
+        void new_block(nlohmann::json buf_j);
+        void your_full_hash(nlohmann::json buf_j);
+        void hash_comparison(nlohmann::json buf_j);
+        void update_my_blocks_and_rocksdb(nlohmann::json buf_j);
+        void intro_online(nlohmann::json buf_j);
+        void new_online(nlohmann::json buf_j);
         
     private:
         char buffer_[p2p_message::max_body_length];
