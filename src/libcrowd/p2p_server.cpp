@@ -680,8 +680,8 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     
     nlohmann::json block_j = buf_j["block"];
     std::string req_latest_block_nr = buf_j["block_nr"];
-    // std::cout << "block_nr: " << req_latest_block_nr << std::endl;
-    // std::cout << "block: " << block_j.dump() << std::endl;
+std::cout << "block_nr: " << req_latest_block_nr << std::endl;
+std::cout << "block: " << block_j.dump() << std::endl;
     merkle_tree mt;
     mt.save_block_to_file(block_j,req_latest_block_nr);
 
@@ -930,7 +930,6 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
     Protocol proto;
     FullHash fh;
-    Rocksy* rocksy = new Rocksy();
     std::string my_full_hash = fh.get_full_hash_from_file();
     std::map<int, std::string> parts;
 
@@ -940,15 +939,17 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         {
             std::string next_full_hash = buf_j["chosen_ones"][i+1];
             parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+            break;
         }
         else if (buf_j["chosen_ones"][i] == my_full_hash && i == buf_j["chosen_ones"].size() - 1)
         {
             std::string next_full_hash = buf_j["chosen_ones"][0];
             parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+            break;
         }
         else
         {
-            std::cout << "something went wrong" << std::endl;
+            continue;
         }
     }
 
@@ -985,6 +986,8 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
     std::string full_hash = buf_j["full_hash"];
 
+    Rocksy* rocksy = new Rocksy();
+    
     std::string key, val;
     for (auto &[key, val] : parts)
     {
