@@ -277,3 +277,12 @@ std::string Rocksy::FindPeerFromTillCount(std::string &key, uint256_t &count)
 
     return string_key_counted_peer;
 }
+
+void Rocksy::DatabaseDump()
+{
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next())
+    {
+        std::cout << "DatabaseDump: " << it->key().ToString() << std::endl;
+    }
+}

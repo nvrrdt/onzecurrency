@@ -178,7 +178,7 @@ void P2pNetwork::handle_read_client()
         else if (buf_j["req"] == "new_co")
         {
             // send flag to start_p2p function
-            std::cout << "new_co: " << std::endl;
+            std::cout << "new_co: " << buf_j["ip_co"] << std::endl;
             uint32_t peer_ip = buf_j["ip_co"];
             set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
             set_closed_client("new_co");

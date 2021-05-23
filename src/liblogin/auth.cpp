@@ -147,6 +147,10 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     {
         std::cerr << "User not in database, priv_key and prev_key present!\n"; // TODO: multiple persons should be able to login
 
+        Rocksy* rocksy = new Rocksy();
+        rocksy->DatabaseDump();
+        delete rocksy;
+
         cred["error"] = "true";
         return cred;
     }
