@@ -2,6 +2,8 @@
 
 using namespace Crowd;
 
+bool P2pNetwork::quit_server_ = false;
+
 void P2pNetwork::do_read_header_server()
 {
     if (read_msg_.decode_header() == true)
@@ -1077,8 +1079,12 @@ int P2pNetwork::p2p_server()
     }
     while (1)
     {
+        if (get_quit_server_req() == true) break;
+        
         while (enet_host_service(server_, &event_, 1000) > 0)
         {
+            if (get_quit_server_req() == true) break;
+
             switch (event_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
@@ -1137,4 +1143,6 @@ int P2pNetwork::p2p_server()
 
     enet_host_destroy(server_);
     enet_deinitialize();
+
+    return 1;
 }

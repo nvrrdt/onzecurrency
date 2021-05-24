@@ -42,6 +42,10 @@ namespace Crowd
         {
             return ip_new_co_;
         }
+        static void set_quit_server_req(bool quit)
+        {
+            quit_server_ = quit;
+        }
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);
         void do_read_header_server();
@@ -77,6 +81,10 @@ namespace Crowd
         void intro_online(nlohmann::json buf_j);
         void new_online(nlohmann::json buf_j);
         
+        static bool get_quit_server_req()
+        {
+            return quit_server_;
+        }
     private:
         char buffer_[p2p_message::max_body_length];
 
@@ -96,5 +104,7 @@ namespace Crowd
 
         static std::string closed_client_;
         static uint32_t ip_new_co_;
+
+        static bool quit_server_;
     };
 }
