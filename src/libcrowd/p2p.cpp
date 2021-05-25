@@ -20,7 +20,7 @@
 
 using namespace Crowd;
 
-bool P2p::start_p2p(std::map<std::string, std::string> cred)
+bool P2p::start_crowd(std::map<std::string, std::string> cred)
 {
     // TODO Somehow I think these:
     // std::packaged_task<void()> task1([] {

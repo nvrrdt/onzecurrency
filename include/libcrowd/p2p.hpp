@@ -38,7 +38,7 @@ namespace Crowd
     class P2p
     {
     public:
-        bool start_p2p(std::map<std::string, std::string> cred);
+        bool start_crowd(std::map<std::string, std::string> cred);
         void to_json(nlohmann::json& j, const std::vector<std::string>& str) {
             j = nlohmann::json{{"ip_list", str}};
         }
