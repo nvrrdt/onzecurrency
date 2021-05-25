@@ -7,4 +7,33 @@
 
 #include "p2p_network_c.hpp"
 
-using namespace Crowd;
+using namespace Coin;
+
+void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
+{
+    //
+    std::cout << "buf_j server " << buf_j << std::endl;
+
+    std::string req = buf_j["req"];
+    std::map<std::string, int> req_conversion;
+    req_conversion["intro_tx"] =            20;
+    req_conversion["new_tx"] =              21;
+
+    switch (req_conversion[req])
+    {
+        case 20:    intro_tx(buf_j);
+                    break;
+        case 21:    new_tx(buf_j);
+                    break;
+    }
+}
+
+void P2pNetworkC::intro_tx(nlohmann::json buf_j)
+{
+    //
+}
+
+void P2pNetworkC::new_tx(nlohmann::json buf_j)
+{
+    //
+}

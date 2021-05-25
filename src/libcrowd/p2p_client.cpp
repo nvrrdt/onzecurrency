@@ -1,6 +1,8 @@
 #include "p2p_network.hpp"
+#include "p2p_network_c.hpp"
 
 using namespace Crowd;
+using namespace Coin;
 
 std::string P2pNetwork::closed_client_ = "";
 uint32_t P2pNetwork::ip_new_co_ = 0;
@@ -257,6 +259,11 @@ void P2pNetwork::handle_read_client()
             std::cout << "Connection closed by other server, no server start" << std::endl;
 
             set_closed_client("close_this_conn");
+        }
+        else
+        {
+            P2pNetworkC pnc;
+            pnc.handle_read_client_c(buf_j);
         }
 
         buf_client_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string

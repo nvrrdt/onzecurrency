@@ -22,6 +22,7 @@ target_include_directories(tests_crowd PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libcommon"
                           "${PROJECT_SOURCE_DIR}/include/liblogin"
                           "${PROJECT_SOURCE_DIR}/include/libcrowd"
+                          "${PROJECT_SOURCE_DIR}/include/libcoin"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           ${ENET_INCLUDE_DIRS}
                           )
@@ -29,6 +30,7 @@ target_include_directories(tests_crowd PUBLIC
 target_link_libraries(tests_crowd
         LINK_PUBLIC crowd
         LINK_PUBLIC login
+        LINK_PUBLIC coin
         LINK_PUBLIC common
         cryptopp-static
         ${Boost_FILESYSTEM_LIBRARY}

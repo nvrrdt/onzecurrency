@@ -26,6 +26,7 @@ target_include_directories(crowd PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/libcommon"
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
+                        "${PROJECT_SOURCE_DIR}/include/libcoin"
                         "${PROJECT_SOURCE_DIR}/build/cryptopp"
                         ${ENET_INCLUDE_DIRS}
                           )
@@ -48,6 +49,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/all_hashes.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/full_hash.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/p2p_network_c.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)

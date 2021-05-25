@@ -1,6 +1,8 @@
 #include "p2p_network.hpp"
+#include "p2p_network_c.hpp"
 
 using namespace Crowd;
+using namespace Coin;
 
 bool P2pNetwork::quit_server_ = false;
 
@@ -72,6 +74,9 @@ void P2pNetwork::handle_read_server()
             case 12:    intro_online(buf_j);
                         break;
             case 13:    new_online(buf_j);
+                        break;
+            default:    P2pNetworkC pnc;
+                        pnc.handle_read_server_c(buf_j);
                         break;
         }
 

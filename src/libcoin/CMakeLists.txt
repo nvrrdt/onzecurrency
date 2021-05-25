@@ -6,6 +6,7 @@ find_package(Threads)
 add_library(coin SHARED
                      p2p_c.cpp
                      p2p_server_c.cpp
+                     p2p_client_c.cpp
 )
 
 target_include_directories(coin PUBLIC
