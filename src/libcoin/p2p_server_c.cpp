@@ -27,14 +27,20 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
 
     std::string req = buf_j["req"];
     std::map<std::string, int> req_conversion;
-    req_conversion["intro_tx"] =    20;
-    req_conversion["new_tx"] =      21;
+    req_conversion["intro_tx"] =        20;
+    req_conversion["new_tx"] =          21;
+    req_conversion["intro_block_c"] =   22;
+    req_conversion["new_block_c"] =     23;
 
     switch (req_conversion[req])
     {
         case 20:    intro_tx(buf_j);
                     break;
         case 21:    new_tx(buf_j);
+                    break;
+        case 22:    intro_block_c(buf_j);
+                    break;
+        case 23:    new_block_c(buf_j);
                     break;
     }
 }
@@ -99,6 +105,16 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 }
 
 void P2pNetworkC::new_tx(nlohmann::json buf_j)
+{
+    //
+}
+
+void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
+{
+    //
+}
+
+void P2pNetworkC::new_block_c(nlohmann::json buf_j)
 {
     //
 }
