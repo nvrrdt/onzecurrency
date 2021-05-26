@@ -51,28 +51,32 @@ const std::string Crypto::bech32_encode(std::string &str)
     return bech32::Encode(bech32::Encoding::BECH32, hrp, tmp);
 }
 
-std::string Crypto::bech32_decode(const std::string &str)
+std::string Crypto::bech32_decode(const std::string &in_str, bool &out_success)
 {
-    auto dec = bech32::Decode(str);
+    auto dec = bech32::Decode(in_str);
 
     std::vector<unsigned char> data;
     int version = dec.data[0];
     data.reserve(((dec.data.size() - 1) * 5) / 8);
 
-    if (ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, dec.data.begin() + 1, dec.data.end()))
+    if (ConvertBits<5, 8, false>([&](unsigned char c) { data.push_back(c); }, dec.data.begin() + 1, dec.data.end())
+        && version == 0
+        && dec.hrp == "onze"
+        && data.size() == 32)
     {
-        if (version == 0 && dec.hrp == "onze")
-        {
-            if (data.size() == 32) {
-                std::ostringstream stream;
-                std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(stream));
-                std::string s = stream.str();
-                return HexStr(s);
-            }
-        }
-    }
+        std::ostringstream stream;
+        std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(stream));
+        std::string s = stream.str();
 
-    return "false";
+        out_success = true;
+
+        return HexStr(s);
+    }
+    else
+    {
+        out_success = false;
+        return "false";
+    }
 }
 
 typedef unsigned char uchar;

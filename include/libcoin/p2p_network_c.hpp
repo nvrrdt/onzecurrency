@@ -10,7 +10,7 @@ using namespace Crowd;
 
 namespace Coin
 {
-    class P2pNetworkC
+    class P2pNetworkC: P2pNetwork
     {
     public:
         void start_coin();
@@ -19,6 +19,8 @@ namespace Coin
     private:
         void intro_tx(nlohmann::json buf_j);
         void new_tx(nlohmann::json buf_j);
+        bool validate_full_hash(std::string to_full_hash);
+        bool validate_amount(std::string amount);
     private:
     };
 }

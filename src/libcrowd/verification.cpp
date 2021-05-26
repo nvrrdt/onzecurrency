@@ -23,7 +23,8 @@ bool Verification::verify_all_blocks()
 
         if (i == blocks_vec.size() - 1) break; // avoid going past prev_hashes_vec
 
-        if (crypto.bech32_decode(prev_hashes_vec[i+1]) == crypto.sha256_create(blocks_vec[i]))
+        bool out_success; // not used here!
+        if (crypto.bech32_decode(prev_hashes_vec[i+1], out_success) == crypto.sha256_create(blocks_vec[i]))
         {
             if (i == blocks_vec.size() - 1 - 1) // because last block can't be verified because of the lack of a prev_hash
             {

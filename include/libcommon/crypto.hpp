@@ -83,7 +83,7 @@ namespace Crowd
         // BECH32:
         std::string bech32_encode_sha256(std::string &str);
         const std::string bech32_encode(std::string &str);
-        std::string bech32_decode(const std::string &str);
+        std::string bech32_decode(const std::string &in_str, bool &out_success);
 
         // BASE64
         static std::string base64_encode(const std::string &in);
