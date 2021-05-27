@@ -81,15 +81,31 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
+
         PrevHash ph;
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
-        std::string coordinator = my_full_hash + hash_latest_block;
+        std::string coordinator = full_hash_req + hash_latest_block;
         
         if (my_full_hash == coordinator)
         {
             std::cout << "intro_tx: I'm the coordinator" << std::endl;
 
             // Are funds sufficient? Create a second rocksdb here!
+            Rocksy* rocksy = new Rocksy("transactionsdb");
+            nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
+            uint64_t funds = contents_j["funds"];
+            delete rocksy;
+
+            if (funds >= amount)
+            {
+                std::cout << "funds are ok" << std::endl;
+
+                // Inform chosen_ones here!
+            }
+            else
+            {
+                std::cout << "funds don't suffice" << std::endl;
+            }
         }
         else
         {
