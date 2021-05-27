@@ -6,7 +6,11 @@
 #include "rocksy.hpp"
 using namespace Crowd;
 
-class RocksyT : public Rocksy {};
+class RocksyT : public Rocksy
+{
+public:
+    RocksyT(): Rocksy("usersdb") {}
+};
 
 BOOST_FIXTURE_TEST_SUITE(RocksyTests, RocksyT)
 
@@ -112,4 +116,3 @@ BOOST_AUTO_TEST_CASE(CountPeersFromTo)
 // TODO: reorder these tests --> after every test the entries should be deleted, which is not the caseder these tests --> after every test the entries should be deleted, which is not the case
 
 BOOST_AUTO_TEST_SUITE_END()
-

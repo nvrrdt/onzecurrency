@@ -41,7 +41,7 @@ void P2pNetworkC::start_coin()
             std::string hash_latest_block = ph.calculate_hash_from_last_block();
             std::string prel_coordinator = my_full_hash + hash_latest_block;
 
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
             std::string full_hash_coordinator = rocksy->FindChosenOne(prel_coordinator);
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_coordinator));
             delete rocksy;

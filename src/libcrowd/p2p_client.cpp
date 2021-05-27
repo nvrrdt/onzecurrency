@@ -91,7 +91,7 @@ void P2pNetwork::handle_read_client()
             std::string key_s = buf_j["key"];
             std::string value_s = buf_j["value"];
 
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
             rocksy->Put(key_s, value_s);
             delete rocksy;
         }
@@ -134,7 +134,7 @@ void P2pNetwork::handle_read_client()
             // Update rockdb's:
             nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                                 // maybe even a stack is better ...
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
             for (auto& user : list_of_users_j)
             {
                 nlohmann::json msg;
@@ -213,7 +213,7 @@ void P2pNetwork::handle_read_client()
                 std::string key_s = value["full_hash"];
                 std::string value_s = value.dump();
 
-                Rocksy* rocksy = new Rocksy();
+                Rocksy* rocksy = new Rocksy("usersdb");
                 rocksy->Put(key_s, value_s);
                 delete rocksy;
             }

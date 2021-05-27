@@ -36,7 +36,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
     if (cred["new_peer"] == "true")
     {
-        Rocksy* rocksy = new Rocksy();
+        Rocksy* rocksy = new Rocksy("usersdb");
         if (rocksy->TotalAmountOfPeers() < 1)
         {
             delete rocksy;
@@ -163,7 +163,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
 
                 // Update rocksdb
                 std::string rocksdb_s = rocksdb_j.dump();
-                Rocksy* rocksy = new Rocksy();
+                Rocksy* rocksy = new Rocksy("usersdb");
                 rocksy->Put(full_hash, rocksdb_s);
                 delete rocksy;
                 std::cout << "Rocksdb updated and server started" << std::endl;
@@ -262,7 +262,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         {
             //ok, continue
 
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
             FullHash fh;
             std::string my_full_hash = fh.get_full_hash_from_file();
 

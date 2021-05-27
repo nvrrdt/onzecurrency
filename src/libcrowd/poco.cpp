@@ -77,7 +77,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -137,7 +137,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             std::string rocksdb_s = rocksdb_j.dump();
 
             // Store to rocksdb for coordinator
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
             rocksy->Put(full_hash_req, rocksdb_s);
             delete rocksy;
 
@@ -171,7 +171,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Rocksy* rocksy = new Rocksy();
+            Rocksy* rocksy = new Rocksy("usersdb");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));

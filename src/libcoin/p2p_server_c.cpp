@@ -53,7 +53,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
     std::string amount = buf_j["amount"];
     std::string signature = buf_j["signature"];
 
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {

@@ -4,12 +4,20 @@
 
 using namespace Crowd;
 
-Rocksy::Rocksy()
+Rocksy::Rocksy(std::string which_db)
 {
     rocksdb::Options options;
     options.create_if_missing = true;
-    rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
-    std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
+    if (which_db == "usersdb")
+    {
+        rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
+        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
+    }
+    else if (which_db == "txsdb")
+    {
+        rocksdb::Status s = rocksdb::DB::Open(options, transactionsdb_folder_path, &db);
+        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << transactionsdb_folder_path << std::endl;
+    }
 }
 Rocksy::~Rocksy()
 {

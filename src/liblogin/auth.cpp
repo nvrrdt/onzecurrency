@@ -71,7 +71,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     std::string prev_hash = ph.get_my_prev_hash_from_file();
     FullHash fh;
     std::string full_hash =  fh.get_full_hash_from_file();
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     std::string database_response = rocksy->Get(full_hash);
     delete rocksy;
 
@@ -147,7 +147,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     {
         std::cerr << "User not in database, priv_key and prev_key present!\n"; // TODO: multiple persons should be able to login
 
-        Rocksy* rocksy = new Rocksy();
+        Rocksy* rocksy = new Rocksy("usersdb");
         rocksy->DatabaseDump();
         delete rocksy;
 

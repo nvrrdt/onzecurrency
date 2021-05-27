@@ -136,7 +136,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         std::string hash_of_email_prev_hash_concatenated = hash_of_email + real_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
         std::string full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
 std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " << full_hash_req << std::endl;
-        Rocksy* rocksy = new Rocksy();
+        Rocksy* rocksy = new Rocksy("usersdb");
         if (rocksy->Get(full_hash_req) == "")
         {
             delete rocksy;
@@ -165,7 +165,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                 // then room_.leave()
                 // if co then updates ...
 
-                Rocksy* rocksy = new Rocksy();
+                Rocksy* rocksy = new Rocksy("usersdb");
                 std::string co_from_this_server = rocksy->FindChosenOne(full_hash_req);
                 delete rocksy;
                 // std::cout << "co_from_this_db: " << co_from_this_db << std::endl;
@@ -215,7 +215,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                         // , then lookup those user_id's in rocksdb and send
                         nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                                             // maybe even a stack is better ...
-                        Rocksy* rocksy = new Rocksy();        // TODO need to handle the online presence of the other users!!!!!
+                        Rocksy* rocksy = new Rocksy("usersdb");        // TODO need to handle the online presence of the other users!!!!!
                         for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
                         {
                             nlohmann::json msg;
@@ -283,7 +283,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                         if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
 
                         
-                        Rocksy* rocksy = new Rocksy();
+                        Rocksy* rocksy = new Rocksy("usersdb");
 
                         // lookup in rocksdb
                         std::string val = parts[i];
@@ -312,7 +312,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                             std::string next_hash = parts[2];
                             std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
                             std::string key2, val2;
-                            Rocksy* rocksy = new Rocksy();
+                            Rocksy* rocksy = new Rocksy("usersdb");
                             for (int i = 1; i <= parts_underlying.size(); i++)
                             {
                                 //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
@@ -403,7 +403,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                     message_j["req"] = "new_co";
 std::cout << "co from this server:______ " << co_from_this_server << std::endl;
 
-                    Rocksy* rocksy = new Rocksy();
+                    Rocksy* rocksy = new Rocksy("usersdb");
 std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(co_from_this_server));
                     enet_uint32 peer_ip = value_j["ip"];
@@ -526,7 +526,7 @@ void P2pNetwork::update_your_rocksdb(nlohmann::json buf_j)
     std::string key_s = buf_j["key"];
     std::string value_s = buf_j["value"];
 
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     rocksy->Put(key_s, value_s);
     delete rocksy;
 }
@@ -556,7 +556,7 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
     std::string block_s_me = block_j_me.dump();
     std::string prev_hash_me = crypto.bech32_encode_sha256(block_s_me);
 
-    Rocksy* rocksy = new Rocksy;
+    Rocksy* rocksy = new Rocksy("usersdb");
     std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
     if (full_hash_coord_from_me == buf_j["full_hash_req"])
     {
@@ -585,7 +585,7 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
                 std::string key_s = value["full_hash"];
                 std::string value_s = value.dump();
 
-                Rocksy* rocksy = new Rocksy();
+                Rocksy* rocksy = new Rocksy("usersdb");
                 rocksy->Put(key_s, value_s);
                 delete rocksy;
             }
@@ -630,7 +630,7 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
                 if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
                 std::string c_one = chosen_ones[i];
-                Rocksy* rocksy = new Rocksy;
+                Rocksy* rocksy = new Rocksy("usersdb");
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
                 delete rocksy;
 
@@ -698,7 +698,7 @@ std::cout << "block: " << block_j.dump() << std::endl;
         std::string key_s = value["full_hash"];
         std::string value_s = value.dump();
 
-        Rocksy* rocksy = new Rocksy();
+        Rocksy* rocksy = new Rocksy("usersdb");
         rocksy->Put(key_s, value_s);
         delete rocksy;
     }
@@ -754,7 +754,7 @@ void P2pNetwork::update_my_blocks_and_rocksdb(nlohmann::json buf_j)
     // Update rockdb's:
     nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                         // maybe even a stack is better ...
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     for (auto& user : list_of_users_j)
     {
         nlohmann::json msg;
@@ -782,7 +782,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
     to_verify_j["server"] = buf_j["server"];
     to_verify_j["fullnode"] = buf_j["fullnode"];
 
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     std::string full_hash = buf_j["full_hash"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -838,7 +838,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
         }
         std::string message_s = message_j.dump();
 
-        Rocksy* rocksy = new Rocksy();
+        Rocksy* rocksy = new Rocksy("usersdb");
 
         std::string key, val;
         for (auto &[key, val] : parts)
@@ -993,7 +993,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
     std::string full_hash = buf_j["full_hash"];
 
-    Rocksy* rocksy = new Rocksy();
+    Rocksy* rocksy = new Rocksy("usersdb");
     
     std::string key, val;
     for (auto &[key, val] : parts)

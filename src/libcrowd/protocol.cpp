@@ -184,7 +184,7 @@ std::map<int, std::string> Protocol::partition_in_buckets(std::string &my_hash, 
                                                                                                     // based on the current state of rocksdb
     // 2 layers, layer 2: t.client({"msg": "communicate_to", "you_hash": "103", "next_hash": "104"})
 
-    Rocksy *rocksy = new Rocksy();
+    Rocksy *rocksy = new Rocksy("usersdb");
     uint256_t count = rocksy->CountPeersFromTo(my_hash, next_hash);
     delete rocksy;
 
@@ -199,7 +199,7 @@ std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash,
     
     std::map<int, std::string> calculated_hashes;
     std::string the_hash;
-    Rocksy* rocksy = new Rocksy;
+    Rocksy* rocksy = new Rocksy("usersdb");
     for (int i = 1; i <= chosen_ones_counter.size(); i++)
     {
         uint256_t val = chosen_ones_counter[i];

@@ -31,8 +31,9 @@ namespace Crowd
     protected:
         ConfigDir cd;
         std::string usersdb_folder_path = cd.GetConfigDir() + "usersdb";
+        std::string transactionsdb_folder_path = cd.GetConfigDir() + "transactionsdb";
     public:
-        Rocksy();
+        Rocksy(std::string which_db);
         ~Rocksy();
         std::string Get(std::string &key);
         bool Put(std::string &key, std::string &value);

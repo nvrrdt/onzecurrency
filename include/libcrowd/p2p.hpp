@@ -84,12 +84,16 @@ namespace Crowd
     public:
         LookupPeer(std::string &peer_hash)
         {
-            key_ = rocksy_.FindChosenOne(peer_hash);
-            value_j_ = nlohmann::json::parse(rocksy_.Get(key_));
+            key_ = rocksy_->FindChosenOne(peer_hash);
+            value_j_ = nlohmann::json::parse(rocksy_->Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];
             server_ = value_j_["server"];
             pub_key_ = value_j_["pub_key"];
+        }
+        ~LookupPeer()
+        {
+            delete rocksy_;
         }
         std::string GetIpPeer()
         {
@@ -108,7 +112,7 @@ namespace Crowd
             return server_ == "true" ? true : false;
         }
     private:
-        Rocksy rocksy_;
+        Rocksy* rocksy_ = new Rocksy("usersdb");
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;
@@ -123,12 +127,16 @@ namespace Crowd
     public:
         LookupPeerIsServer(std::string &peer_hash)
         {
-            key_ = rocksy_.FindServerPeer(peer_hash);
-            value_j_ = nlohmann::json::parse(rocksy_.Get(key_));
+            key_ = rocksy_->FindServerPeer(peer_hash);
+            value_j_ = nlohmann::json::parse(rocksy_->Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];
             server_ = value_j_["server"];
             pub_key_ = value_j_["pub_key"];
+        }
+        ~LookupPeerIsServer()
+        {
+            delete rocksy_;
         }
         std::string GetIpPeer()
         {
@@ -143,7 +151,7 @@ namespace Crowd
             return pub_key_;
         }
     private:
-        Rocksy rocksy_;
+        Rocksy* rocksy_ = new Rocksy("usersdb");
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;
