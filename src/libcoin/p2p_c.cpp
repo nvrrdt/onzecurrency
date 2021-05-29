@@ -32,7 +32,7 @@ void P2pNetworkC::start_coin()
 
         if (P2pNetworkC::validate_full_hash(to_full_hash) && P2pNetworkC::validate_amount(amount))
         {
-            std::cout << "Send intro_tx" << std::endl;
+            std::cout << "Send hello_tx" << std::endl;
 
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
             FullHash fh;
@@ -52,7 +52,7 @@ void P2pNetworkC::start_coin()
             p2p.number_to_ip_string(ip, ip_s);
             
             nlohmann::json message_j, to_sign_j;
-            message_j["req"] = "intro_tx";
+            message_j["req"] = "hello_tx";
             message_j["full_hash_req"] = my_full_hash;
             message_j["tx_to"] = to_full_hash;
             message_j["amount"] = amount;

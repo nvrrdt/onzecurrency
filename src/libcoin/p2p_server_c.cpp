@@ -27,27 +27,32 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
 
     std::string req = buf_j["req"];
     std::map<std::string, int> req_conversion;
-    req_conversion["intro_tx"] =        20;
-    req_conversion["new_tx"] =          21;
-    req_conversion["intro_block_c"] =   22;
-    req_conversion["new_block_c"] =     23;
+    req_conversion["hello_tx"] =        20;
+    req_conversion["intro_tx"] =        21;
+    req_conversion["new_tx"] =          22;
+    req_conversion["intro_block_c"] =   23;
+    req_conversion["new_block_c"] =     24;
 
     switch (req_conversion[req])
     {
-        case 20:    intro_tx(buf_j);
+        case 20:    hello_tx(buf_j);
                     break;
-        case 21:    new_tx(buf_j);
+        case 21:    intro_tx(buf_j);
                     break;
-        case 22:    intro_block_c(buf_j);
+        case 22:    new_tx(buf_j);
                     break;
-        case 23:    new_block_c(buf_j);
+        case 23:    intro_block_c(buf_j);
+                    break;
+        case 24:    new_block_c(buf_j);
                     break;
     }
 }
 
-void P2pNetworkC::intro_tx(nlohmann::json buf_j)
+void P2pNetworkC::hello_tx(nlohmann::json buf_j)
 {
     //
+    std::cout << "Hello_tx:" << std::endl;
+
     std::string full_hash_req = buf_j["full_hash_req"];
     std::string to_full_hash = buf_j["tx_to"];
     std::string amount = buf_j["amount"];
@@ -64,7 +69,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
     delete rocksy;
 
     nlohmann::json to_verify_j;
-    to_verify_j["req"] = "intro_tx";
+    to_verify_j["req"] = "hello_tx";
     to_verify_j["full_hash_req"] = full_hash_req;
     to_verify_j["tx_to"] = to_full_hash;
     to_verify_j["amount"] = amount;
@@ -77,7 +82,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "intro_tx: verified" << std::endl;
+        std::cout << "Hello_tx: verified" << std::endl;
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
@@ -88,7 +93,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         
         if (my_full_hash == coordinator)
         {
-            std::cout << "intro_tx: I'm the coordinator" << std::endl;
+            std::cout << "Hello_tx: I'm the coordinator" << std::endl;
 
             // Are funds sufficient? Create a second rocksdb here!
             Rocksy* rocksy = new Rocksy("transactionsdb");
@@ -101,6 +106,67 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                 std::cout << "funds are ok" << std::endl;
 
                 // Inform chosen_ones here!
+                Protocol proto;
+                std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+                nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+                message_j["req"] = "intro_tx";
+                message_j["full_hash_req"] = full_hash_req;
+                message_j["tx_to"] = to_full_hash;
+                message_j["amount"] = amount;
+
+                int k;
+                std::string v;
+                for (auto &[k, v] : parts)
+                {
+                    message_j["chosen_ones"].push_back(v);
+                }
+
+                to_sign_j["req"] = "intro_tx";
+                to_sign_j["full_hash_req"] = full_hash_req;
+                to_sign_j["tx_to"] = to_full_hash;
+                to_sign_j["amount"] = amount;
+                to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+                std::string to_sign_s = to_sign_j.dump();
+                ECDSA<ECP, SHA256>::PrivateKey private_key;
+                std::string signature;
+                Crypto* crypto = new Crypto();
+                crypto->ecdsa_load_private_key_from_string(private_key);
+                if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+                {
+                    message_j["signature"] = crypto->base64_encode(signature);
+                }
+                delete crypto;
+
+                P2pNetwork pn;
+                std::string key, val;
+                for (auto &[key, val] : parts)
+                {
+                    if (key == 1) continue;
+                    if (val == full_hash_req) continue;
+                    if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                    
+                    Rocksy* rocksy = new Rocksy("usersdb");
+
+                    // lookup in rocksdb
+                    nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+                    uint32_t peer_ip = value_j["ip"];
+
+                    delete rocksy;
+                    
+                    std::string message = message_j.dump();
+
+                    std::cout << "Preparation for intro_tx: " << peer_ip << std::endl;
+
+                    std::string ip_from_peer;
+                    P2p p2p;
+                    p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+                    // p2p_client() to all chosen ones with intro_tx request
+                    pn.p2p_client(ip_from_peer, message);
+                }
+
+                // Save the tx here in a static variable...
             }
             else
             {
@@ -109,15 +175,20 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "intro_tx: I'm not the coordinator" << std::endl;
+            std::cout << "Hello_tx: I'm not the coordinator" << std::endl;
         }
     }
     else
     {
-        std::cout << "intro_tx: verification didn't succeed" << std::endl;
+        std::cout << "Hello_tx: verification didn't succeed" << std::endl;
     }
 
     delete crypto;
+}
+
+void P2pNetworkC::intro_tx(nlohmann::json buf_j)
+{
+    //
 }
 
 void P2pNetworkC::new_tx(nlohmann::json buf_j)
