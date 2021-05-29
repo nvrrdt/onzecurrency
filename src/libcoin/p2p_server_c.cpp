@@ -17,6 +17,7 @@
 #include "json.hpp"
 #include "full_hash.hpp"
 #include "prev_hash.hpp"
+#include "transactions.hpp"
 
 using namespace Coin;
 
@@ -101,7 +102,11 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
             uint64_t funds = contents_j["funds"];
             delete rocksy;
 
-            if (funds >= amount)
+            uint64_t amount_number;
+            std::istringstream iss(amount);
+            iss >> amount_number;
+
+            if (funds >= amount_number)
             {
                 std::cout << "funds are ok" << std::endl;
 
@@ -109,7 +114,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                 Protocol proto;
                 std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
-                nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+                nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                 message_j["req"] = "intro_tx";
                 message_j["full_hash_req"] = full_hash_req;
                 message_j["tx_to"] = to_full_hash;
@@ -166,7 +171,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                     pn.p2p_client(ip_from_peer, message);
                 }
 
-                // Save the tx here in a static variable...
+                // Save the tx here in a static variable
+                Transactions tx;
+                tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
             }
             else
             {
