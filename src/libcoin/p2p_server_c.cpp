@@ -92,7 +92,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string coordinator = full_hash_req + hash_latest_block;
         
-        if (my_full_hash == coordinator)
+        if (my_full_hash == coordinator && my_full_hash != full_hash_req)
         {
             std::cout << "Hello_tx: I'm the coordinator" << std::endl;
 
@@ -182,7 +182,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "Hello_tx: I'm not the coordinator" << std::endl;
+            std::cout << "Hello_tx: I'm not the coordinator, try again in a few minutes" << std::endl;
         }
     }
     else
