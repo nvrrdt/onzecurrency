@@ -20,6 +20,9 @@ namespace Coin
         void hello_tx(nlohmann::json buf_j);
         void intro_tx(nlohmann::json buf_j);
         void new_tx(nlohmann::json buf_j);
+        void hello_reward(nlohmann::json buf_j);
+        void intro_reward(nlohmann::json buf_j);
+        void new_reward(nlohmann::json buf_j);
         bool validate_full_hash(std::string to_full_hash);
         bool validate_amount(std::string amount);
         void intro_block_c(nlohmann::json buf_j);

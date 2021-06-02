@@ -195,6 +195,10 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
 
         set_hash_of_new_block(block_s);
+
+        // Give the chosen_ones their reward:
+        nlohmann::json chosen_ones_reward = message_j["chosen_ones"];
+        reward_for_chosen_ones(chosen_ones_reward);
     }
     else
     {
@@ -255,6 +259,48 @@ void Poco::set_hash_of_new_block(std::string block)
 {
     Crypto crypto;
     hash_of_block_ = crypto.bech32_encode_sha256(block);
+}
+
+void Poco::reward_for_chosen_ones(nlohmann::json chosen_ones_reward_j)
+{
+    // hello_reward req with nlohmann::json chosen_ones as argument
+    // coordinator is hash of chosen_ones
+    Crypto crypto;
+    std::string chosen_ones_reward_s = chosen_ones_reward_j.dump();
+    std::string prel_coordinator = crypto.bech32_encode_sha256(chosen_ones_reward_s);
+
+    Rocksy* rocksy = new Rocksy("usersdb");
+    std::string real_coordinator = rocksy->FindChosenOne(prel_coordinator);
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(real_coordinator));
+    delete rocksy;
+    
+    uint32_t ip = contents_j["ip"];
+    std::string ip_s;
+    P2p p2p;
+    p2p.number_to_ip_string(ip, ip_s);
+
+    nlohmann::json message_j, to_sign_j;
+    message_j["req"] = "hello_reward";
+    message_j["hash_of_block"] = get_hash_of_new_block();
+    message_j["chosen_ones_reward"] = chosen_ones_reward_s;
+
+    to_sign_j["req"] = message_j["req"];
+    to_sign_j["hash_of_block"] = get_hash_of_new_block();
+    to_sign_j["chosen_ones_reward"] = chosen_ones_reward_s;
+    std::string to_sign_s = to_sign_j.dump();
+    // std::cout << "to_sign_s: " << to_sign_s << std::endl;
+    ECDSA<ECP, SHA256>::PrivateKey private_key;
+    std::string signature;
+    crypto.ecdsa_load_private_key_from_string(private_key);
+    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+    {
+        message_j["signature"] = crypto.base64_encode(signature);
+    }
+
+    std::string message_s = message_j.dump();
+
+    P2pNetwork pn;
+    pn.p2p_client(ip_s, message_s);
 }
 
 std::string Poco::hash_of_block_ = "";
