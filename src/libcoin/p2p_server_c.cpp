@@ -547,13 +547,13 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
     //
     std::cout << "Hello_reward:" << std::endl;
 
+    std::string full_hash_req = buf_j["full_hash_req"];
     std::string hash_of_block = buf_j["hash_of_block"];
     nlohmann::json chosen_ones_reward = buf_j["chosen_ones_reward"];
     std::string signature = buf_j["signature"];
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string coordinator = rocksy->FindChosenOne(hash_of_block);
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
         std::cout << "Requester not in database" << std::endl;
@@ -564,6 +564,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 
     nlohmann::json to_verify_j;
     to_verify_j["req"] = "hello_reward";
+    to_verify_j["full_hash_req"] = full_hash_req;
     to_verify_j["hash_of_block"] = hash_of_block;
     to_verify_j["chosen_ones_reward"] = chosen_ones_reward;
 
@@ -579,6 +580,12 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
+
+        Rocksy* rocksy = new Rocksy("usersdb");
+        std::string chosen_ones_s = chosen_ones_reward.dump();
+        std::string hash_of_cos = crypto->bech32_encode_sha256(chosen_ones_s);
+        std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
+        delete rocksy;
         
         if (my_full_hash == coordinator)
         {
@@ -646,12 +653,11 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 
             // Save the txs here in a static variable
             Transactions tx;
-            std::string full_hash_req = coordinator;
             std::string amount = "1"; // 1 onze
             for (int i = 0; i < chosen_ones_reward.size(); i++)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
-                tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+                tx.add_tx_to_transactions(coordinator, to_full_hash, amount);
             }
         }
         else

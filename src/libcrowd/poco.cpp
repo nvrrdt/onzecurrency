@@ -267,7 +267,9 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
     // coordinator is hash of chosen_ones
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(co_from_this_block));
+    std::string hash_of_block = get_hash_of_new_block();
+    std::string coordinator = rocksy->FindChosenOne(hash_of_block);
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     delete rocksy;
     
     uint32_t ip = contents_j["ip"];
@@ -277,10 +279,12 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
 
     nlohmann::json message_j, to_sign_j;
     message_j["req"] = "hello_reward";
+    message_j["full_hash_req"] = co_from_this_block;
     message_j["hash_of_block"] = get_hash_of_new_block();
     message_j["chosen_ones_reward"] = chosen_ones_reward_j;
 
     to_sign_j["req"] = message_j["req"];
+    to_sign_j["full_hash_req"] = co_from_this_block;
     to_sign_j["hash_of_block"] = get_hash_of_new_block();
     to_sign_j["chosen_ones_reward"] = chosen_ones_reward_j;
     std::string to_sign_s = to_sign_j.dump();
