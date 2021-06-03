@@ -253,25 +253,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string coordinator = full_hash_req + hash_latest_block;
 
-        bool am_i_chosen_one = false;
-
-        for (int i = 0; i < chosen_ones.size(); i++)
-        {
-            if (i == 0 && chosen_ones[i] == coordinator)
-            {
-                std::cout << "Intro_tx: coordinator is verified" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::cout << "Intro_tx: coordinator is not correct" << std::endl;
-                return;
-            }
-
-            if (chosen_ones[i] == my_full_hash) am_i_chosen_one = true;
-        }
-        
-        if (am_i_chosen_one && my_full_hash != full_hash_req)
+        if (chosen_ones[0] == my_full_hash && my_full_hash != full_hash_req)
         {
             std::cout << "Intro_tx: I'm a chosen_one" << std::endl;
 
@@ -439,25 +421,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string coordinator = full_hash_req + hash_latest_block;
 
-        bool am_i_chosen_one = false;
-
-        for (int i = 0; i < chosen_ones.size(); i++)
-        {
-            if (i == 0 && chosen_ones[i] == coordinator)
-            {
-                std::cout << "New_tx: coordinator is verified" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::cout << "New_tx: coordinator is not correct" << std::endl;
-                return;
-            }
-            
-            if (chosen_ones[i] == my_full_hash) am_i_chosen_one = true;
-        }
-        
-        if (am_i_chosen_one && my_full_hash != full_hash_req)
+        if (chosen_ones[0] == my_full_hash && my_full_hash != full_hash_req)
         {
             std::cout << "New_tx: I'm a chosen_one" << std::endl;
 
@@ -744,25 +708,8 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
-
-        bool am_i_chosen_one = false;
-        for (int i = 0; i < chosen_ones.size(); i++)
-        {
-            if (i == 0 && chosen_ones[i] == coordinator)
-            {
-                std::cout << "Intro_reward: coordinator is verified" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::cout << "Intro_reward: coordinator is not correct" << std::endl;
-                return;
-            }
-
-            if (chosen_ones[i] == my_full_hash) am_i_chosen_one = true;
-        }
         
-        if (am_i_chosen_one)
+        if (chosen_ones[0] == my_full_hash)
         {
             std::cout << "Intro_reward: I'm a chosen_one" << std::endl;
 
@@ -910,25 +857,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
-        bool am_i_chosen_one = false;
-
-        for (int i = 0; i < chosen_ones.size(); i++)
-        {
-            if (i == 0 && chosen_ones[i] == coordinator)
-            {
-                std::cout << "New_reward: coordinator is verified" << std::endl;
-                continue;
-            }
-            else
-            {
-                std::cout << "New_reward: coordinator is not correct" << std::endl;
-                return;
-            }
-            
-            if (chosen_ones[i] == my_full_hash) am_i_chosen_one = true;
-        }
-        
-        if (am_i_chosen_one)
+        if (chosen_ones[0] == my_full_hash)
         {
             std::cout << "Intro_reward: I'm a chosen_one" << std::endl;
 
