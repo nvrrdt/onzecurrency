@@ -196,39 +196,39 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
 
         set_hash_of_new_block(block_s);
 
+        // Send your_full_hash request to intro_peer's
+        for (auto &[key, value] : all_hashes_.get_all_hashes())
+        {
+            nlohmann::json msg_j;
+            msg_j["req"] = "your_full_hash";
+            std::vector<std::string> vec = *value;
+            msg_j["full_hash"] = vec[0];
+            msg_j["prev_hash"] = vec[1];
+            msg_j["block"] = block_j;
+            Protocol proto;
+            msg_j["block_nr"] = proto.get_last_block_nr();
+
+            msg_j["rocksdb"] = message_j["rocksdb"];
+
+            std::string msg_s = msg_j.dump();
+
+            std::string peer_ip;
+            P2p p2p;
+            p2p.number_to_ip_string(key, peer_ip);
+            
+            std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+            P2pNetwork pn;
+            pn.p2p_client(peer_ip, msg_s);
+        }
+
         // Give the chosen_ones their reward:
         nlohmann::json chosen_ones_reward = message_j["chosen_ones"];
-        reward_for_chosen_ones(chosen_ones_reward);
+        reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);
     }
     else
     {
         // You're not the coordinator!
         std::cout << "You're not the coordinator!" << std::endl;
-    }
-
-    // Send your_full_hash request to intro_peer's
-    for (auto &[key, value] : all_hashes_.get_all_hashes())
-    {
-        nlohmann::json msg_j;
-        msg_j["req"] = "your_full_hash";
-        std::vector<std::string> vec = *value;
-        msg_j["full_hash"] = vec[0];
-        msg_j["prev_hash"] = vec[1];
-        msg_j["block"] = block_j;
-        Protocol proto;
-        msg_j["block_nr"] = proto.get_last_block_nr();
-
-        msg_j["rocksdb"] = message_j["rocksdb"];
-
-        std::string msg_s = msg_j.dump();
-
-        std::string peer_ip;
-        P2p p2p;
-        p2p.number_to_ip_string(key, peer_ip);
-        
-        std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-        P2pNetwork pn;
-        pn.p2p_client(peer_ip, msg_s);
     }
 }
 
@@ -261,17 +261,13 @@ void Poco::set_hash_of_new_block(std::string block)
     hash_of_block_ = crypto.bech32_encode_sha256(block);
 }
 
-void Poco::reward_for_chosen_ones(nlohmann::json chosen_ones_reward_j)
+void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_reward_j)
 {
     // hello_reward req with nlohmann::json chosen_ones as argument
     // coordinator is hash of chosen_ones
-    Crypto crypto;
-    std::string chosen_ones_reward_s = chosen_ones_reward_j.dump();
-    std::string prel_coordinator = crypto.bech32_encode_sha256(chosen_ones_reward_s);
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string real_coordinator = rocksy->FindChosenOne(prel_coordinator);
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(real_coordinator));
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(co_from_this_block));
     delete rocksy;
     
     uint32_t ip = contents_j["ip"];
@@ -282,15 +278,16 @@ void Poco::reward_for_chosen_ones(nlohmann::json chosen_ones_reward_j)
     nlohmann::json message_j, to_sign_j;
     message_j["req"] = "hello_reward";
     message_j["hash_of_block"] = get_hash_of_new_block();
-    message_j["chosen_ones_reward"] = chosen_ones_reward_s;
+    message_j["chosen_ones_reward"] = chosen_ones_reward_j;
 
     to_sign_j["req"] = message_j["req"];
     to_sign_j["hash_of_block"] = get_hash_of_new_block();
-    to_sign_j["chosen_ones_reward"] = chosen_ones_reward_s;
+    to_sign_j["chosen_ones_reward"] = chosen_ones_reward_j;
     std::string to_sign_s = to_sign_j.dump();
     // std::cout << "to_sign_s: " << to_sign_s << std::endl;
     ECDSA<ECP, SHA256>::PrivateKey private_key;
     std::string signature;
+    Crypto crypto;
     crypto.ecdsa_load_private_key_from_string(private_key);
     if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
     {
@@ -298,6 +295,8 @@ void Poco::reward_for_chosen_ones(nlohmann::json chosen_ones_reward_j)
     }
 
     std::string message_s = message_j.dump();
+
+    std::cout << "Hello_reward request sent" << std::endl;
 
     P2pNetwork pn;
     pn.p2p_client(ip_s, message_s);
