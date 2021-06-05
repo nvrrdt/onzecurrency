@@ -253,7 +253,13 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string coordinator = full_hash_req + hash_latest_block;
 
-        if (chosen_ones[0] == my_full_hash && my_full_hash != full_hash_req)
+        bool is_chosen_one = false;
+        for (int i = 0; i < chosen_ones.size(); i++)
+        {
+            if (chosen_ones[i] == my_full_hash) is_chosen_one = true;
+        }
+
+        if (is_chosen_one && my_full_hash != full_hash_req)
         {
             std::cout << "Intro_tx: I'm a chosen_one" << std::endl;
 
@@ -421,9 +427,15 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string coordinator = full_hash_req + hash_latest_block;
 
-        if (chosen_ones[0] == my_full_hash && my_full_hash != full_hash_req)
+        bool is_chosen_one = false;
+        for (int i = 0; i < chosen_ones.size(); i++)
         {
-            std::cout << "New_tx: I'm a chosen_one" << std::endl;
+            if (chosen_ones[i] == my_full_hash) is_chosen_one = true;
+        }
+
+        if (is_chosen_one && my_full_hash != full_hash_req)
+        {
+            std::cout << "New_tx: I'm a secondary chosen_one" << std::endl;
 
             // Are funds sufficient?
             Rocksy* rocksy = new Rocksy("transactionsdb");
@@ -531,7 +543,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "New_tx: I'm not chosen_one, maybe try again in a few minutes" << std::endl;
+            std::cout << "New_tx: I'm not a secondary chosen_one, maybe try again in a few minutes" << std::endl;
         }
     }
     else
