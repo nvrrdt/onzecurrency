@@ -686,7 +686,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
     // introduce chosen ones!!! and coordinator should be verified
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string coordinator = rocksy->FindChosenOne(hash_of_block);
+    std::string coordinator = chosen_ones[0];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {
@@ -714,8 +714,14 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
+
+        bool is_chosen_one = false;
+        for (int i = 0; i < chosen_ones.size(); i++)
+        {
+            if (chosen_ones[i] == my_full_hash) is_chosen_one = true;
+        }
         
-        if (chosen_ones[0] == my_full_hash)
+        if (is_chosen_one)
         {
             std::cout << "Intro_reward: I'm a chosen_one" << std::endl;
 
@@ -834,7 +840,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
     // introduce chosen ones!!! and coordinator should be verified
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string coordinator = rocksy->FindChosenOne(hash_of_block);
+    std::string coordinator = chosen_ones[0];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {
@@ -863,9 +869,15 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
-        if (chosen_ones[0] == my_full_hash)
+        bool is_chosen_one = false;
+        for (int i = 0; i < chosen_ones.size(); i++)
         {
-            std::cout << "Intro_reward: I'm a chosen_one" << std::endl;
+            if (chosen_ones[i] == my_full_hash) is_chosen_one = true;
+        }
+        
+        if (is_chosen_one)
+        {
+            std::cout << "Intro_reward: I'm a secondary chosen_one" << std::endl;
 
             // Inform network below here!
             Protocol proto;
@@ -958,7 +970,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "New_reward: I'm not chosen_one, maybe try again in a few minutes" << std::endl;
+            std::cout << "New_reward: I'm not a secondary chosen_one, maybe try again in a few minutes" << std::endl;
         }
     }
     else

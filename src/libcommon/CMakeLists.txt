@@ -30,6 +30,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/strencodings.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/string.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/tinyformat.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 )
 
 INSTALL(TARGETS common ARCHIVE DESTINATION lib/onze COMPONENT libraries)

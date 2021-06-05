@@ -266,9 +266,11 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
     // hello_reward req with nlohmann::json chosen_ones as argument
     // coordinator is hash of chosen_ones
 
+    Crypto crypto;
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string hash_of_block = get_hash_of_new_block();
-    std::string coordinator = rocksy->FindChosenOne(hash_of_block);
+    std::string chosen_ones_s = chosen_ones_reward_j.dump();
+    std::string hash_of_cos = crypto.bech32_encode_sha256(chosen_ones_s);
+    std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     delete rocksy;
     
@@ -291,7 +293,6 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
     // std::cout << "to_sign_s: " << to_sign_s << std::endl;
     ECDSA<ECP, SHA256>::PrivateKey private_key;
     std::string signature;
-    Crypto crypto;
     crypto.ecdsa_load_private_key_from_string(private_key);
     if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
     {

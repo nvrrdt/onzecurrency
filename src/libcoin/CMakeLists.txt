@@ -22,10 +22,10 @@ target_include_directories(coin PUBLIC
 
 ### install:
 
-set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
+set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
+                "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/configdir.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/ip_peers.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/merkle_tree.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_message.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p.hpp"
