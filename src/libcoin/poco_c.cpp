@@ -6,6 +6,37 @@ using namespace Coin;
 
 void PocoC::create_and_send_block_c()
 {
+    // The capstone implemenation, an algorithm for block creation arithmetic:
+    // 1) Evaluate Transactions (also double spend)
+    //    - for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
+    //    - also for every tx: lookup numbers in rocksy (blcokchain must be verified!) and verify if they correspond with the tx
+    //      --> if those don't correspond, send message to payer and payee and prune that tx from Transactions
+    // 2) Produce candidate blocks:
+    //    - first ever iteration:
+    //      --> there's only one block to create
+    //      --> create 10 blocks, each with a different count from 0 to 9, each count creates another hash_of_new_block
+    //      --> redo the previous step but then with 1 tx less included
+    //      --> repeat this, reducing by 1 tx, until receiving a intro_block_c or new_block_c request, or until the block creation delay has passed
+    //    - starting from the second iteration:
+    //      --> numerous blocks as proposals for the final block
+    //      --> create 10 blocks for every of the fastest 10 blocks of the previous iteration
+    //      --> redo the previous step but then with 1 tx less included
+    //      --> repeat this, reducing by 1 tx, until receiving a intro_block_c or new_block_c request, or until the block creation delay has passed
+    //    - after a few iterations the fittest sole remainder will become the final block
+    // 3) Send intro_block_c or new_block_c request
+    //
+    // Remarks:
+    // * Be aware for the amount of memory these steps require!
+    // * Somehow we're trying to prevent DDOS'ing in this step
+    // * A headless state might be possible where incoming intro_block_c or new_block_c requests don't contain a prev_hash which you're able to reproduce:
+    //   --> then the network should be questioned a few times until some satisfactory solution
+
+    // The capstone implementation of poco:
+    evaluate_transactions();
+    candidate_blocks_creation();
+
+
+
 //     merkle_tree mt;
 
 //     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
@@ -227,4 +258,14 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
     //     // You're not the coordinator!
     //     std::cout << "You're not the coordinator!" << std::endl;
     // }
+}
+
+void PocoC::evaluate_transactions()
+{
+    //
+}
+
+void PocoC::candidate_blocks_creation()
+{
+    //
 }
