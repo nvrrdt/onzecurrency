@@ -8,6 +8,7 @@ add_library(coin SHARED
                      p2p_server_c.cpp
                      p2p_client_c.cpp
                      transactions.cpp
+                     poco_c.cpp
 )
 
 target_include_directories(coin PUBLIC
@@ -40,6 +41,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/full_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/p2p_network_c.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/transactions.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/poco_c.hpp"
                 )
 
 INSTALL(TARGETS coin ARCHIVE DESTINATION lib/onze COMPONENT libraries)

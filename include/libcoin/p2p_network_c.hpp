@@ -25,6 +25,8 @@ namespace Coin
         void new_reward(nlohmann::json buf_j);
         bool validate_full_hash(std::string to_full_hash);
         bool validate_amount(std::string amount);
+        void start_block_creation_thread();
+        void get_sleep_and_create_block_server_c();
         void intro_block_c(nlohmann::json buf_j);
         void new_block_c(nlohmann::json buf_j);
     private:

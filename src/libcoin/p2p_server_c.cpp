@@ -18,6 +18,7 @@
 #include "full_hash.hpp"
 #include "prev_hash.hpp"
 #include "transactions.hpp"
+#include "poco_c.hpp"
 
 using namespace Coin;
 
@@ -187,6 +188,8 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                 // Save the tx here in a static variable
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                start_block_creation_thread();
             }
             else
             {
@@ -361,6 +364,8 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                 // Save the tx here in a static variable
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                start_block_creation_thread();
             }
             else
             {
@@ -535,6 +540,8 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                 // Save the tx here in a static variable
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                start_block_creation_thread();
             }
             else
             {
@@ -670,7 +677,11 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
                 tx.add_tx_to_transactions(coordinator, to_full_hash, amount);
+
+                if (i == 0) start_block_creation_thread();
             }
+
+            
         }
         else
         {
@@ -824,6 +835,8 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                if (i == 0) start_block_creation_thread();
             }
         }
         else
@@ -978,6 +991,8 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                if (i == 0) start_block_creation_thread();
             }
         }
         else
@@ -991,6 +1006,43 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
     }
 
     delete crypto;
+}
+
+void P2pNetworkC::start_block_creation_thread()
+{
+    Transactions tx;
+
+    if (tx.get_transactions().size() > 2048) // size limit of block within block creation delay
+    {
+        // Create block
+        PocoC poco;
+        poco.create_and_send_block_c();
+
+        tx.reset_transactions();
+    }
+    else if (tx.get_transactions().size() == 1)
+    {
+        // wait 20 secs
+        // then create block
+
+        std::cout << "Get_sleep_and_create_block_c" << std::endl;
+
+        std::thread t(&P2pNetworkC::get_sleep_and_create_block_server_c, this);
+        t.detach();
+    }
+}
+
+void P2pNetworkC::get_sleep_and_create_block_server_c()
+{
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+
+    Transactions tx;
+    std::cout << "transactions.size() in Coin: " << tx.get_transactions().size() << std::endl;
+
+    PocoC poco;
+    poco.create_and_send_block_c(); // chosen ones are being informed here
+    
+    std::cout << "Block_c created server!!" << std::endl;
 }
 
 void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
