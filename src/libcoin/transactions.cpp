@@ -8,7 +8,7 @@ using namespace Coin;
 void Transactions::add_tx_to_transactions(std::string full_hash_req, std::string to_full_hash, std::string amount)
 {
     Crypto crypto;
-    std::string string = full_hash_req + to_full_hash + amount;
+    std::string string = full_hash_req + to_full_hash + amount; // TODO what if these three are the same in two transactions in the same block?
     std::string hash = crypto.bech32_encode_sha256(string);
     std::vector<std::string> vec;
     vec.push_back(full_hash_req);

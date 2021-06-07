@@ -2,6 +2,9 @@
 
 #include "merkle_tree.hpp"
 
+#include <vector>
+#include <sstream>
+
 using namespace Coin;
 
 void PocoC::create_and_send_block_c()
@@ -263,7 +266,61 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
 
 void PocoC::evaluate_transactions()
 {
-    //
+    // for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
+    // double spending problem solution:
+    Transactions txs;
+    std::map<std::string, std::shared_ptr<std::vector<std::string>>> transactions = txs.get_transactions();
+    std::vector<std::string> tx_hashes_vec;
+    std::vector<std::string> full_hashes_vec;
+    std::vector<std::string> amounts_vec;
+
+    for(std::map<std::string, std::shared_ptr<std::vector<std::string>>>::iterator iter = transactions.begin(); iter != transactions.end(); ++iter)
+    {
+        std::shared_ptr<std::vector<std::string>> content = iter->second;
+        std::string tx_hash = iter->first;
+        full_hashes_vec.push_back(tx_hash);
+        std::string full_hash_req = content->at(0); // payer
+        full_hashes_vec.push_back(full_hash_req);
+        std::string amount = content->at(2);
+        amounts_vec.push_back(amount);
+    }
+
+    std::map<std::string, std::map<std::string, std::string>> same_payer_payments;
+    for (uint16_t i = 0; i < full_hashes_vec.size(); i++)
+    {
+        for (uint16_t j = 0; j < full_hashes_vec.size(); j++)
+        {
+            if (full_hashes_vec[i] == full_hashes_vec[j] && i != j)
+            {
+                // more entries from same payer
+                std::map<std::string, std::string> txsamounts;
+                txsamounts[tx_hashes_vec[i]] = amounts_vec[i];
+                txsamounts[tx_hashes_vec[j]] = amounts_vec[j];
+                same_payer_payments[full_hashes_vec[i]] = txsamounts;
+            }
+        }
+    }
+
+    std::map<std::string, std::string> total_same_payer_payments; // <full_hash, total_payment_in_this_block>
+    for (std::map<std::string, std::map<std::string, std::string>>::iterator iter1 = same_payer_payments.begin(); iter1 != same_payer_payments.end(); ++iter1)
+    {
+        std::map<std::string, std::string> txsamounts = iter1->second;
+        uint64_t payment = 0;
+        for (std::map<std::string, std::string>::iterator iter2 = txsamounts.begin(); iter2 != txsamounts.end(); ++iter2)
+        {
+            // Add up all amounts for same payer for different transactions
+            uint64_t amount;
+            std::istringstream iss(iter2->second);
+            iss >> amount;
+            payment += amount;
+        }
+
+        std::ostringstream o;
+        o << payment;
+        total_same_payer_payments[iter1->first] = o.str();
+    }
+
+    // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they correspond with the tx
 }
 
 void PocoC::candidate_blocks_creation()
