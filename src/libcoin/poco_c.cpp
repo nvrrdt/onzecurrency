@@ -9,7 +9,7 @@ void PocoC::create_and_send_block_c()
     // The capstone implemenation, an algorithm for block creation arithmetic:
     // 1) Evaluate Transactions (also double spend)
     //    - for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
-    //    - also for every tx: lookup numbers in rocksy (blcokchain must be verified!) and verify if they correspond with the tx
+    //    - also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they correspond with the tx
     //      --> if those don't correspond, send message to payer and payee and prune that tx from Transactions
     // 2) Produce candidate blocks:
     //    - first ever iteration:
@@ -30,6 +30,7 @@ void PocoC::create_and_send_block_c()
     // * Somehow we're trying to prevent DDOS'ing in this step
     // * A headless state might be possible where incoming intro_block_c or new_block_c requests don't contain a prev_hash which you're able to reproduce:
     //   --> then the network should be questioned a few times until some satisfactory solution
+    // * You should also pickup leftover transactions that weren't processed
 
     // The capstone implementation of poco:
     evaluate_transactions();
