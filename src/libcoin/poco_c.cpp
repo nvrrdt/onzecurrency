@@ -1,8 +1,10 @@
 #include "poco_c.hpp"
 
 #include "merkle_tree.hpp"
+#include "rocksy.hpp"
 
 #include <vector>
+#include <algorithm>
 #include <sstream>
 
 using namespace Coin;
@@ -278,7 +280,7 @@ void PocoC::evaluate_transactions()
     {
         std::shared_ptr<std::vector<std::string>> content = iter->second;
         std::string tx_hash = iter->first;
-        full_hashes_vec.push_back(tx_hash);
+        tx_hashes_vec.push_back(tx_hash);
         std::string full_hash_req = content->at(0); // payer
         full_hashes_vec.push_back(full_hash_req);
         std::string amount = content->at(2);
@@ -320,7 +322,59 @@ void PocoC::evaluate_transactions()
         total_same_payer_payments[iter1->first] = o.str();
     }
 
-    // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they correspond with the tx
+    // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they fulfill the tx
+    Rocksy* rocksy = new Rocksy("transactionsdb");
+    for (uint16_t i = 0; i < full_hashes_vec.size(); i++)
+    {
+        std::string full_hash_req = full_hashes_vec[i];
+        nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
+        uint64_t funds = contents_j["funds"];
+
+        uint64_t amount;
+        std::istringstream iss(amounts_vec[i]);
+        iss >> amount;
+
+        if (funds >= amount)
+        {
+            // Funds sufficient
+            std::cout << "Funds sufficient" << std::endl;
+
+            continue;
+        }
+        else
+        {
+            std::map<std::string, std::string>::iterator it;
+            it = total_same_payer_payments.find(full_hash_req);
+
+            uint64_t total_amount;
+            std::istringstream iss(it->second);
+            iss >> total_amount;
+
+            if (it != total_same_payer_payments.end() && funds >= total_amount)
+            {
+                // Funds sufficient for multiple payments
+                std::cout << "Funds sufficient for multiple payments" << std::endl;
+
+                continue;
+            }
+            else
+            {
+                // Funds not sufficient
+                std::cout << "Funds not sufficient" << std::endl;
+
+                if (it != total_same_payer_payments.end())
+                {
+                    same_payer_payments.erase(full_hash_req);
+                    total_same_payer_payments.erase(full_hash_req);
+                }
+
+                tx_hashes_vec.erase(tx_hashes_vec.begin() + i);
+                full_hashes_vec.erase(full_hashes_vec.begin() + i);
+                amounts_vec.erase(amounts_vec.begin() + i);
+            }
+        }
+    }
+    delete rocksy;
 }
 
 void PocoC::candidate_blocks_creation()
