@@ -37,8 +37,7 @@ void PocoC::create_and_send_block_c()
     //   --> then the network should be questioned a few times until some satisfactory solution
     // * You should also pickup leftover transactions that weren't processed
 
-    // The capstone implementation of poco:
-    evaluate_transactions();
+    // The second part of the capstone implementation of poco:
     candidate_blocks_creation();
 
 
@@ -270,40 +269,35 @@ void PocoC::evaluate_transactions()
 {
     // for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
     // double spending problem solution:
-    Transactions txs;
-    std::map<std::string, std::shared_ptr<std::vector<std::string>>> transactions = txs.get_transactions();
-    std::vector<std::string> tx_hashes_vec;
-    std::vector<std::string> full_hashes_vec;
-    std::vector<std::string> amounts_vec;
+    Transactions tx;
+    std::map<std::string, std::vector<std::string>> latest_transaction = tx.get_latest_transaction();
 
-    for(std::map<std::string, std::shared_ptr<std::vector<std::string>>>::iterator iter = transactions.begin(); iter != transactions.end(); ++iter)
-    {
-        std::shared_ptr<std::vector<std::string>> content = iter->second;
-        std::string tx_hash = iter->first;
-        tx_hashes_vec.push_back(tx_hash);
-        std::string full_hash_req = content->at(0); // payer
-        full_hashes_vec.push_back(full_hash_req);
-        std::string amount = content->at(2);
-        amounts_vec.push_back(amount);
+    std::string latest_tx_hash, latest_full_hash_req, latest_amount;
+    std::vector<std::string> tx_hashes_vec, full_hashes_reqs_vec, amounts_vec;
+
+    // Fill the vectors and the latest strings
+    for (auto& lt: latest_transaction) {
+        latest_tx_hash = lt.first;
+        tx_hashes_vec.push_back(latest_tx_hash);
+        latest_full_hash_req = lt.second.at(0);
+        full_hashes_reqs_vec.push_back(latest_full_hash_req); // payer
+        latest_amount = lt.second.at(2);
+        amounts_vec.push_back(latest_amount);
     }
 
-    std::map<std::string, std::map<std::string, std::string>> same_payer_payments;
-    for (uint16_t i = 0; i < full_hashes_vec.size(); i++)
+    std::map<std::string, std::map<std::string, std::string>> same_payer_payments; // <full_hash_req, <tx_hash, payment_in_this_tx>>
+    for (uint16_t i = 0; i < full_hashes_reqs_vec.size(); i++)
     {
-        for (uint16_t j = 0; j < full_hashes_vec.size(); j++)
+        if (full_hashes_reqs_vec[i] == latest_full_hash_req)
         {
-            if (full_hashes_vec[i] == full_hashes_vec[j] && i != j)
-            {
-                // more entries from same payer
-                std::map<std::string, std::string> txsamounts;
-                txsamounts[tx_hashes_vec[i]] = amounts_vec[i];
-                txsamounts[tx_hashes_vec[j]] = amounts_vec[j];
-                same_payer_payments[full_hashes_vec[i]] = txsamounts;
-            }
+            // more entries from same payer
+            std::map<std::string, std::string> txamount;
+            txamount[latest_tx_hash] = latest_amount;
+            same_payer_payments[latest_full_hash_req] = txamount;
         }
     }
 
-    std::map<std::string, std::string> total_same_payer_payments; // <full_hash, total_payment_in_this_block>
+    std::map<std::string, std::string> total_same_payer_payments; // <full_hash_req, total_payment_in_this_block>
     for (std::map<std::string, std::map<std::string, std::string>>::iterator iter1 = same_payer_payments.begin(); iter1 != same_payer_payments.end(); ++iter1)
     {
         std::map<std::string, std::string> txsamounts = iter1->second;
@@ -324,9 +318,9 @@ void PocoC::evaluate_transactions()
 
     // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they fulfill the tx
     Rocksy* rocksy = new Rocksy("transactionsdb");
-    for (uint16_t i = 0; i < full_hashes_vec.size(); i++)
+    for (uint16_t i = 0; i < full_hashes_reqs_vec.size(); i++)
     {
-        std::string full_hash_req = full_hashes_vec[i];
+        std::string full_hash_req = full_hashes_reqs_vec[i];
         nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
         uint64_t funds = contents_j["funds"];
 
@@ -360,7 +354,7 @@ void PocoC::evaluate_transactions()
             else
             {
                 // Funds not sufficient
-                std::cout << "Funds not sufficient" << std::endl;
+                std::cout << "Funds not sufficient" << std::endl; // TODO send message to payer and payee
 
                 if (it != total_same_payer_payments.end())
                 {
@@ -369,7 +363,7 @@ void PocoC::evaluate_transactions()
                 }
 
                 tx_hashes_vec.erase(tx_hashes_vec.begin() + i);
-                full_hashes_vec.erase(full_hashes_vec.begin() + i);
+                full_hashes_reqs_vec.erase(full_hashes_reqs_vec.begin() + i);
                 amounts_vec.erase(amounts_vec.begin() + i);
             }
         }

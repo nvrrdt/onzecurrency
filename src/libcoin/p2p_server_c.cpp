@@ -189,6 +189,10 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
 
+                PocoC poco;
+                // The first part of the capstone implementation of poco:
+                poco.evaluate_transactions();
+
                 start_block_creation_thread();
             }
             else
@@ -365,6 +369,10 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
 
+                PocoC poco;
+                // The first part of the capstone implementation of poco:
+                poco.evaluate_transactions();
+
                 start_block_creation_thread();
             }
             else
@@ -540,6 +548,10 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                 // Save the tx here in a static variable
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                PocoC poco;
+                // The first part of the capstone implementation of poco:
+                poco.evaluate_transactions();
 
                 start_block_creation_thread();
             }
