@@ -20,7 +20,8 @@ namespace Coin
         void inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req);
         void candidate_blocks_creation();
     private:
-        std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
+        std::shared_ptr<std::stack<std::string>> s_shptr_c_ = std::make_shared<std::stack<std::string>>();
         Transactions tx_;
+        nlohmann::json block_j_c_;
     };
 }

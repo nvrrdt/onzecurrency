@@ -17,7 +17,7 @@ using namespace Crowd;
 std::string Protocol::get_last_block_nr()
 {
     ConfigDir cd;
-    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
     boost::system::error_code c;
     boost::filesystem::path path(blockchain_folder_path);
 
@@ -225,7 +225,7 @@ nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
     nlohmann::json all_blocks_j;
 
     ConfigDir cd;
-    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain/crowd");
 
     try
     {
@@ -312,7 +312,7 @@ std::string Protocol::get_all_users_from(std::string &latest_block_peer)
     nlohmann::json all_users;
 
     ConfigDir cd;
-    boost::filesystem::path p (cd.GetConfigDir() + "blockchain");
+    boost::filesystem::path p (cd.GetConfigDir() + "blockchain/crowd");
 
     try
     {

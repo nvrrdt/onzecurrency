@@ -8,8 +8,6 @@
 
 #include "json.hpp"
 
-extern bool break_server_loop;
-
 namespace Crowd
 {
     class merkle_tree

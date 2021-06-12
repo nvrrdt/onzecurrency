@@ -160,7 +160,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
     // create genesis or add to blockchain
     boost::system::error_code c;
     ConfigDir cd;
-    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain";
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
 
     if (!boost::filesystem::exists(blockchain_folder_path))
     {
@@ -191,7 +191,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
             }
             number.append(latest_block);
 
-            std::string block_file = "blockchain/block_" + number + ".json";
+            std::string block_file = "blockchain/crowd/block_" + number + ".json";
             if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
             {
                 cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
@@ -203,7 +203,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
 
             block_j["prev_hash"] = genesis_prev_hash_;
             block_s = block_j.dump();
-            std::string block_file = "blockchain/block_000000000000.json";
+            std::string block_file = "blockchain/crowd/block_000000000000.json";
             if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
             {
                 cd.CreateFileInConfigDir(block_file, block_s);

@@ -9,6 +9,9 @@ add_library(coin SHARED
                      p2p_client_c.cpp
                      transactions.cpp
                      poco_c.cpp
+                     prev_hash_c.cpp
+                     protocol_c.cpp
+                     block_c.cpp
 )
 
 target_include_directories(coin PUBLIC
@@ -42,6 +45,9 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/p2p_network_c.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/transactions.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/poco_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/prev_hash_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/protocol_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/merkle_tree_c.hpp"
                 )
 
 INSTALL(TARGETS coin ARCHIVE DESTINATION lib/onze COMPONENT libraries)

@@ -2,6 +2,9 @@
 
 #include "merkle_tree.hpp"
 #include "rocksy.hpp"
+#include "prev_hash_c.hpp"
+#include "protocol_c.hpp"
+#include "merkle_tree_c.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -38,66 +41,59 @@ void PocoC::create_and_send_block_c()
     // * You should also pickup leftover transactions that weren't processed
 
     // The second part of the capstone implementation of poco:
-    candidate_blocks_creation();
+    for (uint16_t i = tx_.get_transactions().size(); i > 0; i--) // Decrease the amount of transactions in the blocks
+    {
+        for (int j = 0; j < 10; j++) // Create 10 different blocks with the same number of included transactions
+        {
+            merkle_tree_c mt;
 
+            std::vector<std::string> m_v;
+            nlohmann::json entry_tx_j, entry_transactions_j;
+            std::string full_hash_req;
 
+            for (uint16_t k = 0; k < i; k++) // Add the transactions till the i-th transaction to the block
+            {
+                m_v = *tx_.get_transactions().at(k).second;
 
-//     merkle_tree mt;
+                full_hash_req = m_v[0]; // full_hash_req
 
-//     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
-//     nlohmann::json to_block_j;
-//     std::string fh_s;
-//     std::string full_hash_req;
+                entry_tx_j["full_hash_req"] = full_hash_req;
+                entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
+                entry_tx_j["amount"] = m_v[2]; // amount
+                s_shptr_c_->push(entry_tx_j.dump());
 
-//     for (int i = 0; i < tx_.get_transactions().size(); i++)
-//     {
-//         m_j = *tx_.get_transactions()[i];
+                entry_transactions_j.push_back(entry_tx_j);
+            }
 
-//         full_hash_req = m_j["full_hash_req"];
+            s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
+            std::string datetime = mt.time_now_c();
+            std::string root_hash_data = s_shptr_c_->top();
+            block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j);
 
-//         to_block_j["full_hash"] = full_hash_req;
-//         to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-//         to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-//         s_shptr_->push(to_block_j.dump());
+            PrevHashC ph;
+            block_j_c_["prev_hash"] = ph.calculate_hash_from_last_block_c();
 
-//         entry_tx_j["full_hash"] = to_block_j["full_hash"];
-//         entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-//         entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-//         entry_transactions_j.push_back(entry_tx_j);
-//         exit_tx_j["full_hash"] = "";
-//         exit_transactions_j.push_back(exit_tx_j);
-//     }
+            ProtocolC proto;
+            std::string my_last_block_nr = proto.get_last_block_nr_c();
 
-//     s_shptr_ = mt.calculate_root_hash(s_shptr_);
-//     std::string datetime = mt.time_now();
-//     std::string root_hash_data = s_shptr_->top();
-//     block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+            std::string my_next_block_nr;
+            uint64_t value;
+            std::istringstream iss(my_last_block_nr);
+            iss >> value;
+            value++;
+            std::ostringstream oss;
+            oss << value;
+            my_next_block_nr = oss.str();
 
-//     PrevHash ph;
-//     block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+            // send hash of this block with the block contents to the co's, forget save_block_to_file
+            // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
-//     Protocol proto;
-//     std::string my_last_block_nr = proto.get_last_block_nr();
+            // send intro_block to co's
+            inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
 
-//     std::string my_next_block_nr;
-//     uint64_t value;
-//     std::istringstream iss(my_last_block_nr);
-//     iss >> value;
-//     value++;
-//     std::ostringstream oss;
-//     oss << value;
-//     my_next_block_nr = oss.str();
-
-//     // send hash of this block with the block contents to the co's, forget save_block_to_file
-//     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
-
-//     // send intro_block to co's
-//     inform_chosen_ones_c(my_next_block_nr, block_j_, full_hash_req);
-
-//     message_j_vec_.reset_message_j_vec();
-//     all_hashes_.reset_all_hashes();
-
-// std::cout << "--------5c: " << std::endl;
+            // TODO reset/adapt Transactions vector accordingly when there's a new final block
+        }
+    }
 }
 
 void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
