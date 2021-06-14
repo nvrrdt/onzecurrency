@@ -142,76 +142,74 @@ nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string 
     return j;
 }
 
-// std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::string &latest_block)
-// {
-//         // hashing of the whole new block
-//     std::string block_s, block_hashed;
+std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::string &latest_block)
+{
+        // hashing of the whole new block
+    std::string block_s, block_hashed;
 
-//     // create genesis or add to blockchain
-//     boost::system::error_code c;
-//     ConfigDir cd;
-//     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/coin";
+    // create genesis or add to blockchain
+    boost::system::error_code c;
+    ConfigDir cd;
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/coin";
 
-//     if (!boost::filesystem::exists(blockchain_folder_path))
-//     {
-//         boost::filesystem::create_directories(blockchain_folder_path);
-//     }
+    if (!boost::filesystem::exists(blockchain_folder_path))
+    {
+        boost::filesystem::create_directories(blockchain_folder_path);
+    }
 
-//     bool isDir = boost::filesystem::is_directory(blockchain_folder_path, c);
-//     bool isEmpty = boost::filesystem::is_empty(blockchain_folder_path);
+    bool isDir = boost::filesystem::is_directory(blockchain_folder_path, c);
+    bool isEmpty = boost::filesystem::is_empty(blockchain_folder_path);
 
-//     if(!isDir)
-//     {
-//         std::cout << "Error Response: " << c << std::endl;
-//     }
-//     else
-//     {
-//         if (latest_block != "no blockchain present in folder")
-//         {
-//             std::cout << "Directory not empty" << std::endl;
-//             //PrevHash ph;
-//             //block_j["prev_hash"] = ph.calculate_hash_from_last_block(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
-//             block_s = block_j.dump();
+    if(!isDir)
+    {
+        std::cout << "Error Response: " << c << std::endl;
+    }
+    else
+    {
+        if (latest_block != "no blockchain present in folder")
+        {
+            std::cout << "Directory not empty" << std::endl;
+            block_s = block_j.dump();
 
-//             uint32_t first_chars = 11 - latest_block.length();
-//             std::string number = "";
-//             for (int i = 0; i <= first_chars; i++)
-//             {
-//                 number.append("0");
-//             }
-//             number.append(latest_block);
+            uint32_t first_chars = 11 - latest_block.length();
+            std::string number = "";
+            for (int i = 0; i <= first_chars; i++)
+            {
+                number.append("0");
+            }
+            number.append(latest_block);
 
-//             std::string block_file = "blockchain/crowd/block_" + number + ".json";
-//             if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
-//             {
-//                 cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
-//             }
-//         }
-//         else
-//         {
-//             std::cout << "Is a directory, is empty" << std::endl;
+            std::string block_file = "blockchain/coin/block_" + number + ".json";
+            if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
+            {
+                cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
+            }
+        }
+        else
+        {
+            std::cout << "Is a directory, is empty" << std::endl;
 
-//             block_j["prev_hash"] = genesis_prev_hash_;
-//             block_s = block_j.dump();
-//             std::string block_file = "blockchain/crowd/block_000000000000.json";
-//             if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
-//             {
-//                 cd.CreateFileInConfigDir(block_file, block_s);
-//             }
-//         }
-//     }
+            block_j["prev_hash"] = get_genesis_prev_hash_c();
+            block_s = block_j.dump();
+            std::string block_file = "blockchain/coin/block_000000000000.json";
+            if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
+            {
+                cd.CreateFileInConfigDir(block_file, block_s);
+            }
+        }
+    }
 
-//     return block_s;
-// }
+    return block_s;
+}
 
-// void merkle_tree::set_genesis_prev_hash()
-// {
-//     std::string genesis_message = "secrets are dumb, omnivalently speaking", genesis_prev_hash;
-//     Crypto crypto;
-//     genesis_prev_hash_ = crypto.bech32_encode_sha256(genesis_prev_hash);
-// }
+void merkle_tree_c::set_genesis_prev_hash_c()
+{
+    std::string genesis_message = "secrets are dumb, omnivalently speaking", genesis_prev_hash;
+    Crypto crypto;
+    genesis_prev_hash_c_ = crypto.bech32_encode_sha256(genesis_prev_hash);
+}
 
-// std::string merkle_tree::get_genesis_prev_hash()
-// {
-//     return genesis_prev_hash_;
-// }
+std::string merkle_tree_c::get_genesis_prev_hash_c()
+{
+    return genesis_prev_hash_c_;
+}
