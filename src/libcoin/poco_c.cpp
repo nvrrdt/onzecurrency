@@ -6,6 +6,7 @@
 #include "protocol_c.hpp"
 #include "merkle_tree_c.hpp"
 #include "p2p_network.hpp"
+#include "block_matrix.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -42,6 +43,7 @@ void PocoC::create_and_send_block_c()
     // * You should also pickup leftover transactions that weren't processed
 
     // The second part of the capstone implementation of poco:
+    BlockMatrix bm;
     for (uint16_t i = tx_.get_transactions().size(); i > 0; i--) // Decrease the amount of transactions in the blocks
     {
         for (int j = 0; j < 10; j++) // Create 10 different blocks with the same number of included transactions
@@ -92,9 +94,14 @@ void PocoC::create_and_send_block_c()
             // send intro_block to co's
             inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
 
-            // TODO reset/adapt Transactions vector accordingly when there's a new final block
+            // Add blocks to vector<vector<block_j_c_>>>
+            bm.add_block_to_block_vector(block_j_c_);
+
+            /// create filtering_function(vvb)
         }
     }
+
+    bm.add_block_vector_to_block_matrix();
 }
 
 void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)

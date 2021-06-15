@@ -12,6 +12,7 @@ add_library(coin SHARED
                      prev_hash_c.cpp
                      protocol_c.cpp
                      block_c.cpp
+                     block_matrix.cpp
 )
 
 target_include_directories(coin PUBLIC
@@ -48,6 +49,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/prev_hash_c.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/protocol_c.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/merkle_tree_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/block_matrix.hpp"
                 )
 
 INSTALL(TARGETS coin ARCHIVE DESTINATION lib/onze COMPONENT libraries)
