@@ -46,6 +46,10 @@ namespace Crowd
         {
             quit_server_ = quit;
         }
+    protected:
+        void set_resp_msg_server(std::string msg);
+        void set_resp_msg_client(std::string msg);
+        void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);
         void do_read_header_server();
@@ -54,9 +58,6 @@ namespace Crowd
         void do_read_body_client();
         void handle_read_server();
         void handle_read_client();
-        void set_resp_msg_server(std::string msg);
-        void set_resp_msg_client(std::string msg);
-        void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
         void get_sleep_and_create_block_server();
         void get_sleep_and_create_block_client();
         static void set_closed_client(std::string closed)

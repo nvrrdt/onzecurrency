@@ -33,6 +33,20 @@ void BlockMatrix::reset_block_matrix()
 //     //
 // }
 
+void BlockMatrix::add_received_block_to_received_block_vector(nlohmann::json block_j)
+{
+    std::shared_ptr<nlohmann::json> shared_block;
+    shared_block = std::make_shared<nlohmann::json> (block_j);
+    received_block_vector_.push_back(shared_block);
+}
+
+void BlockMatrix::add_received_block_vector_to_received_block_matrix()
+{
+    received_block_matrix_.push_back(received_block_vector_);
+
+    received_block_vector_.clear();
+}
+
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_received_block_matrix()
 {
     return received_block_matrix_;
@@ -40,4 +54,5 @@ std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_recei
 
 std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_;
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
+std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_;
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};

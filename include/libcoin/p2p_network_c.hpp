@@ -28,6 +28,7 @@ namespace Coin
         void start_block_creation_thread();
         void get_sleep_and_create_block_server_c();
         void intro_block_c(nlohmann::json buf_j);
+        void hash_comparison_c(nlohmann::json buf_j);
         void new_block_c(nlohmann::json buf_j);
     private:
     };
