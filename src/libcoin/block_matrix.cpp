@@ -33,5 +33,11 @@ void BlockMatrix::reset_block_matrix()
 //     //
 // }
 
+std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_received_block_matrix()
+{
+    return received_block_matrix_;
+}
+
 std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_;
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
+std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};

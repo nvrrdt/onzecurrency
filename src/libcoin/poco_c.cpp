@@ -44,60 +44,78 @@ void PocoC::create_and_send_block_c()
 
     // The second part of the capstone implementation of poco:
     BlockMatrix bm;
-    for (uint16_t i = tx_.get_transactions().size(); i > 0; i--) // Decrease the amount of transactions in the blocks
+    for (uint16_t i; i < bm.get_received_block_matrix().back().size(); i++)
     {
-        for (int j = 0; j < 10; j++) // Create 10 different blocks with the same number of included transactions
+        /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
+        // in the future there will be a lot of finetuning work on this function
+        // preliminarly this is ok
+
+        for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
-            merkle_tree_c mt;
-
-            std::vector<std::string> m_v;
-            nlohmann::json entry_tx_j, entry_transactions_j;
-            std::string full_hash_req;
-
-            for (uint16_t k = 0; k < i; k++) // Add the transactions till the i-th transaction to the block
+            for (int k = 0; k < 10; k++) // Create 10 different blocks with the same number of included transactions
             {
-                m_v = *tx_.get_transactions().at(k).second;
+                merkle_tree_c mt;
 
-                full_hash_req = m_v[0]; // full_hash_req
+                std::vector<std::string> m_v;
+                nlohmann::json entry_tx_j, entry_transactions_j;
+                std::string full_hash_req;
 
-                entry_tx_j["full_hash_req"] = full_hash_req;
-                entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
-                entry_tx_j["amount"] = m_v[2]; // amount
-                s_shptr_c_->push(entry_tx_j.dump());
+                for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
+                {
+                    m_v = *tx_.get_transactions().at(l).second;
 
-                entry_transactions_j.push_back(entry_tx_j);
+                    full_hash_req = m_v[0]; // full_hash_req
+
+                    entry_tx_j["full_hash_req"] = full_hash_req;
+                    entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
+                    entry_tx_j["amount"] = m_v[2]; // amount
+                    s_shptr_c_->push(entry_tx_j.dump());
+
+                    entry_transactions_j.push_back(entry_tx_j);
+                }
+
+                s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
+                std::string datetime = mt.time_now_c();
+                std::string root_hash_data = s_shptr_c_->top();
+                block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j);
+
+                Crypto crypto;
+                std::string the_block = bm.get_received_block_matrix().back()[i]->dump();
+                block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
+
+                ProtocolC proto;
+                std::string my_last_block_nr = proto.get_last_block_nr_c();
+
+                std::string my_next_block_nr;
+                uint64_t value;
+                std::istringstream iss(my_last_block_nr);
+                iss >> value;
+                value++;
+                std::ostringstream oss;
+                oss << value;
+                my_next_block_nr = oss.str();
+
+                // send hash of this block with the block contents to the co's, forget save_block_to_file
+                // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+                // send intro_block to co's
+                inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
+
+                // Add blocks to vector<vector<block_j_c_>>>
+                bm.add_block_to_block_vector(block_j_c_);
+
+
+
+                /// 2) intro_block and new_block???
+
+                /// 3) create filtering_function(vvb)
+                // read prev_hash'es from newest layer
+                // evaluate prev_hash'es going to an older layer
+
+                /// 4) a verification function of the blocks for when the application is started
+
+                
             }
-
-            s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
-            std::string datetime = mt.time_now_c();
-            std::string root_hash_data = s_shptr_c_->top();
-            block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j);
-
-            PrevHashC ph;
-            block_j_c_["prev_hash"] = ph.calculate_hash_from_last_block_c();
-
-            ProtocolC proto;
-            std::string my_last_block_nr = proto.get_last_block_nr_c();
-
-            std::string my_next_block_nr;
-            uint64_t value;
-            std::istringstream iss(my_last_block_nr);
-            iss >> value;
-            value++;
-            std::ostringstream oss;
-            oss << value;
-            my_next_block_nr = oss.str();
-
-            // send hash of this block with the block contents to the co's, forget save_block_to_file
-            // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
-
-            // send intro_block to co's
-            inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
-
-            // Add blocks to vector<vector<block_j_c_>>>
-            bm.add_block_to_block_vector(block_j_c_);
-
-            /// create filtering_function(vvb)
         }
     }
 
