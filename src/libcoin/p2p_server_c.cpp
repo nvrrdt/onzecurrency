@@ -1055,6 +1055,9 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     Transactions tx;
     std::cout << "transactions.size() in Coin: " << tx.get_transactions().size() << std::endl;
 
+    BlockMatrix bm;
+    bm.add_received_block_vector_to_received_block_matrix();
+
     PocoC poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
     
