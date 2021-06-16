@@ -52,6 +52,8 @@ void PocoC::create_and_send_block_c()
 
         for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
+            // TODO limit the reach of this loop otherwise the previous loop isn't usable
+            
             for (int k = 0; k < 10; k++) // Create 10 different blocks with the same number of included transactions
             {
                 merkle_tree_c mt;
