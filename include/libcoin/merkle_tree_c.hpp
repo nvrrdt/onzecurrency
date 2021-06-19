@@ -18,7 +18,7 @@ namespace Coin
     {
     public:
         // int prep_block_creation();
-        nlohmann::json create_block_c(std::string &datetime, std::string &root_hash_data, nlohmann::json &txs_data_j);
+        nlohmann::json create_block_c(std::string &datetime, std::string &root_hash_data, nlohmann::json &txs_data_j, int nonce);
         std::string time_now_c();
         std::shared_ptr<std::stack<std::string>> calculate_root_hash_c(std::shared_ptr<std::stack<std::string>> &s_shptr);
         std::string save_block_to_file_c(nlohmann::json &block_j, std::string &latest_block);

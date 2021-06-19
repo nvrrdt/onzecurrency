@@ -112,12 +112,13 @@ std::shared_ptr<std::stack<std::string>> merkle_tree_c::pop_two_and_hash_c(std::
     }
 }
 
-nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string &root_hash_data, nlohmann::json &txs_data_j)
+nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string &root_hash_data, nlohmann::json &txs_data_j, int nonce)
 {
     // creation of the block's data for storage
     nlohmann::json j = {
         {"starttime", datetime},
-        {"hash_co", root_hash_data}
+        {"hash_co", root_hash_data},
+        {"nonce", nonce}
     };
 
     int txs_count = 0;

@@ -97,7 +97,7 @@ void PocoC::create_and_send_block_c()
                 s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
                 std::string datetime = mt.time_now_c();
                 std::string root_hash_data = s_shptr_c_->top();
-                block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j);
+                block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, k); // k = nonce
 
                 Crypto crypto;
                 std::string the_block = bm.get_block_matrix().back()[i]->dump();
