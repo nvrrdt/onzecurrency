@@ -62,6 +62,8 @@ void PocoC::create_and_send_block_c()
                 nlohmann::json entry_tx_j, entry_transactions_j;
                 std::string full_hash_req;
 
+                uint64_t total_dev_amount_number = 0;
+
                 for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
                     m_v = *tx_.get_transactions().at(l).second;
@@ -74,7 +76,23 @@ void PocoC::create_and_send_block_c()
                     s_shptr_c_->push(entry_tx_j.dump());
 
                     entry_transactions_j.push_back(entry_tx_j);
+
+                    // Calculate total_dev_amount:
+                    uint64_t dev_amount_number;
+                    std::istringstream iss(m_v[3]);
+                    iss >> dev_amount_number;
+
+                    total_dev_amount_number += dev_amount_number;
                 }
+
+                std::ostringstream osss;
+                osss << total_dev_amount_number;
+                std::string total_dev_amount = osss.str();
+                entry_tx_j["full_hash_req"] = "dev_payment";
+                entry_tx_j["to_full_hash"] = "the developer's hash"; // TODO fill in the hash of the developer
+                entry_tx_j["amount"] = total_dev_amount; // amount
+                s_shptr_c_->push(entry_tx_j.dump());
+                entry_transactions_j.push_back(entry_tx_j);
 
                 s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
                 std::string datetime = mt.time_now_c();

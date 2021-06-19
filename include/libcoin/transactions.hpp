@@ -17,6 +17,8 @@ namespace Coin
         static void set_latest_transaction(std::string tx_hash, std::vector<std::string> vec);
         static std::map<std::string, std::vector<std::string>> get_latest_transaction();
     private:
+        static std::string calculate_dev_payment(std::string amount);
+    private:
         static std::vector<std::pair<std::string, std::shared_ptr<std::vector<std::string>>>> transactions_;
         static std::map<std::string, std::vector<std::string>> latest_transaction_;
     };
