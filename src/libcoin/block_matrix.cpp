@@ -52,6 +52,38 @@ std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_recei
     return received_block_matrix_;
 }
 
+void BlockMatrix::evaluate_both_block_matrices()
+{
+    // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
+
+    for (uint16_t i = 0; i < get_block_matrix().back().size(); i++)
+    {
+        bool found = false;
+
+        for (uint16_t j = 0; j < get_received_block_matrix().back().size(); j++)
+        {
+            if (get_block_matrix().back().at(i) == get_received_block_matrix().back().at(j))
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (found)
+        {
+            found == false;
+            continue;
+        }
+        else
+        {
+            get_block_matrix().back().erase(get_block_matrix().back().begin() + i);
+            continue;
+        }
+    }
+
+    get_received_block_matrix().back().clear();
+}
+
 std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_;
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
 std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_;

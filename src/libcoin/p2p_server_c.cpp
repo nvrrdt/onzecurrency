@@ -1060,7 +1060,7 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
 
     PocoC poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
-    
+
     std::cout << "Block_c created server!!" << std::endl;
 }
 

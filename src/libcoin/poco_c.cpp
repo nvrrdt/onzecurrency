@@ -44,7 +44,7 @@ void PocoC::create_and_send_block_c()
 
     // The second part of the capstone implementation of poco:
     BlockMatrix bm;
-    for (uint16_t i; i < bm.get_received_block_matrix().back().size(); i++)
+    for (uint16_t i; i < bm.get_block_matrix().back().size(); i++)
     {
         /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
         // in the future there will be a lot of finetuning work on this function
@@ -82,7 +82,7 @@ void PocoC::create_and_send_block_c()
                 block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j);
 
                 Crypto crypto;
-                std::string the_block = bm.get_received_block_matrix().back()[i]->dump();
+                std::string the_block = bm.get_block_matrix().back()[i]->dump();
                 block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
 
                 ProtocolC proto;
@@ -122,6 +122,7 @@ void PocoC::create_and_send_block_c()
     }
 
     bm.add_block_vector_to_block_matrix();
+    bm.evaluate_both_block_matrices();
 }
 
 void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
