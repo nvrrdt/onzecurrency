@@ -4,11 +4,15 @@
 #include "prev_hash.hpp"
 #include "rocksy.hpp"
 #include "crypto.hpp"
+#include "verification_c.hpp"
 
 using namespace Coin;
 
 void P2pNetworkC::start_coin()
 {
+    VerificationC verification;
+    verification.verify_all_blocks();
+
     // input to create a transaction (tx)
     while (true)
     {
