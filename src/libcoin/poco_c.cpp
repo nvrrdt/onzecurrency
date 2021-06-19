@@ -123,18 +123,6 @@ void PocoC::create_and_send_block_c()
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm.add_block_to_block_vector(block_j_c_);
-
-
-
-                /// 2) intro_block and new_block???
-
-                /// 3) create filtering_function(vvb)
-                // read prev_hash'es from newest layer
-                // evaluate prev_hash'es going to an older layer
-
-                /// 4) a verification function of the blocks for when the application is started
-
-                
             }
         }
     }
