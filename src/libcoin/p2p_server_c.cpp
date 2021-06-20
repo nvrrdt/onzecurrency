@@ -124,7 +124,14 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
             std::istringstream iss(amount);
             iss >> amount_number;
 
-            if (funds >= amount_number)
+            // calculate dev_amount
+            Transactions txs;
+            uint64_t dev_amount_number = txs.calculate_dev_payment_numbers(amount_number);
+
+            // calculate total_amount
+            uint64_t total_amount = amount_number + dev_amount_number;
+
+            if (funds >= total_amount)
             {
                 std::cout << "funds are ok" << std::endl;
 
@@ -284,7 +291,14 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
             std::istringstream iss(amount);
             iss >> amount_number;
 
-            if (funds >= amount_number)
+            // calculate dev_amount
+            Transactions txs;
+            uint64_t dev_amount_number = txs.calculate_dev_payment_numbers(amount_number);
+
+            // calculate total_amount
+            uint64_t total_amount = amount_number + dev_amount_number;
+
+            if (funds >= total_amount)
             {
                 std::cout << "funds are ok" << std::endl;
 
@@ -464,7 +478,14 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
             std::istringstream iss(amount);
             iss >> amount_number;
 
-            if (funds >= amount_number)
+            // calculate dev_amount
+            Transactions txs;
+            uint64_t dev_amount_number = txs.calculate_dev_payment_numbers(amount_number);
+
+            // calculate total_amount
+            uint64_t total_amount = amount_number + dev_amount_number;
+
+            if (funds >= total_amount)
             {
                 std::cout << "funds are ok" << std::endl;
 

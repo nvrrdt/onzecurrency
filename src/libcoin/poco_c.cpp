@@ -262,8 +262,8 @@ void PocoC::evaluate_transactions()
     Transactions tx;
     std::map<std::string, std::vector<std::string>> latest_transaction = tx.get_latest_transaction();
 
-    std::string latest_tx_hash, latest_full_hash_req, latest_amount;
-    std::vector<std::string> tx_hashes_vec, full_hashes_reqs_vec, amounts_vec;
+    std::string latest_tx_hash, latest_full_hash_req, latest_amount, dev_amount;
+    std::vector<std::string> tx_hashes_vec, full_hashes_reqs_vec, amounts_vec, dev_amounts_vec;
 
     // Fill the vectors and the latest strings
     for (auto& lt: latest_transaction) {
@@ -273,6 +273,8 @@ void PocoC::evaluate_transactions()
         full_hashes_reqs_vec.push_back(latest_full_hash_req); // payer
         latest_amount = lt.second.at(2);
         amounts_vec.push_back(latest_amount);
+        dev_amount = lt.second.at(3);
+        dev_amounts_vec.push_back(dev_amount);
     }
 
     std::map<std::string, std::map<std::string, std::string>> same_payer_payments; // <full_hash_req, <tx_hash, payment_in_this_tx>>
@@ -318,7 +320,13 @@ void PocoC::evaluate_transactions()
         std::istringstream iss(amounts_vec[i]);
         iss >> amount;
 
-        if (funds >= amount)
+        uint64_t dev_amount;
+        std::istringstream isss(dev_amounts_vec[i]);
+        isss >> dev_amount;
+
+        uint64_t total_amount = amount + dev_amount;
+
+        if (funds >= total_amount)
         {
             // Funds sufficient
             std::cout << "Funds sufficient" << std::endl;

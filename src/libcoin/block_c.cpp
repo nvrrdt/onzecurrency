@@ -123,7 +123,7 @@ nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string 
 
     int txs_count = 0;
     for (auto& element : txs_data_j) {
-        std::string full_hash_req, to_full_hash, amount, dev_amount;
+        std::string full_hash_req, to_full_hash, amount;
 
         full_hash_req = element["full_hash_req"];
         to_full_hash = element["to_full_hash"];

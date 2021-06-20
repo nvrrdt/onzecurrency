@@ -53,6 +53,13 @@ std::map<std::string, std::vector<std::string>> Transactions::get_latest_transac
     return latest_transaction_;
 }
 
+uint64_t Transactions::calculate_dev_payment_numbers(uint64_t amount)
+{
+    uint64_t dev_amount = 0.00035 * amount;   // 0.035%/tx is the dev payment
+                                                            // TODO maybe introduce a lower limit here
+    return dev_amount;
+}
+
 std::string Transactions::calculate_dev_payment(std::string amount)
 {
     uint64_t amount_number;
