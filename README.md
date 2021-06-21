@@ -18,7 +18,12 @@
 - ssh into the 4 servers
 - dpkg -i ./onzecurrency-0.1.1-Linux.deb
 - apt-get -f install
-- rm -rf /onzecurrency/.config && onze-terminal 
+- rm -rf /onzecurrency/.config && onze-terminal
+
+#### doing a test procedure on the server
+- dpkg -i ./onzecurrency-0.1.1-Linux.deb
+- apt-get -f install
+- rm -rf /onzecurrency/.config && onze-terminal
 
 ### some commands for easy retrieval:
 
