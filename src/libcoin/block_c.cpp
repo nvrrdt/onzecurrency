@@ -129,9 +129,9 @@ nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string 
         to_full_hash = element["to_full_hash"];
         amount = element["amount"];
 
-        j[txs_count]["full_hash_req"] = full_hash_req;
-        j[txs_count]["to_full_hash"] = to_full_hash;
-        j[txs_count]["amount"] = amount;
+        j["txs"][txs_count]["full_hash_req"] = full_hash_req;
+        j["txs"][txs_count]["to_full_hash"] = to_full_hash;
+        j["txs"][txs_count]["amount"] = amount;
 
         txs_count++;
     }

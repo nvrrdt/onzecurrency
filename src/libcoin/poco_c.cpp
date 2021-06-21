@@ -7,6 +7,7 @@
 #include "merkle_tree_c.hpp"
 #include "p2p_network.hpp"
 #include "block_matrix.hpp"
+#include "full_hash.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -44,16 +45,15 @@ void PocoC::create_and_send_block_c()
 
     // The second part of the capstone implementation of poco:
     BlockMatrix bm;
-    for (uint16_t i; i < bm.get_block_matrix().back().size(); i++)
+
+    if (bm.get_block_matrix().empty())
     {
-        /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
-        // in the future there will be a lot of finetuning work on this function
-        // preliminarly this is ok
+        std::cout << "No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
         for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
-            
+
             for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
             {
                 merkle_tree_c mt;
@@ -100,7 +100,7 @@ void PocoC::create_and_send_block_c()
                 block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
                 Crypto crypto;
-                std::string the_block = bm.get_block_matrix().back()[i]->dump();
+                std::string the_block = "no blockchain present in folder";
                 block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
 
                 ProtocolC proto;
@@ -126,8 +126,95 @@ void PocoC::create_and_send_block_c()
             }
         }
     }
+    else
+    {
+        std::cout << "Normal execution for block creation ..." << std::endl;           
 
-    bm.add_block_vector_to_block_matrix();
+        for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
+        {
+            /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
+            // in the future there will be a lot of finetuning work on this function
+            // preliminarly this is ok
+
+            for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+            {
+                // TODO limit the reach of this loop otherwise the previous loop isn't usable
+
+                for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
+                {
+                    merkle_tree_c mt;
+
+                    std::vector<std::string> m_v;
+                    nlohmann::json entry_tx_j, entry_transactions_j;
+                    std::string full_hash_req;
+
+                    uint64_t total_dev_amount_number = 0;
+
+                    for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
+                    {
+                        m_v = *tx_.get_transactions().at(l).second;
+
+                        full_hash_req = m_v[0]; // full_hash_req
+
+                        entry_tx_j["full_hash_req"] = full_hash_req;
+                        entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
+                        entry_tx_j["amount"] = m_v[2]; // amount
+                        s_shptr_c_->push(entry_tx_j.dump());
+
+                        entry_transactions_j.push_back(entry_tx_j);
+
+                        // Calculate total_dev_amount:
+                        uint64_t dev_amount_number;
+                        std::istringstream iss(m_v[3]);
+                        iss >> dev_amount_number;
+
+                        total_dev_amount_number += dev_amount_number;
+                    }
+
+                    std::ostringstream osss;
+                    osss << total_dev_amount_number;
+                    std::string total_dev_amount = osss.str();
+                    entry_tx_j["full_hash_req"] = "dev_payment";
+                    entry_tx_j["to_full_hash"] = "the developer's hash"; // TODO fill in the hash of the developer
+                    entry_tx_j["amount"] = total_dev_amount; // amount
+                    s_shptr_c_->push(entry_tx_j.dump());
+                    entry_transactions_j.push_back(entry_tx_j);
+
+                    s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
+                    std::string datetime = mt.time_now_c();
+                    std::string root_hash_data = s_shptr_c_->top();
+                    block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
+
+                    Crypto crypto;
+                    std::string the_block = bm.get_block_matrix().back()[i]->dump();
+                    block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
+
+                    ProtocolC proto;
+                    std::string my_last_block_nr = proto.get_last_block_nr_c();
+
+                    std::string my_next_block_nr;
+                    uint64_t value;
+                    std::istringstream iss(my_last_block_nr);
+                    iss >> value;
+                    value++;
+                    std::ostringstream oss;
+                    oss << value;
+                    my_next_block_nr = oss.str();
+
+                    // send hash of this block with the block contents to the co's, forget save_block_to_file
+                    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+                    // send intro_block to co's
+                    inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
+
+                    // Add blocks to vector<vector<block_j_c_>>>
+                    bm.add_block_to_block_vector(block_j_c_);
+                }
+            }
+        }
+    }
+
+    bm.add_block_vector_to_block_matrix();    
     bm.evaluate_both_block_matrices();
 }
 
