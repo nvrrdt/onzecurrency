@@ -102,17 +102,7 @@ void PocoC::create_and_send_block_c()
                 mt.set_genesis_prev_hash_c();
                 block_j_c_["prev_hash"] = mt.get_genesis_prev_hash_c();
 
-                ProtocolC proto;
-                std::string my_last_block_nr = proto.get_last_block_nr_c();
-
-                std::string my_next_block_nr;
-                uint64_t value;
-                std::istringstream iss(my_last_block_nr);
-                iss >> value;
-                value++;
-                std::ostringstream oss;
-                oss << value;
-                my_next_block_nr = oss.str();
+                std::string my_next_block_nr = "0";
 
                 // send hash of this block with the block contents to the co's, forget save_block_to_file
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
