@@ -43,7 +43,15 @@ std::string ProtocolC::get_last_block_nr_c()
         //     cout << "   " << *it << '\n';
         // }
 
-        uint64_t n = v.size() - 1; // TODO: perhaps verify with the number in de filename
+        uint64_t n;
+        if (v.empty())
+        {
+            n = -1;
+        }
+        else
+        {
+            n = v.size() - 1; // TODO: perhaps verify with the number in de filename
+        }
 
         o << n;
     }

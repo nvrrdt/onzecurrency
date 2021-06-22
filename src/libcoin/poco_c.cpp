@@ -99,9 +99,8 @@ void PocoC::create_and_send_block_c()
                 std::string root_hash_data = s_shptr_c_->top();
                 block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
-                Crypto crypto;
-                std::string the_block = "no blockchain present in folder";
-                block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
+                mt.set_genesis_prev_hash_c();
+                block_j_c_["prev_hash"] = mt.get_genesis_prev_hash_c();
 
                 ProtocolC proto;
                 std::string my_last_block_nr = proto.get_last_block_nr_c();
@@ -245,8 +244,8 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
         message_j["req"] = "intro_block_c";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
-        PrevHash ph;
-        message_j["prev_hash"] = ph.calculate_hash_from_last_block();
+        PrevHashC ph;
+        message_j["prev_hash"] = ph.calculate_hash_from_last_block_c();
         message_j["full_hash_req"] = full_hash_req;
         message_j["full_hash_coord"] = hash_of_block;
 
@@ -282,7 +281,7 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
 
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
-        to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
+        to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block_c();
         to_sign_j["full_hash_req"] = full_hash_req;
         to_sign_j["full_hash_coord"] = hash_of_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];

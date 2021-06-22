@@ -10,6 +10,7 @@
 #include "configdir.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
+#include "merkle_tree_c.hpp"
 
 using namespace Crowd;
 using namespace Coin;
@@ -47,13 +48,22 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
                 //     cout << "   " << *it << '\n';
                 // }
 
-                uint64_t n = v.size(); 
+                if (v.empty())
+                {
+                    merkle_tree_c mt;
+                    mt.set_genesis_prev_hash_c();
+                    prev_hash = mt.get_genesis_prev_hash_c();
+                }
+                else
+                {
+                    uint64_t n = v.size(); 
 
-                std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
-                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                    std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+                    std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-                Crypto crypto;
-                prev_hash = crypto.bech32_encode_sha256(contents);
+                    Crypto crypto;
+                    prev_hash = crypto.bech32_encode_sha256(contents);
+                }
             }
             else
             {
@@ -62,7 +72,13 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            std::cout << p << " does not exist: create\n";
+
+            boost::filesystem::create_directories(p);
+
+            merkle_tree_c mt;
+            mt.set_genesis_prev_hash_c();
+            prev_hash = mt.get_genesis_prev_hash_c();
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)

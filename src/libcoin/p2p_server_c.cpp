@@ -20,6 +20,7 @@
 #include "transactions.hpp"
 #include "poco_c.hpp"
 #include "block_matrix.hpp"
+#include "merkle_tree_c.hpp"
 
 using namespace Coin;
 
@@ -1127,19 +1128,27 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
     nlohmann::json recv_block_j = buf_j["block"];
     BlockMatrix bm;
-    for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
+    if (bm.get_block_matrix().empty())
     {
-        if (bm.get_block_matrix().back()[i] == recv_block_j)
+        bm.add_received_block_to_received_block_vector(recv_block_j);
+    }
+    else
+    {
+        for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
         {
-            std::cout << "Received block is in block_vector" << std::endl;
-            bm.add_received_block_to_received_block_vector(recv_block_j);
-            break;
-        }
-        else if (i == bm.get_block_matrix().back().size() - 1)
-        {
-            // Don't accept this block
-            std::cout << "Received block not in block_vector" << std::endl;
-            return;
+std::cout << "xxxxx " << bm.get_block_matrix().back().size() << std::endl;
+            if (*bm.get_block_matrix().back().at(i) == recv_block_j)
+            {
+                std::cout << "Received block is in block_vector" << std::endl;
+                bm.add_received_block_to_received_block_vector(recv_block_j);
+                break;
+            }
+            else if (i == bm.get_block_matrix().back().size() - 1)
+            {
+                // Don't accept this block
+                std::cout << "Received block not in block_vector" << std::endl;
+                return;
+            }
         }
     }
 
@@ -1157,20 +1166,24 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     }
     delete rocksy;
 
-    if (full_hash_coord_from_coord == full_hash_coord_from_me)
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file();
+
+    if (full_hash_coord_from_me == my_full_hash)
     {
         std::cout << "Coordinator is truthful c" << std::endl;
 
         std::string prev_hash_coordinator = buf_j["prev_hash"];
+        std::string prev_hash_in_block = buf_j["block"]["prev_hash"];
 
-        if (prev_hash_coordinator == prev_hash_me)
+        if (prev_hash_coordinator == prev_hash_in_block)
         {
             std::cout << "Successful comparison of prev_hashes, now sharing hashes c" << std::endl;
 
             // Save block
-            merkle_tree mt;
+            merkle_tree_c mt;
             std::string latest_block_nr = buf_j["latest_block_nr"];
-            mt.save_block_to_file(recv_block_j, latest_block_nr);
+            mt.save_block_to_file_c(recv_block_j, latest_block_nr);
 
             // Put in rocksdb
             // for (auto &[key, value] : buf_j["rocksdb"].items()) // TODO not yet ready in poco_c
