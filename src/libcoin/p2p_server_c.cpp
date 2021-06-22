@@ -713,7 +713,15 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
             for (int i = 0; i < chosen_ones_reward.size(); i++)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
-                tx.add_tx_to_transactions(coordinator, to_full_hash, amount);
+
+                if (to_full_hash == "0")
+                {
+                    break;
+                }
+                else
+                {
+                    tx.add_tx_to_transactions(coordinator, to_full_hash, amount);
+                }
 
                 if (i == 0) start_block_creation_thread();
             }
@@ -871,7 +879,15 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
             for (int i = 0; i < chosen_ones_reward.size(); i++)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
-                tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                if (to_full_hash == "0")
+                {
+                    break;
+                }
+                else
+                {
+                    tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+                }
 
                 if (i == 0) start_block_creation_thread();
             }
@@ -1027,7 +1043,15 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
             for (int i = 0; i < chosen_ones_reward.size(); i++)
             {
                 std::string to_full_hash = chosen_ones_reward[i];
-                tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+
+                if (to_full_hash == "0")
+                {
+                    break;
+                }
+                else
+                {
+                    tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+                }
 
                 if (i == 0) start_block_creation_thread();
             }
