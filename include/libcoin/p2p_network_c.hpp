@@ -10,7 +10,7 @@ using namespace Crowd;
 
 namespace Coin
 {
-    class P2pNetworkC: P2pNetwork
+    class P2pNetworkC: public P2pNetwork
     {
     public:
         void start_coin();

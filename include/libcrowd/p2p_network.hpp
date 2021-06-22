@@ -86,11 +86,12 @@ namespace Crowd
         {
             return quit_server_;
         }
+    protected:
+        ENetHost   *server_;
     private:
         char buffer_[p2p_message::max_body_length];
 
         ENetHost  *client_;
-        ENetHost   *server_;
         ENetAddress  address_;
         ENetEvent  event_;
         ENetPeer  *peer_;

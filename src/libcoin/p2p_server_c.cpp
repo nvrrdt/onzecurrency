@@ -1130,16 +1130,16 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     BlockMatrix bm;
     if (bm.get_block_matrix().empty())
     {
+        std::cout << "Received block is in block_vector 1" << std::endl;
         bm.add_received_block_to_received_block_vector(recv_block_j);
     }
     else
     {
         for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
         {
-std::cout << "xxxxx " << bm.get_block_matrix().back().size() << std::endl;
             if (*bm.get_block_matrix().back().at(i) == recv_block_j)
             {
-                std::cout << "Received block is in block_vector" << std::endl;
+                std::cout << "Received block is in block_vector 2" << std::endl;
                 bm.add_received_block_to_received_block_vector(recv_block_j);
                 break;
             }
@@ -1204,10 +1204,10 @@ std::cout << "xxxxx " << bm.get_block_matrix().back().size() << std::endl;
         // Inform coordinator of succesfullness of hash comparison
         nlohmann::json m_j;
         m_j["req"] = "hash_comparison_c";
-        m_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
+        m_j["hash_comp"] = prev_hash_in_block == prev_hash_coordinator;
         std::string msg_s = m_j.dump();
 
-        set_resp_msg_server(msg_s);
+        P2pNetwork::set_resp_msg_server(msg_s);
 
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm
