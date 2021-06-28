@@ -709,7 +709,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
             }
 
             // Save the txs here in a static variable
-            Transactions tx;
+            Transactions *tx = new Transactions();
             std::string amount = "1"; // 1 onze
             for (int i = 0; i < chosen_ones_reward.size(); i++)
             {
@@ -721,13 +721,13 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
                 }
                 else
                 {
-                    tx.add_tx_to_transactions(coordinator, to_full_hash, amount);
+                    tx->add_tx_to_transactions(coordinator, to_full_hash, amount);
                 }
 
                 if (i == 0) start_block_creation_thread();
             }
 
-            
+            delete tx;
         }
         else
         {
@@ -874,7 +874,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
             }
 
             // Save the txs here in a static variable
-            Transactions tx;
+            Transactions *tx = new Transactions();
             std::string full_hash_req = coordinator;
             std::string amount = "1"; // 1 onze
             for (int i = 0; i < chosen_ones_reward.size(); i++)
@@ -887,11 +887,13 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
                 }
                 else
                 {
-                    tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+                    tx->add_tx_to_transactions(full_hash_req, to_full_hash, amount);
                 }
 
                 if (i == 0) start_block_creation_thread();
             }
+
+            delete tx;
         }
         else
         {
@@ -1038,7 +1040,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
             }
 
             // Save the txs here in a static variable
-            Transactions tx;
+            Transactions *tx = new Transactions();
             std::string full_hash_req = coordinator;
             std::string amount = "1"; // 1 onze
             for (int i = 0; i < chosen_ones_reward.size(); i++)
@@ -1051,11 +1053,13 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
                 }
                 else
                 {
-                    tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
+                    tx->add_tx_to_transactions(full_hash_req, to_full_hash, amount);
                 }
 
                 if (i == 0) start_block_creation_thread();
             }
+
+            delete tx;
         }
         else
         {
@@ -1072,17 +1076,17 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
 
 void P2pNetworkC::start_block_creation_thread()
 {
-    Transactions tx;
+    Transactions *tx = new Transactions();
 
-    if (tx.get_transactions().size() > 2048) // size limit of block within block creation delay
+    if (tx->get_transactions().size() > 2048) // size limit of block within block creation delay
     {
         // Create block
         PocoC poco;
         poco.create_and_send_block_c();
 
-        tx.reset_transactions();
+        tx->reset_transactions();
     }
-    else if (tx.get_transactions().size() == 1)
+    else if (tx->get_transactions().size() == 1)
     {
         // wait 20 secs
         // then create block
@@ -1092,6 +1096,8 @@ void P2pNetworkC::start_block_creation_thread()
         std::thread t(&P2pNetworkC::get_sleep_and_create_block_server_c, this);
         t.detach();
     }
+
+    delete tx;
 }
 
 void P2pNetworkC::get_sleep_and_create_block_server_c()
@@ -1101,13 +1107,15 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     Transactions tx;
     std::cout << "transactions.size() in Coin: " << tx.get_transactions().size() << std::endl;
 
-    BlockMatrix bm;
-    bm.add_received_block_vector_to_received_block_matrix();
+    BlockMatrix *bm = new BlockMatrix();
+    bm->add_received_block_vector_to_received_block_matrix();
 
     PocoC poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
 
     std::cout << "Block_c created server!!" << std::endl;
+
+    delete bm;
 }
 
 void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
@@ -1127,23 +1135,23 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     nlohmann::json starttime_coord = buf_j["block"]["starttime"];
 
     nlohmann::json recv_block_j = buf_j["block"];
-    BlockMatrix bm;
-    if (bm.get_block_matrix().empty())
+    BlockMatrix *bm = new BlockMatrix();
+    if (bm->get_block_matrix().empty())
     {
         std::cout << "Received block is in block_vector 1" << std::endl;
-        bm.add_received_block_to_received_block_vector(recv_block_j);
+        bm->add_received_block_to_received_block_vector(recv_block_j);
     }
     else
     {
-        for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
+        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
         {
-            if (*bm.get_block_matrix().back().at(i) == recv_block_j)
+            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
             {
                 std::cout << "Received block is in block_vector 2" << std::endl;
-                bm.add_received_block_to_received_block_vector(recv_block_j);
+                bm->add_received_block_to_received_block_vector(recv_block_j);
                 break;
             }
-            else if (i == bm.get_block_matrix().back().size() - 1)
+            else if (i == bm->get_block_matrix().back().size() - 1)
             {
                 // Don't accept this block
                 std::cout << "Received block not in block_vector" << std::endl;
@@ -1151,6 +1159,8 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
             }
         }
     }
+
+    delete bm;
 
     Crypto crypto;
 

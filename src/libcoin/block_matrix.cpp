@@ -56,9 +56,19 @@ void BlockMatrix::evaluate_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 
+    std::cout << "evaluate_both_block_matrices" << std::endl;
+
+    // std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
+    // std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
+    // std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
+    // std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
+
     for (uint16_t i = 0; i < get_block_matrix().back().size(); i++)
     {
         bool found = false;
+
+        std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
+        it = get_block_matrix().back().begin() + i;
 
         for (uint16_t j = 0; j < get_received_block_matrix().back().size(); j++)
         {
@@ -76,7 +86,7 @@ void BlockMatrix::evaluate_both_block_matrices()
         }
         else
         {
-            get_block_matrix().back().erase(get_block_matrix().back().begin() + i);
+            get_block_matrix().back().erase(it);
             continue;
         }
     }

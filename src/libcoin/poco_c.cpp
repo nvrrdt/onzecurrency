@@ -44,9 +44,11 @@ void PocoC::create_and_send_block_c()
     // * You should also pickup leftover transactions that weren't processed
 
     // The second part of the capstone implementation of poco:
-    BlockMatrix bm;
+    std::cout << "create_and_send_block_c" << std::endl;
 
-    if (bm.get_block_matrix().empty())
+    BlockMatrix *bm = new BlockMatrix();
+
+    if (bm->get_block_matrix().empty())
     {
         std::cout << "No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
@@ -54,19 +56,28 @@ void PocoC::create_and_send_block_c()
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
+            std::cout << "2nd for loop " << j << std::endl;
+
             for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
             {
+
+                std::cout << "3rd for loop " << nonce << std::endl;
+
                 merkle_tree_c *mt = new merkle_tree_c();
 
                 std::vector<std::string> *m_v = new std::vector<std::string>();
                 nlohmann::json entry_tx_j;
+                entry_tx_j.clear();
                 nlohmann::json entry_transactions_j;
+                entry_transactions_j.clear();
                 std::string *full_hash_req = new std::string();
 
                 uint64_t total_dev_amount_number = 0;
 
                 for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
+                    std::cout << "4th for loop " << l << std::endl;
+
                     *m_v = *tx_->get_transactions().at(l).second;
 
                     *full_hash_req = m_v->at(0); // full_hash_req
@@ -111,41 +122,53 @@ void PocoC::create_and_send_block_c()
                 inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                 // Add blocks to vector<vector<block_j_c_>>>
-                bm.add_block_to_block_vector(block_j_c_);
+                bm->add_block_to_block_vector(block_j_c_);
 
                 delete mt;
                 delete m_v;
                 delete full_hash_req;
             }
+            std::cout << "11 " << std::endl;
         }
+        std::cout << "22 " << std::endl;
     }
     else
     {
         std::cout << "Normal execution for block creation ..." << std::endl;           
 
-        for (uint16_t i = 0; i < bm.get_block_matrix().back().size(); i++)
+        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
         {
+            std::cout << "1st for loop with block matrix " << i << std::endl;
+
             /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
             // in the future there will be a lot of finetuning work on this function
             // preliminarly this is ok
 
             for (uint16_t j = tx_->get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
+                std::cout << "2nd for loop with block matrix " << j << std::endl;
+
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
                 for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
                 {
+                    std::cout << "3rd for loop with block matrix " << nonce << std::endl;
+
                     merkle_tree_c *mt = new merkle_tree_c();
 
                     std::vector<std::string> *m_v = new std::vector<std::string>();
                     nlohmann::json entry_tx_j;
+                    entry_tx_j.clear();
                     nlohmann::json entry_transactions_j;
+                    entry_transactions_j.clear();
                     std::string *full_hash_req = new std::string();
 
                     uint64_t total_dev_amount_number = 0;
 
                     for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
+                        std::cout << "4th for loop with block matrix " << l << std::endl;
+
                         *m_v = *tx_->get_transactions().at(l).second;
 
                         *full_hash_req = m_v->at(0); // full_hash_req
@@ -180,7 +203,7 @@ void PocoC::create_and_send_block_c()
                     block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
                     Crypto crypto;
-                    std::string the_block = bm.get_block_matrix().back()[i]->dump();
+                    std::string the_block = bm->get_block_matrix().back()[i]->dump();
                     block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
 
                     ProtocolC proto;
@@ -202,7 +225,7 @@ void PocoC::create_and_send_block_c()
                     inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                     // Add blocks to vector<vector<block_j_c_>>>
-                    bm.add_block_to_block_vector(block_j_c_);
+                    bm->add_block_to_block_vector(block_j_c_);
 
                     delete mt;
                     delete m_v;
@@ -211,13 +234,19 @@ void PocoC::create_and_send_block_c()
             }
         }
     }
+std::cout << "33 " << std::endl;
+    bm->add_block_vector_to_block_matrix();
+std::cout << "44 " << std::endl;
+    bm->evaluate_both_block_matrices();
 
-    bm.add_block_vector_to_block_matrix();    
-    bm.evaluate_both_block_matrices();
+    delete bm;
+std::cout << "55_ " << std::endl;
 }
 
 void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
+    std::cout << "inform_chosen_ones_c" << std::endl;
+
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
