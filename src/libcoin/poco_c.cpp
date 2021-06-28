@@ -50,36 +50,36 @@ void PocoC::create_and_send_block_c()
     {
         std::cout << "No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
-        for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+        for (uint16_t j = tx_->get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
             for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
             {
-                merkle_tree_c mt;
+                merkle_tree_c *mt = new merkle_tree_c();
 
-                std::vector<std::string> m_v;
-                nlohmann::json entry_tx_j, entry_transactions_j;
-                std::string full_hash_req;
+                std::vector<std::string> *m_v = new std::vector<std::string>();
+                nlohmann::json entry_tx_j;
+                nlohmann::json entry_transactions_j;
+                std::string *full_hash_req = new std::string();
 
                 uint64_t total_dev_amount_number = 0;
 
                 for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
-                    m_v = *tx_.get_transactions().at(l).second;
+                    *m_v = *tx_->get_transactions().at(l).second;
 
-                    full_hash_req = m_v[0]; // full_hash_req
-
-                    entry_tx_j["full_hash_req"] = full_hash_req;
-                    entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
-                    entry_tx_j["amount"] = m_v[2]; // amount
+                    *full_hash_req = m_v->at(0); // full_hash_req
+                    entry_tx_j["full_hash_req"] = *full_hash_req;
+                    entry_tx_j["to_full_hash"] = m_v->at(1); // to_full_hash
+                    entry_tx_j["amount"] = m_v->at(2); // amount
                     s_shptr_c_->push(entry_tx_j.dump());
 
                     entry_transactions_j.push_back(entry_tx_j);
 
                     // Calculate total_dev_amount:
                     uint64_t dev_amount_number;
-                    std::istringstream iss(m_v[3]);
+                    std::istringstream iss(m_v->at(3));
                     iss >> dev_amount_number;
 
                     total_dev_amount_number += dev_amount_number;
@@ -94,13 +94,13 @@ void PocoC::create_and_send_block_c()
                 s_shptr_c_->push(entry_tx_j.dump());
                 entry_transactions_j.push_back(entry_tx_j);
 
-                s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
-                std::string datetime = mt.time_now_c();
+                s_shptr_c_ = mt->calculate_root_hash_c(s_shptr_c_);
+                std::string datetime = mt->time_now_c();
                 std::string root_hash_data = s_shptr_c_->top();
-                block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
+                block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
-                mt.set_genesis_prev_hash_c();
-                block_j_c_["prev_hash"] = mt.get_genesis_prev_hash_c();
+                mt->set_genesis_prev_hash_c();
+                block_j_c_["prev_hash"] = mt->get_genesis_prev_hash_c();
 
                 std::string my_next_block_nr = "0";
 
@@ -108,10 +108,14 @@ void PocoC::create_and_send_block_c()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
+                inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm.add_block_to_block_vector(block_j_c_);
+
+                delete mt;
+                delete m_v;
+                delete full_hash_req;
             }
         }
     }
@@ -125,36 +129,37 @@ void PocoC::create_and_send_block_c()
             // in the future there will be a lot of finetuning work on this function
             // preliminarly this is ok
 
-            for (uint16_t j = tx_.get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+            for (uint16_t j = tx_->get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
                 for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
                 {
-                    merkle_tree_c mt;
+                    merkle_tree_c *mt = new merkle_tree_c();
 
-                    std::vector<std::string> m_v;
-                    nlohmann::json entry_tx_j, entry_transactions_j;
-                    std::string full_hash_req;
+                    std::vector<std::string> *m_v = new std::vector<std::string>();
+                    nlohmann::json entry_tx_j;
+                    nlohmann::json entry_transactions_j;
+                    std::string *full_hash_req = new std::string();
 
                     uint64_t total_dev_amount_number = 0;
 
                     for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
-                        m_v = *tx_.get_transactions().at(l).second;
+                        *m_v = *tx_->get_transactions().at(l).second;
 
-                        full_hash_req = m_v[0]; // full_hash_req
+                        *full_hash_req = m_v->at(0); // full_hash_req
 
-                        entry_tx_j["full_hash_req"] = full_hash_req;
-                        entry_tx_j["to_full_hash"] = m_v[1]; // to_full_hash
-                        entry_tx_j["amount"] = m_v[2]; // amount
+                        entry_tx_j["full_hash_req"] = *full_hash_req;
+                        entry_tx_j["to_full_hash"] = m_v->at(1); // to_full_hash
+                        entry_tx_j["amount"] = m_v->at(2); // amount
                         s_shptr_c_->push(entry_tx_j.dump());
 
                         entry_transactions_j.push_back(entry_tx_j);
 
                         // Calculate total_dev_amount:
                         uint64_t dev_amount_number;
-                        std::istringstream iss(m_v[3]);
+                        std::istringstream iss(m_v->at(3));
                         iss >> dev_amount_number;
 
                         total_dev_amount_number += dev_amount_number;
@@ -169,10 +174,10 @@ void PocoC::create_and_send_block_c()
                     s_shptr_c_->push(entry_tx_j.dump());
                     entry_transactions_j.push_back(entry_tx_j);
 
-                    s_shptr_c_ = mt.calculate_root_hash_c(s_shptr_c_);
-                    std::string datetime = mt.time_now_c();
+                    s_shptr_c_ = mt->calculate_root_hash_c(s_shptr_c_);
+                    std::string datetime = mt->time_now_c();
                     std::string root_hash_data = s_shptr_c_->top();
-                    block_j_c_ = mt.create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
+                    block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
                     Crypto crypto;
                     std::string the_block = bm.get_block_matrix().back()[i]->dump();
@@ -194,10 +199,14 @@ void PocoC::create_and_send_block_c()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones_c(my_next_block_nr, block_j_c_, full_hash_req);
+                    inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm.add_block_to_block_vector(block_j_c_);
+
+                    delete mt;
+                    delete m_v;
+                    delete full_hash_req;
                 }
             }
         }

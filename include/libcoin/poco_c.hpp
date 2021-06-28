@@ -14,6 +14,10 @@ namespace Coin
     class PocoC: Poco
     {
     public:
+        ~PocoC()
+        {
+            delete tx_;
+        }
         void create_and_send_block_c();
         void evaluate_transactions();
     private:
@@ -21,7 +25,7 @@ namespace Coin
         void candidate_blocks_creation();
     private:
         std::shared_ptr<std::stack<std::string>> s_shptr_c_ = std::make_shared<std::stack<std::string>>();
-        Transactions tx_;
+        Transactions *tx_ = new Transactions();
         nlohmann::json block_j_c_;
     };
 }
