@@ -724,7 +724,12 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
                     tx->add_tx_to_transactions(coordinator, to_full_hash, amount);
                 }
 
-                if (i == 0) start_block_creation_thread();
+                if (i == 0)
+                {
+                    tx->set_new_rewards(true);
+                    start_block_creation_thread();
+                    tx->set_new_rewards(false);
+                }
             }
 
             delete tx;
@@ -890,7 +895,12 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
                     tx->add_tx_to_transactions(full_hash_req, to_full_hash, amount);
                 }
 
-                if (i == 0) start_block_creation_thread();
+                if (i == 0)
+                {
+                    tx->set_new_rewards(true);
+                    start_block_creation_thread();
+                    tx->set_new_rewards(false);
+                }
             }
 
             delete tx;
@@ -1056,7 +1066,12 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
                     tx->add_tx_to_transactions(full_hash_req, to_full_hash, amount);
                 }
 
-                if (i == 0) start_block_creation_thread();
+                if (i == 0)
+                {
+                    tx->set_new_rewards(true);
+                    start_block_creation_thread();
+                    tx->set_new_rewards(false);
+                }
             }
 
             delete tx;
@@ -1086,7 +1101,7 @@ void P2pNetworkC::start_block_creation_thread()
 
         tx->reset_transactions();
     }
-    else if (tx->get_transactions().size() == 1)
+    else if (tx->get_transactions().size() == 1 || tx->get_new_rewards())
     {
         // wait 20 secs
         // then create block

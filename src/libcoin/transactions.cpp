@@ -76,5 +76,16 @@ std::string Transactions::calculate_dev_payment(std::string amount)
     return dev_amount;
 }
 
+void Transactions::set_new_rewards(bool new_rewards)
+{
+    new_rewards_ = new_rewards;
+}
+
+bool Transactions::get_new_rewards()
+{
+    return new_rewards_;
+}
+
 std::vector<std::pair<std::string, std::shared_ptr<std::vector<std::string>>>> Transactions::transactions_ = {};
 std::map<std::string, std::vector<std::string>> Transactions::latest_transaction_ = {};
+bool Transactions::new_rewards_ = false;
