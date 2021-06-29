@@ -203,8 +203,9 @@ void PocoC::create_and_send_block_c()
                     block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
                     Crypto crypto;
-                    std::string the_block = bm->get_block_matrix().back()[i]->dump();
-                    block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block);
+                    nlohmann::json the_block_j = *bm->get_block_matrix().back().at(i);
+                    std::string the_block_s = the_block_j.dump();
+                    block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block_s);
 
                     ProtocolC proto;
                     std::string my_last_block_nr = proto.get_last_block_nr_c();
@@ -234,13 +235,12 @@ void PocoC::create_and_send_block_c()
             }
         }
     }
-std::cout << "33 " << std::endl;
+
     bm->add_block_vector_to_block_matrix();
-std::cout << "44 " << std::endl;
     bm->evaluate_both_block_matrices();
+    bm->save_final_block_to_file();
 
     delete bm;
-std::cout << "55_ " << std::endl;
 }
 
 void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
@@ -352,11 +352,6 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
-
-        merkle_tree_c mt;
-        std::string block_s = mt.save_block_to_file_c(block_j, my_next_block_nr);
-
-        ///set_hash_of_new_block(block_s); // TODO make a coin one of this function
 
         // Give the chosen_ones their reward:
         nlohmann::json chosen_ones_reward = message_j["chosen_ones"];

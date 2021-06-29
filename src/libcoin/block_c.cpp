@@ -145,7 +145,7 @@ nlohmann::json merkle_tree_c::create_block_c(std::string &datetime, std::string 
 
 std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::string &latest_block)
 {
-        // hashing of the whole new block
+    // hashing of the whole new block
     std::string block_s, block_hashed;
 
     // create genesis or add to blockchain

@@ -1138,7 +1138,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     BlockMatrix *bm = new BlockMatrix();
     if (bm->get_block_matrix().empty())
     {
-        std::cout << "Received block is in block_vector 1" << std::endl;
+        std::cout << "Received block is in block_vector; 1" << std::endl;
         bm->add_received_block_to_received_block_vector(recv_block_j);
     }
     else
@@ -1147,11 +1147,12 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         {
             if (*bm->get_block_matrix().back().at(i) == recv_block_j)
             {
-                std::cout << "Received block is in block_vector 2" << std::endl;
+                std::cout << "Received block is in block_vector; 2" << std::endl;
                 bm->add_received_block_to_received_block_vector(recv_block_j);
                 break;
             }
-            else if (i == bm->get_block_matrix().back().size() - 1)
+            
+            if (i == bm->get_block_matrix().back().size() - 1)
             {
                 // Don't accept this block
                 std::cout << "Received block not in block_vector" << std::endl;
@@ -1189,11 +1190,6 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         if (prev_hash_coordinator == prev_hash_in_block)
         {
             std::cout << "Successful comparison of prev_hashes, now sharing hashes c" << std::endl;
-
-            // Save block
-            merkle_tree_c mt;
-            std::string latest_block_nr = buf_j["latest_block_nr"];
-            mt.save_block_to_file_c(recv_block_j, latest_block_nr);
 
             // Put in rocksdb
             // for (auto &[key, value] : buf_j["rocksdb"].items()) // TODO not yet ready in poco_c
