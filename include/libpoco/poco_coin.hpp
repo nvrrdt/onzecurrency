@@ -1,20 +1,23 @@
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <string>
+#include <memory>
+#include <enet/enet.h>
 
-#include "poco.hpp"
+// #include "poco_crowd.hpp"
+#include "json.hpp"
 
 #include "transactions.hpp"
 
-using namespace Crowd;
-
-namespace Coin
+namespace Poco
 {
-    class PocoC: Poco
+    class PocoCoin // : PocoCrowd
     {
     public:
-        ~PocoC()
+        ~PocoCoin()
         {
             delete tx_;
         }

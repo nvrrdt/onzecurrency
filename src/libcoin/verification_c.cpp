@@ -19,7 +19,7 @@ bool VerificationC::verify_all_blocks()
 
     for (uint64_t i = 0; i < blocks_vec.size(); i++)
     {
-        Crypto crypto;
+        Common::Crypto crypto;
 
         if (i == blocks_vec.size() - 1) break; // avoid going past prev_hashes_vec
 

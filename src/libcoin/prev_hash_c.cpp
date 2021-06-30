@@ -50,7 +50,7 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
 
                 if (v.empty())
                 {
-                    merkle_tree_c mt;
+                    Coin::merkle_tree_c mt;
                     mt.set_genesis_prev_hash_c();
                     prev_hash = mt.get_genesis_prev_hash_c();
                 }
@@ -61,7 +61,7 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
                     std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-                    Crypto crypto;
+                    Common::Crypto crypto;
                     prev_hash = crypto.bech32_encode_sha256(contents);
                 }
             }
@@ -76,7 +76,7 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
 
             boost::filesystem::create_directories(p);
 
-            merkle_tree_c mt;
+            Coin::merkle_tree_c mt;
             mt.set_genesis_prev_hash_c();
             prev_hash = mt.get_genesis_prev_hash_c();
         }

@@ -5,7 +5,7 @@
 
 #include "json.hpp"
 
-namespace Crowd
+namespace Poco
 {
     class MessageVec
     {

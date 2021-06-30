@@ -1,6 +1,6 @@
 #include "all_hashes.hpp"
 
-using namespace Crowd;
+using namespace Poco;
 
 void AllHashes::add_to_all_hashes(enet_uint32 participant, std::string full_hash_req, std::string prev_hash_req)
 {

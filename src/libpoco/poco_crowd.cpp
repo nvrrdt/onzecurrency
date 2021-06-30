@@ -1,15 +1,16 @@
-#include "poco.hpp"
+#include "poco_crowd.hpp"
 #include "p2p.hpp"
 #include "auth.hpp"
 #include "crypto.hpp"
 #include "p2p_network.hpp"
 #include "merkle_tree.hpp"
 
-using namespace Crowd;
+using namespace Common;
+using namespace Poco;
 
-void Poco::create_and_send_block()
+void PocoCrowd::create_and_send_block()
 {
-    merkle_tree mt;
+    Crowd::merkle_tree mt;
 
     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
     nlohmann::json to_block_j;
@@ -40,10 +41,10 @@ void Poco::create_and_send_block()
     std::string root_hash_data = s_shptr_->top();
     block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
-    PrevHash ph;
+    Crowd::PrevHash ph;
     block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
 
-    Protocol proto;
+    Crowd::Protocol proto;
     std::string my_last_block_nr = proto.get_last_block_nr();
 
     std::string my_next_block_nr;
@@ -67,9 +68,9 @@ void Poco::create_and_send_block()
 std::cout << "--------5: " << std::endl;
 }
 
-void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
+void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
-    FullHash fh;
+    Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
     // std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;
 
@@ -77,7 +78,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -88,14 +89,14 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         // You are the coordinator!
         std::cout << "Inform my fellow chosen_ones as coordinator" << std::endl;
 
-        Protocol proto;
+        Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
-        PrevHash ph;
+        Crowd::PrevHash ph;
         message_j["prev_hash"] = ph.calculate_hash_from_last_block();
         message_j["full_hash_req"] = full_hash_req;
         message_j["full_hash_coord"] = hash_of_block;
@@ -118,7 +119,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
 
             std::string full_hash_req = m_j["full_hash_req"];
             
-            Crypto crypto;
+            Common::Crypto crypto;
             // update rocksdb
             nlohmann::json rocksdb_j;
             rocksdb_j["version"] = "O.1";
@@ -130,14 +131,14 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
             rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
             rocksdb_j["full_hash"] = full_hash_req;
-            Protocol proto;
+            Crowd::Protocol proto;
             rocksdb_j["block_nr"] = proto.get_last_block_nr();
             rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
             rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
             std::string rocksdb_s = rocksdb_j.dump();
 
             // Store to rocksdb for coordinator
-            Rocksy* rocksy = new Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
             rocksy->Put(full_hash_req, rocksdb_s);
             delete rocksy;
 
@@ -163,7 +164,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
         }
         delete crypto;
 
-        P2pNetwork pn;
+        Crowd::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -171,7 +172,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Rocksy* rocksy = new Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -184,14 +185,14 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             std::cout << "Preparation for intro_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
-            P2p p2p;
+            Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
 
-        merkle_tree mt;
+        Crowd::merkle_tree mt;
         std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
 
         set_hash_of_new_block(block_s);
@@ -205,7 +206,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             msg_j["full_hash"] = vec[0];
             msg_j["prev_hash"] = vec[1];
             msg_j["block"] = block_j;
-            Protocol proto;
+            Crowd::Protocol proto;
             msg_j["block_nr"] = proto.get_last_block_nr();
 
             msg_j["rocksdb"] = message_j["rocksdb"];
@@ -213,11 +214,11 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
             std::string msg_s = msg_j.dump();
 
             std::string peer_ip;
-            P2p p2p;
+            Crowd::P2p p2p;
             p2p.number_to_ip_string(key, peer_ip);
             
             std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-            P2pNetwork pn;
+            Crowd::P2pNetwork pn;
             pn.p2p_client(peer_ip, msg_s);
         }
 
@@ -237,7 +238,7 @@ void Poco::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block
 // we need to verify what decides the coordinator role, the hash is based on the txs or the complete block?
 // who decides you're the coordinator? verify again!
 
-nlohmann::json Poco::get_block_j()
+nlohmann::json PocoCrowd::get_block_j()
 {
     // TODO intro_peer doesn't know its full_hash until new_block is send
     // but the other users don't know the whereabouts of intro_peer
@@ -245,29 +246,29 @@ nlohmann::json Poco::get_block_j()
     return block_j_;
 }
 
-void Poco::set_block_j(nlohmann::json block_j)
+void PocoCrowd::set_block_j(nlohmann::json block_j)
 {
     block_j_ = block_j;
 }
 
-std::string Poco::get_hash_of_new_block()
+std::string PocoCrowd::get_hash_of_new_block()
 {
     return hash_of_block_;
 }
 
-void Poco::set_hash_of_new_block(std::string block)
+void PocoCrowd::set_hash_of_new_block(std::string block)
 {
-    Crypto crypto;
+    Common::Crypto crypto;
     hash_of_block_ = crypto.bech32_encode_sha256(block);
 }
 
-void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_reward_j)
+void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_reward_j)
 {
     // hello_reward req with nlohmann::json chosen_ones as argument
     // coordinator is hash of chosen_ones
 
-    Crypto crypto;
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Common::Crypto crypto;
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
     std::string chosen_ones_s = chosen_ones_reward_j.dump();
     std::string hash_of_cos = crypto.bech32_encode_sha256(chosen_ones_s);
     std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
@@ -276,7 +277,7 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
     
     uint32_t ip = contents_j["ip"];
     std::string ip_s;
-    P2p p2p;
+    Crowd::P2p p2p;
     p2p.number_to_ip_string(ip, ip_s);
 
     nlohmann::json message_j, to_sign_j;
@@ -303,9 +304,9 @@ void Poco::reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json
 
     std::cout << "Hello_reward request sent" << std::endl;
 
-    P2pNetwork pn;
+    Crowd::P2pNetwork pn;
     pn.p2p_client(ip_s, message_s);
 }
 
-std::string Poco::hash_of_block_ = "";
-nlohmann::json Poco::block_j_ = {};
+std::string PocoCrowd::hash_of_block_ = "";
+nlohmann::json PocoCrowd::block_j_ = {};

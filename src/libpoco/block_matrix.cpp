@@ -8,8 +8,7 @@
 
 #include "block_matrix.hpp"
 
-using namespace Crowd;
-using namespace Coin;
+using namespace Poco;
 
 void BlockMatrix::add_block_to_block_vector(nlohmann::json block_j)
 {
@@ -103,7 +102,7 @@ void BlockMatrix::evaluate_both_block_matrices()
 
 void BlockMatrix::save_final_block_to_file()
 {
-    ProtocolC proto;
+    Coin::ProtocolC proto;
     std::string latest_block = proto.get_last_block_nr_c();
 
     // if oldest vector in block matrix has size 1 --> that's the final block (= mined)
@@ -162,7 +161,7 @@ void BlockMatrix::save_final_block_to_file()
         {
             std::cout << "Is a directory, is empty" << std::endl;
 
-            merkle_tree_c mt;
+            Coin::merkle_tree_c mt;
             block_j["prev_hash"] = mt.get_genesis_prev_hash_c();
             block_s = block_j.dump();
             std::string block_file = "blockchain/coin/block_000000000000.json";

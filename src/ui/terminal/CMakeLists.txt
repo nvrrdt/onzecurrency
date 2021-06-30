@@ -17,6 +17,7 @@ target_include_directories(onze-terminal PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/liblogin"
                           "${PROJECT_SOURCE_DIR}/include/libcrowd"
                           "${PROJECT_SOURCE_DIR}/include/libcoin"
+                          "${PROJECT_SOURCE_DIR}/include/libpoco"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           ${ENET_INCLUDE_DIRS}
                           )
@@ -26,6 +27,7 @@ target_link_libraries(onze-terminal
         LINK_PUBLIC crowd
         LINK_PUBLIC common
         LINK_PUBLIC coin
+        LINK_PUBLIC poco
         cryptopp-static
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}

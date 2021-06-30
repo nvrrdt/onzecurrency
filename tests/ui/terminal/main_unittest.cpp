@@ -6,7 +6,7 @@ using namespace Crowd;
 
 BOOST_AUTO_TEST_SUITE(AuthTest)
 
-ConfigDir cd;
+Crowd::ConfigDir cd;
 
 BOOST_AUTO_TEST_CASE(GetConfigDir)
 {

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_subdirectory(src/ui/terminal)
+add_subdirectory(src/libpoco)
 add_subdirectory(src/libcoin)
 add_subdirectory(src/libcommon)
 add_subdirectory(src/libcrowd)

@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace Coin
+namespace Poco
 {
     class Transactions
     {

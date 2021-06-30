@@ -1,8 +1,8 @@
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
+using namespace Common;
 using namespace Crowd;
-using namespace Coin;
 
 bool P2pNetwork::quit_server_ = false;
 
@@ -75,7 +75,7 @@ void P2pNetwork::handle_read_server()
                         break;
             case 13:    new_online(buf_j);
                         break;
-            default:    P2pNetworkC pnc;
+            default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_server_c(buf_j);
                         break;
         }
@@ -357,7 +357,7 @@ std::cout << "______: " << real_prev_hash_req << " , " << email_of_req << " , " 
                     if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
                     {
                         // Create block
-                        Poco poco;
+                        Poco::PocoCrowd poco;
                         poco.create_and_send_block ();
 
                         for (auto &[key, value] : all_hashes_.get_all_hashes())
@@ -463,7 +463,7 @@ std::cout << "size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
     //     // 3) then: update the network with room_.deliver(msg)
     //     // 4) add peer to ip_list
 
-    //     Poco poco(email_of_peer, hash_of_peer); // moet bij new_peer
+    //     Poco::PocoCoin poco(email_of_peer, hash_of_peer); // moet bij new_peer
     //     std::cout << "Is this reached? " << hash_of_peer << std::endl;
     //     // if poco ok: update blockchain and update rocksdb will be received through the chosen one's
     // }
@@ -484,7 +484,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
     {
         // Create block
-        Poco poco;
+        Poco::PocoCrowd poco;
         poco.create_and_send_block();
 
         message_j_vec_.reset_message_j_vec();
@@ -548,8 +548,8 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
 
     nlohmann::json starttime_coord = buf_j["block"]["starttime"];
 
-    Crypto crypto;
-    Poco poco;
+    Common::Crypto crypto;
+    Poco::PocoCrowd poco;
     
     nlohmann::json block_j_me = poco.get_block_j();
     block_j_me["starttime"] = starttime_coord;
@@ -828,7 +828,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         std::string to_sign_s = to_sign_j.dump();
 
-        Crypto crypto;
+        Common::Crypto crypto;
         ECDSA<ECP, SHA256>::PrivateKey private_key;
         std::string signature;
         crypto.ecdsa_load_private_key_from_string(private_key);
@@ -982,7 +982,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     to_sign_j["chosen_ones"] = message_j["chosen_ones"];
     std::string to_sign_s = to_sign_j.dump();
 
-    Crypto crypto;
+    Common::Crypto crypto;
     ECDSA<ECP, SHA256>::PrivateKey private_key;
     std::string signature;
     crypto.ecdsa_load_private_key_from_string(private_key);
@@ -1055,7 +1055,7 @@ void P2pNetwork::get_sleep_and_create_block_server()
 
     std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
-    Poco poco;
+    Poco::PocoCrowd poco;
     poco.create_and_send_block(); // chosen ones are being informed here
     
     std::cout << "Block created server!!" << std::endl;

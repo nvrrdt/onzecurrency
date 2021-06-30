@@ -19,7 +19,7 @@ bool Verification::verify_all_blocks()
 
     for (uint64_t i = 0; i < blocks_vec.size(); i++)
     {
-        Crypto crypto;
+        Common::Crypto crypto;
 
         if (i == blocks_vec.size() - 1) break; // avoid going past prev_hashes_vec
 
@@ -47,7 +47,7 @@ bool Verification::verify_all_blocks()
 
 bool Verification::compare_email_with_saved_full_hash(std::string & email_address)
 {
-    Crypto crypto;
+    Common::Crypto crypto;
     std::string hash_email = crypto.bech32_encode_sha256(email_address);
     PrevHash ph;
     std::string prev_hash = ph.get_my_prev_hash_from_file();

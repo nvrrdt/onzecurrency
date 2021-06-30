@@ -1,4 +1,5 @@
-#include "poco_c.hpp"
+#include "poco_crowd.hpp"
+#include "poco_coin.hpp"
 
 #include "merkle_tree.hpp"
 #include "rocksy.hpp"
@@ -13,9 +14,10 @@
 #include <algorithm>
 #include <sstream>
 
-using namespace Coin;
+using namespace Common;
+using namespace Poco;
 
-void PocoC::create_and_send_block_c()
+void PocoCoin::create_and_send_block_c()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
     // 1) Evaluate Transactions (also double spend)
@@ -63,7 +65,7 @@ void PocoC::create_and_send_block_c()
 
                 std::cout << "3rd for loop " << nonce << std::endl;
 
-                merkle_tree_c *mt = new merkle_tree_c();
+                Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
                 std::vector<std::string> *m_v = new std::vector<std::string>();
                 nlohmann::json entry_tx_j;
@@ -154,7 +156,7 @@ void PocoC::create_and_send_block_c()
                 {
                     std::cout << "3rd for loop with block matrix " << nonce << std::endl;
 
-                    merkle_tree_c *mt = new merkle_tree_c();
+                    Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
                     std::vector<std::string> *m_v = new std::vector<std::string>();
                     nlohmann::json entry_tx_j;
@@ -202,12 +204,12 @@ void PocoC::create_and_send_block_c()
                     std::string root_hash_data = s_shptr_c_->top();
                     block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
-                    Crypto crypto;
+                    Common::Crypto crypto;
                     nlohmann::json the_block_j = *bm->get_block_matrix().back().at(i);
                     std::string the_block_s = the_block_j.dump();
                     block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block_s);
 
-                    ProtocolC proto;
+                    Coin::ProtocolC proto;
                     std::string my_last_block_nr = proto.get_last_block_nr_c();
 
                     std::string my_next_block_nr;
@@ -243,18 +245,18 @@ void PocoC::create_and_send_block_c()
     delete bm;
 }
 
-void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
+void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
     std::cout << "inform_chosen_ones_c" << std::endl;
 
-    FullHash fh;
+    Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -265,14 +267,14 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
         // You are the coordinator!
         std::cout << "Inform my fellow chosen_ones as coordinator coin" << std::endl;
 
-        Protocol proto;
+        Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_block_c";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
-        PrevHashC ph;
+        Coin::PrevHashC ph;
         message_j["prev_hash"] = ph.calculate_hash_from_last_block_c();
         message_j["full_hash_req"] = full_hash_req;
         message_j["full_hash_coord"] = hash_of_block;
@@ -292,14 +294,14 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
 
         //     std::string full_hash_req = m_j["full_hash_req"];
             
-        //     Crypto crypto;
+        //     Common::Crypto crypto;
         //     // update rocksdb
             nlohmann::json rocksdb_j;
             rocksdb_j["funds"] = "jaja";
         //     std::string rocksdb_s = rocksdb_j.dump();
 
         //     // Store to rocksdb for coordinator
-        //     Rocksy* rocksy = new Rocksy("usersdb");
+        //     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
         //     rocksy->Put(full_hash_req, rocksdb_s);
         //     delete rocksy;
 
@@ -325,7 +327,7 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
         }
         delete crypto;
 
-        P2pNetwork pn;
+        Crowd::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -333,7 +335,7 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
             if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Rocksy* rocksy = new Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -346,7 +348,7 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
             std::cout << "Preparation for intro_block coin: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
-            P2p p2p;
+            Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             // p2p_client() to all chosen ones with intro_peer request
@@ -355,7 +357,8 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
 
         // Give the chosen_ones their reward:
         nlohmann::json chosen_ones_reward = message_j["chosen_ones"];
-        reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);
+        PocoCrowd pcr;
+        pcr.reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);
     }
     else
     {
@@ -364,7 +367,7 @@ void PocoC::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json bl
     }
 }
 
-void PocoC::evaluate_transactions()
+void PocoCoin::evaluate_transactions()
 {
     // for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
     // double spending problem solution:
@@ -418,7 +421,7 @@ void PocoC::evaluate_transactions()
     }
 
     // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they fulfill the tx
-    Rocksy* rocksy = new Rocksy("transactionsdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("transactionsdb");
     for (uint16_t i = 0; i < full_hashes_reqs_vec.size(); i++)
     {
         std::string full_hash_req = full_hashes_reqs_vec[i];
@@ -478,7 +481,7 @@ void PocoC::evaluate_transactions()
     delete rocksy;
 }
 
-void PocoC::candidate_blocks_creation()
+void PocoCoin::candidate_blocks_creation()
 {
     //
 }

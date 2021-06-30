@@ -20,7 +20,8 @@
 #include "p2p.hpp"
 #include "auth.hpp"
 #include "message_vec.hpp"
-#include "poco.hpp"
+#include "poco_crowd.hpp"
+#include "poco_coin.hpp"
 #include "merkle_tree.hpp"
 #include "all_hashes.hpp"
 
@@ -101,8 +102,8 @@ namespace Crowd
         p2p_message resp_msg_;
         std::string buf_client_;
         std::string buf_server_;
-        MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
-        AllHashes all_hashes_;
+        Poco::MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
+        Poco::AllHashes all_hashes_;
 
         static std::string closed_client_;
         static uint32_t ip_new_co_;

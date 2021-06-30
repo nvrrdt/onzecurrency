@@ -12,7 +12,7 @@
 #include "sha3.h"
 #include "filters.h"
 
-using namespace Crowd;
+using namespace Common;
 using namespace CryptoPP;
 using namespace bech32;
 
@@ -172,7 +172,7 @@ bool Crypto::ecdsa_generate_public_key( const ECDSA<ECP, SHA256>::PrivateKey& ec
 
 void Crypto::ecdsa_save_private_key( const ECDSA<ECP, SHA256>::PrivateKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
@@ -186,7 +186,7 @@ void Crypto::ecdsa_save_private_key( const ECDSA<ECP, SHA256>::PrivateKey& key )
 
 void Crypto::ecdsa_save_public_key( const ECDSA<ECP, SHA256>::PublicKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
@@ -200,7 +200,7 @@ void Crypto::ecdsa_save_public_key( const ECDSA<ECP, SHA256>::PublicKey& key )
 
 void Crypto::ecdsa_load_private_key( ECDSA<ECP, SHA256>::PrivateKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
@@ -214,7 +214,7 @@ void Crypto::ecdsa_load_private_key( ECDSA<ECP, SHA256>::PrivateKey& key )
 
 void Crypto::ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
@@ -228,7 +228,7 @@ void Crypto::ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key )
 
 void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey& private_key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
@@ -260,7 +260,7 @@ void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey&
 
 void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& public_key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
@@ -330,7 +330,7 @@ void SaveHexPublicKey(const string& filename, const PublicKey& key)
 
 void Crypto::ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateKey& key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
@@ -345,7 +345,7 @@ void Crypto::ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateK
 
 void Crypto::ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey& key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
@@ -360,7 +360,7 @@ void Crypto::ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey
 
 void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_priv_key";
@@ -385,7 +385,7 @@ void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
 
 void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "ecdsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "ecdsa_pub_key";
@@ -455,7 +455,7 @@ void Crypto::rsa_generate_and_save_keypair()
 
 void Crypto::rsa_save_private_key( RSA::PrivateKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
@@ -469,7 +469,7 @@ void Crypto::rsa_save_private_key( RSA::PrivateKey& key )
 
 void Crypto::rsa_save_public_key( RSA::PublicKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
@@ -483,7 +483,7 @@ void Crypto::rsa_save_public_key( RSA::PublicKey& key )
 
 void Crypto::rsa_load_private_key( RSA::PrivateKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
@@ -497,7 +497,7 @@ void Crypto::rsa_load_private_key( RSA::PrivateKey& key )
 
 void Crypto::rsa_load_public_key( RSA::PublicKey& key )
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
@@ -511,7 +511,7 @@ void Crypto::rsa_load_public_key( RSA::PublicKey& key )
 
 void Crypto::rsa_save_private_key_as_string(RSA::PrivateKey& key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_priv_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_priv_key";
@@ -526,7 +526,7 @@ void Crypto::rsa_save_private_key_as_string(RSA::PrivateKey& key)
 
 void Crypto::rsa_save_public_key_as_string(RSA::PublicKey& key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (!boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_pub_key";
@@ -541,7 +541,7 @@ void Crypto::rsa_save_public_key_as_string(RSA::PublicKey& key)
 
 void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
 {
-    ConfigDir cd;
+    Crowd::ConfigDir cd;
     if (boost::filesystem::exists(cd.GetConfigDir() + "rsa_pub_key"))
     {
         const std::string filename = cd.GetConfigDir() + "rsa_pub_key";

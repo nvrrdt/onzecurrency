@@ -11,13 +11,13 @@
 #include "all_hashes.hpp"
 #include "message_vec.hpp"
 
-namespace Crowd
+namespace Poco
 {
     /**
      * Poco is the consensus algorithm. -- Proof-Of-Chosen-Ones
      */
 
-    class Poco
+    class PocoCrowd
     {
     public:
         void create_and_send_block();

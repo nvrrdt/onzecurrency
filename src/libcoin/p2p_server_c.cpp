@@ -18,11 +18,13 @@
 #include "full_hash.hpp"
 #include "prev_hash.hpp"
 #include "transactions.hpp"
-#include "poco_c.hpp"
+#include "poco_coin.hpp"
 #include "block_matrix.hpp"
 #include "merkle_tree_c.hpp"
 
+using namespace Common;
 using namespace Coin;
+using namespace Poco;
 
 void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
 {
@@ -201,7 +203,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
 
-                PocoC poco;
+                PocoCoin poco;
                 // The first part of the capstone implementation of poco:
                 poco.evaluate_transactions();
 
@@ -388,7 +390,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
 
-                PocoC poco;
+                PocoCoin poco;
                 // The first part of the capstone implementation of poco:
                 poco.evaluate_transactions();
 
@@ -575,7 +577,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                 Transactions tx;
                 tx.add_tx_to_transactions(full_hash_req, to_full_hash, amount);
 
-                PocoC poco;
+                PocoCoin poco;
                 // The first part of the capstone implementation of poco:
                 poco.evaluate_transactions();
 
@@ -1096,7 +1098,7 @@ void P2pNetworkC::start_block_creation_thread()
     if (tx->get_transactions().size() > 2048) // size limit of block within block creation delay
     {
         // Create block
-        PocoC poco;
+        PocoCoin poco;
         poco.create_and_send_block_c();
 
         tx->reset_transactions();
@@ -1125,7 +1127,7 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     BlockMatrix *bm = new BlockMatrix();
     bm->add_received_block_vector_to_received_block_matrix();
 
-    PocoC poco;
+    PocoCoin poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
 
     std::cout << "Block_c created server!!" << std::endl;
@@ -1178,7 +1180,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
     delete bm;
 
-    Crypto crypto;
+    Common::Crypto crypto;
 
     recv_block_j["starttime"] = starttime_coord;
     std::string recv_block_s = recv_block_j.dump();

@@ -6,7 +6,7 @@
 
 #include "json.hpp"
 
-namespace Coin
+namespace Poco
 {
     class BlockMatrix
     {

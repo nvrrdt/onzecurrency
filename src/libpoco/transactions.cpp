@@ -5,12 +5,11 @@
 
 #include "crypto.hpp"
 
-using namespace Crowd;
-using namespace Coin;
+using namespace Poco;
 
 void Transactions::add_tx_to_transactions(std::string full_hash_req, std::string to_full_hash, std::string amount)
 {
-    Crypto crypto;
+    Common::Crypto crypto;
     std::string string = full_hash_req + to_full_hash + amount; // TODO what if these three are the same in two transactions in the same block?
     std::string tx_hash = crypto.bech32_encode_sha256(string);
     std::vector<std::string> vec1;

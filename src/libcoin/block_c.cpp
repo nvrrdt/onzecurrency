@@ -65,7 +65,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree_c::calculate_root_hash_c(st
     {
         std::string parent_conc, parent_hashed;
 
-        Crypto crypto;
+        Common::Crypto crypto;
         parent_hashed = crypto.bech32_encode_sha256(s_shptr->top());
         s_shptr->pop();
         s_shptr->push(parent_hashed);
@@ -74,7 +74,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree_c::calculate_root_hash_c(st
     for (size_t i = 0; i < (n - current_stack_size); i++)
     {
         std::string zero = "zero", zero_hashed;
-        Crypto crypto;
+        Common::Crypto crypto;
         zero_hashed = crypto.bech32_encode_sha256(zero);
         s_shptr->push(zero_hashed);
     }
@@ -103,7 +103,7 @@ std::shared_ptr<std::stack<std::string>> merkle_tree_c::pop_two_and_hash_c(std::
 
             std::string parent_conc = uneven + even, parent_hashed;
 
-            Crypto crypto;
+            Common::Crypto crypto;
             parent_hashed = crypto.bech32_encode_sha256(parent_conc);
             s1_shptr->push(parent_hashed);
         }
@@ -206,7 +206,7 @@ std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::st
 void merkle_tree_c::set_genesis_prev_hash_c()
 {
     std::string genesis_message = "secrets are dumb, omnivalently speaking", genesis_prev_hash;
-    Crypto crypto;
+    Common::Crypto crypto;
     genesis_prev_hash_c_ = crypto.bech32_encode_sha256(genesis_prev_hash);
 }
 

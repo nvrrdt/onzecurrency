@@ -2,7 +2,6 @@
 #include "p2p_network_c.hpp"
 
 using namespace Crowd;
-using namespace Coin;
 
 std::string P2pNetwork::closed_client_ = "";
 uint32_t P2pNetwork::ip_new_co_ = 0;
@@ -163,7 +162,7 @@ void P2pNetwork::handle_read_client()
             if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
-                Poco poco;
+                Poco::PocoCrowd poco;
                 poco.create_and_send_block();
 
                 message_j_vec_.reset_message_j_vec();
@@ -262,7 +261,7 @@ void P2pNetwork::handle_read_client()
         }
         else
         {
-            P2pNetworkC pnc;
+            Coin::P2pNetworkC pnc;
             pnc.handle_read_client_c(buf_j);
         }
 
@@ -276,7 +275,7 @@ void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is al
 
     std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
 
-    Poco poco;
+    Poco::PocoCrowd poco;
     poco.create_and_send_block();
 
     // TODO look into p2p_session for the same function and adapt accordingly

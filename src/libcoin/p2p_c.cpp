@@ -69,7 +69,7 @@ void P2pNetworkC::start_coin()
             // std::cout << "to_sign_s: " << to_sign_s << std::endl;
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
-            Crypto crypto;
+            Common::Crypto crypto;
             crypto.ecdsa_load_private_key_from_string(private_key);
             if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
             {
@@ -89,7 +89,7 @@ void P2pNetworkC::start_coin()
 
 bool P2pNetworkC::validate_full_hash(std::string to_full_hash)
 {
-    Crypto crypto;
+    Common::Crypto crypto;
     bool out_success;
     crypto.bech32_decode(to_full_hash, out_success);
 

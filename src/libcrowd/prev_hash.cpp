@@ -82,7 +82,7 @@ std::string PrevHash::calculate_hash_from_last_block()
                 std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
                 std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 
-                Crypto crypto;
+                Common::Crypto crypto;
                 prev_hash = crypto.bech32_encode_sha256(contents);
             }
             else

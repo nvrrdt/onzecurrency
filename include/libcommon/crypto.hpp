@@ -72,7 +72,7 @@ using std::exception;
 using CryptoPP::HexEncoder;
 using CryptoPP::HexDecoder;
 
-namespace Crowd
+namespace Common
 {
     class Crypto
     {

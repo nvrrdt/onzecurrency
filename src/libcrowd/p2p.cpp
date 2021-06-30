@@ -40,7 +40,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
         if (rocksy->TotalAmountOfPeers() < 1)
         {
             delete rocksy;
-            Crypto crypto;
+            Common::Crypto crypto;
             Protocol proto;
             nlohmann::json message_j, to_sign_j, to_block_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j, rocksdb_j;
             
@@ -293,7 +293,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 to_sign_j["fullnode"] = message_j["fullnode"];
                 std::string to_sign_s = to_sign_j.dump();
 
-                Crypto crypto;
+                Common::Crypto crypto;
                 ECDSA<ECP, SHA256>::PrivateKey private_key;
                 std::string signature;
                 crypto.ecdsa_load_private_key_from_string(private_key);

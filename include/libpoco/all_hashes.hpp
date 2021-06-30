@@ -6,7 +6,7 @@
 #include <vector>
 #include <enet/enet.h>
 
-namespace Crowd
+namespace Poco
 {
     class AllHashes
     {

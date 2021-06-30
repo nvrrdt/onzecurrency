@@ -65,7 +65,7 @@ bool Auth::setNetwork(std::string &network)
  */
 std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
 {
-    Crypto crypto;
+    Common::Crypto crypto;
     std::string hash_email = crypto.bech32_encode_sha256(email);
     PrevHash ph;
     std::string prev_hash = ph.get_my_prev_hash_from_file();
