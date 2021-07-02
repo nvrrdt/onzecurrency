@@ -109,5 +109,9 @@ namespace Crowd
         static uint32_t ip_new_co_;
 
         static bool quit_server_;
+
+        Poco::PocoCrowd pococr_;
+        Poco::PocoCoin pococo_;
+        Poco::Transactions tx_;
     };
 }

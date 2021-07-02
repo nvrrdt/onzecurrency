@@ -1049,16 +1049,35 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
     }
 }
 
+
+/**
+ * synchronisation is necessary
+ * 
+ * 1st peer creation --> 2nd peer creation --> reward tx to 1st peer --> 3rd peer creation --> reward txs to first 2 peers
+ * 
+ * poco introduction for crowd first ...
+ * then trying to make poco work for coin ...
+ * 
+ * calculating new blocks should be ceased and start over with a new vector after the block creation delay (here 10 seconds)
+ */
+
+
 void P2pNetwork::get_sleep_and_create_block_server()
 {
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
     std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+    std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
-    Poco::PocoCrowd poco;
-    poco.create_and_send_block(); // chosen ones are being informed here
+    // chosen ones are being informed here
+    std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
+
+    // and here too, but for coin then
+    pococo_.create_and_send_block_c();
     
-    std::cout << "Block created server!!" << std::endl;
+    t.join();
+
+    std::cout << "Blocks created server!!" << std::endl;
 }
 
 
