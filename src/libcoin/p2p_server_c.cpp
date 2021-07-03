@@ -1124,15 +1124,15 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     Transactions tx;
     std::cout << "transactions.size() in Coin: " << tx.get_transactions().size() << std::endl;
 
-    BlockMatrix *bm = new BlockMatrix();
-    bm->add_received_block_vector_to_received_block_matrix();
+    BlockMatrixC *bmc = new BlockMatrixC();
+    bmc->add_received_block_vector_to_received_block_matrix();
 
     PocoCoin poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
 
     std::cout << "Block_c created server!!" << std::endl;
 
-    delete bm;
+    delete bmc;
 }
 
 void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
@@ -1148,24 +1148,24 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     // Is the coordinator the truthful real coordinator for this block
 
     nlohmann::json recv_block_j = buf_j["block"];
-    BlockMatrix *bm = new BlockMatrix();
-    if (bm->get_block_matrix().empty())
+    BlockMatrixC *bmc = new BlockMatrixC();
+    if (bmc->get_block_matrix().empty())
     {
         std::cout << "Received block is in block_vector; 1" << std::endl;
-        bm->add_received_block_to_received_block_vector(recv_block_j);
+        bmc->add_received_block_to_received_block_vector(recv_block_j);
     }
     else
     {
-        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
+        for (uint16_t i = 0; i < bmc->get_block_matrix().back().size(); i++)
         {
-            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
+            if (*bmc->get_block_matrix().back().at(i) == recv_block_j)
             {
                 std::cout << "Received block is in block_vector; 2" << std::endl;
-                bm->add_received_block_to_received_block_vector(recv_block_j);
+                bmc->add_received_block_to_received_block_vector(recv_block_j);
                 break;
             }
             
-            if (i == bm->get_block_matrix().back().size() - 1)
+            if (i == bmc->get_block_matrix().back().size() - 1)
             {
                 // Don't accept this block
                 std::cout << "Received block not in block_vector" << std::endl;
@@ -1174,7 +1174,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         }
     }
 
-    delete bm;
+    delete bmc;
 
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
 

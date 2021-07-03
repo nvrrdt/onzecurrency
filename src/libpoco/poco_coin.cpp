@@ -48,9 +48,9 @@ void PocoCoin::create_and_send_block_c()
     // The second part of the capstone implementation of poco:
     std::cout << "create_and_send_block_c" << std::endl;
 
-    BlockMatrix *bm = new BlockMatrix();
+    BlockMatrixC *bmc = new BlockMatrixC();
 
-    if (bm->get_block_matrix().empty())
+    if (bmc->get_block_matrix().empty())
     {
         std::cout << "No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
@@ -124,7 +124,7 @@ void PocoCoin::create_and_send_block_c()
                 inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                 // Add blocks to vector<vector<block_j_c_>>>
-                bm->add_block_to_block_vector(block_j_c_);
+                bmc->add_block_to_block_vector(block_j_c_);
 
                 delete mt;
                 delete m_v;
@@ -138,7 +138,7 @@ void PocoCoin::create_and_send_block_c()
     {
         std::cout << "Normal execution for block creation ..." << std::endl;           
 
-        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
+        for (uint16_t i = 0; i < bmc->get_block_matrix().back().size(); i++)
         {
             std::cout << "1st for loop with block matrix " << i << std::endl;
 
@@ -205,7 +205,7 @@ void PocoCoin::create_and_send_block_c()
                     block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
 
                     Common::Crypto crypto;
-                    nlohmann::json the_block_j = *bm->get_block_matrix().back().at(i);
+                    nlohmann::json the_block_j = *bmc->get_block_matrix().back().at(i);
                     std::string the_block_s = the_block_j.dump();
                     block_j_c_["prev_hash"] = crypto.bech32_encode_sha256(the_block_s);
 
@@ -228,7 +228,7 @@ void PocoCoin::create_and_send_block_c()
                     inform_chosen_ones_c(my_next_block_nr, block_j_c_, *full_hash_req);
 
                     // Add blocks to vector<vector<block_j_c_>>>
-                    bm->add_block_to_block_vector(block_j_c_);
+                    bmc->add_block_to_block_vector(block_j_c_);
 
                     delete mt;
                     delete m_v;
@@ -238,11 +238,11 @@ void PocoCoin::create_and_send_block_c()
         }
     }
 
-    bm->add_block_vector_to_block_matrix();
-    bm->evaluate_both_block_matrices();
-    bm->save_final_block_to_file();
+    bmc->add_block_vector_to_block_matrix();
+    bmc->evaluate_both_block_matrices();
+    bmc->save_final_block_to_file();
 
-    delete bm;
+    delete bmc;
 }
 
 void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
