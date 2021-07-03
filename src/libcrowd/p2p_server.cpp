@@ -544,6 +544,35 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
 
     // Is the coordinator the truthful real coordinator for this block
 
+    nlohmann::json recv_block_j = buf_j["block"];
+    Poco::BlockMatrix *bm = new Poco::BlockMatrix();
+    if (bm->get_block_matrix().empty())
+    {
+        std::cout << "Received block is in block_vector; 1" << std::endl;
+        bm->add_received_block_to_received_block_vector(recv_block_j);
+    }
+    else
+    {
+        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
+        {
+            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
+            {
+                std::cout << "Received block is in block_vector; 2" << std::endl;
+                bm->add_received_block_to_received_block_vector(recv_block_j);
+                break;
+            }
+            
+            if (i == bm->get_block_matrix().back().size() - 1)
+            {
+                // Don't accept this block
+                std::cout << "Received block not in block_vector" << std::endl;
+                return;
+            }
+        }
+    }
+
+    delete bm;
+
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
 
     nlohmann::json starttime_coord = buf_j["block"]["starttime"];
@@ -569,26 +598,27 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
         std::cout << "Coordinator is truthful" << std::endl;
 
         std::string prev_hash_coordinator = buf_j["prev_hash"];
+        std::string prev_hash_in_block = buf_j["block"]["prev_hash"];
 
-        if (prev_hash_coordinator == prev_hash_me)
+        if (prev_hash_coordinator == prev_hash_me && prev_hash_coordinator == prev_hash_in_block)
         {
             std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;
 
-            // Save block
-            merkle_tree mt;
-            std::string latest_block_nr = buf_j["latest_block_nr"];
-            mt.save_block_to_file(block_j_me, latest_block_nr);
+            // // Save block
+            // merkle_tree mt;
+            // std::string latest_block_nr = buf_j["latest_block_nr"];
+            // mt.save_block_to_file(block_j_me, latest_block_nr);
 
-            // Put in rocksdb
-            for (auto &[key, value] : buf_j["rocksdb"].items())
-            {
-                std::string key_s = value["full_hash"];
-                std::string value_s = value.dump();
+            // // Put in rocksdb
+            // for (auto &[key, value] : buf_j["rocksdb"].items())
+            // {
+            //     std::string key_s = value["full_hash"];
+            //     std::string value_s = value.dump();
 
-                Rocksy* rocksy = new Rocksy("usersdb");
-                rocksy->Put(key_s, value_s);
-                delete rocksy;
-            }
+            //     Rocksy* rocksy = new Rocksy("usersdb");
+            //     rocksy->Put(key_s, value_s);
+            //     delete rocksy;
+            // }
         }
         else
         {
@@ -604,7 +634,7 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
         set_resp_msg_server(msg_s);
 
         // p2p_client() to all calculated other chosen_ones
-        // this is in fact the start of the consensus algorithm
+        // this is in fact the start of the consensus algorithm where a probability is calculated
         // you don't need full consensus in order to create a succesful block
         // but full consensus improves your chances of course greatly
         nlohmann::json chosen_ones = buf_j["chosen_ones"];
@@ -1070,9 +1100,11 @@ void P2pNetwork::get_sleep_and_create_block_server()
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
     // chosen ones are being informed here
+    bm_->add_received_block_vector_to_received_block_matrix();
     std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then
+    bmc_->add_received_block_vector_to_received_block_matrix();
     // pococo_.create_and_send_block_c();     // preliminary commented out
     
     t.join();

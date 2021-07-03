@@ -1147,10 +1147,6 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
     // Is the coordinator the truthful real coordinator for this block
 
-    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
-
-    nlohmann::json starttime_coord = buf_j["block"]["starttime"];
-
     nlohmann::json recv_block_j = buf_j["block"];
     BlockMatrix *bm = new BlockMatrix();
     if (bm->get_block_matrix().empty())
@@ -1180,6 +1176,10 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
     delete bm;
 
+    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+
+    nlohmann::json starttime_coord = buf_j["block"]["starttime"];
+
     Common::Crypto crypto;
 
     recv_block_j["starttime"] = starttime_coord;
@@ -1197,14 +1197,14 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file();
 
-    if (full_hash_coord_from_me == my_full_hash)
+    if (full_hash_coord_from_coord == full_hash_coord_from_me)
     {
         std::cout << "Coordinator is truthful c" << std::endl;
 
         std::string prev_hash_coordinator = buf_j["prev_hash"];
         std::string prev_hash_in_block = buf_j["block"]["prev_hash"];
 
-        if (prev_hash_coordinator == prev_hash_in_block)
+        if (prev_hash_coordinator == prev_hash_in_block && prev_hash_coordinator == prev_hash_me)
         {
             std::cout << "Successful comparison of prev_hashes, now sharing hashes c" << std::endl;
 

@@ -10,6 +10,7 @@ add_library(poco SHARED
                      message_vec.cpp
                      transactions.cpp
                      block_matrix.cpp
+                     block_matrix_c.cpp
 )
 
 target_include_directories(poco PUBLIC

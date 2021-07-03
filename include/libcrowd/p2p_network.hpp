@@ -24,6 +24,7 @@
 #include "poco_coin.hpp"
 #include "merkle_tree.hpp"
 #include "all_hashes.hpp"
+#include "block_matrix.hpp"
 
 // This is the port for the p2p_server and p2p_client
 #define PORT (1975)
@@ -113,5 +114,7 @@ namespace Crowd
         Poco::PocoCrowd pococr_;
         Poco::PocoCoin pococo_;
         Poco::Transactions tx_;
+        Poco::BlockMatrix *bm_ = new Poco::BlockMatrix();
+        Poco::BlockMatrixC *bmc_ = new Poco::BlockMatrixC();
     };
 }

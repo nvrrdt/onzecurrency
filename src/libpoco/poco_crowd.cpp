@@ -4,66 +4,226 @@
 #include "crypto.hpp"
 #include "p2p_network.hpp"
 #include "merkle_tree.hpp"
+#include "block_matrix.hpp"
 
 using namespace Common;
 using namespace Poco;
 
 void PocoCrowd::create_and_send_block()
 {
-    Crowd::merkle_tree mt;
+    // The capstone implemenation, an algorithm for block creation arithmetic:
+    // 1) Evaluate NewPeers (in message_j_vec) (also take care of an analogy with double spend) (not implemented yet)
+    //    - for every new_peer: lookup its hash_email and compare what is in rocksdb if it already exists
+    // 2) Produce candidate blocks:
+    //    - first ever iteration:
+    //      --> there's only one block to create
+    //      --> create 10 blocks, each with a different count from 0 to 9, each count creates another hash_of_new_block
+    //      --> redo the previous step but then with 1 new_peer less included
+    //      --> repeat this, reducing by 1 new_peer, until receiving a intro_block_c or new_block_c request, or until the block creation delay has passed
+    //    - starting from the second iteration:
+    //      --> numerous blocks as proposals for the final block
+    //      --> create 10 blocks for every of the fastest 10 blocks of the previous iteration
+    //      --> redo the previous step but then with 1 new_peer less included
+    //      --> repeat this, reducing by 1 new_peer, until receiving a intro_block_c or new_block_c request, or until the block creation delay has passed
+    //    - after a few iterations the fittest sole remainder will become the final block
+    // 3) Send intro_block or new_block request
+    //
+    // Remarks:
+    // * Be aware for the amount of memory these steps require!
+    // * Somehow we're trying to prevent DDOS'ing in this step
+    // * A headless state might be possible where incoming intro_block or new_block requests don't contain a prev_hash which you're able to reproduce:
+    //   --> then the network should be questioned a few times until some satisfactory solution
+    // * You should also pickup leftover new_peers that weren't processed
 
-    nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
-    nlohmann::json to_block_j;
-    std::string fh_s;
-    std::string full_hash_req;
+    // The second part of the capstone implementation of poco:
+    std::cout << "create_and_send_block" << std::endl;
 
-    for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
+    BlockMatrix *bm = new BlockMatrix();
+
+    if (bm->get_block_matrix().empty())
     {
-        m_j = *message_j_vec_.get_message_j_vec()[i];
+        std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
-        full_hash_req = m_j["full_hash_req"];
+        for (uint16_t j = message_j_vec_.get_message_j_vec().size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
+        {
+            // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-        to_block_j["full_hash"] = full_hash_req;
-        to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-        to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-        s_shptr_->push(to_block_j.dump());
+            std::cout << "Crowd: 2nd for loop " << j << std::endl;
 
-        entry_tx_j["full_hash"] = to_block_j["full_hash"];
-        entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-        entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-        entry_transactions_j.push_back(entry_tx_j);
-        exit_tx_j["full_hash"] = "";
-        exit_transactions_j.push_back(exit_tx_j);
+            for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included new_peers
+            {
+
+                std::cout << "Crowd: 3rd for loop " << nonce << std::endl;
+
+                Crowd::merkle_tree *mt = new Crowd::merkle_tree();
+
+                nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                nlohmann::json to_block_j;
+                std::string fh_s;
+                std::string full_hash_req;
+
+                for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
+                {
+                    std::cout << "Crowd: 4th for loop " << l << std::endl;
+
+                    m_j = *message_j_vec_.get_message_j_vec().at(l);
+
+                    full_hash_req = m_j["full_hash_req"];
+
+                    to_block_j["full_hash"] = full_hash_req;
+                    to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+                    to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                    s_shptr_->push(to_block_j.dump());
+
+                    entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                    entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                    entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                    entry_transactions_j.push_back(entry_tx_j);
+                    exit_tx_j["full_hash"] = "";
+                    exit_transactions_j.push_back(exit_tx_j);
+                }
+
+                s_shptr_ = mt->calculate_root_hash(s_shptr_);
+                std::string datetime = mt->time_now();
+                std::string root_hash_data = s_shptr_->top();
+                block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+                Crowd::PrevHash ph;
+                block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+
+                Crowd::Protocol proto;
+                std::string my_last_block_nr = proto.get_last_block_nr();
+
+                std::string my_next_block_nr;
+                uint64_t value;
+                std::istringstream iss(my_last_block_nr);
+                iss >> value;
+                value++;
+                std::ostringstream oss;
+                oss << value;
+                my_next_block_nr = oss.str();
+
+                // send hash of this block with the block contents to the co's, forget save_block_to_file
+                // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+                // send intro_block to co's
+                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
+
+                // Add blocks to vector<vector<block_j_c_>>>
+                bm->add_block_to_block_vector(block_j_);
+
+                delete mt;
+            }
+            std::cout << "11 crowd" << std::endl;
+        }
+
+        message_j_vec_.reset_message_j_vec();
+        all_hashes_.reset_all_hashes();
+
+        std::cout << "22 crowd" << std::endl;
     }
+    else
+    {
+        std::cout << "Crowd: Normal execution for block creation ..." << std::endl;           
 
-    s_shptr_ = mt.calculate_root_hash(s_shptr_);
-    std::string datetime = mt.time_now();
-    std::string root_hash_data = s_shptr_->top();
-    block_j_ = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
+        {
+            std::cout << "Crowd: 1st for loop with block matrix " << i << std::endl;
 
-    Crowd::PrevHash ph;
-    block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+            /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
+            // in the future there will be a lot of finetuning work on this function
+            // preliminarly this is ok
 
-    Crowd::Protocol proto;
-    std::string my_last_block_nr = proto.get_last_block_nr();
+            for (uint16_t j = message_j_vec_.get_message_j_vec().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+            {
+                std::cout << "Crowd: 2nd for loop with block matrix " << j << std::endl;
 
-    std::string my_next_block_nr;
-    uint64_t value;
-    std::istringstream iss(my_last_block_nr);
-    iss >> value;
-    value++;
-    std::ostringstream oss;
-    oss << value;
-    my_next_block_nr = oss.str();
+                // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-    // send hash of this block with the block contents to the co's, forget save_block_to_file
-    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+                for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
+                {
+                    std::cout << "Crowd: 3rd for loop with block matrix " << nonce << std::endl;
 
-    // send intro_block to co's
-    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
+                    Crowd::merkle_tree *mt = new Crowd::merkle_tree();
+
+                    nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                    nlohmann::json to_block_j;
+                    std::string fh_s;
+                    std::string full_hash_req;
+
+                    for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
+                    {
+                        std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
+                        
+                        m_j = *message_j_vec_.get_message_j_vec().at(l);
+
+                        full_hash_req = m_j["full_hash_req"];
+
+                        to_block_j["full_hash"] = full_hash_req;
+                        to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+                        to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                        s_shptr_->push(to_block_j.dump());
+
+                        entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                        entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                        entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                        entry_transactions_j.push_back(entry_tx_j);
+                        exit_tx_j["full_hash"] = "";
+                        exit_transactions_j.push_back(exit_tx_j);
+                    }
+
+                    s_shptr_ = mt->calculate_root_hash(s_shptr_);
+                    std::string datetime = mt->time_now();
+                    std::string root_hash_data = s_shptr_->top();
+                    block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+                    Crowd::PrevHash ph;
+                    block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+
+                    Crowd::Protocol proto;
+                    std::string my_last_block_nr = proto.get_last_block_nr();
+
+                    std::string my_next_block_nr;
+                    uint64_t value;
+                    std::istringstream iss(my_last_block_nr);
+                    iss >> value;
+                    value++;
+                    std::ostringstream oss;
+                    oss << value;
+                    my_next_block_nr = oss.str();
+
+                    // send hash of this block with the block contents to the co's, forget save_block_to_file
+                    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+
+                    // send intro_block to co's
+                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
+
+                    // Add blocks to vector<vector<block_j_c_>>>
+                    bm->add_block_to_block_vector(block_j_);
+
+                    delete mt;
+                }
+            }
+        }
+    }
 
     message_j_vec_.reset_message_j_vec();
     all_hashes_.reset_all_hashes();
+
+    bm->add_block_vector_to_block_matrix();
+    bm->evaluate_both_block_matrices();
+    bm->save_final_block_to_file();
+
+    for (int i = 0; i < bm->get_block_matrix().size(); i++)
+    {
+        for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+        {
+            nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+            std::cout << "block matrix entry " << i << " " << j << " (oldest first)" << std::endl;
+        }
+    }
+
+    delete bm;
 
 std::cout << "--------5: " << std::endl;
 }
