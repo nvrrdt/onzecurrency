@@ -58,7 +58,7 @@ std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_recei
     return received_block_matrix_;
 }
 
-void BlockMatrix::evaluate_both_block_matrices()
+void BlockMatrix::filter_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 

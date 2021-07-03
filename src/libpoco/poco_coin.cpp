@@ -239,7 +239,7 @@ void PocoCoin::create_and_send_block_c()
     }
 
     bmc->add_block_vector_to_block_matrix();
-    bmc->evaluate_both_block_matrices();
+    bmc->filter_function_for_both_block_matrices();
     bmc->save_final_block_to_file();
 
     delete bmc;

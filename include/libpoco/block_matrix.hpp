@@ -19,7 +19,7 @@ namespace Poco
         static void add_received_block_to_received_block_vector(nlohmann::json block_j);
         static void add_received_block_vector_to_received_block_matrix();
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> get_received_block_matrix();
-        static void evaluate_both_block_matrices();
+        static void filter_function_for_both_block_matrices();
         static void save_final_block_to_file();
     private:
         static std::vector<std::shared_ptr<nlohmann::json>> block_vector_;
@@ -39,7 +39,7 @@ namespace Poco
         static void add_received_block_to_received_block_vector(nlohmann::json block_j);
         static void add_received_block_vector_to_received_block_matrix();
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> get_received_block_matrix();
-        static void evaluate_both_block_matrices();
+        static void filter_function_for_both_block_matrices();
         static void save_final_block_to_file();
     private:
         static std::vector<std::shared_ptr<nlohmann::json>> block_vector_;
