@@ -1073,7 +1073,7 @@ void P2pNetwork::get_sleep_and_create_block_server()
     std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then
-    pococo_.create_and_send_block_c();
+    // pococo_.create_and_send_block_c();     // preliminary commented out
     
     t.join();
 

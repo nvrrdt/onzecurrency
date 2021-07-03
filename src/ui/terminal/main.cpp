@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
         // Run task on new thread.
         std::thread t1(std::move(task1));
 
-        P2pNetworkC pnc;
-        pnc.start_coin();
+        // P2pNetworkC pnc;
+        // pnc.start_coin();
 
         t1.join();
        

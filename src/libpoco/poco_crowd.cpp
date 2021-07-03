@@ -223,8 +223,8 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
         }
 
         // Give the chosen_ones their reward:
-        nlohmann::json chosen_ones_reward = message_j["chosen_ones"];
-        reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);
+        // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out
+        // reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);      // this line too
     }
     else
     {
