@@ -203,8 +203,10 @@ void P2pNetwork::handle_read_client()
             nlohmann::json block_j = buf_j["block"];
             std::string req_latest_block_nr = buf_j["block_nr"];
 
-            merkle_tree mt;
-            mt.save_block_to_file(block_j,req_latest_block_nr);
+            // TODO: add most probable blocks to the correct block vector in the block matrix
+            // Let's say 25 of latest vector
+            // merkle_tree mt;
+            // mt.save_block_to_file(block_j,req_latest_block_nr);
 
             // Put in rocksdb
             for (auto &[key, value] : buf_j["rocksdb"].items())

@@ -40,6 +40,9 @@ void PocoCrowd::create_and_send_block()
 
     BlockMatrix *bm = new BlockMatrix();
 
+    nlohmann::json rocksdb_out;
+    std::string my_next_block_nr;
+
     if (bm->get_block_matrix().empty())
     {
         std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
@@ -107,7 +110,7 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
+                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm->add_block_to_block_vector(block_j_);
@@ -116,10 +119,6 @@ void PocoCrowd::create_and_send_block()
             }
             std::cout << "11 crowd" << std::endl;
         }
-
-        message_j_vec_.reset_message_j_vec();
-        all_hashes_.reset_all_hashes();
-
         std::cout << "22 crowd" << std::endl;
     }
     else
@@ -183,7 +182,6 @@ void PocoCrowd::create_and_send_block()
                     Crowd::Protocol proto;
                     std::string my_last_block_nr = proto.get_last_block_nr();
 
-                    std::string my_next_block_nr;
                     uint64_t value;
                     std::istringstream iss(my_last_block_nr);
                     iss >> value;
@@ -196,7 +194,7 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req);
+                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm->add_block_to_block_vector(block_j_);
@@ -207,6 +205,31 @@ void PocoCrowd::create_and_send_block()
         }
     }
 
+    // Send your_full_hash request to intro_peer's
+    for (auto &[key, value] : all_hashes_.get_all_hashes())
+    {
+        nlohmann::json msg_j;
+        msg_j["req"] = "your_full_hash";
+        std::vector<std::string> vec = *value;
+        msg_j["full_hash"] = vec[0];
+        msg_j["prev_hash"] = vec[1];
+        msg_j["block"] = block_j_;
+        Crowd::Protocol proto;
+        msg_j["block_nr"] = my_next_block_nr;
+
+        msg_j["rocksdb"] = rocksdb_out;
+
+        std::string msg_s = msg_j.dump();
+
+        std::string peer_ip;
+        Crowd::P2p p2p;
+        p2p.number_to_ip_string(key, peer_ip);
+        
+        std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+        Crowd::P2pNetwork pn;
+        pn.p2p_client(peer_ip, msg_s);
+    }
+
     message_j_vec_.reset_message_j_vec();
     all_hashes_.reset_all_hashes();
 
@@ -214,6 +237,7 @@ void PocoCrowd::create_and_send_block()
     bm->filter_function_for_both_block_matrices();
     bm->save_final_block_to_file();
 
+    // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
     {
         for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
@@ -228,7 +252,7 @@ void PocoCrowd::create_and_send_block()
 std::cout << "--------5: " << std::endl;
 }
 
-void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
+void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req, nlohmann::json rocksdb_out)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -352,35 +376,7 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
             pn.p2p_client(ip_from_peer, message);
         }
 
-        Crowd::merkle_tree mt;
-        std::string block_s = mt.save_block_to_file(block_j, my_next_block_nr);
-
-        set_hash_of_new_block(block_s);
-
-        // Send your_full_hash request to intro_peer's
-        for (auto &[key, value] : all_hashes_.get_all_hashes())
-        {
-            nlohmann::json msg_j;
-            msg_j["req"] = "your_full_hash";
-            std::vector<std::string> vec = *value;
-            msg_j["full_hash"] = vec[0];
-            msg_j["prev_hash"] = vec[1];
-            msg_j["block"] = block_j;
-            Crowd::Protocol proto;
-            msg_j["block_nr"] = proto.get_last_block_nr();
-
-            msg_j["rocksdb"] = message_j["rocksdb"];
-
-            std::string msg_s = msg_j.dump();
-
-            std::string peer_ip;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(key, peer_ip);
-            
-            std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-            Crowd::P2pNetwork pn;
-            pn.p2p_client(peer_ip, msg_s);
-        }
+        rocksdb_out = message_j["rocksdb"];
 
         // Give the chosen_ones their reward:
         // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out
