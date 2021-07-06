@@ -11,6 +11,7 @@
 #include "configdir.hpp"
 #include "json.hpp"
 #include "crypto.hpp"
+#include "block_matrix.hpp"
 
 using namespace Crowd;
 
@@ -101,6 +102,22 @@ std::string PrevHash::calculate_hash_from_last_block()
     }
 
     return prev_hash;
+}
+
+std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
+{
+    Poco::BlockMatrix bm;
+    Common::Crypto crypto;
+    std::vector<std::string> prev_hashes;
+
+    for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
+    {
+        std::string str = *bm.get_block_matrix().back().at(i);
+        std::string ph = crypto.bech32_encode_sha256(str);
+        prev_hashes.push_back(ph);
+    }
+
+    return prev_hashes;
 }
 
 // std::string PrevHash::get_prev_hash_from_the_last_block()
