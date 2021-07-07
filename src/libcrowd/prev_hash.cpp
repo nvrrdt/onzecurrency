@@ -108,12 +108,20 @@ std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
 {
     Poco::BlockMatrix bm;
     Common::Crypto crypto;
-    std::vector<std::string> prev_hashes;
+    std::vector<std::string> prev_hashes = {};
 
-    for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
+    if (!bm.get_block_matrix().empty())
     {
-        std::string str = *bm.get_block_matrix().back().at(i);
-        std::string ph = crypto.bech32_encode_sha256(str);
+        for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
+        {
+            std::string str = *bm.get_block_matrix().back().at(i);
+            std::string ph = crypto.bech32_encode_sha256(str);
+            prev_hashes.push_back(ph);
+        }
+    }
+    else
+    {
+        std::string ph = calculate_hash_from_last_block();
         prev_hashes.push_back(ph);
     }
 

@@ -94,6 +94,23 @@ void P2pNetwork::handle_read_client()
             rocksy->Put(key_s, value_s);
             delete rocksy;
         }
+        else if (buf_j["req"] == "update_your_block_matrix")
+        {
+            std::cout << "update_your_block_matrix client" << std::endl;
+
+            std::string bm_s = buf_j["bm"];
+            nlohmann::json block_matrix_j = nlohmann::json::parse(bm_s);
+            
+            Poco::BlockMatrix bm;
+            for (auto& el : block_matrix_j.items())
+            {
+                for (auto& inner_el : el.value().items())
+                {
+                    bm.add_block_to_block_vector(inner_el.value());
+                }
+                bm.add_block_vector_to_block_matrix();
+            }
+        }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
             std::cout << "update_your_blocks_and_rocksdb client" << std::endl;

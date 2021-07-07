@@ -130,6 +130,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     to_verify_j["rsa_pub_key"] = rsa_pub_key;
     to_verify_j["email"] = email_of_req;
 
+    Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
     ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
     crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
@@ -147,67 +148,123 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
          *   --> final my_full_hash must later be adapted when there's a final block with you in
          * 
          * How to test this? You're probably blinded by the amount of data
+         * 
+         * - rocksdb can only be filled when in final block
          */
 
         // upload blockchain and block_matrix --> must later also be directed to a new_co, because of decentralisation
 
-        Protocol proto;
-        std::string my_latest_block = proto.get_last_block_nr();
-        // std::cout << "My latest block: " << my_latest_block << std::endl;
-        // std::cout << "Req latest block: " << req_latest_block << std::endl;
+        PrevHash prev_hash;
+        std::string prel_first_prev_hash_req = prev_hash.calculate_hashes_from_last_block_vector().at(0);
+
+        std::string hash_of_email_prev_hash_concatenated = hash_of_email + prel_first_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
+        std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
+std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << " , " << prel_first_full_hash_req << std::endl;
+
+        Rocksy* rocksy = new Rocksy("usersdb");
+        std::string prel_first_coordinator_server = rocksy->FindChosenOne(prel_first_full_hash_req);
+        delete rocksy;
         
-        // update blockchains and rockdb's
-        if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
+        FullHash fh;
+        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+        
+        if (my_full_hash == prel_first_coordinator_server)
         {
-            // TODO: upload blockchain to the requester starting from latest block
-            // Update blockchain: send latest block to peer
-            nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
-            //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
-            uint64_t value;
-            std::istringstream iss(my_latest_block);
-            iss >> value;
+            std::cout << "my_full_hash: " << my_full_hash << std::endl;
 
-            for (uint64_t i = 0; i <= value; i++)
+            Protocol proto;
+            std::string my_latest_block = proto.get_last_block_nr();
+            // std::cout << "My latest block: " << my_latest_block << std::endl;
+            // std::cout << "Req latest block: " << req_latest_block << std::endl;
+            
+            // update blockchains and rockdb's
+            if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
-                nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                //std::cout << "block_j: " << block_j << std::endl;
+                // Update blockchain: send latest block to peer
+                nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
+                //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
+                uint64_t value;
+                std::istringstream iss(my_latest_block);
+                iss >> value;
+
+                for (uint64_t i = 0; i <= value; i++)
+                {
+                    nlohmann::json block_j = list_of_blocks_j[i]["block"];
+                    //std::cout << "block_j: " << block_j << std::endl;
+                    nlohmann::json msg;
+                    msg["req"] = "update_your_blocks";
+                    std::ostringstream o;
+                    o << i;
+                    msg["block_nr"] = o.str();
+                    msg["block"] = block_j;
+                    set_resp_msg_server(msg.dump());
+                }
+
+                // Update rockdb's:
+                // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
+                // , then lookup those user_id's in rocksdb and send
+                nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+
+                Rocksy* rocksy = new Rocksy("usersdb");
+                for (auto& user : list_of_users_j) // TODO better make a string with all keys with its values and send that once
+                {
+                    nlohmann::json msg;
+                    msg["req"] = "update_your_rocksdb";
+                    msg["key"] = user;
+
+                    std::string u = user;
+                    std::string value = rocksy->Get(u);
+                    msg["value"] = value;
+
+                    set_resp_msg_server(msg.dump());
+                }
+                delete rocksy;
+
+                // Update your BlockMatrix:
                 nlohmann::json msg;
-                msg["req"] = "update_your_blocks";
-                std::ostringstream o;
-                o << i;
-                msg["block_nr"] = o.str();
-                msg["block"] = block_j;
+                Poco::BlockMatrix bm;
+                nlohmann::json contents_j;
+                msg["req"] = "update_your_block_matrix";
+                for (int i = 0; i < bm.get_block_matrix().size(); i++)
+                {
+                    for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+                    {
+                        contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
+                    }
+                }
+                msg["bm"] = contents_j.dump();
+
+                set_resp_msg_server(msg.dump());
+
+            }
+            else if (req_latest_block > my_latest_block)
+            {
+                // TODO: update your own blockchain
+                nlohmann::json msg;
+                msg["req"] = "update_my_blocks_and_rocksdb";
+                msg["block_nr"] = my_latest_block;
                 set_resp_msg_server(msg.dump());
             }
+        }
+        else
+        {
+            // There's another chosen_one, reply with the correct chosen_one
+            std::cout << "Chosen_one is someone else!" << std::endl;
 
-            // Update rockdb's:
-            // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
-            // , then lookup those user_id's in rocksdb and send
-            nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
-                                                                                                                // maybe even a stack is better ...
-            Rocksy* rocksy = new Rocksy("usersdb");        // TODO need to handle the online presence of the other users!!!!!
-            for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
-            {
-                nlohmann::json msg;
-                msg["req"] = "update_your_rocksdb";
-                msg["key"] = user;
+            nlohmann::json message_j;
+            message_j["req"] = "new_co";
+std::cout << "prel_first_coordinator_server:______ " << prel_first_coordinator_server << std::endl;
 
-                std::string u = user;
-                std::string value = rocksy->Get(u);
-                msg["value"] = value;
-
-                set_resp_msg_server(msg.dump());
-            }
+            Rocksy* rocksy = new Rocksy("usersdb");
+std::cout << "usersdb size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
+            enet_uint32 peer_ip = value_j["ip"];
             delete rocksy;
+
+            message_j["ip_co"] = peer_ip;
+            set_resp_msg_server(message_j.dump());
         }
-        else if (req_latest_block > my_latest_block)
-        {
-            // TODO: update your own blockchain
-            nlohmann::json msg;
-            msg["req"] = "update_my_blocks_and_rocksdb";
-            msg["block_nr"] = my_latest_block;
-            set_resp_msg_server(msg.dump());
-        }
+        delete crypto;
 
         // for loop over latest block_vector and new_co if your not coordinator --> remember already used coordinators for testability
 
