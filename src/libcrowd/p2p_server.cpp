@@ -143,9 +143,8 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         /** The plan for the capstone of poco:
          * - Make a vector of prev_hashes
          * - Share block_matrix().back() with first connected peer
-         * - Compare hash_from_block_matrix_entry == my_full_hash, but my_full_hash doesn't exist yet
-         * - Maybe my_prel_full_hash = hash from block_matrix().back().forward()
-         *   --> final my_full_hash must later be adapted when there's a final block with you in
+         * - Compare prel_full_hash with prev_hash_from_block_matrix_entry == my_full_hash
+         *   --> final my_full_hash must later be changed when there's a final block with you in
          * 
          * How to test this? You're probably blinded by the amount of data
          * 
@@ -168,7 +167,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
         
-        if (my_full_hash == prel_first_coordinator_server)
+        if (my_full_hash != "" && my_full_hash == prel_first_coordinator_server)
         {
             std::cout << "my_full_hash: " << my_full_hash << std::endl;
 
