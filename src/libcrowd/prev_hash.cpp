@@ -114,7 +114,8 @@ std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
     {
         for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
         {
-            std::string str = *bm.get_block_matrix().back().at(i);
+            nlohmann::json str_j = *bm.get_block_matrix().back().at(i);
+            std::string str = str_j.dump();
             std::string ph = crypto.bech32_encode_sha256(str);
             prev_hashes.push_back(ph);
         }

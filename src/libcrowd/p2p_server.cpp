@@ -277,7 +277,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 message_j["req"] = "new_peer";
                 message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
                 hash_of_email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
-                prel_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
+                std::string prel_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
                 message_j["full_hash_req"] = prel_full_hash_req; // refreshed full_hash_req
                 message_j["prev_hash_of_req"] = prel_prev_hash_req;
                 message_j["full_hash_co"] = my_full_hash;
