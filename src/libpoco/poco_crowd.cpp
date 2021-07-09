@@ -322,9 +322,9 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
             std::string rocksdb_s = rocksdb_j.dump();
 
             // Store to rocksdb for coordinator
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-            rocksy->Put(full_hash_req, rocksdb_s);
-            delete rocksy;
+            // Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            // rocksy->Put(full_hash_req, rocksdb_s);
+            // delete rocksy;
 
             // Send rocksdb to into_block chosen_ones
             message_j["rocksdb"][i] = rocksdb_j;
