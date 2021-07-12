@@ -403,15 +403,15 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 }
                 else if (message_j_vec_.get_message_j_vec().size() == 1)
                 {
-                    // wait 20 secs
+                    // wait x secs
                     // then create block
                     // if root_hash == me as coordinator ... connect to all co's
                     // ... see below at new_peer
 
                     std::cout << "Get_sleep_and_create_block" << std::endl;
 
-                    std::thread t(&P2pNetwork::get_sleep_and_create_block_server, this);
-                    t.detach();
+                    Poco::Synchronisation sync;
+                    sync.get_sleep_and_create_block();
                 }
             }
         }
@@ -493,11 +493,11 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     }
     else if (message_j_vec_.get_message_j_vec().size() == 1)
     {
-        // wait 20 secs
+        // wait x secs
         // then create block --> don't forget the counter in the search for a coordinator
         // if root_hash == me as coordinator ... connect to all co's
-        std::thread t(&P2pNetwork::get_sleep_and_create_block_server, this);
-        t.detach();
+        Poco::Synchronisation sync;
+        sync.get_sleep_and_create_block();
     }
 
     // Disconect from client
@@ -1081,40 +1081,6 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
         enet_host_flush(server_);
     }
 }
-
-
-/**
- * synchronisation is necessary
- * 
- * 1st peer creation --> 2nd peer creation --> reward tx to 1st peer --> 3rd peer creation --> reward txs to first 2 peers
- * 
- * poco introduction for crowd first ...
- * then trying to make poco work for coin ...
- * 
- * calculating new blocks should be ceased and start over with a new vector after the block creation delay (here 10 seconds)
- */
-
-
-void P2pNetwork::get_sleep_and_create_block_server()
-{
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-
-    std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
-    std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
-
-    // chosen ones are being informed here
-    bm_->add_received_block_vector_to_received_block_matrix();
-    std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
-
-    // and here too, but for coin then
-    bmc_->add_received_block_vector_to_received_block_matrix();
-    // pococo_.create_and_send_block_c();     // preliminary commented out
-    
-    t.join();
-
-    std::cout << "Blocks created server!!" << std::endl;
-}
-
 
 int P2pNetwork::p2p_server()
 {

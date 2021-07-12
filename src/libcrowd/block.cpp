@@ -31,15 +31,13 @@ std::string merkle_tree::time_now()
 {
     using namespace std::chrono;
 
-    std::string datetime;
-
     system_clock::time_point now = system_clock::now();
 
     time_t tt = system_clock::to_time_t(now);
     tm utc_tm = *gmtime(&tt);
 
-    datetime = std::to_string(utc_tm.tm_hour) + ":" + std::to_string(utc_tm.tm_min) + ":" + std::to_string(utc_tm.tm_sec) + " " \
-                       + std::to_string(utc_tm.tm_mday) + "/" + std::to_string(utc_tm.tm_mon + 1) + "/" + std::to_string(utc_tm.tm_year + 1900);
+    char datetime[20];
+    sprintf(datetime, "%4d/%02d/%02d %02d:%02d:%02d", 1900 + utc_tm.tm_year, utc_tm.tm_mon + 1, utc_tm.tm_mday, utc_tm.tm_hour, utc_tm.tm_min, utc_tm.tm_sec);
 
     return datetime;
 }

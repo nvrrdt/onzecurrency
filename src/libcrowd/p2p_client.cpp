@@ -186,11 +186,11 @@ void P2pNetwork::handle_read_client()
             }
             else if (message_j_vec_.get_message_j_vec().size() == 1)
             {
-                // wait 20 secs
+                // wait x secs
                 // then create block --> don't forget the counter in the search for a coordinator
                 // if root_hash == me as coordinator ... connect to all co's
-                std::thread t(&P2pNetwork::get_sleep_and_create_block_client, this);
-                t.detach();
+                Poco::Synchronisation sync;
+                sync.get_sleep_and_create_block();
             }
         }
         else if (buf_j["req"] == "new_co")
@@ -286,21 +286,6 @@ void P2pNetwork::handle_read_client()
 
         buf_client_ = ""; // reset buffer, otherwise nlohmann receives an incorrect string
     }
-}
-
-void P2pNetwork::get_sleep_and_create_block_client() // TODO in p2p_server is also this function, they should be merged as they need to be the same
-{
-    std::this_thread::sleep_for(std::chrono::seconds(10));
-
-    std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
-
-    Poco::PocoCrowd poco;
-    poco.create_and_send_block();
-
-    // TODO look into p2p_session for the same function and adapt accordingly
-    // this function is not yet used, it starts getting used when nat traversal is introcuded
-
-    std::cout << "Block created client!!" << std::endl;
 }
 
 void P2pNetwork::set_resp_msg_client(std::string msg)

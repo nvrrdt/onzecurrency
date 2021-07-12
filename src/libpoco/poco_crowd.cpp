@@ -5,6 +5,7 @@
 #include "p2p_network.hpp"
 #include "merkle_tree.hpp"
 #include "block_matrix.hpp"
+#include "synchronisation.hpp"
 
 using namespace Common;
 using namespace Poco;
@@ -39,6 +40,7 @@ void PocoCrowd::create_and_send_block()
     std::cout << "create_and_send_block" << std::endl;
 
     BlockMatrix *bm = new BlockMatrix();
+    Synchronisation sync;
 
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;
@@ -53,10 +55,14 @@ void PocoCrowd::create_and_send_block()
 
             std::cout << "Crowd: 2nd for loop " << j << std::endl;
 
+            if (sync.get_break_block_creation_loops()) break;
+
             for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included new_peers
             {
 
                 std::cout << "Crowd: 3rd for loop " << nonce << std::endl;
+
+                if (sync.get_break_block_creation_loops()) break;
 
                 Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
@@ -129,6 +135,8 @@ void PocoCrowd::create_and_send_block()
         {
             std::cout << "Crowd: 1st for loop with block matrix " << i << std::endl;
 
+            if (sync.get_break_block_creation_loops()) break;
+
             /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
             // in the future there will be a lot of finetuning work on this function
             // preliminarly this is ok
@@ -137,11 +145,15 @@ void PocoCrowd::create_and_send_block()
             {
                 std::cout << "Crowd: 2nd for loop with block matrix " << j << std::endl;
 
+                if (sync.get_break_block_creation_loops()) break;
+
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
                 for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
                 {
                     std::cout << "Crowd: 3rd for loop with block matrix " << nonce << std::endl;
+
+                    if (sync.get_break_block_creation_loops()) break;
 
                     Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 

@@ -25,6 +25,7 @@
 #include "merkle_tree.hpp"
 #include "all_hashes.hpp"
 #include "block_matrix.hpp"
+#include "synchronisation.hpp"
 
 // This is the port for the p2p_server and p2p_client
 #define PORT (1975)
@@ -60,8 +61,6 @@ namespace Crowd
         void do_read_body_client();
         void handle_read_server();
         void handle_read_client();
-        void get_sleep_and_create_block_server();
-        void get_sleep_and_create_block_client();
         static void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
@@ -110,11 +109,5 @@ namespace Crowd
         static uint32_t ip_new_co_;
 
         static bool quit_server_;
-
-        Poco::PocoCrowd pococr_;
-        Poco::PocoCoin pococo_;
-        Poco::Transactions tx_;
-        Poco::BlockMatrix *bm_ = new Poco::BlockMatrix();
-        Poco::BlockMatrixC *bmc_ = new Poco::BlockMatrixC();
     };
 }
