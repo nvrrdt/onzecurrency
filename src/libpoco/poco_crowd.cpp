@@ -116,7 +116,7 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                //inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm->add_block_to_block_vector(block_j_);
@@ -207,7 +207,7 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                    //inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm->add_block_to_block_vector(block_j_);
@@ -244,8 +244,9 @@ void PocoCrowd::create_and_send_block()
     //     pn.p2p_client(peer_ip, msg_s);
     // }
 
-    message_j_vec_.reset_message_j_vec();
-    all_hashes_.reset_all_hashes();
+    message_j_vec_.reset_message_j_vec(); // TODO put these two in teh beginning of this function
+    all_hashes_.reset_all_hashes();       // and make a copy of message_j_vec_ and all_hashes_, work with thes copies here
+                                          // --> new intro_peers might arrive and shouldn't be taken into account
 
     bm->add_block_vector_to_block_matrix();
     bm->sifting_function_for_both_block_matrices();
