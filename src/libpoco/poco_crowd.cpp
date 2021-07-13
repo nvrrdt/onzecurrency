@@ -103,7 +103,6 @@ void PocoCrowd::create_and_send_block()
                 Crowd::Protocol proto;
                 std::string my_last_block_nr = proto.get_last_block_nr();
 
-                std::string my_next_block_nr;
                 uint64_t value;
                 std::istringstream iss(my_last_block_nr);
                 iss >> value;
@@ -226,7 +225,6 @@ void PocoCrowd::create_and_send_block()
         msg_j["full_hash"] = vec[0];
         msg_j["prev_hash"] = vec[1];
         msg_j["block"] = block_j_;
-        Crowd::Protocol proto;
         msg_j["block_nr"] = my_next_block_nr;
 
         msg_j["rocksdb"] = rocksdb_out;
