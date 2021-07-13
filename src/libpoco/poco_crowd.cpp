@@ -99,6 +99,7 @@ void PocoCrowd::create_and_send_block()
 
                 Crowd::PrevHash ph;
                 block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+                block_j_["nonce"] = nonce;
 
                 Crowd::Protocol proto;
                 std::string my_last_block_nr = proto.get_last_block_nr();
@@ -189,6 +190,7 @@ void PocoCrowd::create_and_send_block()
 
                     Crowd::PrevHash ph;
                     block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+                    block_j_["nonce"] = nonce;
 
                     Crowd::Protocol proto;
                     std::string my_last_block_nr = proto.get_last_block_nr();
@@ -216,29 +218,31 @@ void PocoCrowd::create_and_send_block()
         }
     }
 
+    // TODO your_full_hash must only be sent when a block is final!!
+
     // Send your_full_hash request to intro_peer's
-    for (auto &[key, value] : all_hashes_.get_all_hashes())
-    {
-        nlohmann::json msg_j;
-        msg_j["req"] = "your_full_hash";
-        std::vector<std::string> vec = *value;
-        msg_j["full_hash"] = vec[0];
-        msg_j["prev_hash"] = vec[1];
-        msg_j["block"] = block_j_;
-        msg_j["block_nr"] = my_next_block_nr;
+    // for (auto &[key, value] : all_hashes_.get_all_hashes())
+    // {
+    //     nlohmann::json msg_j;
+    //     msg_j["req"] = "your_full_hash";
+    //     std::vector<std::string> vec = *value;
+    //     msg_j["full_hash"] = vec[0];
+    //     msg_j["prev_hash"] = vec[1];
+    //     msg_j["block"] = block_j_;
+    //     msg_j["block_nr"] = my_next_block_nr;
 
-        msg_j["rocksdb"] = rocksdb_out;
+    //     msg_j["rocksdb"] = rocksdb_out;
 
-        std::string msg_s = msg_j.dump();
+    //     std::string msg_s = msg_j.dump();
 
-        std::string peer_ip;
-        Crowd::P2p p2p;
-        p2p.number_to_ip_string(key, peer_ip);
+    //     std::string peer_ip;
+    //     Crowd::P2p p2p;
+    //     p2p.number_to_ip_string(key, peer_ip);
         
-        std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-        Crowd::P2pNetwork pn;
-        pn.p2p_client(peer_ip, msg_s);
-    }
+    //     std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
+    //     Crowd::P2pNetwork pn;
+    //     pn.p2p_client(peer_ip, msg_s);
+    // }
 
     message_j_vec_.reset_message_j_vec();
     all_hashes_.reset_all_hashes();
