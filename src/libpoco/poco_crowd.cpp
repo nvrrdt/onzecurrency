@@ -248,7 +248,7 @@ void PocoCrowd::create_and_send_block()
     all_hashes_.reset_all_hashes();
 
     bm->add_block_vector_to_block_matrix();
-    bm->filter_function_for_both_block_matrices();
+    bm->sifting_function_for_both_block_matrices();
     bm->save_final_block_to_file();
 
     // for debugging purposes:
