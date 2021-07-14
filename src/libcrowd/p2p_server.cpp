@@ -39,13 +39,15 @@ void P2pNetwork::handle_read_server()
         req_conversion["new_peer"] =            4;
         req_conversion["update_your_blocks"] =  5;
         req_conversion["update_your_rocksdb"] = 6;
-        req_conversion["intro_block"] =         7;
-        req_conversion["new_block"] =           8;
-        req_conversion["your_full_hash"] =      9;
-        req_conversion["hash_comparison"] =     10;
-        req_conversion["update_my_blocks_and_rocksdb"] = 11;
-        req_conversion["intro_online"] =        12;
-        req_conversion["new_online"] =          13;
+        req_conversion["intro_prel_block"] =    7;
+        req_conversion["new_prel_block"] =      8;
+        req_conversion["intro_block"] =         9;
+        req_conversion["new_block"] =           10;
+        req_conversion["your_full_hash"] =      11;
+        req_conversion["hash_comparison"] =     12;
+        req_conversion["update_my_blocks_and_rocksdb"] = 13;
+        req_conversion["intro_online"] =        14;
+        req_conversion["new_online"] =          15;
 
         switch (req_conversion[req])
         {
@@ -61,19 +63,23 @@ void P2pNetwork::handle_read_server()
                         break;
             case 6:     update_your_rocksdb(buf_j);
                         break;
-            case 7:     intro_block(buf_j);
+            case 7:     intro_prel_block(buf_j);
                         break;
-            case 8:     new_block(buf_j);
+            case 8:     new_prel_block(buf_j);
                         break;
-            case 9:     your_full_hash(buf_j);
+            case 9:     intro_block(buf_j);
                         break;
-            case 10:    hash_comparison(buf_j);
+            case 10:     new_block(buf_j);
                         break;
-            case 11:    update_my_blocks_and_rocksdb(buf_j);
+            case 11:     your_full_hash(buf_j);
                         break;
-            case 12:    intro_online(buf_j);
+            case 12:    hash_comparison(buf_j);
                         break;
-            case 13:    new_online(buf_j);
+            case 13:    update_my_blocks_and_rocksdb(buf_j);
+                        break;
+            case 14:    intro_online(buf_j);
+                        break;
+            case 15:    new_online(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_server_c(buf_j);
@@ -268,9 +274,10 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             {
                 bm_size = bm.get_block_matrix().back().size();
             }
-
+std::cout << "bm_size " << bm_size << std::endl;
             for (int i = 0; i < bm_size; i++)
             {
+std::cout << "bm_size " << std::endl;
                 std::string prel_prev_hash_req = prev_hash.calculate_hashes_from_last_block_vector().at(i);
 
                 nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -300,7 +307,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 std::string key, val;
                 for (int i = 1; i <= parts.size(); i++)
                 {
-                    // std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
                     if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                     if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
                     
@@ -530,6 +537,113 @@ void P2pNetwork::update_your_rocksdb(nlohmann::json buf_j)
     Rocksy* rocksy = new Rocksy("usersdb");
     rocksy->Put(key_s, value_s);
     delete rocksy;
+}
+
+void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
+{
+    // intro_prel_block
+    std::cout << "Intro_prel_block: " << std::endl;
+
+    // Compare the hashes from the block of the coordinator with this block
+    // p2p_client to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
+    // Communicate hash to all
+    // Then inform your underlying network
+    // Put block in waiting list until it's the only block in the chain --> future implementation with coin
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
+
+    // add received_blocks to received_block_vector
+    nlohmann::json recv_block_j = buf_j["block"];
+    Poco::BlockMatrix *bm = new Poco::BlockMatrix();
+    if (bm->get_block_matrix().empty())
+    {
+        std::cout << "Received block is in block_vector; 1" << std::endl;
+        bm->add_received_block_to_received_block_vector(recv_block_j);
+    }
+    else
+    {
+        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
+        {
+            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
+            {
+                std::cout << "Received block is in block_vector; 2" << std::endl;
+                bm->add_received_block_to_received_block_vector(recv_block_j);
+                break;
+            }
+            else if (i == bm->get_block_matrix().back().size() - 1)
+            {
+                // Don't accept this block
+                std::cout << "End of vector: received block not in block_vector" << std::endl;
+                return;
+            }
+        }
+    }
+
+    delete bm;
+
+    // for debugging purposes:
+    for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
+    {
+        for (int j = 0; j < bm->get_received_block_matrix().at(i).size(); j++)
+        {
+            nlohmann::json content_j = *bm->get_received_block_matrix().at(i).at(j);
+            std::cout << "received block matrix entry prel " << i << " " << j << " (oldest first)" << std::endl << std::endl;
+        }
+    }
+    // for debugging purposes:
+    for (int i = 0; i < bm->get_block_matrix().size(); i++)
+    {
+        for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+        {
+            nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+            std::cout << "block matrix entry prel" << i << " " << j << " (oldest first)" << std::endl;
+        }
+    }
+
+    // Is the coordinator the truthful real coordinator for this block
+    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+
+    nlohmann::json starttime_coord = buf_j["block"]["starttime"];
+
+    Common::Crypto crypto;
+    Poco::PocoCrowd poco;
+    
+    nlohmann::json block_j_me = poco.get_block_j();
+    block_j_me["starttime"] = starttime_coord;
+    std::string block_s_me = block_j_me.dump();
+    std::string prev_hash_me = crypto.bech32_encode_sha256(block_s_me);
+
+    Rocksy* rocksy = new Rocksy("usersdb");
+    std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
+    if (full_hash_coord_from_me == buf_j["full_hash_req"])
+    {
+        full_hash_coord_from_me = rocksy->FindNextPeer(full_hash_coord_from_me);
+    }
+    delete rocksy;
+
+    if (full_hash_coord_from_coord == full_hash_coord_from_me)
+    {
+        std::cout << "Coordinator is truthful" << std::endl;
+
+        FullHash fh;
+        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+        // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+
+        // TODO send new_prel_block message to underlying peers here
+    }
+    else
+    {
+        std::cout << "Coordinator is not truthful" << std::endl;
+    }
+}
+
+void P2pNetwork::new_prel_block(nlohmann::json buf_j)
+{
+    // new_prel_block --> TODO block and rocksdb should be saved
+    std::cout << "New_prel_block: " << std::endl;
 }
 
 void P2pNetwork::intro_block(nlohmann::json buf_j)

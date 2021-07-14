@@ -41,9 +41,12 @@ void PocoCrowd::create_and_send_block()
 
     BlockMatrix *bm = new BlockMatrix();
     Synchronisation sync;
+    sync.set_break_block_creation_loops(false);
 
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;
+
+    uint16_t limit_count = 0;
 
     if (bm->get_block_matrix().empty())
     {
@@ -116,12 +119,15 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                //inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm->add_block_to_block_vector(block_j_);
 
                 delete mt;
+
+                limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
+                if (limit_count == 100) sync.set_break_block_creation_loops(true);
             }
             std::cout << "11 crowd" << std::endl;
         }
@@ -207,12 +213,15 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    //inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm->add_block_to_block_vector(block_j_);
 
                     delete mt;
+
+                    limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
+                    if (limit_count == 100) sync.set_break_block_creation_loops(true);
                 }
             }
         }
@@ -250,7 +259,9 @@ void PocoCrowd::create_and_send_block()
 
     bm->add_block_vector_to_block_matrix();
     bm->sifting_function_for_both_block_matrices();
+std::cout << "1111" << std::endl;
     bm->save_final_block_to_file();
+std::cout << "2222" << std::endl;
 
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
@@ -292,7 +303,7 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
-        message_j["req"] = "intro_block";
+        message_j["req"] = "intro_prel_block";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
         Crowd::PrevHash ph;
@@ -307,43 +318,43 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
             message_j["chosen_ones"].push_back(v);
         }
 
-        // this for loop should be in inform_chosen_ones coordinator and send with an intro_block and a new_block
-        // intro_block and new_block should put this in rocksdb
-        // also a your_full_hash should receive and store this
-        // and then the coordinator should put in rocksdb
-        for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
-        {
-            nlohmann::json m_j;
-            m_j = *message_j_vec_.get_message_j_vec()[i];
+        // // this for loop should be in inform_chosen_ones coordinator and send with an intro_block and a new_block
+        // // intro_block and new_block should put this in rocksdb
+        // // also a your_full_hash should receive and store this
+        // // and then the coordinator should put in rocksdb
+        // for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
+        // {
+        //     nlohmann::json m_j;
+        //     m_j = *message_j_vec_.get_message_j_vec()[i];
 
-            std::string full_hash_req = m_j["full_hash_req"];
+        //     std::string full_hash_req = m_j["full_hash_req"];
             
-            Common::Crypto crypto;
-            // update rocksdb
-            nlohmann::json rocksdb_j;
-            rocksdb_j["version"] = "O.1";
-            rocksdb_j["ip"] = m_j["ip"];
-            rocksdb_j["online"] = true;
-            rocksdb_j["server"] = true;
-            rocksdb_j["fullnode"] = true;
-            std::string email_of_req = m_j["email_of_req"];
-            rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-            rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
-            rocksdb_j["full_hash"] = full_hash_req;
-            Crowd::Protocol proto;
-            rocksdb_j["block_nr"] = proto.get_last_block_nr();
-            rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-            rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-            std::string rocksdb_s = rocksdb_j.dump();
+        //     Common::Crypto crypto;
+        //     // update rocksdb
+        //     nlohmann::json rocksdb_j;
+        //     rocksdb_j["version"] = "O.1";
+        //     rocksdb_j["ip"] = m_j["ip"];
+        //     rocksdb_j["online"] = true;
+        //     rocksdb_j["server"] = true;
+        //     rocksdb_j["fullnode"] = true;
+        //     std::string email_of_req = m_j["email_of_req"];
+        //     rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
+        //     rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
+        //     rocksdb_j["full_hash"] = full_hash_req;
+        //     Crowd::Protocol proto;
+        //     rocksdb_j["block_nr"] = proto.get_last_block_nr();
+        //     rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+        //     rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+        //     std::string rocksdb_s = rocksdb_j.dump();
 
-            // Store to rocksdb for coordinator
-            // Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-            // rocksy->Put(full_hash_req, rocksdb_s);
-            // delete rocksy;
+        //     // Store to rocksdb for coordinator
+        //     // Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+        //     // rocksy->Put(full_hash_req, rocksdb_s);
+        //     // delete rocksy;
 
-            // Send rocksdb to into_block chosen_ones
-            message_j["rocksdb"][i] = rocksdb_j;
-        }
+        //     // Send rocksdb to into_block chosen_ones
+        //     message_j["rocksdb"][i] = rocksdb_j;
+        // }
 
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
@@ -351,7 +362,7 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
         to_sign_j["full_hash_req"] = full_hash_req;
         to_sign_j["full_hash_coord"] = hash_of_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
-        to_sign_j["rocksdb"] = message_j["rocksdb"];
+        // to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
         ECDSA<ECP, SHA256>::PrivateKey private_key;
         std::string signature;
@@ -391,7 +402,7 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
             pn.p2p_client(ip_from_peer, message);
         }
 
-        rocksdb_out = message_j["rocksdb"];
+        // rocksdb_out = message_j["rocksdb"];
 
         // Give the chosen_ones their reward:
         // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out

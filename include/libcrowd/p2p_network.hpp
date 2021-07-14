@@ -75,6 +75,8 @@ namespace Crowd
         void new_peer(nlohmann::json buf_j);
         void update_your_blocks(nlohmann::json buf_j);
         void update_your_rocksdb(nlohmann::json buf_j);
+        void intro_prel_block(nlohmann::json buf_j);
+        void new_prel_block(nlohmann::json buf_j);
         void intro_block(nlohmann::json buf_j);
         void new_block(nlohmann::json buf_j);
         void your_full_hash(nlohmann::json buf_j);

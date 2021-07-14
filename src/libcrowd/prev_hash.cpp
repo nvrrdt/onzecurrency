@@ -129,6 +129,73 @@ std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
     return prev_hashes;
 }
 
+std::vector<std::vector<std::shared_ptr<std::string>>> PrevHash::calculate_hashes_from_block_matrix()
+{
+    Poco::BlockMatrix bm;
+    Common::Crypto crypto;
+    std::vector<std::shared_ptr<std::string>> prev_hashes_vec = {};
+    std::vector<std::vector<std::shared_ptr<std::string>>> prev_hashes_mat = {};
+
+    if (!bm.get_block_matrix().empty())
+    {
+        for (int i = 0; i < bm.get_block_matrix().size(); i++)
+        {
+            for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+            {
+                nlohmann::json str_j = *bm.get_block_matrix().at(i).at(j);
+                std::string str = str_j.dump();
+                std::string ph = crypto.bech32_encode_sha256(str);
+                std::shared_ptr<std::string> shared_ph = std::make_shared<std::string> (ph);
+                prev_hashes_vec.push_back(shared_ph);
+            }
+
+            prev_hashes_mat.push_back(prev_hashes_vec);
+        }
+    }
+    else
+    {
+        std::string ph = calculate_hash_from_last_block();
+        std::shared_ptr<std::string> shared_ph = std::make_shared<std::string> (ph);
+        prev_hashes_vec.push_back(shared_ph);
+        prev_hashes_mat.push_back(prev_hashes_vec);
+    }
+
+    return prev_hashes_mat;
+}
+
+std::vector<std::vector<std::shared_ptr<std::string>>> PrevHash::get_prev_hashes_from_block_matrix_contents()
+{
+    Poco::BlockMatrix bm;
+    Common::Crypto crypto;
+    std::vector<std::shared_ptr<std::string>> prev_hashes_vec = {};
+    std::vector<std::vector<std::shared_ptr<std::string>>> prev_hashes_mat = {};
+
+    if (!bm.get_block_matrix().empty())
+    {
+        for (int i = 0; i < bm.get_block_matrix().size(); i++)
+        {
+            for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+            {
+                nlohmann::json str_j = *bm.get_block_matrix().at(i).at(j);
+                std::string prev_hash = str_j["prev_hash"];
+                std::shared_ptr<std::string> shared_ph = std::make_shared<std::string> (prev_hash);
+                prev_hashes_vec.push_back(shared_ph);
+            }
+
+            prev_hashes_mat.push_back(prev_hashes_vec);
+        }
+    }
+    else
+    {
+        std::string ph = calculate_hash_from_last_block();
+        std::shared_ptr<std::string> shared_ph = std::make_shared<std::string> (ph);
+        prev_hashes_vec.push_back(shared_ph);
+        prev_hashes_mat.push_back(prev_hashes_vec);
+    }
+
+    return prev_hashes_mat;
+}
+
 // std::string PrevHash::get_prev_hash_from_the_last_block()
 // {
 //     std::string prev_hash;

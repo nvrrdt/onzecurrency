@@ -3,8 +3,8 @@
 #include <boost/system/error_code.hpp>
 
 #include "configdir.hpp"
-#include "protocol_c.hpp"
-#include "merkle_tree_c.hpp"
+#include "p2p.hpp"
+#include "merkle_tree.hpp"
 
 #include "block_matrix.hpp"
 
@@ -62,48 +62,96 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 
-    std::cout << "evaluate_both_block_matrices" << std::endl;
+    std::cout << "sifting_function_for_both_block_matrices" << std::endl;
 
     // std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
     // std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
     // std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
     // std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
 
-    for (uint16_t i = 0; i < get_block_matrix().back().size(); i++)
+    if (!get_block_matrix().empty() && get_block_matrix().back().size() == 100) // TODO this 100 is a variable that can be changed, there are others as well
     {
-        bool found = false;
-
-        std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
-        it = get_block_matrix().back().begin() + i;
-
-        for (uint16_t j = 0; j < get_received_block_matrix().back().size(); j++)
+        // get prev_hashes from within the latest vector and compare with the hashes from before latest vector
+        Crowd::PrevHash ph;
+        for (uint16_t i = 0; i < ph.get_prev_hashes_from_block_matrix_contents().size(); i++)
         {
-            if (*get_block_matrix().back().at(i) == *get_received_block_matrix().back().at(j))
+            bool found = false;
+
+            std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
+            it = get_block_matrix().at(i).begin();
+std::cout << "1112" << std::endl;
+            std::vector<std::shared_ptr<std::string>>::iterator itt;
+            itt = ph.get_prev_hashes_from_block_matrix_contents().at(i).begin();
+std::cout << "1113" << std::endl;
+            std::vector<std::shared_ptr<std::string>>::iterator ittt;
+            ittt = ph.calculate_hashes_from_block_matrix().at(i).begin();
+std::cout << "1114" << std::endl;
+            for (uint16_t j = 0; j < ph.get_prev_hashes_from_block_matrix_contents().at(i).size(); j++)
             {
-                found = true;
-                break;
-            }
-        }
+                if (j == 0) continue;
 
-        if (found)
-        {
-            found == false;
-            continue;
-        }
-        else
-        {
-            get_block_matrix().back().erase(it);
-            continue;
+                if (*ph.get_prev_hashes_from_block_matrix_contents().at(i).at(j) == *ph.calculate_hashes_from_block_matrix().at(i).at(j-1))
+                {
+                    found = true;
+                    break;
+                }
+            }
+std::cout << "1115" << std::endl;
+            if (found)
+            {
+                found == false;
+                continue;
+            }
+            else
+            {
+                get_block_matrix().at(i).erase(it);
+                ph.get_prev_hashes_from_block_matrix_contents().at(i).erase(itt);
+                ph.calculate_hashes_from_block_matrix().at(i).erase(ittt);
+                continue;
+            }
+std::cout << "1116" << std::endl;
         }
     }
 
-    get_received_block_matrix().back().clear();
+    if (!get_block_matrix().empty() && !get_received_block_matrix().empty())
+    {
+        // schrink block_matrix so only received_blocks remain
+        for (uint16_t i = 0; i < get_block_matrix().back().size(); i++)
+        {
+            bool found = false;
+
+            std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
+            it = get_block_matrix().back().begin();
+std::cout << "1117" << std::endl;
+            for (uint16_t j = 0; j < get_received_block_matrix().back().size(); j++)
+            {
+                if (*get_block_matrix().back().at(i) == *get_received_block_matrix().back().at(j))
+                {
+                    found = true;
+                    break;
+                }
+            }
+std::cout << "1118" << std::endl;
+            if (found)
+            {
+                found == false;
+                continue;
+            }
+            else
+            {
+                get_block_matrix().back().erase(it);
+                continue;
+            }
+        }
+std::cout << "1119" << std::endl;
+        get_received_block_matrix().back().clear();
+    }
 }
 
 void BlockMatrix::save_final_block_to_file()
 {
-    Coin::ProtocolC proto;
-    std::string latest_block = proto.get_last_block_nr_c();
+    Crowd::Protocol proto;
+    std::string latest_block = proto.get_last_block_nr();
 
     // if oldest vector in block matrix has size 1 --> that's the final block (= mined)
     nlohmann::json block_j;
@@ -121,8 +169,8 @@ void BlockMatrix::save_final_block_to_file()
 
     // create genesis or add to blockchain
     boost::system::error_code c;
-    ConfigDir cd;
-    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/coin";
+    Crowd::ConfigDir cd;
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
 
     if (!boost::filesystem::exists(blockchain_folder_path))
     {
@@ -151,7 +199,7 @@ void BlockMatrix::save_final_block_to_file()
             }
             number.append(latest_block);
 
-            std::string block_file = "blockchain/coin/block_" + number + ".json";
+            std::string block_file = "blockchain/crowd/block_" + number + ".json";
             if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
             {
                 cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
@@ -161,10 +209,10 @@ void BlockMatrix::save_final_block_to_file()
         {
             std::cout << "Is a directory, is empty" << std::endl;
 
-            Coin::merkle_tree_c mt;
-            block_j["prev_hash"] = mt.get_genesis_prev_hash_c();
+            Crowd::merkle_tree mt;
+            block_j["prev_hash"] = mt.get_genesis_prev_hash();
             block_s = block_j.dump();
-            std::string block_file = "blockchain/coin/block_000000000000.json";
+            std::string block_file = "blockchain/crowd/block_000000000000.json";
             if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
             {
                 cd.CreateFileInConfigDir(block_file, block_s);

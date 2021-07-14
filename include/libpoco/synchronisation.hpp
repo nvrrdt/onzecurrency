@@ -29,12 +29,12 @@ namespace Poco
         }
 
         std::string get_latest_datetime();
-    private:
+
         static void set_break_block_creation_loops(bool break_loops)
         {
             break_block_creation_loops_ = break_loops;
         }
-
+    private:
         void get_sleep_until();
     private:
         MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
