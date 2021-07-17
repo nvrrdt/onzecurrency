@@ -265,19 +265,10 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             // create preliminary full_hash proposals depending on the hashes of the previous blocks in block_vector
             Poco::BlockMatrix bm;
             PrevHash prev_hash;
-            int bm_size;
-            if (bm.get_block_matrix().empty())
-            {
-                bm_size = 1;
-            }
-            else
-            {
-                bm_size = bm.get_block_matrix().back().size();
-            }
+            int bm_size = bm.get_block_matrix().back().size();
 std::cout << "bm_size " << bm_size << std::endl;
             for (int i = 0; i < bm_size; i++)
             {
-std::cout << "bm_size " << std::endl;
                 std::string prel_prev_hash_req = prev_hash.calculate_hashes_from_last_block_vector().at(i);
 
                 nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -417,8 +408,9 @@ std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
 
                     std::cout << "Get_sleep_and_create_block" << std::endl;
 
-                    Poco::Synchronisation sync;
-                    sync.get_sleep_and_create_block();
+                    Poco::Synchronisation* sync = new Poco::Synchronisation();
+                    std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+                    t.detach();
                 }
             }
         }
@@ -503,8 +495,9 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
         // wait x secs
         // then create block --> don't forget the counter in the search for a coordinator
         // if root_hash == me as coordinator ... connect to all co's
-        Poco::Synchronisation sync;
-        sync.get_sleep_and_create_block();
+        Poco::Synchronisation* sync = new Poco::Synchronisation();
+        std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+        t.detach();
     }
 
     // Disconect from client

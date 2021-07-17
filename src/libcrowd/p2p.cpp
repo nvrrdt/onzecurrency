@@ -9,6 +9,7 @@
 #include "merkle_tree.hpp"
 #include "auth.hpp"
 #include "verification.hpp"
+#include "block_matrix.hpp"
 
 #include <vector>
 
@@ -157,6 +158,10 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 std::string block_nr = proto.get_last_block_nr();
                 std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
+
+                Poco::BlockMatrix bm;
+                bm.add_block_to_block_vector(block_j);
+                bm.add_block_vector_to_block_matrix();
 
                 rocksdb_j["prev_hash"] = prev_hash;
                 rocksdb_j["full_hash"] = full_hash;

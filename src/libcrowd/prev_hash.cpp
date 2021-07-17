@@ -110,19 +110,11 @@ std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
     Common::Crypto crypto;
     std::vector<std::string> prev_hashes = {};
 
-    if (!bm.get_block_matrix().empty())
+    for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
     {
-        for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
-        {
-            nlohmann::json str_j = *bm.get_block_matrix().back().at(i);
-            std::string str = str_j.dump();
-            std::string ph = crypto.bech32_encode_sha256(str);
-            prev_hashes.push_back(ph);
-        }
-    }
-    else
-    {
-        std::string ph = calculate_hash_from_last_block();
+        nlohmann::json str_j = *bm.get_block_matrix().back().at(i);
+        std::string str = str_j.dump();
+        std::string ph = crypto.bech32_encode_sha256(str);
         prev_hashes.push_back(ph);
     }
 

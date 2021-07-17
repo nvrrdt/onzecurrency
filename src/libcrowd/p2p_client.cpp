@@ -189,8 +189,9 @@ void P2pNetwork::handle_read_client()
                 // wait x secs
                 // then create block --> don't forget the counter in the search for a coordinator
                 // if root_hash == me as coordinator ... connect to all co's
-                Poco::Synchronisation sync;
-                sync.get_sleep_and_create_block();
+                Poco::Synchronisation* sync = new Poco::Synchronisation();
+                std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+                t.detach();
             }
         }
         else if (buf_j["req"] == "new_co")

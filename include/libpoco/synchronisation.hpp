@@ -21,6 +21,11 @@ namespace Poco
     class Synchronisation
     {
     public:
+        ~Synchronisation()
+        {
+            delete bm_;
+            delete bmc_;
+        }
         void get_sleep_and_create_block();
 
         static bool get_break_block_creation_loops()
