@@ -77,14 +77,14 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
         {
             bool found = false;
 
-            std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
-            it = get_block_matrix().at(i).begin();
+            std::vector<std::shared_ptr<nlohmann::json>>::iterator it1;
+            it1 = get_block_matrix().at(i).begin() + i;
 std::cout << "1112" << std::endl;
-            std::vector<std::shared_ptr<std::string>>::iterator itt;
-            itt = ph.get_prev_hashes_from_block_matrix_contents().at(i).begin();
+            std::vector<std::shared_ptr<std::string>>::iterator it2;
+            it2 = ph.get_prev_hashes_from_block_matrix_contents().at(i).begin() + i;
 std::cout << "1113" << std::endl;
-            std::vector<std::shared_ptr<std::string>>::iterator ittt;
-            ittt = ph.calculate_hashes_from_block_matrix().at(i).begin();
+            std::vector<std::shared_ptr<std::string>>::iterator it3;
+            it3 = ph.calculate_hashes_from_block_matrix().at(i).begin() + i;
 std::cout << "1114" << std::endl;
             for (uint16_t j = 0; j < ph.get_prev_hashes_from_block_matrix_contents().at(i).size(); j++)
             {
@@ -104,15 +104,16 @@ std::cout << "1115" << std::endl;
             }
             else
             {
-                get_block_matrix().at(i).erase(it);
-                ph.get_prev_hashes_from_block_matrix_contents().at(i).erase(itt);
-                ph.calculate_hashes_from_block_matrix().at(i).erase(ittt);
+                get_block_matrix().at(i).erase(it1);
+                ph.get_prev_hashes_from_block_matrix_contents().at(i).erase(it2);
+                ph.calculate_hashes_from_block_matrix().at(i).erase(it3);
                 continue;
             }
 std::cout << "1116" << std::endl;
         }
     }
-
+std::cout << "1116 kl " << get_received_block_matrix().empty() << std::endl;
+std::cout << "1116 kl " << get_received_block_matrix().size() << std::endl;
     if (!get_block_matrix().empty() && !get_received_block_matrix().empty())
     {
         // schrink block_matrix so only received_blocks remain
@@ -120,26 +121,42 @@ std::cout << "1116" << std::endl;
         {
             bool found = false;
 
-            std::vector<std::shared_ptr<nlohmann::json>>::iterator it;
-            it = get_block_matrix().back().begin();
+            std::vector<std::shared_ptr<nlohmann::json>>::iterator it4;
+            it4 = get_block_matrix().back().begin() + i;
 std::cout << "1117" << std::endl;
             for (uint16_t j = 0; j < get_received_block_matrix().back().size(); j++)
             {
+                // TODO create hashes ... maybe
+std::cout << "1117 kl kl" << std::endl;                
                 if (*get_block_matrix().back().at(i) == *get_received_block_matrix().back().at(j))
                 {
+std::cout << "1117 found found" << std::endl;
                     found = true;
                     break;
                 }
+
+                nlohmann::json bm_j = *get_block_matrix().back().at(i);
+                std::string bm_s = bm_j.dump();
+
+                nlohmann::json rbm_j = *get_received_block_matrix().back().at(j);
+                std::string rbm_s = bm_j.dump();
+
+                std::cout << "bm: " << bm_s << std::endl;
+                std::cout << "rbm: " << rbm_s << std::endl;
             }
-std::cout << "1118" << std::endl;
+std::cout << "1118 88888" << std::endl;
             if (found)
             {
+std::cout << "1118 found" << std::endl;
                 found == false;
                 continue;
             }
             else
             {
-                get_block_matrix().back().erase(it);
+std::cout << "1118 kl1" << std::endl;
+std::cout << "1118 kl empty " << get_block_matrix().back().size() << std::endl;
+                if (!get_received_block_matrix().back().empty()) get_block_matrix().back().erase(it4);
+std::cout << "1118 kl2" << std::endl;
                 continue;
             }
         }

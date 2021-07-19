@@ -298,7 +298,7 @@ std::cout << "bm_size " << bm_size << std::endl;
                 std::string key, val;
                 for (int i = 1; i <= parts.size(); i++)
                 {
-std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
+//std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
                     if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                     if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
                     
