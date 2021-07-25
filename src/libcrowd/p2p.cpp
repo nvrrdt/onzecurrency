@@ -162,6 +162,8 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 Poco::BlockMatrix bm;
                 bm.add_block_to_block_vector(block_j);
                 bm.add_block_vector_to_block_matrix();
+                PrevHash ph;
+                ph.calculate_hashes_from_block_matrix();
 
                 rocksdb_j["prev_hash"] = prev_hash;
                 rocksdb_j["full_hash"] = full_hash;
@@ -178,7 +180,6 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 fh.save_full_hash_to_file(full_hash);
 
                 // Save the prev_hash to file
-                PrevHash ph;
                 ph.save_my_prev_hash_to_file(prev_hash);
 
                 std::packaged_task<void()> task1([] {

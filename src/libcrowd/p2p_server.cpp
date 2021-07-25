@@ -160,7 +160,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         // upload blockchain and block_matrix --> must later also be directed to a new_co, because of decentralisation
 
         PrevHash prev_hash;
-        std::string prel_first_prev_hash_req = prev_hash.calculate_hashes_from_last_block_vector().at(0);
+        std::string prel_first_prev_hash_req = *prev_hash.get_calculated_hashes_from_block_matrix().back().at(0);
 
         std::string hash_of_email_prev_hash_concatenated = hash_of_email + prel_first_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
         std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
@@ -269,7 +269,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 std::cout << "bm_size " << bm_size << std::endl;
             for (int i = 0; i < bm_size; i++)
             {
-                std::string prel_prev_hash_req = prev_hash.calculate_hashes_from_last_block_vector().at(i);
+                std::string prel_prev_hash_req = *prev_hash.get_calculated_hashes_from_block_matrix().back().at(i);
 
                 nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
                 message_j["req"] = "new_peer";
