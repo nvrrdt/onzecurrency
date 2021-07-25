@@ -101,7 +101,7 @@ void PocoCrowd::create_and_send_block()
                 block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
                 Crowd::PrevHash ph;
-                block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+                block_j_["prev_hash"] = m_j["prev_hash_of_req"]; //ph.calculate_hash_from_last_block(); // 
                 block_j_["nonce"] = nonce;
 
                 Crowd::Protocol proto;
@@ -195,7 +195,7 @@ void PocoCrowd::create_and_send_block()
                     block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
                     Crowd::PrevHash ph;
-                    block_j_["prev_hash"] = ph.calculate_hash_from_last_block();
+                    block_j_["prev_hash"] = m_j["prev_hash_of_req"];
                     block_j_["nonce"] = nonce;
 
                     Crowd::Protocol proto;
