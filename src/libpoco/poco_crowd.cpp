@@ -48,7 +48,7 @@ void PocoCrowd::create_and_send_block()
 
     uint16_t limit_count = 0;
 
-    if (bm->get_block_matrix().empty())
+    if (bm->get_block_matrix().empty()) // TODO I think get_block_matrix is never empty
     {
         std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
@@ -74,15 +74,24 @@ void PocoCrowd::create_and_send_block()
                 std::string fh_s;
                 std::string full_hash_req;
 
+                mt->set_genesis_prev_hash();
+                std::string prev_hash = mt->get_genesis_prev_hash();
+                block_j_["prev_hash"] = prev_hash;
+                block_j_["nonce"] = nonce;
+
                 for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
                 {
                     std::cout << "Crowd: 4th for loop " << l << std::endl;
 
                     m_j = *message_j_vec_.get_message_j_vec().at(l);
 
-                    full_hash_req = m_j["full_hash_req"];
+                    Common::Crypto crypto;
+                    std::string hash_of_email = m_j["hash_of_email"];
+                    std::string prel_prev_hash_req = block_j_["prev_hash"];
+                    std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
+                    std::string prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
-                    to_block_j["full_hash"] = full_hash_req;
+                    to_block_j["full_hash"] = prel_full_hash_req;
                     to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
                     to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
                     s_shptr_->push(to_block_j.dump());
@@ -99,10 +108,6 @@ void PocoCrowd::create_and_send_block()
                 std::string datetime = mt->time_now();
                 std::string root_hash_data = s_shptr_->top();
                 block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-
-                Crowd::PrevHash ph;
-                block_j_["prev_hash"] = m_j["prev_hash_of_req"]; //ph.calculate_hash_from_last_block(); // 
-                block_j_["nonce"] = nonce;
 
                 Crowd::Protocol proto;
                 std::string my_last_block_nr = proto.get_last_block_nr();
@@ -123,6 +128,8 @@ void PocoCrowd::create_and_send_block()
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm->add_block_to_block_vector(block_j_);
+                bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
+                bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
                 delete mt;
 
@@ -168,15 +175,22 @@ void PocoCrowd::create_and_send_block()
                     std::string fh_s;
                     std::string full_hash_req;
 
+                    block_j_["prev_hash"] = *bm->get_calculated_hash_matrix().back().at(i);
+                    block_j_["nonce"] = nonce;
+
                     for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
                         std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
                         
                         m_j = *message_j_vec_.get_message_j_vec().at(l);
 
-                        full_hash_req = m_j["full_hash_req"];
+                        Common::Crypto crypto;
+                        std::string hash_of_email = m_j["hash_of_email"];
+                        std::string prel_prev_hash_req = block_j_["prev_hash"];
+                        std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
+                        std::string prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
-                        to_block_j["full_hash"] = full_hash_req;
+                        to_block_j["full_hash"] = prel_full_hash_req;
                         to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
                         to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
                         s_shptr_->push(to_block_j.dump());
@@ -193,10 +207,6 @@ void PocoCrowd::create_and_send_block()
                     std::string datetime = mt->time_now();
                     std::string root_hash_data = s_shptr_->top();
                     block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-
-                    Crowd::PrevHash ph;
-                    block_j_["prev_hash"] = m_j["prev_hash_of_req"];
-                    block_j_["nonce"] = nonce;
 
                     Crowd::Protocol proto;
                     std::string my_last_block_nr = proto.get_last_block_nr();
@@ -217,6 +227,8 @@ void PocoCrowd::create_and_send_block()
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm->add_block_to_block_vector(block_j_);
+                    bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
+                    bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
                     delete mt;
 
@@ -257,7 +269,11 @@ void PocoCrowd::create_and_send_block()
     all_hashes_.reset_all_hashes();       // and make a copy of message_j_vec_ and all_hashes_, work with thes copies here
                                           // --> new intro_peers might arrive and shouldn't be taken into account
 
+    // fill the matrices
     bm->add_block_vector_to_block_matrix();
+    bm->add_calculated_hash_vector_to_calculated_hash_matrix();
+    bm->add_prev_hash_vector_to_prev_hash_matrix();
+
     bm->sifting_function_for_both_block_matrices();
 std::cout << "1111" << std::endl;
     bm->save_final_block_to_file();

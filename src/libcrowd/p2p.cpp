@@ -159,13 +159,16 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::string block_nr = proto.get_last_block_nr();
                 std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
 
+                // fill the matrices
                 Poco::BlockMatrix bm;
                 bm.add_block_to_block_vector(block_j);
                 bm.add_block_vector_to_block_matrix();
-                PrevHash ph;
-                ph.calculate_hashes_from_block_matrix();
+                bm.add_calculated_hash_to_calculated_hash_vector(block_j);
+                bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+                bm.add_prev_hash_to_prev_hash_vector(block_j);
+                bm.add_prev_hash_vector_to_prev_hash_matrix();
 
-                rocksdb_j["prev_hash"] = prev_hash;
+                rocksdb_j["prev_hash"] = prev_hash; // TODO might as well be block_j["prev_hash"] ?!?
                 rocksdb_j["full_hash"] = full_hash;
 
                 // Update rocksdb
@@ -180,6 +183,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 fh.save_full_hash_to_file(full_hash);
 
                 // Save the prev_hash to file
+                PrevHash ph;
                 ph.save_my_prev_hash_to_file(prev_hash);
 
                 std::packaged_task<void()> task1([] {

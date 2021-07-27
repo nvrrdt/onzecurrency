@@ -159,8 +159,8 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
 
         // upload blockchain and block_matrix --> must later also be directed to a new_co, because of decentralisation
 
-        PrevHash prev_hash;
-        std::string prel_first_prev_hash_req = *prev_hash.get_calculated_hashes_from_block_matrix().back().at(0);
+        PrevHash ph;
+        std::string prel_first_prev_hash_req = ph.calculate_hash_from_last_block();
 
         std::string hash_of_email_prev_hash_concatenated = hash_of_email + prel_first_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
         std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
@@ -262,156 +262,143 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 
             std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
-            // create preliminary full_hash proposals depending on the hashes of the previous blocks in block_vector
-            Poco::BlockMatrix bm;
-            PrevHash prev_hash;
-            int bm_size = bm.get_block_matrix().back().size();
-std::cout << "bm_size " << bm_size << std::endl;
-            for (int i = 0; i < bm_size; i++)
+            nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+            message_j["req"] = "new_peer";
+            message_j["email_of_req"] = email_of_req;
+            message_j["hash_of_email"] = hash_of_email;
+            message_j["full_hash_co"] = my_full_hash;
+            message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+            message_j["rsa_pub_key"] = rsa_pub_key;
+            message_j["ip"] = event_.peer->address.host;
+
+            to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
+            to_sign_j["rsa_pub_key"] = rsa_pub_key;
+            to_sign_j["email"] = email_of_req;
+            std::string to_sign_s = to_sign_j.dump();
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto->ecdsa_load_private_key_from_string(private_key);
+            if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
             {
-                std::string prel_prev_hash_req = *prev_hash.get_calculated_hashes_from_block_matrix().back().at(i);
+                message_j["signature"] = crypto->base64_encode(signature);
+            }
 
-                nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
-                message_j["req"] = "new_peer";
-                message_j["email_of_req"] = email_of_req; // new_peers don't need to know this
-                hash_of_email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
-                std::string prel_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
-                message_j["full_hash_req"] = prel_full_hash_req; // refreshed full_hash_req
-                message_j["prev_hash_of_req"] = prel_prev_hash_req;
-                message_j["full_hash_co"] = my_full_hash;
-                message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                message_j["rsa_pub_key"] = rsa_pub_key;
-                message_j["ip"] = event_.peer->address.host;
-
-                to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
-                to_sign_j["rsa_pub_key"] = rsa_pub_key;
-                to_sign_j["email"] = email_of_req;
-                std::string to_sign_s = to_sign_j.dump();
-                ECDSA<ECP, SHA256>::PrivateKey private_key;
-                std::string signature;
-                crypto->ecdsa_load_private_key_from_string(private_key);
-                if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
-                {
-                    message_j["signature"] = crypto->base64_encode(signature);
-                }
-
-                std::string key, val;
-                for (int i = 1; i <= parts.size(); i++)
-                {
+            std::string key, val;
+            for (int i = 1; i <= parts.size(); i++)
+            {
 //std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
-                    if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
-                    if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
-                    
-                    Rocksy* rocksy = new Rocksy("usersdb");
+                if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
+                
+                Rocksy* rocksy = new Rocksy("usersdb");
 
-                    // lookup in rocksdb
-                    std::string val = parts[i];
-                    nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                    enet_uint32 ip = value_j["ip"];
+                // lookup in rocksdb
+                std::string val = parts[i];
+                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+                enet_uint32 ip = value_j["ip"];
+                std::string peer_ip;
+                P2p p2p;
+                p2p.number_to_ip_string(ip, peer_ip);
+
+                std::string req_ip_quad;
+                p2p.number_to_ip_string(req_ip, req_ip_quad);
+
+                delete rocksy;
+
+                // if peer ip == this server's ip --> send new_peer to kids
+                // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
+                // --> if more then t.client to same layer co
+                // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
+
+                // inform the underlying network
+                if (req_ip_quad == peer_ip)
+                {
+                    // inform server's underlying network
+                    std::cout << "Inform my underlying network as co" << std::endl;
+
+                    std::string next_hash = parts[2];
+                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::string key2, val2;
+                    Rocksy* rocksy = new Rocksy("usersdb");
+                    for (int i = 1; i <= parts_underlying.size(); i++)
+                    {
+                        //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
+                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                        if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
+    //std::cout << "parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
+                        // lookup in rocksdb
+                        std::string val2 = parts_underlying[i];
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
+                        enet_uint32 ip = value_j["ip"];
+                        std::string peer_ip_underlying;
+                        p2p.number_to_ip_string(ip, peer_ip_underlying);
+
+                        std::cout << "Non-connected underlying peers - client: " << peer_ip_underlying << std::endl;
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        p2p_client(peer_ip_underlying, message);
+                    }
+                    delete rocksy;
+                }
+                else
+                {
+                    if (peer_ip == "") continue;
+
+                    // inform the other peer's in the same layer (as coordinator)
+                    std::cout << "Inform my equal layer as coordinator: " << peer_ip << std::endl;
+                    
+                    std::string message = message_j.dump();
+                    p2p_client(peer_ip, message);
+                }
+            }
+
+            // Update rocksdb
+            // message_j["rocksdb"]["prev_hash"] = prev_hash_req;
+            // message_j["rocksdb"]["full_hash"] = full_hash_req;
+
+            // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+            message_j_vec_.add_to_message_j_vec(message_j);
+
+            all_hashes_.add_to_all_hashes(message_j["ip"], hash_of_email); // TODO you have to reset this
+
+            if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+            {
+                // Create block
+                Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
+                poco.create_and_send_block ();
+
+                for (auto &[key, value] : all_hashes_.get_all_hashes())
+                {
+                    nlohmann::json msg_j;
+                    msg_j["req"] = "your_full_hash";
+                    std::vector<std::string> vec = *value;
+                    msg_j["full_hash"] = vec[0];
+                    msg_j["prev_hash"] = vec[1];
+                    msg_j["block_nr"] = proto.get_last_block_nr();
+                    std::string msg_s = msg_j.dump();
+
                     std::string peer_ip;
                     P2p p2p;
-                    p2p.number_to_ip_string(ip, peer_ip);
+                    p2p.number_to_ip_string(key, peer_ip);
 
-                    std::string req_ip_quad;
-                    p2p.number_to_ip_string(req_ip, req_ip_quad);
-
-                    delete rocksy;
-
-                    // if peer ip == this server's ip --> send new_peer to kids
-                    // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
-                    // --> if more then t.client to same layer co
-                    // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
-
-                    // inform the underlying network
-                    if (req_ip_quad == peer_ip)
-                    {
-                        // inform server's underlying network
-                        std::cout << "Inform my underlying network as co" << std::endl;
-
-                        std::string next_hash = parts[2];
-                        std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
-                        std::string key2, val2;
-                        Rocksy* rocksy = new Rocksy("usersdb");
-                        for (int i = 1; i <= parts_underlying.size(); i++)
-                        {
-                            //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
-                            if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
-                            if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
-        //std::cout << "parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
-                            // lookup in rocksdb
-                            std::string val2 = parts_underlying[i];
-                            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
-                            enet_uint32 ip = value_j["ip"];
-                            std::string peer_ip_underlying;
-                            p2p.number_to_ip_string(ip, peer_ip_underlying);
-
-                            std::cout << "Non-connected underlying peers - client: " << peer_ip_underlying << std::endl;
-                            // message to non-connected peers
-                            std::string message = message_j.dump();
-                            p2p_client(peer_ip_underlying, message);
-                        }
-                        delete rocksy;
-                    }
-                    else
-                    {
-                        if (peer_ip == "") continue;
-
-                        // inform the other peer's in the same layer (as coordinator)
-                        std::cout << "Inform my equal layer as coordinator: " << peer_ip << std::endl;
-                        
-                        std::string message = message_j.dump();
-                        p2p_client(peer_ip, message);
-                    }
+                    p2p_client(peer_ip, msg_s);
                 }
 
-                // Update rocksdb
-                message_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
-                message_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+                message_j_vec_.reset_message_j_vec();
+                all_hashes_.reset_all_hashes();
+            }
+            else if (message_j_vec_.get_message_j_vec().size() == 1)
+            {
+                // wait x secs
+                // then create block
+                // if root_hash == me as coordinator ... connect to all co's
+                // ... see below at new_peer
 
-                // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-                message_j_vec_.add_to_message_j_vec(message_j);
+                std::cout << "Get_sleep_and_create_block" << std::endl;
 
-                all_hashes_.add_to_all_hashes(message_j["ip"], prel_full_hash_req, prel_prev_hash_req); // TODO you have to reset this
-
-                if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
-                {
-                    // Create block
-                    Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
-                    poco.create_and_send_block ();
-
-                    for (auto &[key, value] : all_hashes_.get_all_hashes())
-                    {
-                        nlohmann::json msg_j;
-                        msg_j["req"] = "your_full_hash";
-                        std::vector<std::string> vec = *value;
-                        msg_j["full_hash"] = vec[0];
-                        msg_j["prev_hash"] = vec[1];
-                        msg_j["block_nr"] = proto.get_last_block_nr();
-                        std::string msg_s = msg_j.dump();
-
-                        std::string peer_ip;
-                        P2p p2p;
-                        p2p.number_to_ip_string(key, peer_ip);
-
-                        p2p_client(peer_ip, msg_s);
-                    }
-
-                    message_j_vec_.reset_message_j_vec();
-                    all_hashes_.reset_all_hashes();
-                }
-                else if (message_j_vec_.get_message_j_vec().size() == 1)
-                {
-                    // wait x secs
-                    // then create block
-                    // if root_hash == me as coordinator ... connect to all co's
-                    // ... see below at new_peer
-
-                    std::cout << "Get_sleep_and_create_block" << std::endl;
-
-                    Poco::Synchronisation* sync = new Poco::Synchronisation();
-                    std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-                    t.detach();
-                }
+                Poco::Synchronisation* sync = new Poco::Synchronisation();
+                std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+                t.detach();
             }
         }
         else

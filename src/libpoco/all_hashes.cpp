@@ -2,11 +2,10 @@
 
 using namespace Poco;
 
-void AllHashes::add_to_all_hashes(enet_uint32 participant, std::string full_hash_req, std::string prev_hash_req)
+void AllHashes::add_to_all_hashes(enet_uint32 participant, std::string hash_of_email)
 {
     std::vector<std::string> vec;
-    vec.push_back(full_hash_req);
-    vec.push_back(prev_hash_req);
+    vec.push_back(hash_of_email);
     all_hashes_[participant] = std::make_shared<std::vector<std::string>>(vec);
 }
 

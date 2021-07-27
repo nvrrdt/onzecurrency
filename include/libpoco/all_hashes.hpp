@@ -11,7 +11,7 @@ namespace Poco
     class AllHashes
     {
     public:
-        static void add_to_all_hashes(enet_uint32 participant, std::string full_hash_req, std::string prev_hash_req);
+        static void add_to_all_hashes(enet_uint32 participant, std::string hash_of_email);
         static std::map<enet_uint32, std::shared_ptr<std::vector<std::string>>> get_all_hashes();
         static void reset_all_hashes();
     private:

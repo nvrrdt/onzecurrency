@@ -110,6 +110,8 @@ void P2pNetwork::handle_read_client()
                 }
                 bm.add_block_vector_to_block_matrix();
             }
+
+            // TODO still need to calculate hashes and prev hashes from block_matrix with PrevHash
         }
         else if (buf_j["req"] == "update_my_blocks_and_rocksdb")
         {
