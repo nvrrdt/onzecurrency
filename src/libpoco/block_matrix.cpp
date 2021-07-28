@@ -136,7 +136,7 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     // fill with positions who get removed later
     std::vector<std::vector<int16_t>> pos = {};
     std::vector<int16_t> p = {};
-    for (int16_t k = 0; k < block_matrix.size(); k++)
+    for (int16_t k = 0; k < block_matrix.size() - 1; k++)
     {
         for (int16_t m = 0; m < block_matrix.at(k).size(); m++)
         {
@@ -242,21 +242,17 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
                     {
                         pos.at(i).erase(pos.at(i).begin() + j);
                         std::cout << "Element found " << *calculated_hashes.at(i).at(j) << " " << *hashes_from_contents.at(i+1).at(k) << std::endl;
+                        std::cout << "i " << i << " j " << j << " k " << k << std::endl;
                         break;
                     }
                 }
             }
-        }
 
-        for (int16_t l = pos.size() - 1 - 1; l >= 0 ; l--)
-        {
-            for (int16_t n = pos.at(l).size() - 1; n >= 0 ; n--)
+            for (int16_t n = pos.at(i).size() - 1; n >= 0 ; n--)
             {
-                std::cout << "erase p: " << pos.at(l).at(n) << std::endl;
-                
-                block_matrix.at(l).erase(block_matrix.at(l).begin() + pos.at(l).at(n));
-                calculated_hashes.at(l).erase(calculated_hashes.at(l).begin() + pos.at(l).at(n));
-                hashes_from_contents.at(l).erase(hashes_from_contents.at(l).begin() + pos.at(l).at(n));
+                block_matrix.at(i).erase(block_matrix.at(i).begin() + pos.at(i).at(n));
+                calculated_hashes.at(i).erase(calculated_hashes.at(i).begin() + pos.at(i).at(n));
+                hashes_from_contents.at(i).erase(hashes_from_contents.at(i).begin() + pos.at(i).at(n));
             }
         }
 
