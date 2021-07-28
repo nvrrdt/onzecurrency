@@ -104,24 +104,24 @@ std::string PrevHash::calculate_hash_from_last_block()
     return prev_hash;
 }
 
-std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
-{
-    Poco::BlockMatrix bm;
-    Common::Crypto crypto;
-    std::vector<std::string> prev_hashes = {};
+// std::vector<std::string> PrevHash::calculate_hashes_from_last_block_vector()
+// {
+//     Poco::BlockMatrix bm;
+//     Common::Crypto crypto;
+//     std::vector<std::string> prev_hashes = {};
 
-    for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
-    {
-        nlohmann::json str_j = *bm.get_block_matrix().back().at(i);
-        std::string str = str_j.dump();
-        std::string ph = crypto.bech32_encode_sha256(str);
-        prev_hashes.push_back(ph);
-    }
+//     for (int i = 0; i < bm.get_block_matrix().back().size(); i++)
+//     {
+//         nlohmann::json str_j = *bm.get_block_matrix().back().at(i);
+//         std::string str = str_j.dump();
+//         std::string ph = crypto.bech32_encode_sha256(str);
+//         prev_hashes.push_back(ph);
+//     }
 
-    return prev_hashes;
-}
+//     return prev_hashes;
+// }
 
-std::vector<std::vector<std::shared_ptr<std::string>>> PrevHash::calculate_hashes_from_block_matrix()
+std::vector<std::vector<std::shared_ptr<std::string>>> PrevHash::calculate_hashes_from_last_block_vector()
 {
     Poco::BlockMatrix bm;
     Common::Crypto crypto;
