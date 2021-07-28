@@ -194,7 +194,7 @@ std::cout << "1109" << std::endl;
         for (int y = 0; y < calculated_hashes.at(x).size(); y++)
         {
             std::string content = *calculated_hashes.at(x).at(y);
-            std::cout << "calculated_hashes matrix entry prel " << x << " " << y << " (oldest first) " << content << std::endl << std::endl;
+            std::cout << "calculated_hashes " << x << " " << y << " (oldest first) " << content << std::endl << std::endl;
         }
     }
 
@@ -204,7 +204,7 @@ std::cout << "1109" << std::endl;
         for (int w = 0; w < hashes_from_contents.at(v).size(); w++)
         {
             std::string content = *hashes_from_contents.at(v).at(w);
-            std::cout << "hashes_from_contents matrix entry prel " << v << " " << w << " (oldest first) " << content << std::endl << std::endl;
+            std::cout << "hashes_from_contents " << v << " " << w << " (oldest first) " << content << std::endl << std::endl;
         }
     }
 

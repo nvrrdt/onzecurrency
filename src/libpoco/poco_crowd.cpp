@@ -72,7 +72,7 @@ void PocoCrowd::create_and_send_block()
                 nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                 nlohmann::json to_block_j;
                 std::string fh_s;
-                std::string full_hash_req;
+                std::string prel_full_hash_req;
 
                 mt->set_genesis_prev_hash();
                 std::string prev_hash = mt->get_genesis_prev_hash();
@@ -89,7 +89,7 @@ void PocoCrowd::create_and_send_block()
                     std::string hash_of_email = m_j["hash_of_email"];
                     std::string prel_prev_hash_req = block_j_["prev_hash"];
                     std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
-                    std::string prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
+                    prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
                     to_block_j["full_hash"] = prel_full_hash_req;
                     to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
@@ -124,7 +124,7 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
                 // Add blocks to vector<vector<block_j_c_>>>
                 bm->add_block_to_block_vector(block_j_);
@@ -173,10 +173,8 @@ void PocoCrowd::create_and_send_block()
                     nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                     nlohmann::json to_block_j;
                     std::string fh_s;
-                    std::string full_hash_req;
-
-                    block_j_["prev_hash"] = *bm->get_calculated_hash_matrix().back().at(i);
-                    block_j_["nonce"] = nonce;
+                    std::string prel_full_hash_req;
+                    std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
 
                     for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
@@ -186,9 +184,8 @@ void PocoCrowd::create_and_send_block()
 
                         Common::Crypto crypto;
                         std::string hash_of_email = m_j["hash_of_email"];
-                        std::string prel_prev_hash_req = block_j_["prev_hash"];
                         std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
-                        std::string prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
+                        prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
                         to_block_j["full_hash"] = prel_full_hash_req;
                         to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
@@ -208,6 +205,10 @@ void PocoCrowd::create_and_send_block()
                     std::string root_hash_data = s_shptr_->top();
                     block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
+
+                    block_j_["prev_hash"] = prel_prev_hash_req;
+                    block_j_["nonce"] = nonce;
+
                     Crowd::Protocol proto;
                     std::string my_last_block_nr = proto.get_last_block_nr();
 
@@ -223,7 +224,7 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones(my_next_block_nr, block_j_, full_hash_req, rocksdb_out);
+                    inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
                     // Add blocks to vector<vector<block_j_c_>>>
                     bm->add_block_to_block_vector(block_j_);
