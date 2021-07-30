@@ -24,7 +24,9 @@ namespace Poco
         static void replace_calculated_hashes(std::vector<std::vector<std::shared_ptr<std::string>>> calculated_hashes);
         static void replace_prev_hashes(std::vector<std::vector<std::shared_ptr<std::string>>> hashes_from_contents);
         static void reset_block_matrix();
-        static void remove_blocks_from_block_matrix();
+        static void remove_front_block_from_block_matrix();
+        static void remove_front_block_from_calculated_hashes();
+        static void remove_front_block_from_prev_hashes();
         static void add_received_block_to_received_block_vector(nlohmann::json block_j);
         static void add_received_block_vector_to_received_block_matrix();
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> get_received_block_matrix();

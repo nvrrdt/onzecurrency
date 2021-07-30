@@ -93,10 +93,20 @@ void BlockMatrix::replace_prev_hashes(std::vector<std::vector<std::shared_ptr<st
     prev_hash_matrix_ = hashes_from_contents;
 }
 
-// void BlockMatrix::remove_blocks_from_block_matrix()
-// {
-//     //
-// }
+void BlockMatrix::remove_front_block_from_block_matrix()
+{
+    block_matrix_.front().clear();
+}
+
+void BlockMatrix::remove_front_block_from_calculated_hashes()
+{
+    calculated_hash_matrix_.front().clear();
+}
+
+void BlockMatrix::remove_front_block_from_prev_hashes()
+{
+    prev_hash_matrix_.front().clear();
+}
 
 void BlockMatrix::add_received_block_to_received_block_vector(nlohmann::json block_j)
 {
@@ -274,77 +284,103 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
 
 void BlockMatrix::save_final_block_to_file()
 {
+    /**
+     * - get latest block number and add 1
+     * - compare front block in block matrix with last block
+     * --> if the same: see if next after front is a final block
+     *     --> if not: continue, don't save anything
+     *     --> if final: save next final and delete front from the three matrices
+     *     --> repeat this cycle with next to next
+     * --> TODO if not the same: update blockchain from someone, but this shouldn't happen
+     */
+
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
 
-    // if oldest vector in block matrix has size 1 --> that's the final block (= mined)
-    nlohmann::json block_j;
-    if (get_block_matrix().front().size() == 1)
-    {
-        block_j = *get_block_matrix().front().at(0);
-    }
-    else
-    {
-        return;
-    }
+    uint64_t value;
+    std::istringstream iss(latest_block);
+    iss >> value;
+    std::ostringstream o;
+    o << value + 1;
+    std::string new_block_nr = o.str();
 
-    // hashing of the whole new block
-    std::string block_s;
-
-    // create genesis or add to blockchain
-    boost::system::error_code c;
     Crowd::ConfigDir cd;
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
+    boost::system::error_code c;
+    boost::filesystem::path path(blockchain_folder_path);
 
-    if (!boost::filesystem::exists(blockchain_folder_path))
+    std::string latest_block_s;
+
+    if (!boost::filesystem::exists(path))
     {
-        boost::filesystem::create_directories(blockchain_folder_path);
-    }
-
-    bool isDir = boost::filesystem::is_directory(blockchain_folder_path, c);
-    bool isEmpty = boost::filesystem::is_empty(blockchain_folder_path);
-
-    if(!isDir)
-    {
-        std::cout << "Error Response: " << c << std::endl;
+        std::cout << "error: path doesn't exist " << std::endl;
+        return;
     }
     else
     {
-        if (latest_block != "no blockchain present in folder")
-        {
-            std::cout << "Directory not empty" << std::endl;
-            block_s = block_j.dump();
+        typedef std::vector<boost::filesystem::path> vec;             // store paths,
+        vec v;                                // so we can sort them later
 
-            uint32_t first_chars = 11 - latest_block.length();
-            std::string number = "";
-            for (int i = 0; i <= first_chars; i++)
-            {
-                number.append("0");
-            }
-            number.append(latest_block);
+        copy(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), back_inserter(v));
 
-            std::string block_file = "blockchain/crowd/block_" + number + ".json";
-            if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
-            {
-                cd.CreateFileInConfigDir(block_file, block_s); // TODO: make it count
-            }
-        }
-        else
-        {
-            std::cout << "Is a directory, is empty" << std::endl;
+        sort(v.begin(), v.end());             // sort, since directory iteration
+                                            // is not ordered on some file systems
 
-            Crowd::merkle_tree mt;
-            block_j["prev_hash"] = mt.get_genesis_prev_hash();
-            block_s = block_j.dump();
-            std::string block_file = "blockchain/crowd/block_000000000000.json";
-            if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
-            {
-                cd.CreateFileInConfigDir(block_file, block_s);
-            }
-        }
+        uint64_t n = v.size(); // TODO: perhaps verify with the number in de filename
+
+        std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+        std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+
+        latest_block_s = contents;
     }
 
-    return;
+    nlohmann::json new_block_j = *get_block_matrix().front().at(0);
+    std::string new_block_s = new_block_j.dump();
+
+    if (latest_block_s == new_block_s)
+    {
+        uint16_t del = 0;
+
+        for (uint32_t i = 1; i < get_block_matrix().size(); i++)
+        {
+            if (get_block_matrix().at(i).size() == 1)
+            {
+                // save block
+                std::cout << "new block added " << new_block_nr << std::endl;
+
+                nlohmann::json final_block_j = *get_block_matrix().at(i).at(0);
+                std::string final_block_s = final_block_j.dump();
+
+                uint32_t first_chars = 11 - new_block_nr.length();
+                std::string number = "";
+                for (int i = 0; i <= first_chars; i++)
+                {
+                    number.append("0");
+                }
+                number.append(new_block_nr);
+
+                std::string block_file = "blockchain/crowd/block_" + number + ".json";
+                if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
+                {
+                    cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
+                }
+
+                del++;
+            }
+            else
+            {
+                continue;
+            }
+        }
+
+        // if last final block is saved --> delete blocks in matrices of i-1 --> don't delente the last final block from the matrices
+        for (uint16_t j = 0; j < del; j++)
+        {
+            remove_front_block_from_block_matrix();
+            remove_front_block_from_calculated_hashes();
+            remove_front_block_from_prev_hashes();
+        }
+    }
 }
 
 std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_;
