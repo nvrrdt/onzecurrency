@@ -19,11 +19,11 @@
 #include "rocksy.hpp"
 #include "p2p.hpp"
 #include "auth.hpp"
-#include "message_vec.hpp"
+#include "intro_msg_mat.hpp"
 #include "poco_crowd.hpp"
 #include "poco_coin.hpp"
 #include "merkle_tree.hpp"
-#include "all_hashes.hpp"
+#include "all_hashes_mat.hpp"
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
 
@@ -104,8 +104,8 @@ namespace Crowd
         p2p_message resp_msg_;
         std::string buf_client_;
         std::string buf_server_;
-        Poco::MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
-        Poco::AllHashes all_hashes_;
+        Poco::IntroMsgVec intro_msg_vec_;
+        Poco::IpHEmail ip_hemail_vec_;
 
         static std::string closed_client_;
         static uint32_t ip_new_co_;

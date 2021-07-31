@@ -176,17 +176,17 @@ void P2pNetwork::handle_read_client()
             // should read the timestamp of the first new_peer request received
             
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-            message_j_vec_.add_to_message_j_vec(buf_j);
+            intro_msg_vec_.add_to_intro_msg_vec(buf_j);
             
-            if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+            if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
                 Poco::PocoCrowd poco;
                 poco.create_and_send_block();
 
-                message_j_vec_.reset_message_j_vec();
+                intro_msg_vec_.reset_intro_msg_vec());
             }
-            else if (message_j_vec_.get_message_j_vec().size() == 1)
+            else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
             {
                 // wait x secs
                 // then create block --> don't forget the counter in the search for a coordinator

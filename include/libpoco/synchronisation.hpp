@@ -42,7 +42,7 @@ namespace Poco
     private:
         void get_sleep_until();
     private:
-        MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
+        IntroMsgVec intro_msg_vec_;
 
         PocoCrowd pococr_;
         PocoCoin pococo_;

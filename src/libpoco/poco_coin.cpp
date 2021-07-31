@@ -290,7 +290,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
         // for (int i = 0; i < tx_.get_transactions().size(); i++)
         // {
         //     nlohmann::json m_j;
-        //     m_j = *message_j_vec_.get_message_j_vec()[i];
+        //     m_j = *intro_msg_vec_.get_intro_msg_vec()[i];
 
         //     std::string full_hash_req = m_j["full_hash_req"];
             

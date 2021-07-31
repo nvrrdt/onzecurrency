@@ -8,8 +8,8 @@
 #include <enet/enet.h>
 
 #include "json.hpp"
-#include "all_hashes.hpp"
-#include "message_vec.hpp"
+#include "all_hashes_mat.hpp"
+#include "intro_msg_mat.hpp"
 
 namespace Poco
 {
@@ -32,7 +32,7 @@ namespace Poco
         static nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
         static std::string hash_of_block_;
-        MessageVec message_j_vec_; // maybe std::shared_ptr<MessageVec> message_j_vec_ = std::make_shared<MessageVec>() ?? compare with header!!
-        AllHashes all_hashes_;
+        IntroMsgVec intro_msg_vec_;
+        IpHEmail ip_hemail_vec_;
     };
 }

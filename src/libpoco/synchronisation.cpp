@@ -22,7 +22,7 @@ void Synchronisation::get_sleep_and_create_block()
 
     set_break_block_creation_loops(false); // break the loops in poco_crowd
 
-    std::cout << "message_j_vec.size() in Poco: " << message_j_vec_.get_message_j_vec().size() << std::endl;
+    std::cout << "intro_msg_vec.size() in Poco: " << intro_msg_vec_.get_intro_msg_vec().size() << std::endl;
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
     // chosen ones are being informed here

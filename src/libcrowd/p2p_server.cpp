@@ -357,17 +357,17 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             // message_j["rocksdb"]["full_hash"] = full_hash_req;
 
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-            message_j_vec_.add_to_message_j_vec(message_j);
+            intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
-            all_hashes_.add_to_all_hashes(message_j["ip"], hash_of_email); // TODO you have to reset this
+            all_hashes_vec_.add_to_all_hashes_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
 
-            if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+            if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
             {
                 // Create block
                 Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
                 poco.create_and_send_block ();
 
-                for (auto &[key, value] : all_hashes_.get_all_hashes())
+                for (auto &[key, value] : all_hashes_vec_.get_all_hashes_vec())
                 {
                     nlohmann::json msg_j;
                     msg_j["req"] = "your_full_hash";
@@ -384,10 +384,10 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     p2p_client(peer_ip, msg_s);
                 }
 
-                message_j_vec_.reset_message_j_vec();
-                all_hashes_.reset_all_hashes();
+                intro_msg_vec_.reset_intro_msg_vec();
+                all_hashes_vec_.reset_all_hashes_vec();
             }
-            else if (message_j_vec_.get_message_j_vec().size() == 1)
+            else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
             {
                 // wait x secs
                 // then create block
@@ -466,18 +466,18 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     // should read the timestamp of the first new_peer request received
     
     // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
-    message_j_vec_.add_to_message_j_vec(buf_j);
+    intro_msg_vec_.add_to_intro_msg_vec(buf_j);
 
-    if (message_j_vec_.get_message_j_vec().size() > 2048) // 2048x 512 bit hashes
+    if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
     {
         // Create block
         Poco::PocoCrowd poco;
         poco.create_and_send_block();
 
-        message_j_vec_.reset_message_j_vec();
-        all_hashes_.reset_all_hashes();
+        intro_msg_vec_.reset_intro_msg_vec();
+        all_hashes_vec_.reset_all_hashes_vec();
     }
-    else if (message_j_vec_.get_message_j_vec().size() == 1)
+    else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
     {
         // wait x secs
         // then create block --> don't forget the counter in the search for a coordinator

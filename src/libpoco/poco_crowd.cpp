@@ -13,7 +13,7 @@ using namespace Poco;
 void PocoCrowd::create_and_send_block()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
-    // 1) Evaluate NewPeers (in message_j_vec) (also take care of an analogy with double spend) (not implemented yet)
+    // 1) Evaluate NewPeers (in intro_msg_vec) (also take care of an analogy with double spend) (not implemented yet)
     //    - for every new_peer: lookup its hash_email and compare what is in rocksdb if it already exists
     // 2) Produce candidate blocks:
     //    - first ever iteration:
@@ -52,7 +52,7 @@ void PocoCrowd::create_and_send_block()
     {
         std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
-        for (uint16_t j = message_j_vec_.get_message_j_vec().size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
+        for (uint16_t j = intro_msg_vec_.get_intro_msg_vec().size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
@@ -69,31 +69,30 @@ void PocoCrowd::create_and_send_block()
 
                 Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-                nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                nlohmann::json imm, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                 nlohmann::json to_block_j;
                 std::string fh_s;
                 std::string prel_full_hash_req;
 
                 mt->set_genesis_prev_hash();
-                std::string prev_hash = mt->get_genesis_prev_hash();
-                block_j_["prev_hash"] = prev_hash;
+                std::string prel_prev_hash_req = mt->get_genesis_prev_hash();
+                block_j_["prev_hash"] = prel_prev_hash_req;
                 block_j_["nonce"] = nonce;
 
                 for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
                 {
                     std::cout << "Crowd: 4th for loop " << l << std::endl;
 
-                    m_j = *message_j_vec_.get_message_j_vec().at(l);
+                    imm = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
                     Common::Crypto crypto;
-                    std::string hash_of_email = m_j["hash_of_email"];
-                    std::string prel_prev_hash_req = block_j_["prev_hash"];
+                    std::string hash_of_email = imm["hash_of_email"];
                     std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
                     prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
                     to_block_j["full_hash"] = prel_full_hash_req;
-                    to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-                    to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                    to_block_j["ecdsa_pub_key"] = imm["ecdsa_pub_key"];
+                    to_block_j["rsa_pub_key"] = imm["rsa_pub_key"];
                     s_shptr_->push(to_block_j.dump());
 
                     entry_tx_j["full_hash"] = to_block_j["full_hash"];
@@ -131,6 +130,10 @@ void PocoCrowd::create_and_send_block()
                 bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
                 bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
+                // Update rocksdb
+                message_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
+                message_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+
                 delete mt;
 
                 limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
@@ -154,7 +157,7 @@ void PocoCrowd::create_and_send_block()
             // in the future there will be a lot of finetuning work on this function
             // preliminarly this is ok
 
-            for (uint16_t j = message_j_vec_.get_message_j_vec().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+            for (uint16_t j = intro_msg_vec_.get_intro_msg_vec().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
                 std::cout << "Crowd: 2nd for loop with block matrix " << j << std::endl;
 
@@ -170,7 +173,7 @@ void PocoCrowd::create_and_send_block()
 
                     Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-                    nlohmann::json m_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                    nlohmann::json imm, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                     nlohmann::json to_block_j;
                     std::string fh_s;
                     std::string prel_full_hash_req;
@@ -180,16 +183,16 @@ void PocoCrowd::create_and_send_block()
                     {
                         std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
                         
-                        m_j = *message_j_vec_.get_message_j_vec().at(l);
+                        imm = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
                         Common::Crypto crypto;
-                        std::string hash_of_email = m_j["hash_of_email"];
+                        std::string hash_of_email = imm["hash_of_email"];
                         std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
                         prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
                         to_block_j["full_hash"] = prel_full_hash_req;
-                        to_block_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-                        to_block_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                        to_block_j["ecdsa_pub_key"] = imm["ecdsa_pub_key"];
+                        to_block_j["rsa_pub_key"] = imm["rsa_pub_key"];
                         s_shptr_->push(to_block_j.dump());
 
                         entry_tx_j["full_hash"] = to_block_j["full_hash"];
@@ -231,6 +234,10 @@ void PocoCrowd::create_and_send_block()
                     bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
                     bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
+                    // Update rocksdb
+                    message_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
+                    message_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+
                     delete mt;
 
                     limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
@@ -243,7 +250,7 @@ void PocoCrowd::create_and_send_block()
     // TODO your_full_hash must only be sent when a block is final!!
 
     // Send your_full_hash request to intro_peer's
-    // for (auto &[key, value] : all_hashes_.get_all_hashes())
+    // for (auto &[key, value] : all_hashes_vec_.get_all_hashes_vec())
     // {
     //     nlohmann::json msg_j;
     //     msg_j["req"] = "your_full_hash";
@@ -266,8 +273,8 @@ void PocoCrowd::create_and_send_block()
     //     pn.p2p_client(peer_ip, msg_s);
     // }
 
-    message_j_vec_.reset_message_j_vec(); // TODO put these two in teh beginning of this function
-    all_hashes_.reset_all_hashes();       // and make a copy of message_j_vec_ and all_hashes_, work with thes copies here
+    intro_msg_vec_.reset_intro_msg_vec(); // TODO put these two in teh beginning of this function
+    all_hashes_vec_.reset_all_hashes_vec();       // and make a copy of intro_msg_vec_ and all_hashes_vec_, work with thes copies here
                                           // --> new intro_peers might arrive and shouldn't be taken into account
 
     // fill the matrices
@@ -339,10 +346,10 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
         // // intro_block and new_block should put this in rocksdb
         // // also a your_full_hash should receive and store this
         // // and then the coordinator should put in rocksdb
-        // for (int i = 0; i < message_j_vec_.get_message_j_vec().size(); i++)
+        // for (int i = 0; i < intro_msg_vec_.get_intro_msg_vec().size(); i++)
         // {
         //     nlohmann::json m_j;
-        //     m_j = *message_j_vec_.get_message_j_vec()[i];
+        //     m_j = *intro_msg_vec_.get_intro_msg_vec()[i];
 
         //     std::string full_hash_req = m_j["full_hash_req"];
             

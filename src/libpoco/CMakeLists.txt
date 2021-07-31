@@ -6,8 +6,8 @@ find_package(Threads)
 add_library(poco SHARED
                      poco_crowd.cpp
                      poco_coin.cpp
-                     all_hashes.cpp
-                     message_vec.cpp
+                     all_hashes_mat.cpp
+                     intro_msg_mat.cpp
                      transactions.cpp
                      block_matrix.cpp
                      block_matrix_c.cpp
@@ -30,8 +30,8 @@ target_include_directories(poco PUBLIC
 set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/poco_crowd.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/poco_coin.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libpoco/all_hashes.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libpoco/message_vec.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libpoco/all_hashes_mat.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libpoco/intro_msg_mat.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/transactions.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/block_matrix.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/synchronisation.hpp"
