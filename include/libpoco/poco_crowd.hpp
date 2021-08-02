@@ -33,6 +33,8 @@ namespace Poco
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
         static std::string hash_of_block_;
         IntroMsgVec intro_msg_vec_;
+        IntroMsgsMat intro_msg_s_mat_;
         IpHEmail ip_hemail_vec_;
+        IpAllHashes ip_all_hashes_;
     };
 }

@@ -69,12 +69,12 @@ void PocoCrowd::create_and_send_block()
 
                 Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-                nlohmann::json imm, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                 nlohmann::json to_block_j;
                 std::string fh_s;
                 std::string prel_full_hash_req;
 
-                mt->set_genesis_prev_hash();
+                mt->set_genesis_prev_hash(); // TODO remove this set to the get
                 std::string prel_prev_hash_req = mt->get_genesis_prev_hash();
                 block_j_["prev_hash"] = prel_prev_hash_req;
                 block_j_["nonce"] = nonce;
@@ -83,16 +83,27 @@ void PocoCrowd::create_and_send_block()
                 {
                     std::cout << "Crowd: 4th for loop " << l << std::endl;
 
-                    imm = *intro_msg_vec_.get_intro_msg_vec().at(l);
+                    imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
+                    // link an ip to a user
+                    std::shared_ptr<std::map<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                    ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
+
+                    // create prel full_hash
                     Common::Crypto crypto;
-                    std::string hash_of_email = imm["hash_of_email"];
+                    std::string hash_of_email = imv_j["hash_of_email"];
                     std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
                     prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
+                    // update rocksdb
+                    imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
+                    imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+                    intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
+
+                    // create block
                     to_block_j["full_hash"] = prel_full_hash_req;
-                    to_block_j["ecdsa_pub_key"] = imm["ecdsa_pub_key"];
-                    to_block_j["rsa_pub_key"] = imm["rsa_pub_key"];
+                    to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
+                    to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
                     s_shptr_->push(to_block_j.dump());
 
                     entry_tx_j["full_hash"] = to_block_j["full_hash"];
@@ -125,23 +136,21 @@ void PocoCrowd::create_and_send_block()
                 // send intro_block to co's
                 inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
-                // Add blocks to vector<vector<block_j_c_>>>
+                // Add blocks to vector<vector<block_j_>>
                 bm->add_block_to_block_vector(block_j_);
                 bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
                 bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
-                // Update rocksdb
-                message_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
-                message_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+                // Update rocksdb and prepare your_full_hash
+                intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+                ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
 
                 delete mt;
 
                 limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
                 if (limit_count == 100) sync.set_break_block_creation_loops(true);
             }
-            std::cout << "11 crowd" << std::endl;
         }
-        std::cout << "22 crowd" << std::endl;
     }
     else
     {
@@ -173,7 +182,7 @@ void PocoCrowd::create_and_send_block()
 
                     Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-                    nlohmann::json imm, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+                    nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
                     nlohmann::json to_block_j;
                     std::string fh_s;
                     std::string prel_full_hash_req;
@@ -183,16 +192,27 @@ void PocoCrowd::create_and_send_block()
                     {
                         std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
                         
-                        imm = *intro_msg_vec_.get_intro_msg_vec().at(l);
+                        imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
+                        // link an ip to a user
+                        std::shared_ptr<std::map<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                        ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
+
+                        // create prel full hash
                         Common::Crypto crypto;
-                        std::string hash_of_email = imm["hash_of_email"];
+                        std::string hash_of_email = imv_j["hash_of_email"];
                         std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
                         prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
 
+                        // update rocksdb
+                        imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
+                        imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+                        intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
+
+                        // create block
                         to_block_j["full_hash"] = prel_full_hash_req;
-                        to_block_j["ecdsa_pub_key"] = imm["ecdsa_pub_key"];
-                        to_block_j["rsa_pub_key"] = imm["rsa_pub_key"];
+                        to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
+                        to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
                         s_shptr_->push(to_block_j.dump());
 
                         entry_tx_j["full_hash"] = to_block_j["full_hash"];
@@ -229,14 +249,14 @@ void PocoCrowd::create_and_send_block()
                     // send intro_block to co's
                     inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
-                    // Add blocks to vector<vector<block_j_c_>>>
+                    // Add blocks to vector<vector<block_j_>>
                     bm->add_block_to_block_vector(block_j_);
                     bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
                     bm->add_prev_hash_to_prev_hash_vector(block_j_);
 
-                    // Update rocksdb
-                    message_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
-                    message_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+                    // Update rocksdb and prepare your_full_hash
+                    intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+                    ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
 
                     delete mt;
 
@@ -282,10 +302,12 @@ void PocoCrowd::create_and_send_block()
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
     bm->add_prev_hash_vector_to_prev_hash_matrix();
 
+    intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_3d_mat();
+    ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_3d_mat();
+
+    // start the sifting process and save a final block
     bm->sifting_function_for_both_block_matrices();
-std::cout << "1111" << std::endl;
     bm->save_final_block_to_file();
-std::cout << "2222" << std::endl;
 
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)

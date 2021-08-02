@@ -359,7 +359,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
-            ip_hemail_vec_.add_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
+            ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
 
             if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
             {
@@ -367,22 +367,22 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
                 poco.create_and_send_block ();
 
-                for (auto &[key, value] : ip_hemail_vec_.get_all_ip_hemail_vec())
-                {
-                    nlohmann::json msg_j;
-                    msg_j["req"] = "your_full_hash";
-                    std::vector<std::string> vec = *value;
-                    msg_j["full_hash"] = vec[0];
-                    msg_j["prev_hash"] = vec[1];
-                    msg_j["block_nr"] = proto.get_last_block_nr();
-                    std::string msg_s = msg_j.dump();
+                // for (auto &[key, value] : ip_hemail_vec_.get_all_ip_hemail_vec())
+                // {
+                //     nlohmann::json msg_j;
+                //     msg_j["req"] = "your_full_hash";
+                //     std::vector<std::string> vec = *value;
+                //     msg_j["full_hash"] = vec[0];
+                //     msg_j["prev_hash"] = vec[1];
+                //     msg_j["block_nr"] = proto.get_last_block_nr();
+                //     std::string msg_s = msg_j.dump();
 
-                    std::string peer_ip;
-                    P2p p2p;
-                    p2p.number_to_ip_string(key, peer_ip);
+                //     std::string peer_ip;
+                //     P2p p2p;
+                //     p2p.number_to_ip_string(key, peer_ip);
 
-                    p2p_client(peer_ip, msg_s);
-                }
+                //     p2p_client(peer_ip, msg_s);
+                // }
 
                 intro_msg_vec_.reset_intro_msg_vec();
                 ip_hemail_vec_.reset_ip_hemail_vec();
