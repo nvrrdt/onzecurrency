@@ -359,7 +359,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
-            all_hashes_vec_.add_to_all_hashes_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
+            ip_hemail_vec_.add_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
 
             if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
             {
@@ -367,7 +367,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
                 poco.create_and_send_block ();
 
-                for (auto &[key, value] : all_hashes_vec_.get_all_hashes_vec())
+                for (auto &[key, value] : ip_hemail_vec_.get_all_ip_hemail_vec())
                 {
                     nlohmann::json msg_j;
                     msg_j["req"] = "your_full_hash";
@@ -385,7 +385,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 }
 
                 intro_msg_vec_.reset_intro_msg_vec();
-                all_hashes_vec_.reset_all_hashes_vec();
+                ip_hemail_vec_.reset_ip_hemail_vec();
             }
             else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
             {
@@ -475,7 +475,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
         poco.create_and_send_block();
 
         intro_msg_vec_.reset_intro_msg_vec();
-        all_hashes_vec_.reset_all_hashes_vec();
+        ip_hemail_vec_.reset_ip_hemail_vec();
     }
     else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
     {

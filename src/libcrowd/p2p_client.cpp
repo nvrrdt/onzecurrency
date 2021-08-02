@@ -184,7 +184,7 @@ void P2pNetwork::handle_read_client()
                 Poco::PocoCrowd poco;
                 poco.create_and_send_block();
 
-                intro_msg_vec_.reset_intro_msg_vec());
+                intro_msg_vec_.reset_intro_msg_vec();
             }
             else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
             {
