@@ -134,7 +134,7 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
+                inform_chosen_ones_prel_block(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
                 // Add blocks to vector<vector<block_j_>>
                 bm->add_block_to_block_vector(block_j_);
@@ -247,7 +247,7 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
+                    inform_chosen_ones_prel_block(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
 
                     // Add blocks to vector<vector<block_j_>>
                     bm->add_block_to_block_vector(block_j_);
@@ -324,7 +324,7 @@ void PocoCrowd::create_and_send_block()
 std::cout << "--------5: " << std::endl;
 }
 
-void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req, nlohmann::json rocksdb_out)
+void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req, nlohmann::json rocksdb_out)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -459,6 +459,12 @@ void PocoCrowd::inform_chosen_ones(std::string my_next_block_nr, nlohmann::json 
         // You're not the coordinator!
         std::cout << "You're not the coordinator!" << std::endl;
     }
+}
+
+
+void PocoCrowd::inform_chosen_ones_final_block()
+{
+    //
 }
 
 // the block still needs to be hashed and the hash sent

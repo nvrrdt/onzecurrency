@@ -8,6 +8,7 @@
 #include "merkle_tree.hpp"
 #include "intro_msg_mat.hpp"
 #include "all_hashes_mat.hpp"
+#include "poco_crowd.hpp"
 
 #include "block_matrix.hpp"
 
@@ -368,6 +369,10 @@ void BlockMatrix::save_final_block_to_file()
                 }
 
                 del++;
+
+                // inform chosen ones for final block
+                Poco::PocoCrowd pc;
+                pc.inform_chosen_ones_final_block();
             }
             else
             {
