@@ -351,12 +351,12 @@ void BlockMatrix::save_final_block_to_file()
                 // save block
                 std::cout << "new block added " << new_block_nr << std::endl;
 
-                nlohmann::json final_block_j = *get_block_matrix().at(i).at(0);
+                nlohmann::json final_block_j = *get_block_matrix().at(i).at(0); // i-1 is final block
                 std::string final_block_s = final_block_j.dump();
 
                 uint32_t first_chars = 11 - new_block_nr.length();
                 std::string number = "";
-                for (int i = 0; i <= first_chars; i++)
+                for (int j = 0; j <= first_chars; j++)
                 {
                     number.append("0");
                 }
@@ -373,10 +373,7 @@ void BlockMatrix::save_final_block_to_file()
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;
                 pc.inform_chosen_ones_final_block();
-            }
-            else
-            {
-                continue;
+                pc.send_your_full_hash(i, final_block_j, new_block_nr);
             }
         }
 

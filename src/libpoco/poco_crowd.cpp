@@ -86,7 +86,7 @@ void PocoCrowd::create_and_send_block()
                     imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
                     // link an ip to a user
-                    std::shared_ptr<std::map<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                    std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
                     ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                     // create prel full_hash
@@ -195,7 +195,7 @@ void PocoCrowd::create_and_send_block()
                         imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
 
                         // link an ip to a user
-                        std::shared_ptr<std::map<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                        std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
                         ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                         // create prel full hash
@@ -267,32 +267,6 @@ void PocoCrowd::create_and_send_block()
         }
     }
 
-    // TODO your_full_hash must only be sent when a block is final!!
-
-    // Send your_full_hash request to intro_peer's
-    // for (auto &[key, value] : all_hashes_vec_.get_all_hashes_vec())
-    // {
-    //     nlohmann::json msg_j;
-    //     msg_j["req"] = "your_full_hash";
-    //     std::vector<std::string> vec = *value;
-    //     msg_j["full_hash"] = vec[0];
-    //     msg_j["prev_hash"] = vec[1];
-    //     msg_j["block"] = block_j_;
-    //     msg_j["block_nr"] = my_next_block_nr;
-
-    //     msg_j["rocksdb"] = rocksdb_out;
-
-    //     std::string msg_s = msg_j.dump();
-
-    //     std::string peer_ip;
-    //     Crowd::P2p p2p;
-    //     p2p.number_to_ip_string(key, peer_ip);
-        
-    //     std::cout << "_______key: " << key << " ip: " << peer_ip << ", value: " << value << std::endl;
-    //     Crowd::P2pNetwork pn;
-    //     pn.p2p_client(peer_ip, msg_s);
-    // }
-
     intro_msg_vec_.reset_intro_msg_vec(); // TODO put these two in teh beginning of this function
     ip_hemail_vec_.reset_ip_hemail_vec();       // and make a copy of intro_msg_vec_ and all_hashes_vec_, work with thes copies here
                                           // --> new intro_peers might arrive and shouldn't be taken into account
@@ -302,8 +276,8 @@ void PocoCrowd::create_and_send_block()
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
     bm->add_prev_hash_vector_to_prev_hash_matrix();
 
-    intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_3d_mat();
-    ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_3d_mat();
+    intro_msg_s_mat_. add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
 
     // start the sifting process and save a final block
     bm->sifting_function_for_both_block_matrices();
@@ -465,6 +439,43 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
 void PocoCrowd::inform_chosen_ones_final_block()
 {
     //
+}
+
+void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr)
+{
+    // your_full_hash must only be sent when a block is final!!
+
+std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().size() << std::endl;
+std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size() << std::endl;
+std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size() << std::endl;
+
+    // Send your_full_hash request to intro_peer's
+    for (uint16_t i = 0; i < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size(); i++)
+    {
+std::cout << "hier" << std::endl;
+        nlohmann::json msg_j;
+        msg_j["req"] = "your_full_hash";
+        nlohmann::json val_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).at(i);
+        msg_j["full_hash"] = val_j["rocksdb"]["full_hash"];
+        msg_j["prev_hash"] = val_j["rocksdb"]["prev_hash"];
+        msg_j["block"] = final_block_j;
+        msg_j["block_nr"] = new_block_nr;
+
+        msg_j["rocksdb"] = val_j["rocksdb"];
+
+        std::string msg_s = msg_j.dump();
+
+        std::string peer_ip;
+        Crowd::P2p p2p;
+        std::pair<enet_uint32, std::string> ip_nr = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
+        p2p.number_to_ip_string(ip_nr.first, peer_ip);
+        
+        std::cout << "_______key: " << i << " ip: " << peer_ip << ", value: " << ip_nr.first << std::endl;
+        Crowd::P2pNetwork pn;
+        pn.p2p_client(peer_ip, msg_s);
+    }
+
+    std::cout << "Your_full_hash's sent" << std::endl;
 }
 
 // the block still needs to be hashed and the hash sent
