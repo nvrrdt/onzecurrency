@@ -38,6 +38,11 @@ std::vector<std::vector<std::vector<std::shared_ptr<std::map<enet_uint32, std::s
     return ip_all_hashes_3d_mat_;
 }
 
+void IpAllHashes::remove_front_from_ip_all_hashes_3d_mat()
+{
+    ip_all_hashes_3d_mat_.front().clear();
+}
+
 void IpAllHashes::reset_ip_all_hashes_vec()
 {
     ip_all_hashes_vec_.clear();

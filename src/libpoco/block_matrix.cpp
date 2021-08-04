@@ -6,6 +6,8 @@
 #include "configdir.hpp"
 #include "p2p.hpp"
 #include "merkle_tree.hpp"
+#include "intro_msg_mat.hpp"
+#include "all_hashes_mat.hpp"
 
 #include "block_matrix.hpp"
 
@@ -93,17 +95,17 @@ void BlockMatrix::replace_prev_hashes(std::vector<std::vector<std::shared_ptr<st
     prev_hash_matrix_ = hashes_from_contents;
 }
 
-void BlockMatrix::remove_front_block_from_block_matrix()
+void BlockMatrix::remove_front_from_block_matrix()
 {
     block_matrix_.front().clear();
 }
 
-void BlockMatrix::remove_front_block_from_calculated_hashes()
+void BlockMatrix::remove_front_from_calculated_hashes()
 {
     calculated_hash_matrix_.front().clear();
 }
 
-void BlockMatrix::remove_front_block_from_prev_hashes()
+void BlockMatrix::remove_front_from_prev_hashes()
 {
     prev_hash_matrix_.front().clear();
 }
@@ -376,9 +378,14 @@ void BlockMatrix::save_final_block_to_file()
         // if last final block is saved --> delete blocks in matrices of i-1 --> don't delente the last final block from the matrices
         for (uint16_t j = 0; j < del; j++)
         {
-            remove_front_block_from_block_matrix();
-            remove_front_block_from_calculated_hashes();
-            remove_front_block_from_prev_hashes();
+            remove_front_from_block_matrix();
+            remove_front_from_calculated_hashes();
+            remove_front_from_prev_hashes();
+
+            Poco::IntroMsgsMat imm;
+            imm.remove_front_from_intro_msg_s_3d_mat();
+            Poco::IpAllHashes iah;
+            iah.remove_front_from_ip_all_hashes_3d_mat();
         }
     }
 }

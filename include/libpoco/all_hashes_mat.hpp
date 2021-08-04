@@ -27,6 +27,7 @@ namespace Poco
         static void add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
         static void add_ip_all_hashes_vec_to_ip_all_hashes_3d_mat();
         static std::vector<std::vector<std::vector<std::shared_ptr<std::map<enet_uint32, std::string>>>>> get_ip_all_hashes_3d_mat();
+        static void remove_front_from_ip_all_hashes_3d_mat();
         static void reset_ip_all_hashes_vec();
         static void reset_ip_all_hashes_2d_mat();
         static void reset_ip_all_hashes_3d_mat();
