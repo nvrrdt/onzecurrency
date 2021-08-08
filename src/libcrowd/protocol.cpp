@@ -393,3 +393,48 @@ std::string Protocol::block_plus_one(std::string &block_nr)
 
     return new_block;
 }
+
+nlohmann::json Protocol::get_block_at(std::string block_nr_s)
+{
+    ConfigDir cd;
+    std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
+    boost::system::error_code c;
+    boost::filesystem::path path(blockchain_folder_path);
+
+    nlohmann::json block_j;
+
+    std::uint64_t block_nr;
+    std::istringstream i(block_nr_s);
+    i >> block_nr;
+
+    if (!boost::filesystem::exists(path))
+    {
+        return "no blockchain present in folder";
+    }
+    else
+    {
+        typedef std::vector<boost::filesystem::path> vec;             // store paths,
+        vec v;                                // so we can sort them later
+
+        copy(boost::filesystem::directory_iterator(path), boost::filesystem::directory_iterator(), back_inserter(v));
+
+        sort(v.begin(), v.end());             // sort, since directory iteration
+                                            // is not ordered on some file systems
+
+        for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+        {
+std::cout << "11111" << std::endl;
+            if (it == v.begin() + block_nr)
+            {
+                std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
+                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                block_j = nlohmann::json::parse(contents);
+
+                break;
+            }
+std::cout << "2222" << std::endl;
+        }
+    }
+    
+    return block_j;
+}

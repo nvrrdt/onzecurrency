@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "json.hpp"
+#include "intro_msg_mat.hpp"
 
 namespace Poco
 {
@@ -42,6 +43,8 @@ namespace Poco
         static std::vector<std::vector<std::shared_ptr<std::string>>> prev_hash_matrix_;
         static std::vector<std::shared_ptr<nlohmann::json>> received_block_vector_;
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> received_block_matrix_;
+    private:
+        static IntroMsgsMat intro_msg_s_mat_;
     };
 
     class BlockMatrixC: BlockMatrix

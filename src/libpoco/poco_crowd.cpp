@@ -134,7 +134,7 @@ void PocoCrowd::create_and_send_block()
                 // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                 // send intro_block to co's
-                inform_chosen_ones_prel_block(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
+                inform_chosen_ones_prel_block(my_next_block_nr, block_j_);
 
                 // Add blocks to vector<vector<block_j_>>
                 bm->add_block_to_block_vector(block_j_);
@@ -247,7 +247,7 @@ void PocoCrowd::create_and_send_block()
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
                     // send intro_block to co's
-                    inform_chosen_ones_prel_block(my_next_block_nr, block_j_, prel_full_hash_req, rocksdb_out);
+                    inform_chosen_ones_prel_block(my_next_block_nr, block_j_);
 
                     // Add blocks to vector<vector<block_j_>>
                     bm->add_block_to_block_vector(block_j_);
@@ -298,7 +298,7 @@ void PocoCrowd::create_and_send_block()
 std::cout << "--------5: " << std::endl;
 }
 
-void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req, nlohmann::json rocksdb_out)
+void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -316,8 +316,8 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
 
     if (co_from_this_block == my_full_hash)
     {
-        // You are the coordinator!
-        std::cout << "Inform my fellow chosen_ones as coordinator" << std::endl;
+        // You are the preliminary coordinator!
+        std::cout << "Inform my fellow chosen_ones as prel coordinator" << std::endl;
 
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
@@ -328,7 +328,6 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         message_j["block"] = block_j;
         Crowd::PrevHash ph;
         message_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        message_j["full_hash_req"] = full_hash_req;
         message_j["full_hash_coord"] = hash_of_block;
 
         int k;
@@ -338,48 +337,9 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             message_j["chosen_ones"].push_back(v);
         }
 
-        // // this for loop should be in inform_chosen_ones coordinator and send with an intro_block and a new_block
-        // // intro_block and new_block should put this in rocksdb
-        // // also a your_full_hash should receive and store this
-        // // and then the coordinator should put in rocksdb
-        // for (int i = 0; i < intro_msg_vec_.get_intro_msg_vec().size(); i++)
-        // {
-        //     nlohmann::json m_j;
-        //     m_j = *intro_msg_vec_.get_intro_msg_vec()[i];
-
-        //     std::string full_hash_req = m_j["full_hash_req"];
-            
-        //     Common::Crypto crypto;
-        //     // update rocksdb
-        //     nlohmann::json rocksdb_j;
-        //     rocksdb_j["version"] = "O.1";
-        //     rocksdb_j["ip"] = m_j["ip"];
-        //     rocksdb_j["online"] = true;
-        //     rocksdb_j["server"] = true;
-        //     rocksdb_j["fullnode"] = true;
-        //     std::string email_of_req = m_j["email_of_req"];
-        //     rocksdb_j["hash_email"] = crypto.bech32_encode_sha256(email_of_req);
-        //     rocksdb_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        //     rocksdb_j["full_hash"] = full_hash_req;
-        //     Crowd::Protocol proto;
-        //     rocksdb_j["block_nr"] = proto.get_last_block_nr();
-        //     rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-        //     rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-        //     std::string rocksdb_s = rocksdb_j.dump();
-
-        //     // Store to rocksdb for coordinator
-        //     // Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-        //     // rocksy->Put(full_hash_req, rocksdb_s);
-        //     // delete rocksy;
-
-        //     // Send rocksdb to into_block chosen_ones
-        //     message_j["rocksdb"][i] = rocksdb_j;
-        // }
-
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        to_sign_j["full_hash_req"] = full_hash_req;
         to_sign_j["full_hash_coord"] = hash_of_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         // to_sign_j["rocksdb"] = message_j["rocksdb"];
@@ -399,7 +359,6 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
-            if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
@@ -412,7 +371,97 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for intro_block: " << peer_ip << std::endl;
+            std::cout << "Preparation for prel_intro_block: " << peer_ip << std::endl;
+
+            std::string ip_from_peer;
+            Crowd::P2p p2p;
+            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(ip_from_peer, message);
+        }
+    }
+    else
+    {
+        // You're not the preliminary coordinator!
+        std::cout << "You're not the prel coordinator!" << std::endl;
+    }
+}
+
+
+void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr)
+{
+    Crowd::FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+
+    Crypto* crypto = new Crypto();
+    std::string block_s = final_block_j.dump();
+    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    delete crypto;
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    delete rocksy;
+
+    nlohmann::json message_j;
+
+    if (co_from_this_block == my_full_hash)
+    {
+        // You are the coordinator!
+        std::cout << "Inform my fellow chosen_ones as final coordinator" << std::endl;
+
+        Crowd::Protocol proto;
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+        nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+        message_j["req"] = "intro_final_block";
+        message_j["latest_block_nr"] = new_block_nr;
+        message_j["block"] = final_block_j;
+        message_j["full_hash_coord"] = hash_of_block;
+
+        int k;
+        std::string v;
+        for (auto &[k, v] : parts)
+        {
+            message_j["chosen_ones"].push_back(v);
+        }
+
+        
+
+        to_sign_j["latest_block_nr"] = new_block_nr;
+        to_sign_j["block"] = final_block_j;
+        to_sign_j["full_hash_coord"] = hash_of_block;
+        to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+        std::string to_sign_s = to_sign_j.dump();
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        Crypto* crypto = new Crypto();
+        crypto->ecdsa_load_private_key_from_string(private_key);
+        if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+        {
+            message_j["signature"] = crypto->base64_encode(signature);
+        }
+        delete crypto;
+
+        // send req to chosen_ones
+        Crowd::P2pNetwork pn;
+        std::string key, val;
+        for (auto &[key, val] : parts)
+        {
+            if (key == 1) continue;
+            if (val == hash_of_block) continue; // = coordinator
+            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+
+            // lookup in rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            uint32_t peer_ip = value_j["ip"];
+
+            delete rocksy;
+            
+            std::string message = message_j.dump();
+
+            std::cout << "Preparation for intro_final_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -422,37 +471,28 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             pn.p2p_client(ip_from_peer, message);
         }
 
-        // rocksdb_out = message_j["rocksdb"];
-
         // Give the chosen_ones their reward:
         // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out
         // reward_for_chosen_ones(co_from_this_block, chosen_ones_reward);      // this line too
     }
     else
     {
-        // You're not the coordinator!
-        std::cout << "You're not the coordinator!" << std::endl;
+        // You're not the final coordinator!
+        std::cout << "You're not the final coordinator!" << std::endl;
     }
-}
-
-
-void PocoCrowd::inform_chosen_ones_final_block()
-{
-    //
 }
 
 void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr)
 {
     // your_full_hash must only be sent when a block is final!!
 
-std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().size() << std::endl;
-std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size() << std::endl;
-std::cout << "syfh " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size() << std::endl;
+// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().size() << std::endl;
+// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size() << std::endl;
+// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size() << std::endl;
 
     // Send your_full_hash request to intro_peer's
     for (uint16_t i = 0; i < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size(); i++)
     {
-std::cout << "hier" << std::endl;
         nlohmann::json msg_j;
         msg_j["req"] = "your_full_hash";
         nlohmann::json val_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).at(i);

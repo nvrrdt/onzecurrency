@@ -762,7 +762,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
     // introduce chosen ones!!! and coordinator should be verified
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string coordinator = chosen_ones[0];
+    std::string coordinator = chosen_ones[0]; // TODO should be element of chosen_ones as the json is sorted
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {
@@ -933,7 +933,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
     // introduce chosen ones!!! and coordinator should be verified
 
     Rocksy* rocksy = new Rocksy("usersdb");
-    std::string coordinator = chosen_ones[0];
+    std::string coordinator = chosen_ones[0]; // TODO should be element of chosen_ones as the json is sorted
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {

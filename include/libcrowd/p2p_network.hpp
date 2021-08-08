@@ -77,8 +77,8 @@ namespace Crowd
         void update_your_rocksdb(nlohmann::json buf_j);
         void intro_prel_block(nlohmann::json buf_j);
         void new_prel_block(nlohmann::json buf_j);
-        void intro_block(nlohmann::json buf_j);
-        void new_block(nlohmann::json buf_j);
+        void intro_final_block(nlohmann::json buf_j);
+        void new_final_block(nlohmann::json buf_j);
         void your_full_hash(nlohmann::json buf_j);
         void hash_comparison(nlohmann::json buf_j);
         void update_my_blocks_and_rocksdb(nlohmann::json buf_j);

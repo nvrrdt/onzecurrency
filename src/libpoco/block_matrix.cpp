@@ -352,6 +352,11 @@ void BlockMatrix::save_final_block_to_file()
                 std::cout << "new block added " << new_block_nr << std::endl;
 
                 nlohmann::json final_block_j = *get_block_matrix().at(i).at(0); // i-1 is final block
+                
+                // actual saving of block starts here
+                Crowd::ConfigDir cd;
+                std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
+
                 std::string final_block_s = final_block_j.dump();
 
                 uint32_t first_chars = 11 - new_block_nr.length();
@@ -368,12 +373,43 @@ void BlockMatrix::save_final_block_to_file()
                     cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
                 }
 
+                // actual saving to rocksdb
+                for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).size(); j++)
+                {
+                    nlohmann::json m_j;
+                    m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).at(j);
+
+                    std::string full_hash_req = m_j["full_hash_req"];
+                    
+                    Common::Crypto crypto;
+                    // update rocksdb
+                    nlohmann::json rocksdb_j;
+                    rocksdb_j["version"] = "O.1";
+                    rocksdb_j["ip"] = m_j["ip"];
+                    rocksdb_j["online"] = true;
+                    rocksdb_j["server"] = true;
+                    rocksdb_j["fullnode"] = true;
+                    // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
+                    rocksdb_j["prev_hash"] = *get_prev_hash_matrix().at(i).at(0);
+                    rocksdb_j["full_hash"] = full_hash_req;
+                    Crowd::Protocol proto;
+                    rocksdb_j["block_nr"] = new_block_nr;
+                    rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+                    rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                    std::string rocksdb_s = rocksdb_j.dump();
+
+                    // Store to rocksdb for coordinator
+                    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+                    rocksy->Put(full_hash_req, rocksdb_s);
+                    delete rocksy;
+                }
+
                 del++;
 
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;
-                pc.inform_chosen_ones_final_block();
-                pc.send_your_full_hash(i, final_block_j, new_block_nr);
+                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr);
+                pc.send_your_full_hash(i, final_block_j, new_block_nr); // TODO does your full hash recvr recv rocksdb?
             }
         }
 

@@ -41,8 +41,8 @@ void P2pNetwork::handle_read_server()
         req_conversion["update_your_rocksdb"] = 6;
         req_conversion["intro_prel_block"] =    7;
         req_conversion["new_prel_block"] =      8;
-        req_conversion["intro_block"] =         9;
-        req_conversion["new_block"] =           10;
+        req_conversion["intro_final_block"] =   9;
+        req_conversion["new_final_block"] =     10;
         req_conversion["your_full_hash"] =      11;
         req_conversion["hash_comparison"] =     12;
         req_conversion["update_my_blocks_and_rocksdb"] = 13;
@@ -67,11 +67,11 @@ void P2pNetwork::handle_read_server()
                         break;
             case 8:     new_prel_block(buf_j);
                         break;
-            case 9:     intro_block(buf_j);
+            case 9:     intro_final_block(buf_j);
                         break;
-            case 10:     new_block(buf_j);
+            case 10:    new_final_block(buf_j);
                         break;
-            case 11:     your_full_hash(buf_j);
+            case 11:    your_full_hash(buf_j);
                         break;
             case 12:    hash_comparison(buf_j);
                         break;
@@ -273,7 +273,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 
             to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
             to_sign_j["rsa_pub_key"] = rsa_pub_key;
-            to_sign_j["email"] = email_of_req;
+            to_sign_j["email_of_req"] = email_of_req;
             std::string to_sign_s = to_sign_j.dump();
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
@@ -351,10 +351,6 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     p2p_client(peer_ip, message);
                 }
             }
-
-            // Update rocksdb
-            // message_j["rocksdb"]["prev_hash"] = prev_hash_req;
-            // message_j["rocksdb"]["full_hash"] = full_hash_req;
 
             // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
@@ -524,11 +520,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     // intro_prel_block
     std::cout << "Intro_prel_block: " << std::endl;
 
-    // Compare the hashes from the block of the coordinator with this block
-    // p2p_client to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
-    // Communicate hash to all
-    // Then inform your underlying network
-    // Put block in waiting list until it's the only block in the chain --> future implementation with coin
+    // communicate preliminary block to other peers --> needs to be calculated depending on this server's place in the chosen_ones list
 
     // Disconect from client
     nlohmann::json m_j;
@@ -538,192 +530,302 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     // add received_blocks to received_block_vector
     nlohmann::json recv_block_j = buf_j["block"];
     Poco::BlockMatrix *bm = new Poco::BlockMatrix();
-    if (bm->get_block_matrix().empty())
-    {
-        std::cout << "Received block is in block_vector; 1" << std::endl;
-        bm->add_received_block_to_received_block_vector(recv_block_j);
-    }
-    else
-    {
-        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
-        {
-            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
-            {
-                std::cout << "Received block is in block_vector; 2" << std::endl;
-                bm->add_received_block_to_received_block_vector(recv_block_j);
-                break;
-            }
-            else if (i == bm->get_block_matrix().back().size() - 1)
-            {
-                // Don't accept this block
-                std::cout << "End of vector: received block not in block_vector" << std::endl;
-                return;
-            }
-        }
-    }
-
+    bm->add_received_block_to_received_block_vector(recv_block_j);
     delete bm;
 
-    // for debugging purposes:
-    for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
-    {
-        for (int j = 0; j < bm->get_received_block_matrix().at(i).size(); j++)
-        {
-            nlohmann::json content_j = *bm->get_received_block_matrix().at(i).at(j);
-            std::cout << "received block matrix entry prel " << i << " " << j << " (oldest first)" << std::endl << std::endl;
-        }
-    }
-    // for debugging purposes:
-    for (int i = 0; i < bm->get_block_matrix().size(); i++)
-    {
-        for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
-        {
-            nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
-            std::cout << "block matrix entry prel" << i << " " << j << " (oldest first)" << std::endl;
-        }
-    }
+    // // for debugging purposes:
+    // for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
+    // {
+    //     for (int j = 0; j < bm->get_received_block_matrix().at(i).size(); j++)
+    //     {
+    //         nlohmann::json content_j = *bm->get_received_block_matrix().at(i).at(j);
+    //         std::cout << "received block matrix entry prel " << i << " " << j << " (oldest first)" << std::endl << std::endl;
+    //     }
+    // }
+    // // for debugging purposes:
+    // for (int i = 0; i < bm->get_block_matrix().size(); i++)
+    // {
+    //     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+    //     {
+    //         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+    //         std::cout << "block matrix entry prel" << i << " " << j << " (oldest first)" << std::endl;
+    //     }
+    // }
 
     // Is the coordinator the truthful real coordinator for this block
-    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+    std::string full_hash_coord = buf_j["full_hash_coord"];
 
-    nlohmann::json starttime_coord = buf_j["block"]["starttime"];
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
-    Common::Crypto crypto;
-    Poco::PocoCrowd poco;
-    
-    nlohmann::json block_j_me = poco.get_block_j();
-    block_j_me["starttime"] = starttime_coord;
-    std::string block_s_me = block_j_me.dump();
-    std::string prev_hash_me = crypto.bech32_encode_sha256(block_s_me);
+    nlohmann::json message_j;
 
-    Rocksy* rocksy = new Rocksy("usersdb");
-    std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
-    if (full_hash_coord_from_me == buf_j["full_hash_req"])
+    if (full_hash_coord == my_full_hash)
     {
-        full_hash_coord_from_me = rocksy->FindNextPeer(full_hash_coord_from_me);
-    }
-    delete rocksy;
+        std::cout << "Intro prel coordinator is truthful" << std::endl;
 
-    if (full_hash_coord_from_coord == full_hash_coord_from_me)
-    {
-        std::cout << "Coordinator is truthful" << std::endl;
+        // p2p_client() to all calculated other chosen_ones
+        nlohmann::json chosen_ones = buf_j["chosen_ones"];
 
-        FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-        // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+        std::string next_full_hash;
+        for (int i = 0; i < chosen_ones.size(); i++)
+        {
+            if (chosen_ones[i] == my_full_hash)
+            {
+                if (i != chosen_ones.size() - 1)
+                {
+                    next_full_hash = chosen_ones[i];
+                }
+                else
+                {
+                    next_full_hash = chosen_ones[0];
+                }
+            }
+        }
 
-        // TODO send new_prel_block message to underlying peers here
+        Crowd::Protocol proto;
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+        nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+        message_j["req"] = "new_prel_block";
+        message_j["latest_block_nr"] = buf_j["latest_block_nr"];
+        message_j["block"] = buf_j["block"];
+        message_j["prev_hash"] = buf_j["prev_hash"];
+        message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+
+        int k;
+        std::string v;
+        for (auto &[k, v] : parts)
+        {
+            message_j["chosen_ones"].push_back(v);
+        }
+
+        to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+        to_sign_j["block"] = message_j["block"];
+        to_sign_j["prev_hash"] = message_j["prev_hash"];
+        to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+        to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+        // to_sign_j["rocksdb"] = message_j["rocksdb"];
+        std::string to_sign_s = to_sign_j.dump();
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        Crypto* crypto = new Crypto();
+        crypto->ecdsa_load_private_key_from_string(private_key);
+        if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+        {
+            message_j["signature"] = crypto->base64_encode(signature);
+        }
+        delete crypto;
+
+        Crowd::P2pNetwork pn;
+        std::string key, val;
+        for (auto &[key, val] : parts)
+        {
+            if (key == 1) continue;
+            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+
+            // lookup in rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            uint32_t peer_ip = value_j["ip"];
+
+            delete rocksy;
+            
+            std::string message = message_j.dump();
+
+            std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+
+            std::string ip_from_peer;
+            Crowd::P2p p2p;
+            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(ip_from_peer, message);
+        }
     }
     else
     {
-        std::cout << "Coordinator is not truthful" << std::endl;
+        std::cout << "Intro prel coordinator is not truthful" << std::endl;
     }
 }
 
 void P2pNetwork::new_prel_block(nlohmann::json buf_j)
 {
-    // new_prel_block --> TODO block and rocksdb should be saved
+    // new_prel_block --> TODO block should be saved
     std::cout << "New_prel_block: " << std::endl;
-}
 
-void P2pNetwork::intro_block(nlohmann::json buf_j)
-{
-    // intro_block
-    std::cout << "Intro_block: " << std::endl;
+    // communicate preliminary block to other peers --> needs to be calculated depending on this server's place in the chosen_ones list
 
-    // Compare the hashes from the block of the coordinator with this block
-    // p2p_client to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
-    // Communicate hash to all
-    // Then inform your underlying network
-    // Put block in waiting list until it's the only block in the chain --> future implementation with coin
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
 
-    // Is the coordinator the truthful real coordinator for this block
-
+    // add received_blocks to received_block_vector
     nlohmann::json recv_block_j = buf_j["block"];
     Poco::BlockMatrix *bm = new Poco::BlockMatrix();
-    if (bm->get_block_matrix().empty())
+    bm->add_received_block_to_received_block_vector(recv_block_j);
+    delete bm;
+
+    // // for debugging purposes:
+    // for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
+    // {
+    //     for (int j = 0; j < bm->get_received_block_matrix().at(i).size(); j++)
+    //     {
+    //         nlohmann::json content_j = *bm->get_received_block_matrix().at(i).at(j);
+    //         std::cout << "received block matrix entry prel " << i << " " << j << " (oldest first)" << std::endl << std::endl;
+    //     }
+    // }
+    // // for debugging purposes:
+    // for (int i = 0; i < bm->get_block_matrix().size(); i++)
+    // {
+    //     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+    //     {
+    //         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+    //         std::cout << "block matrix entry prel" << i << " " << j << " (oldest first)" << std::endl;
+    //     }
+    // }
+
+    // Is the coordinator the truthful real coordinator for this block
+    std::string full_hash_coord = buf_j["full_hash_coord"];
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+
+    nlohmann::json message_j;
+
+    if (full_hash_coord == my_full_hash)
     {
-        std::cout << "Received block is in block_vector; 1" << std::endl;
-        bm->add_received_block_to_received_block_vector(recv_block_j);
+        std::cout << "New prel coordinator is truthful" << std::endl;
+
+        // p2p_client() to all calculated other chosen_ones
+        nlohmann::json chosen_ones = buf_j["chosen_ones"];
+
+        std::string next_full_hash;
+        for (int i = 0; i < chosen_ones.size(); i++)
+        {
+            if (chosen_ones[i] == my_full_hash)
+            {
+                if (i != chosen_ones.size() - 1)
+                {
+                    next_full_hash = chosen_ones[i];
+                }
+                else
+                {
+                    next_full_hash = chosen_ones[0];
+                }
+            }
+        }
+
+        Crowd::Protocol proto;
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+        nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+        message_j["req"] = "new_prel_block";
+        message_j["latest_block_nr"] = buf_j["latest_block_nr"];
+        message_j["block"] = buf_j["block"];
+        message_j["prev_hash"] = buf_j["prev_hash"];
+        message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+
+        int k;
+        std::string v;
+        for (auto &[k, v] : parts)
+        {
+            message_j["chosen_ones"].push_back(v);
+        }
+
+        to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+        to_sign_j["block"] = message_j["block"];
+        to_sign_j["prev_hash"] = message_j["prev_hash"];
+        to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+        to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+        // to_sign_j["rocksdb"] = message_j["rocksdb"];
+        std::string to_sign_s = to_sign_j.dump();
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        Crypto* crypto = new Crypto();
+        crypto->ecdsa_load_private_key_from_string(private_key);
+        if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+        {
+            message_j["signature"] = crypto->base64_encode(signature);
+        }
+        delete crypto;
+
+        Crowd::P2pNetwork pn;
+        std::string key, val;
+        for (auto &[key, val] : parts)
+        {
+            if (key == 1) continue;
+            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+
+            // lookup in rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            uint32_t peer_ip = value_j["ip"];
+
+            delete rocksy;
+            
+            std::string message = message_j.dump();
+
+            std::cout << "Preparation for secondary prel_new_block: " << peer_ip << std::endl;
+
+            std::string ip_from_peer;
+            Crowd::P2p p2p;
+            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(ip_from_peer, message);
+        }
     }
     else
     {
-        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
-        {
-            if (*bm->get_block_matrix().back().at(i) == recv_block_j)
-            {
-                std::cout << "Received block is in block_vector; 2" << std::endl;
-                bm->add_received_block_to_received_block_vector(recv_block_j);
-                break;
-            }
-            
-            if (i == bm->get_block_matrix().back().size() - 1)
-            {
-                // Don't accept this block
-                std::cout << "Received block not in block_vector" << std::endl;
-                return;
-            }
-        }
+        std::cout << "New prel coordinator is not truthful" << std::endl;
     }
+}
 
-    delete bm;
+void P2pNetwork::intro_final_block(nlohmann::json buf_j)
+{
+    // intro_final_block
+    std::cout << "Intro_final_block: " << std::endl;
 
+    // Is the coordinator the truthful final coordinator for this block?
+    // Compare the hashes from the block of the coordinator with your saved blocks' hashes
+    // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
+    // Then inform your underlying network
+
+    nlohmann::json recv_block_j = buf_j["block"];
+    std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+    nlohmann::json chosen_ones = buf_j["chosen_ones"];
 
-    nlohmann::json starttime_coord = buf_j["block"]["starttime"];
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
+    std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
-    Poco::PocoCrowd poco;
-    
-    nlohmann::json block_j_me = poco.get_block_j();
-    block_j_me["starttime"] = starttime_coord;
-    std::string block_s_me = block_j_me.dump();
-    std::string prev_hash_me = crypto.bech32_encode_sha256(block_s_me);
-
+    std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
     Rocksy* rocksy = new Rocksy("usersdb");
     std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
-    if (full_hash_coord_from_me == buf_j["full_hash_req"])
-    {
-        full_hash_coord_from_me = rocksy->FindNextPeer(full_hash_coord_from_me);
-    }
     delete rocksy;
 
-    if (full_hash_coord_from_coord == full_hash_coord_from_me)
+    if (full_hash_coord_from_me == full_hash_coord_from_coord)
     {
         std::cout << "Coordinator is truthful" << std::endl;
 
-        std::string prev_hash_coordinator = buf_j["prev_hash"];
-        std::string prev_hash_in_block = buf_j["block"]["prev_hash"];
+        Protocol protocol;
+        nlohmann::json saved_block_at_place_i = protocol.get_block_at(recv_latest_block_nr_s);
+        std::string saved_block_at_place_i_s = saved_block_at_place_i.dump();
+        std::string prev_hash_from_saved_block_at_place_i = crypto.bech32_encode_sha256(saved_block_at_place_i_s);
 
-        if (prev_hash_coordinator == prev_hash_me && prev_hash_coordinator == prev_hash_in_block)
-        {
-            std::cout << "Successful comparison of prev_hashes, now sharing hashes" << std::endl;
-
-            // // Save block
-            // merkle_tree mt;
-            // std::string latest_block_nr = buf_j["latest_block_nr"];
-            // mt.save_block_to_file(block_j_me, latest_block_nr);
-
-            // // Put in rocksdb
-            // for (auto &[key, value] : buf_j["rocksdb"].items())
-            // {
-            //     std::string key_s = value["full_hash"];
-            //     std::string value_s = value.dump();
-
-            //     Rocksy* rocksy = new Rocksy("usersdb");
-            //     rocksy->Put(key_s, value_s);
-            //     delete rocksy;
-            // }
-        }
-        else
-        {
-            std::cout << "Unsuccessful comparison of prev_hashes" << std::endl;
-        }
+        bool comparison = prev_hash_me == prev_hash_from_saved_block_at_place_i;
+        std::cout << "Comparison is: " << comparison << std::endl;
 
         // Inform coordinator of succesfullness of hash comparison
         nlohmann::json m_j;
         m_j["req"] = "hash_comparison";
-        m_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
+        m_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
         std::string msg_s = m_j.dump();
 
         set_resp_msg_server(msg_s);
@@ -732,11 +834,6 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
         // this is in fact the start of the consensus algorithm where a probability is calculated
         // you don't need full consensus in order to create a succesful block
         // but full consensus improves your chances of course greatly
-        nlohmann::json chosen_ones = buf_j["chosen_ones"];
-
-        FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-        // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
 
         int j;
 
@@ -766,7 +863,7 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
 
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison";
-                msg_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
+                msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
                 std::string msg_s = msg_j.dump();
 
                 p2p_client(peer_ip, msg_s);
@@ -776,10 +873,86 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
                 continue;
             }
         }
+
+        // inform your underlying ones from this block
+        std::string next_full_hash;
+        for (int i = 0; i < chosen_ones.size(); i++)
+        {
+            if (chosen_ones[i] == my_full_hash)
+            {
+                if (i != chosen_ones.size() - 1)
+                {
+                    next_full_hash = chosen_ones[i];
+                }
+                else
+                {
+                    next_full_hash = chosen_ones[0];
+                }
+            }
+        }
+
+        Crowd::Protocol proto;
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+        nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+        message_j["req"] = "new_final_block";
+        message_j["latest_block_nr"] = buf_j["latest_block_nr"];
+        message_j["block"] = buf_j["block"];
+        message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+
+        int k;
+        std::string v;
+        for (auto &[k, v] : parts)
+        {
+            message_j["chosen_ones"].push_back(v);
+        }
+
+        to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+        to_sign_j["block"] = message_j["block"];
+        to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+        to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+        // to_sign_j["rocksdb"] = message_j["rocksdb"];
+        std::string to_sign_s = to_sign_j.dump();
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        Crypto* crypto = new Crypto();
+        crypto->ecdsa_load_private_key_from_string(private_key);
+        if (crypto->ecdsa_sign_message(private_key, to_sign_s, signature))
+        {
+            message_j["signature"] = crypto->base64_encode(signature);
+        }
+        delete crypto;
+
+        Crowd::P2pNetwork pn;
+        std::string key, val;
+        for (auto &[key, val] : parts)
+        {
+            if (key == 1) continue;
+            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+
+            // lookup in rocksdb
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            uint32_t peer_ip = value_j["ip"];
+
+            delete rocksy;
+            
+            std::string message = message_j.dump();
+
+            std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+
+            std::string ip_from_peer;
+            Crowd::P2p p2p;
+            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(ip_from_peer, message);
+        }
     }
     else
     {
-        std::cout << "Coordinator is not truthful" << std::endl;
+        std::cout << "Final coordinator is not truthful" << std::endl;
     }
 
     // Disconect from client
@@ -788,10 +961,164 @@ void P2pNetwork::intro_block(nlohmann::json buf_j)
     set_resp_msg_server(m_j.dump());
 }
 
-void P2pNetwork::new_block(nlohmann::json buf_j)
+void P2pNetwork::new_final_block(nlohmann::json buf_j)
 {
-    // new_block --> TODO block and rocksdb should be saved
-    std::cout << "New_block: " << std::endl;
+    // new_final_block
+    std::cout << "New_final_block: " << std::endl;
+
+    // Is the coordinator the truthful final coordinator for this block?
+    // Compare the hashes from the block of the coordinator with your saved blocks' hashes
+    // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
+    // Then inform your underlying network
+
+    nlohmann::json recv_block_j = buf_j["block"];
+    std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
+    std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
+    nlohmann::json chosen_ones = buf_j["chosen_ones"];
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+
+    std::string recv_block_s = recv_block_j.dump();
+    Common::Crypto crypto;
+    std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
+
+    Protocol protocol;
+    std::string prev_hash_from_saved_block_at_place_i = protocol.get_block_at(recv_latest_block_nr_s);
+
+    bool comparison = prev_hash_me == prev_hash_from_saved_block_at_place_i;
+    std::cout << "New comparison is: " << comparison << std::endl;
+
+    // Inform coordinator of succesfullness of hash comparison
+    nlohmann::json mm_j;
+    mm_j["req"] = "hash_comparison";
+    mm_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
+    std::string msg_s = mm_j.dump();
+
+    set_resp_msg_server(msg_s);
+
+    // p2p_client() to all calculated other chosen_ones
+    // this is in fact the start of the consensus algorithm where a probability is calculated
+    // you don't need full consensus in order to create a succesful block
+    // but full consensus improves your chances of course greatly
+
+    int j;
+
+    for (int i = 0; i < chosen_ones.size(); i++)
+    {
+        if (chosen_ones[i] == buf_j["full_hash_req"])
+        {
+            j = i;
+        }
+    }
+
+    for (int i = 0; i < chosen_ones.size(); i++)
+    {
+        if (i < j)
+        {
+            if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
+
+            std::string c_one = chosen_ones[i];
+            Rocksy* rocksy = new Rocksy("usersdb");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
+            delete rocksy;
+
+            enet_uint32 ip = value_j["ip"];
+            std::string peer_ip;
+            P2p p2p;
+            p2p.number_to_ip_string(ip, peer_ip);
+
+            nlohmann::json msg_j;
+            msg_j["req"] = "hash_comparison";
+            msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
+            std::string msg_s = msg_j.dump();
+
+            p2p_client(peer_ip, msg_s);
+        }
+        else if (i == j)
+        {
+            continue;
+        }
+    }
+
+    // inform your underlying ones from this block
+    std::string next_full_hash;
+    for (int i = 0; i < chosen_ones.size(); i++)
+    {
+        if (chosen_ones[i] == my_full_hash)
+        {
+            if (i != chosen_ones.size() - 1)
+            {
+                next_full_hash = chosen_ones[i];
+            }
+            else
+            {
+                next_full_hash = chosen_ones[0];
+            }
+        }
+    }
+
+    Crowd::Protocol proto;
+    std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+    nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
+    message_j["req"] = "new_final_block";
+    message_j["latest_block_nr"] = buf_j["latest_block_nr"];
+    message_j["block"] = buf_j["block"];
+    message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+
+    int k;
+    std::string v;
+    for (auto &[k, v] : parts)
+    {
+        message_j["chosen_ones"].push_back(v);
+    }
+
+    to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+    to_sign_j["block"] = message_j["block"];
+    to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+    to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+    // to_sign_j["rocksdb"] = message_j["rocksdb"];
+    std::string to_sign_s = to_sign_j.dump();
+    ECDSA<ECP, SHA256>::PrivateKey private_key;
+    std::string signature;
+    crypto.ecdsa_load_private_key_from_string(private_key);
+    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+    {
+        message_j["signature"] = crypto.base64_encode(signature);
+    }
+
+    Crowd::P2pNetwork pn;
+    std::string key, val;
+    for (auto &[key, val] : parts)
+    {
+        if (key == 1) continue;
+        if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+        
+        Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+
+        // lookup in rocksdb
+        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+        uint32_t peer_ip = value_j["ip"];
+
+        delete rocksy;
+        
+        std::string message = message_j.dump();
+
+        std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+
+        std::string ip_from_peer;
+        Crowd::P2p p2p;
+        p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+        // p2p_client() to all chosen ones with intro_peer request
+        pn.p2p_client(ip_from_peer, message);
+    }
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::your_full_hash(nlohmann::json buf_j)

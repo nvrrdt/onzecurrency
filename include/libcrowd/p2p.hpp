@@ -73,6 +73,7 @@ namespace Crowd
         nlohmann::json get_blocks_from(std::string &latest_block_peer);
         std::string get_all_users_from(std::string &latest_block_peer);
         std::string block_plus_one(std::string &block_nr);
+        nlohmann::json get_block_at(std::string block_nr_s);
     private:
         int verify_latest_block(std::string &latest_block_peer);
         int communicate_to_all(boost::array<char, 128> &msg);
