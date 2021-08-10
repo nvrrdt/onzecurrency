@@ -515,6 +515,20 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
         pn.p2p_client(peer_ip, msg_s);
     }
 
+    // // for debugging purposes:
+    // Poco::IpAllHashes iah;
+    // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+    // {
+    //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+    //     {
+    //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+    //         {
+    //             auto content = *iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k);
+    //             std::cout << "all hashes entry " << i << " " << j << " " << k << " " << content.first << " (oldest first)" << std::endl;
+    //         }
+    //     }
+    // }
+
     std::cout << "Your_full_hash's sent" << std::endl;
 }
 

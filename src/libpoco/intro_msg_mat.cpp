@@ -26,11 +26,13 @@ void IntroMsgsMat::add_intro_msg_to_intro_msg_s_vec(nlohmann::json &message_j)
 void IntroMsgsMat::add_intro_msg_s_vec_to_intro_msg_s_2d_mat()
 {
     intro_msg_s_2d_mat_.push_back(intro_msg_s_vec_);
+    intro_msg_s_vec_.clear();
 }
 
 void IntroMsgsMat::add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat()
 {
     intro_msg_s_3d_mat_.push_back(intro_msg_s_2d_mat_);
+    intro_msg_s_2d_mat_.clear();
 }
 
 std::vector<std::vector<std::vector<std::shared_ptr<nlohmann::json>>>> IntroMsgsMat::get_intro_msg_s_3d_mat()

@@ -159,6 +159,11 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 std::string block_nr = proto.get_last_block_nr();
                 std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
 
+                message_j["full_hash"] = full_hash;
+                message_j["prev_hash"] = prev_hash;
+                message_j["rocksdb"]["full_hash"] = full_hash;
+                message_j["rocksdb"]["prev_hash"] = prev_hash;
+
                 // fill the matrices
                 Poco::BlockMatrix bm;
                 bm.add_block_to_block_vector(block_j);
@@ -167,6 +172,17 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 bm.add_calculated_hash_vector_to_calculated_hash_matrix();
                 bm.add_prev_hash_to_prev_hash_vector(block_j);
                 bm.add_prev_hash_vector_to_prev_hash_matrix();
+                Poco::IntroMsgsMat imm;
+                imm.add_intro_msg_to_intro_msg_s_vec(message_j);
+                imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+                imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+                Poco::IpHEmail ihe;
+                ihe.add_ip_hemail_to_ip_hemail_vec(ip_mother_peer_number, hash_email); // TODO you have to reset this
+                Poco::IpAllHashes iah;
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ihe.get_all_ip_hemail_vec().at(0));
+                iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+                iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+                ihe.reset_ip_hemail_vec();
 
                 rocksdb_j["prev_hash"] = prev_hash; // TODO might as well be block_j["prev_hash"] ?!?
                 rocksdb_j["full_hash"] = full_hash;

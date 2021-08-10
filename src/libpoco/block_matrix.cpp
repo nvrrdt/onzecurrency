@@ -379,8 +379,8 @@ void BlockMatrix::save_final_block_to_file()
                     nlohmann::json m_j;
                     m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).at(j);
 
-                    std::string full_hash_req = m_j["full_hash_req"];
-                    
+                    std::string full_hash_req = m_j["rocksdb"]["full_hash"];
+
                     Common::Crypto crypto;
                     // update rocksdb
                     nlohmann::json rocksdb_j;
@@ -390,7 +390,7 @@ void BlockMatrix::save_final_block_to_file()
                     rocksdb_j["server"] = true;
                     rocksdb_j["fullnode"] = true;
                     // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
-                    rocksdb_j["prev_hash"] = *get_prev_hash_matrix().at(i).at(0);
+                    rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
                     rocksdb_j["full_hash"] = full_hash_req;
                     Crowd::Protocol proto;
                     rocksdb_j["block_nr"] = new_block_nr;

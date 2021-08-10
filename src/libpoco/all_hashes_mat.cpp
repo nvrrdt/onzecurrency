@@ -27,11 +27,13 @@ void IpAllHashes::add_ip_hemail_to_ip_all_hashes_vec(std::shared_ptr<std::pair<e
 void IpAllHashes::add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat()
 {
     ip_all_hashes_2d_mat_.push_back(ip_all_hashes_vec_);
+    ip_all_hashes_vec_.clear();
 }
 
 void IpAllHashes::add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat()
 {
     ip_all_hashes_3d_mat_.push_back(ip_all_hashes_2d_mat_);
+    ip_all_hashes_2d_mat_.clear();
 }
 
 std::vector<std::vector<std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>>>> IpAllHashes::get_ip_all_hashes_3d_mat()

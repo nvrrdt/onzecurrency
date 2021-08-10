@@ -1141,10 +1141,8 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     std::string req_latest_block_nr = buf_j["block_nr"];
 std::cout << "block_nr: " << req_latest_block_nr << std::endl;
 std::cout << "block: " << block_j.dump() << std::endl;
-    // TODO: add most probable blocks to the correct block vector in the block matrix
-    // Let's say 25 of latest vector
-    // merkle_tree mt;
-    // mt.save_block_to_file(block_j,req_latest_block_nr);
+    merkle_tree mt;
+    mt.save_block_to_file(block_j,req_latest_block_nr);
 
     // Put in rocksdb
     for (auto &[key, value] : buf_j["rocksdb"].items())
