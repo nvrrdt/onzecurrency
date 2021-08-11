@@ -44,10 +44,11 @@ void P2pNetwork::handle_read_server()
         req_conversion["intro_final_block"] =   9;
         req_conversion["new_final_block"] =     10;
         req_conversion["your_full_hash"] =      11;
-        req_conversion["hash_comparison"] =     12;
-        req_conversion["update_my_blocks_and_rocksdb"] = 13;
-        req_conversion["intro_online"] =        14;
-        req_conversion["new_online"] =          15;
+        req_conversion["update_my_matrices"] =  12;
+        req_conversion["hash_comparison"] =     13;
+        req_conversion["update_my_blocks_and_rocksdb"] = 14;
+        req_conversion["intro_online"] =        15;
+        req_conversion["new_online"] =          16;
 
         switch (req_conversion[req])
         {
@@ -73,13 +74,15 @@ void P2pNetwork::handle_read_server()
                         break;
             case 11:    your_full_hash(buf_j);
                         break;
-            case 12:    hash_comparison(buf_j);
+            case 12:    update_my_matrices(buf_j);
                         break;
-            case 13:    update_my_blocks_and_rocksdb(buf_j);
+            case 13:    hash_comparison(buf_j);
                         break;
-            case 14:    intro_online(buf_j);
+            case 14:    update_my_blocks_and_rocksdb(buf_j);
                         break;
-            case 15:    new_online(buf_j);
+            case 15:    intro_online(buf_j);
+                        break;
+            case 16:    new_online(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_server_c(buf_j);
@@ -229,7 +232,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 nlohmann::json msg;
                 Poco::BlockMatrix bm;
                 nlohmann::json contents_j;
-                msg["req"] = "update_your_block_matrix";
+                msg["req"] = "update_your_matrices";
                 for (int i = 0; i < bm.get_block_matrix().size(); i++)
                 {
                     for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
@@ -237,7 +240,8 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                         contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
                     }
                 }
-                msg["bm"] = contents_j.dump();
+                msg["bm"] = contents_j;
+                contents_j.clear();
 
                 set_resp_msg_server(msg.dump());
 
@@ -1142,8 +1146,6 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
 std::cout << "block_nr: " << req_latest_block_nr << std::endl;
 std::cout << "block: " << block_j.dump() << std::endl;
 
-    // TODO the matrices also need to be updated
-
     // Save block
     merkle_tree mt;
     mt.save_block_to_file(block_j,req_latest_block_nr);
@@ -1155,6 +1157,33 @@ std::cout << "block: " << block_j.dump() << std::endl;
     Rocksy* rocksy = new Rocksy("usersdb");
     rocksy->Put(key_s, value_s);
     delete rocksy;
+
+    // Update my matrices
+    nlohmann::json mm_j;
+    mm_j["req"] = "update_my_matrices";
+    set_resp_msg_server(mm_j.dump());
+}
+
+void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
+{
+    std::cout << "update_my_matrices server" << std::endl;
+
+    nlohmann::json block_matrix_j = buf_j["bm"];
+    
+    Poco::BlockMatrix bm;
+    for (auto& [k1, v1] : block_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            bm.add_block_to_block_vector(v2);
+            bm.add_calculated_hash_to_calculated_hash_vector(v2);
+            bm.add_prev_hash_to_prev_hash_vector(v2);
+        }
+
+        bm.add_block_vector_to_block_matrix();
+        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+        bm.add_prev_hash_vector_to_prev_hash_matrix();
+    }
 
     // Disconect from client
     nlohmann::json m_j;

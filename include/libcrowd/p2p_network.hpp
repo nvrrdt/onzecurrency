@@ -69,6 +69,7 @@ namespace Crowd
         {
             ip_new_co_ = ip;
         }
+
         void register_for_nat_traversal(nlohmann::json buf_j);
         void connect_to_nat(nlohmann::json buf_j);
         void intro_peer(nlohmann::json buf_j);
@@ -80,11 +81,27 @@ namespace Crowd
         void intro_final_block(nlohmann::json buf_j);
         void new_final_block(nlohmann::json buf_j);
         void your_full_hash(nlohmann::json buf_j);
+        void update_my_matrices(nlohmann::json buf_j);
         void hash_comparison(nlohmann::json buf_j);
         void update_my_blocks_and_rocksdb(nlohmann::json buf_j);
         void intro_online(nlohmann::json buf_j);
         void new_online(nlohmann::json buf_j);
-        
+
+        void register_for_nat_traversal_client(nlohmann::json buf_j);
+        void connect_to_nat_client(nlohmann::json buf_j);
+        void connect_true_client(nlohmann::json buf_j);
+        void update_your_blocks_client(nlohmann::json buf_j);
+        void update_your_rocksdb_client(nlohmann::json buf_j);
+        void update_your_matrices_client(nlohmann::json buf_j);
+        void update_my_blocks_and_rocksdb_client(nlohmann::json buf_j);
+        void update_my_matrices_client(nlohmann::json buf_j);
+        void new_peer_client(nlohmann::json buf_j);
+        void new_co_client(nlohmann::json buf_j);
+        void your_full_hash_client(nlohmann::json buf_j);
+        void hash_comparison_client(nlohmann::json buf_j);
+        void close_this_conn_client(nlohmann::json buf_j);
+        void close_this_conn_without_server_client(nlohmann::json buf_j);
+
         static bool get_quit_server_req()
         {
             return quit_server_;
