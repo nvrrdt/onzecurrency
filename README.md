@@ -20,9 +20,10 @@
 - apt-get -f install
 - rm -rf /onzecurrency/.config && onze-terminal
 
-#### doing a test procedure on the server
-- dpkg -i ./onzecurrency-0.1.1-Linux.deb
-- apt-get -f install
+#### doing a new test procedure on the server
+- dpkg -i ./onzecurrency-0.1.1-Linux.deb && apt-get -f install && rm -rf /onzecurrency/.config && onze-terminal  
+
+#### only testing the program
 - rm -rf /onzecurrency/.config && onze-terminal
 
 ### some commands for easy retrieval:
