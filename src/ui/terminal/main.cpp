@@ -31,12 +31,6 @@ int main(int argc, char *argv[])
         // P2pNetworkC pnc;
         // pnc.start_coin();
 
-for (;;)
-{
-    // preliminary infinite loop, otherwise we can't test appropriately
-    // may be deleted when start_coin is in place
-}
-
         t1.join();
        
     }

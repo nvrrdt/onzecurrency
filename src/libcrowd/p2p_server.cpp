@@ -1141,19 +1141,20 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     std::string req_latest_block_nr = buf_j["block_nr"];
 std::cout << "block_nr: " << req_latest_block_nr << std::endl;
 std::cout << "block: " << block_j.dump() << std::endl;
+
+    // TODO the matrices also need to be updated
+
+    // Save block
     merkle_tree mt;
     mt.save_block_to_file(block_j,req_latest_block_nr);
 
-    // Put in rocksdb
-    for (auto &[key, value] : buf_j["rocksdb"].items())
-    {
-        std::string key_s = value["full_hash"];
-        std::string value_s = value.dump();
+    // Fill rocksdb
+    std::string key_s = buf_j["full_hash"];
+    std::string value_s = buf_j.dump();
 
-        Rocksy* rocksy = new Rocksy("usersdb");
-        rocksy->Put(key_s, value_s);
-        delete rocksy;
-    }
+    Rocksy* rocksy = new Rocksy("usersdb");
+    rocksy->Put(key_s, value_s);
+    delete rocksy;
 
     // Disconect from client
     nlohmann::json m_j;

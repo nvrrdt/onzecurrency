@@ -297,6 +297,8 @@ void BlockMatrix::save_final_block_to_file()
      * --> TODO if not the same: update blockchain from someone, but this shouldn't happen
      */
 
+    std::cout << "Save final block" << std::endl;
+
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
 
@@ -413,7 +415,7 @@ void BlockMatrix::save_final_block_to_file()
             }
         }
 
-        // if last final block is saved --> delete blocks in matrices of i-1 --> don't delente the last final block from the matrices
+        // if last final block is saved --> delete blocks in matrices of i-1 --> don't delete the last final block from the matrices
         for (uint16_t j = 0; j < del; j++)
         {
             remove_front_from_block_matrix();
