@@ -468,6 +468,8 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
     intro_msg_vec_.add_to_intro_msg_vec(buf_j);
 
+    ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(buf_j["ip"], buf_j["hash_of_email"]); // TODO you have to reset this
+
     if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
     {
         // Create block

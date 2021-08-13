@@ -37,6 +37,10 @@ void Synchronisation::get_sleep_and_create_block()
 
     set_break_block_creation_loops(true);
 
+    // reset these two vectors
+    intro_msg_vec_.reset_intro_msg_vec(); 
+    ip_hemail_vec_.reset_ip_hemail_vec();
+
     t.join();
 }
 

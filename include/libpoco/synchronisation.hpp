@@ -15,6 +15,8 @@
 #include "block_matrix.hpp"
 #include "p2p.hpp"
 #include "configdir.hpp"
+#include "intro_msg_mat.hpp"
+#include "all_hashes_mat.hpp"
 
 namespace Poco
 {
@@ -43,7 +45,8 @@ namespace Poco
         void get_sleep_until();
     private:
         IntroMsgVec intro_msg_vec_;
-
+        IpHEmail ip_hemail_vec_;
+        
         PocoCrowd pococr_;
         PocoCoin pococo_;
         Transactions tx_;

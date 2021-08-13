@@ -267,10 +267,6 @@ void PocoCrowd::create_and_send_block()
         }
     }
 
-    intro_msg_vec_.reset_intro_msg_vec(); // TODO put these two in teh beginning of this function
-    ip_hemail_vec_.reset_ip_hemail_vec();       // and make a copy of intro_msg_vec_ and all_hashes_vec_, work with thes copies here
-                                          // --> new intro_peers might arrive and shouldn't be taken into account
-
     // fill the matrices
     bm->add_block_vector_to_block_matrix();
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
