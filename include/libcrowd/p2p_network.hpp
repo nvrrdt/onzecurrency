@@ -100,7 +100,6 @@ namespace Crowd
         void your_full_hash_client(nlohmann::json buf_j);
         void hash_comparison_client(nlohmann::json buf_j);
         void close_this_conn_client(nlohmann::json buf_j);
-        void close_this_conn_without_server_client(nlohmann::json buf_j);
 
         static bool get_quit_server_req()
         {

@@ -491,7 +491,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
 
     // Disconect from client
     nlohmann::json m_j;
-    m_j["req"] = "close_this_conn_without_server";
+    m_j["req"] = "close_this_conn";
     set_resp_msg_server(m_j.dump());
 }
 
@@ -1168,11 +1168,14 @@ std::cout << "block: " << block_j.dump() << std::endl;
 
 void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
 {
-    std::cout << "update_my_matrices server" << std::endl;
+    std::cout << "update_my_matrices server" << buf_j["bm"] << std::endl;
 
     nlohmann::json block_matrix_j = buf_j["bm"];
-    
+
     Poco::BlockMatrix bm;
+    bm.get_block_matrix().clear();
+    bm.get_calculated_hash_matrix().clear();
+    bm.get_prev_hash_matrix().clear();
     for (auto& [k1, v1] : block_matrix_j.items())
     {
         for (auto& [k2, v2] : v1.items())

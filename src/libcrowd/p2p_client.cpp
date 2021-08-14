@@ -48,7 +48,6 @@ void P2pNetwork::handle_read_client()
         req_conversion["your_full_hash"] =      11;
         req_conversion["hash_comparison"] =     12;
         req_conversion["close_this_conn"] =     13;
-        req_conversion["close_this_conn_without_server"] =  14;
 
         switch (req_conversion[req])
         {
@@ -77,8 +76,6 @@ void P2pNetwork::handle_read_client()
             case 12:    hash_comparison_client(buf_j);
                         break;
             case 13:    close_this_conn_client(buf_j);
-                        break;
-            case 14:    close_this_conn_without_server_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -252,7 +249,7 @@ void P2pNetwork::update_my_matrices_client(nlohmann::json buf_j)
     nlohmann::json msg;
     Poco::BlockMatrix bm;
     nlohmann::json contents_j;
-    msg["req"] = "update_your_matrices";
+    msg["req"] = "update_my_matrices";
     for (int i = 0; i < bm.get_block_matrix().size(); i++)
     {
         for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
@@ -344,14 +341,6 @@ void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
 
     // Disconect from server
     set_closed_client("close_this_conn");
-
-    std::packaged_task<void()> task1([] {
-        P2pNetwork pn;
-        pn.p2p_server();
-    });
-    // Run task on new thread.
-    std::thread t1(std::move(task1));
-    t1.join();
 }
 
 void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
@@ -366,22 +355,6 @@ void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
     std::cout << "Connection closed by other server, start this server (client)" << std::endl;
-
-    set_closed_client("close_this_conn");
-
-    std::packaged_task<void()> task1([] {
-        P2pNetwork pn;
-        pn.p2p_server();
-    });
-    // Run task on new thread.
-    std::thread t1(std::move(task1));
-    t1.join();
-}
-
-void P2pNetwork::close_this_conn_without_server_client(nlohmann::json buf_j)
-{
-    // you may close this connection
-    std::cout << "Connection closed by other server, no server start" << std::endl;
 
     set_closed_client("close_this_conn");
 }
