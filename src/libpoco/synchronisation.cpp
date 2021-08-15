@@ -26,7 +26,6 @@ void Synchronisation::get_sleep_and_create_block()
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
     // chosen ones are being informed here
-    bm_->add_received_block_vector_to_received_block_matrix();
     std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then

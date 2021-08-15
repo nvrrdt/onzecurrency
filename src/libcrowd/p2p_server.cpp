@@ -566,12 +566,18 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
 
     nlohmann::json message_j;
 
-    if (full_hash_coord == my_full_hash)
+    nlohmann::json chosen_ones = buf_j["chosen_ones"];
+    bool is_chosen_one  = false;
+    for (auto& el: chosen_ones.items())
     {
-        std::cout << "Intro prel coordinator is truthful" << std::endl;
+        if (el == my_full_hash) is_chosen_one = true;
+    }
+
+    if (is_chosen_one) // full_hash_coord should be one of the chosen_ones
+    {
+        std::cout << "Intro prel chosen_one is truthful" << std::endl;
 
         // p2p_client() to all calculated other chosen_ones
-        nlohmann::json chosen_ones = buf_j["chosen_ones"];
 
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
@@ -652,7 +658,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     }
     else
     {
-        std::cout << "Intro prel coordinator is not truthful" << std::endl;
+        std::cout << "Intro prel chosen_one is not truthful" << std::endl;
     }
 }
 
@@ -701,12 +707,18 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
 
     nlohmann::json message_j;
 
-    if (full_hash_coord == my_full_hash)
+    nlohmann::json chosen_ones = buf_j["chosen_ones"];
+    bool is_chosen_one  = false;
+    for (auto& el: chosen_ones.items())
     {
-        std::cout << "New prel coordinator is truthful" << std::endl;
+        if (el == my_full_hash) is_chosen_one = true;
+    }
+
+    if (is_chosen_one)
+    {
+        std::cout << "New prel chosen_one is truthful" << std::endl;
 
         // p2p_client() to all calculated other chosen_ones
-        nlohmann::json chosen_ones = buf_j["chosen_ones"];
 
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
@@ -787,7 +799,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
     }
     else
     {
-        std::cout << "New prel coordinator is not truthful" << std::endl;
+        std::cout << "New prel chosen_one is not truthful" << std::endl;
     }
 }
 

@@ -367,7 +367,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for prel_intro_block: " << peer_ip << std::endl;
+            std::cout << "Preparation for intro_prel_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
             Crowd::P2p p2p;

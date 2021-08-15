@@ -144,7 +144,28 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     auto block_matrix = get_block_matrix();
     auto calculated_hashes = get_calculated_hash_matrix();
     auto hashes_from_contents = get_prev_hash_matrix();
+    add_received_block_vector_to_received_block_matrix();
     auto received_block_matrix = get_received_block_matrix();
+
+std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
+std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
+std::cout << "evaluate_both_block_matrices mcph " << get_calculated_hash_matrix().size() << std::endl;
+std::cout << "evaluate_both_block_matrices vcph " << get_calculated_hash_matrix().back().size() << std::endl;
+std::cout << "evaluate_both_block_matrices mphfc " << get_prev_hash_matrix().size() << std::endl;
+std::cout << "evaluate_both_block_matrices vphfc " << get_prev_hash_matrix().back().size() << std::endl;
+
+std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
+std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
+
+// for debugging purposes:
+for (int x = 0; x < received_block_matrix.size(); x++)
+{
+    for (int y = 0; y < received_block_matrix.at(x).size(); y++)
+    {
+        nlohmann::json content_j = *received_block_matrix.at(x).at(y);
+        std::cout << "recv_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
+    }
+}
 
     // fill with positions who get removed later
     std::vector<std::vector<int16_t>> pos = {};
@@ -214,16 +235,6 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     if (!block_matrix.empty())
     {
         // get prev_hashes from within the latest vector and compare with the hashes from before latest vector
-
-        // std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices mcph " << get_calculated_hash_matrix().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices vcph " << get_calculated_hash_matrix().back().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices mphfc " << get_prev_hash_matrix().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices vphfc " << get_prev_hash_matrix().back().size() << std::endl;
-
-        // std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
-        // std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
 
         // // for debugging purposes:
         // for (int x = 0; x < calculated_hashes.size(); x++)
