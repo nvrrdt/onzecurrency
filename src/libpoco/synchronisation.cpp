@@ -26,21 +26,20 @@ void Synchronisation::get_sleep_and_create_block()
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
     // chosen ones are being informed here
-    std::thread t(&Poco::PocoCrowd::create_and_send_block, pococr_);
+    std::thread t1(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then
     bmc_->add_received_block_vector_to_received_block_matrix();
     // std::thread xxxxxxxxxxxx pococo_.create_and_send_block_c();     // preliminary commented out
 
-    get_sleep_until();
+    std::thread t3(&Poco::Synchronisation::get_sleep_until, this);
 
     set_break_block_creation_loops(true);
 
-    // reset these two vectors
-    intro_msg_vec_.reset_intro_msg_vec(); 
-    ip_hemail_vec_.reset_ip_hemail_vec();
+    t1.join();
+    t3.join();
 
-    t.join();
+    get_sleep_and_create_block();
 }
 
 void Synchronisation::get_sleep_until()

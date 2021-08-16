@@ -10,6 +10,7 @@
 #include "auth.hpp"
 #include "verification.hpp"
 #include "block_matrix.hpp"
+#include "synchronisation.hpp"
 
 #include <vector>
 
@@ -202,18 +203,43 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 PrevHash ph;
                 ph.save_my_prev_hash_to_file(prev_hash);
 
+                // Prepare the creation of new blocks
+                Poco::Synchronisation* sync = new Poco::Synchronisation();
+                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+
+                // start server
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
                     pn.p2p_server();
                 });
                 // Run task on new thread.
-                std::thread t1(std::move(task1));
+                std::thread t2(std::move(task1));
                 t1.join();
+                t2.join();
+            }
+            else if (pn.get_closed_client() == "close_this_conn_and_create")
+            {
+                std::cout << "Connection closed by other server, start this server (p2p) and create" << std::endl;
+
+                // Prepare the creation of new blocks
+                Poco::Synchronisation* sync = new Poco::Synchronisation();
+                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+
+                // start server
+                std::packaged_task<void()> task1([] {
+                    P2pNetwork pn;
+                    pn.p2p_server();
+                });
+                // Run task on new thread.
+                std::thread t2(std::move(task1));
+                t1.join();
+                t2.join();
             }
             else if (pn.get_closed_client() == "close_this_conn")
             {
                 std::cout << "Connection closed by other server, start this server (p2p)" << std::endl;
 
+                // start server
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
                     pn.p2p_server();

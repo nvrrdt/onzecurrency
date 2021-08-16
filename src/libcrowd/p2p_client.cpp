@@ -48,6 +48,7 @@ void P2pNetwork::handle_read_client()
         req_conversion["your_full_hash"] =      11;
         req_conversion["hash_comparison"] =     12;
         req_conversion["close_this_conn"] =     13;
+        req_conversion["close_this_conn_and_create"] =      14;
 
         switch (req_conversion[req])
         {
@@ -76,6 +77,8 @@ void P2pNetwork::handle_read_client()
             case 12:    hash_comparison_client(buf_j);
                         break;
             case 13:    close_this_conn_client(buf_j);
+                        break;
+            case 14:    close_this_conn_and_create_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -359,6 +362,14 @@ void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
     set_closed_client("close_this_conn");
 }
 
+void P2pNetwork::close_this_conn_and_create_client(nlohmann::json buf_j)
+{
+    // you may close this connection
+    std::cout << "Connection closed by other server, start this server (client) and create" << std::endl;
+
+    set_closed_client("close_this_conn_and_create");
+}
+
 void P2pNetwork::set_resp_msg_client(std::string msg)
 {
     std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
@@ -475,7 +486,9 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
             }
         }
 
-        if (get_closed_client() == "close_this_conn" || get_closed_client() == "new_co")
+        if (get_closed_client() == "close_this_conn"
+            || get_closed_client() == "close_this_conn_and_create"
+            || get_closed_client() == "new_co")
         {
             connected=0;
             enet_peer_disconnect(peer_, 0);

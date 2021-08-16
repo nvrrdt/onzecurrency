@@ -48,11 +48,19 @@ void PocoCrowd::create_and_send_block()
 
     uint16_t limit_count = 0;
 
+    // create copies of these vectors and reset the original
+    std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
+    std::vector<std::shared_ptr<nlohmann::json>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
+    ip_hemail_vec_.reset_ip_hemail_vec();
+    intro_msg_vec_.reset_intro_msg_vec();
+
+    if (copy_intro_msg_vec.empty()) return;
+
     if (bm->get_block_matrix().empty()) // TODO I think get_block_matrix is never empty
     {
         std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
 
-        for (uint16_t j = intro_msg_vec_.get_intro_msg_vec().size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
+        for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
@@ -83,10 +91,10 @@ void PocoCrowd::create_and_send_block()
                 {
                     std::cout << "Crowd: 4th for loop " << l << std::endl;
 
-                    imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
+                    imv_j = *copy_intro_msg_vec.at(l);
 
                     // link an ip to a user
-                    std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                    std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
                     ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                     // create prel full_hash
@@ -166,7 +174,7 @@ void PocoCrowd::create_and_send_block()
             // in the future there will be a lot of finetuning work on this function
             // preliminarly this is ok
 
-            for (uint16_t j = intro_msg_vec_.get_intro_msg_vec().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+            for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
                 std::cout << "Crowd: 2nd for loop with block matrix " << j << std::endl;
 
@@ -192,10 +200,10 @@ void PocoCrowd::create_and_send_block()
                     {
                         std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
                         
-                        imv_j = *intro_msg_vec_.get_intro_msg_vec().at(l);
+                        imv_j = *copy_intro_msg_vec.at(l);
 
                         // link an ip to a user
-                        std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = ip_hemail_vec_.get_all_ip_hemail_vec().at(l);
+                        std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
                         ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                         // create prel full hash
@@ -266,6 +274,10 @@ void PocoCrowd::create_and_send_block()
             }
         }
     }
+
+    // clear these vectors
+    copy_ip_hemail_vec.clear();
+    copy_intro_msg_vec.clear();
 
     // fill the matrices
     bm->add_block_vector_to_block_matrix();

@@ -227,24 +227,6 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     set_resp_msg_server(msg.dump());
                 }
                 delete rocksy;
-
-                // Update your BlockMatrix:
-                nlohmann::json msg;
-                Poco::BlockMatrix bm;
-                nlohmann::json contents_j;
-                msg["req"] = "update_your_matrices";
-                for (int i = 0; i < bm.get_block_matrix().size(); i++)
-                {
-                    for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
-                    {
-                        contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
-                    }
-                }
-                msg["bm"] = contents_j;
-                contents_j.clear();
-
-                set_resp_msg_server(msg.dump());
-
             }
             else if (req_latest_block > my_latest_block)
             {
@@ -257,7 +239,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 
             // Disconect from client
             nlohmann::json msg_j;
-            msg_j["req"] = "close_this_conn";
+            msg_j["req"] = "close_this_conn_and_create";
             set_resp_msg_server(msg_j.dump());
 
             std::cout << "1 or more totalamountofpeers! " << std::endl;
@@ -315,10 +297,10 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
                 // inform the underlying network
-                if (req_ip_quad == peer_ip)
+                if (req_ip_quad == peer_ip) // the else part isn't activated, dunno why, search in test terminals for new_peer
                 {
                     // inform server's underlying network
-                    std::cout << "Inform my underlying network as co" << std::endl;
+                    std::cout << "Send new_peer req: Inform my underlying network as coordinator" << std::endl;
 
                     std::string next_hash = parts[2];
                     std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
@@ -337,7 +319,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                         std::string peer_ip_underlying;
                         p2p.number_to_ip_string(ip, peer_ip_underlying);
 
-                        std::cout << "Non-connected underlying peers - client: " << peer_ip_underlying << std::endl;
+                        std::cout << "Send new_peer req: Non-connected underlying peers - client: " << peer_ip_underlying << std::endl;
                         // message to non-connected peers
                         std::string message = message_j.dump();
                         p2p_client(peer_ip_underlying, message);
@@ -349,7 +331,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     if (peer_ip == "") continue;
 
                     // inform the other peer's in the same layer (as coordinator)
-                    std::cout << "Inform my equal layer as coordinator: " << peer_ip << std::endl;
+                    std::cout << "Send new_peer req: Inform my equal layer as coordinator: " << peer_ip << std::endl;
                     
                     std::string message = message_j.dump();
                     p2p_client(peer_ip, message);
@@ -360,46 +342,6 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
             ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
-
-            if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
-            {
-                // Create block
-                Poco::PocoCrowd poco; // TODO all 2048 code in this codebase is probably incorrect
-                poco.create_and_send_block ();
-
-                // for (auto &[key, value] : ip_hemail_vec_.get_all_ip_hemail_vec())
-                // {
-                //     nlohmann::json msg_j;
-                //     msg_j["req"] = "your_full_hash";
-                //     std::vector<std::string> vec = *value;
-                //     msg_j["full_hash"] = vec[0];
-                //     msg_j["prev_hash"] = vec[1];
-                //     msg_j["block_nr"] = proto.get_last_block_nr();
-                //     std::string msg_s = msg_j.dump();
-
-                //     std::string peer_ip;
-                //     P2p p2p;
-                //     p2p.number_to_ip_string(key, peer_ip);
-
-                //     p2p_client(peer_ip, msg_s);
-                // }
-
-                intro_msg_vec_.reset_intro_msg_vec();
-                ip_hemail_vec_.reset_ip_hemail_vec();
-            }
-            else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
-            {
-                // wait x secs
-                // then create block
-                // if root_hash == me as coordinator ... connect to all co's
-                // ... see below at new_peer
-
-                std::cout << "Get_sleep_and_create_block" << std::endl;
-
-                Poco::Synchronisation* sync = new Poco::Synchronisation();
-                std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-                t.detach();
-            }
         }
         else
         {
@@ -462,32 +404,13 @@ std::cout << "usersdb size:______ " << rocksy->TotalAmountOfPeers() << std::endl
 
 void P2pNetwork::new_peer(nlohmann::json buf_j)
 {
-    std::cout << "new_peer: " << std::endl;
+    std::cout << "New_peer req recv: " << std::endl;
     // should read the timestamp of the first new_peer request received
     
     // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
     intro_msg_vec_.add_to_intro_msg_vec(buf_j);
 
     ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(buf_j["ip"], buf_j["hash_of_email"]); // TODO you have to reset this
-
-    if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
-    {
-        // Create block
-        Poco::PocoCrowd poco;
-        poco.create_and_send_block();
-
-        intro_msg_vec_.reset_intro_msg_vec();
-        ip_hemail_vec_.reset_ip_hemail_vec();
-    }
-    else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
-    {
-        // wait x secs
-        // then create block --> don't forget the counter in the search for a coordinator
-        // if root_hash == me as coordinator ... connect to all co's
-        Poco::Synchronisation* sync = new Poco::Synchronisation();
-        std::thread t(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-        t.detach();
-    }
 
     // Disconect from client
     nlohmann::json m_j;
