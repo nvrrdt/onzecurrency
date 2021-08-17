@@ -40,6 +40,12 @@ std::vector<std::vector<std::vector<std::shared_ptr<nlohmann::json>>>> IntroMsgs
     return intro_msg_s_3d_mat_;
 }
 
+void IntroMsgsMat::replace_intro_msg_s_3d_mat(std::vector<std::vector<std::vector<std::shared_ptr<nlohmann::json>>>> temporary_intro_msg_s_3d_mat)
+{
+    intro_msg_s_3d_mat_.clear();
+    intro_msg_s_3d_mat_ = temporary_intro_msg_s_3d_mat;
+}
+
 void IntroMsgsMat::remove_front_from_intro_msg_s_3d_mat()
 {
     intro_msg_s_3d_mat_.front().clear();

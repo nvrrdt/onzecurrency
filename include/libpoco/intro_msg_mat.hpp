@@ -24,6 +24,7 @@ namespace Poco
         static void add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
         static void add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
         static std::vector<std::vector<std::vector<std::shared_ptr<nlohmann::json>>>> get_intro_msg_s_3d_mat();
+        static void replace_intro_msg_s_3d_mat(std::vector<std::vector<std::vector<std::shared_ptr<nlohmann::json>>>> temporary_intro_msg_s_3d_mat);
         static void remove_front_from_intro_msg_s_3d_mat();
         static void reset_intro_msg_s_3d_mat();
     private:

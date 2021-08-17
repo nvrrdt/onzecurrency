@@ -357,6 +357,8 @@ void BlockMatrix::save_final_block_to_file()
     {
         uint16_t del = 0;
 
+        auto temporary_intro_msg_s_3d_mat = intro_msg_s_mat_.get_intro_msg_s_3d_mat();
+
         for (uint32_t i = 1; i < get_block_matrix().size(); i++)
         {
             if (get_block_matrix().at(i).size() == 1)
@@ -415,9 +417,15 @@ void BlockMatrix::save_final_block_to_file()
                     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
                     rocksy->Put(full_hash_req, rocksdb_s);
                     delete rocksy;
+
+                    m_j["rocksdb"] = rocksdb_j;
+                    std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
+                    temporary_intro_msg_s_3d_mat.at(i).at(0).at(j) = ptr; // adding rocksdb
                 }
 
                 del++;
+
+                intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
 
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;

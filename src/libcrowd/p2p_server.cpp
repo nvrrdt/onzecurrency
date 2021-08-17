@@ -1089,7 +1089,7 @@ std::cout << "block: " << block_j.dump() << std::endl;
 
     // Fill rocksdb
     std::string key_s = buf_j["full_hash"];
-    std::string value_s = buf_j.dump();
+    std::string value_s = buf_j["rocksdb"].dump();
 
     Rocksy* rocksy = new Rocksy("usersdb");
     rocksy->Put(key_s, value_s);
