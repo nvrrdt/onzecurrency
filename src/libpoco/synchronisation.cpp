@@ -20,24 +20,20 @@ void Synchronisation::get_sleep_and_create_block()
     // need to read the time in the block for full synchronisation
     // get_latest_block --> get datetime from block && get system time --> proceed when multiple of 10 or ???
 
-    set_break_block_creation_loops(false); // break the loops in poco_crowd
-
     std::cout << "intro_msg_vec.size() in Poco: " << intro_msg_vec_.get_intro_msg_vec().size() << std::endl;
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
+    std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
+
     // chosen ones are being informed here
-    std::thread t1(&Poco::PocoCrowd::create_and_send_block, pococr_);
+    std::thread t2(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then
     bmc_->add_received_block_vector_to_received_block_matrix();
     // std::thread xxxxxxxxxxxx pococo_.create_and_send_block_c();     // preliminary commented out
 
-    std::thread t3(&Poco::Synchronisation::get_sleep_until, this);
-
-    set_break_block_creation_loops(true);
-
     t1.join();
-    t3.join();
+    t2.join();
 
     get_sleep_and_create_block();
 }
@@ -64,7 +60,7 @@ void Synchronisation::get_sleep_until()
 
     std::time_t time = mktime(&whenStart);
     std::tm utc_tm_block = *gmtime(&time);
-std::cout << "datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
+
     for (;;)
     {
         // get system datetime
@@ -73,8 +69,16 @@ std::cout << "datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_b
         std::time_t tt = std::chrono::system_clock::to_time_t(now);
         std::tm utc_tm = *gmtime(&tt);
         
-        if (utc_tm.tm_sec % 10 == utc_tm_block.tm_sec % 10) break; // 10 = every 10 seconds
+        if (utc_tm.tm_sec % 10 == utc_tm_block.tm_sec % 10)  // 10 = every 10 seconds
+        {
+            std::cout << "datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            break;
+        }
     }
+
+    set_break_block_creation_loops(true);
 }
 
 std::string Synchronisation::get_latest_datetime()

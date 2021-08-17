@@ -297,7 +297,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
                 // inform the underlying network
-                if (req_ip_quad == peer_ip) // the else part isn't activated, dunno why, search in test terminals for new_peer
+                if (req_ip_quad == peer_ip) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
                 {
                     // inform server's underlying network
                     std::cout << "Send new_peer req: Inform my underlying network as coordinator" << std::endl;
