@@ -493,7 +493,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     bool is_chosen_one  = false;
     for (auto& el: chosen_ones.items())
     {
-        if (el == my_full_hash) is_chosen_one = true;
+        if (el.value() == my_full_hash) is_chosen_one = true;
     }
 
     if (is_chosen_one) // full_hash_coord should be one of the chosen_ones
@@ -634,7 +634,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
     bool is_chosen_one  = false;
     for (auto& el: chosen_ones.items())
     {
-        if (el == my_full_hash) is_chosen_one = true;
+        if (el.value() == my_full_hash) is_chosen_one = true;
     }
 
     if (is_chosen_one)
