@@ -199,7 +199,7 @@ std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash,
     
     std::map<int, std::string> calculated_hashes;
     std::string the_hash;
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     for (int i = 1; i <= chosen_ones_counter.size(); i++)
     {
         uint256_t val = chosen_ones_counter[i];
@@ -423,7 +423,6 @@ nlohmann::json Protocol::get_block_at(std::string block_nr_s)
 
         for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
         {
-std::cout << "11111" << std::endl;
             if (it == v.begin() + block_nr)
             {
                 std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
@@ -432,7 +431,6 @@ std::cout << "11111" << std::endl;
 
                 break;
             }
-std::cout << "2222" << std::endl;
         }
     }
     

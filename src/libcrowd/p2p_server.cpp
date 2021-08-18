@@ -517,10 +517,10 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
                 }
             }
         }
-
+std::cout << "11111" << std::endl;
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-
+std::cout << "22222" << std::endl;
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_prel_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
@@ -558,9 +558,9 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
         {
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            
+std::cout << "33333" << std::endl;
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-
+std::cout << "44444" << std::endl;
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];

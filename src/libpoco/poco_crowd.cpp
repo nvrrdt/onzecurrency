@@ -316,7 +316,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -336,7 +336,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         message_j["block"] = block_j;
         Crowd::PrevHash ph;
         message_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        message_j["full_hash_coord"] = hash_of_block;
+        message_j["full_hash_coord"] = co_from_this_block;
 
         int k;
         std::string v;
@@ -348,7 +348,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        to_sign_j["full_hash_coord"] = hash_of_block;
+        to_sign_j["full_hash_coord"] = co_from_this_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         // to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
@@ -369,7 +369,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -406,7 +406,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     std::string block_s = final_block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -424,7 +424,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         message_j["req"] = "intro_final_block";
         message_j["latest_block_nr"] = new_block_nr;
         message_j["block"] = final_block_j;
-        message_j["full_hash_coord"] = hash_of_block;
+        message_j["full_hash_coord"] = co_from_this_block;
 
         int k;
         std::string v;
@@ -437,7 +437,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
 
         to_sign_j["latest_block_nr"] = new_block_nr;
         to_sign_j["block"] = final_block_j;
-        to_sign_j["full_hash_coord"] = hash_of_block;
+        to_sign_j["full_hash_coord"] = co_from_this_block;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         std::string to_sign_s = to_sign_j.dump();
         ECDSA<ECP, SHA256>::PrivateKey private_key;
@@ -456,10 +456,10 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
-            if (val == hash_of_block) continue; // = coordinator
+            if (val == co_from_this_block) continue; // = coordinator
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -575,7 +575,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     // coordinator is hash of chosen_ones
 
     Common::Crypto crypto;
-    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string chosen_ones_s = chosen_ones_reward_j.dump();
     std::string hash_of_cos = crypto.bech32_encode_sha256(chosen_ones_s);
     std::string coordinator = rocksy->FindChosenOne(hash_of_cos);

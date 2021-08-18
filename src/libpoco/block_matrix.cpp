@@ -418,6 +418,10 @@ void BlockMatrix::save_final_block_to_file()
                     rocksy->Put(full_hash_req, rocksdb_s);
                     delete rocksy;
 
+Crowd::Rocksy* rocksy1 = new Crowd::Rocksy("usersdbreadonly");
+std::cout << "xx____ " << rocksy1->TotalAmountOfPeers() << std::endl;
+delete rocksy1;
+
                     m_j["rocksdb"] = rocksdb_j;
                     std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
                     temporary_intro_msg_s_3d_mat.at(i).at(0).at(j) = ptr; // adding rocksdb
@@ -429,8 +433,8 @@ void BlockMatrix::save_final_block_to_file()
 
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;
-                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr);
                 pc.send_your_full_hash(i, final_block_j, new_block_nr); // TODO does your full hash recvr recv rocksdb?
+                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr);
             }
         }
 

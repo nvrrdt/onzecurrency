@@ -13,6 +13,11 @@ Rocksy::Rocksy(std::string which_db)
         rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
         std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
     }
+    else if (which_db == "usersdbreadonly")
+    {
+        rocksdb::Status s = rocksdb::DB::OpenForReadOnly(options, usersdb_folder_path, &db);
+        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
+    }
     else if (which_db == "transactionsdb")
     {
         rocksdb::Status s = rocksdb::DB::Open(options, transactionsdb_folder_path, &db);

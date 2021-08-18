@@ -69,7 +69,7 @@ void Synchronisation::get_sleep_until()
         std::time_t tt = std::chrono::system_clock::to_time_t(now);
         std::tm utc_tm = *gmtime(&tt);
         
-        if (utc_tm.tm_sec % 10 == utc_tm_block.tm_sec % 10)  // 10 = every 10 seconds
+        if (utc_tm.tm_sec % 15 == utc_tm_block.tm_sec % 15)  // 15 = every 15 seconds
         {
             std::cout << "datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
 
