@@ -258,13 +258,19 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
 
                 std::cout << "The p2p_client did it's job and the new_co too" << std::endl;
 
+                // Prepare the creation of new blocks
+                Poco::Synchronisation* sync = new Poco::Synchronisation();
+                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
+
+                // start server
                 std::packaged_task<void()> task1([] {
                     P2pNetwork pn;
                     pn.p2p_server();
                 });
                 // Run task on new thread.
-                std::thread t1(std::move(task1));
+                std::thread t2(std::move(task1));
                 t1.join();
+                t2.join();
             }
             else
             {
