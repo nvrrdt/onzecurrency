@@ -46,7 +46,7 @@ void PocoCrowd::create_and_send_block()
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;
 
-    uint16_t limit_count = 0;
+    uint16_t limit_count = 1;
 
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
@@ -68,10 +68,10 @@ void PocoCrowd::create_and_send_block()
 
             if (sync.get_break_block_creation_loops()) break;
 
-            for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included new_peers
+            for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included new_peers
             {
 
-                std::cout << "Crowd: 3rd for loop " << nonce << std::endl;
+                std::cout << "Crowd: 3rd for loop " << counter << std::endl;
 
                 if (sync.get_break_block_creation_loops()) break;
 
@@ -85,7 +85,7 @@ void PocoCrowd::create_and_send_block()
                 mt->set_genesis_prev_hash(); // TODO remove this set to the get
                 std::string prel_prev_hash_req = mt->get_genesis_prev_hash();
                 block_j_["prev_hash"] = prel_prev_hash_req;
-                block_j_["nonce"] = nonce;
+                block_j_["cnt"] = counter;
 
                 for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
                 {
@@ -182,9 +182,9 @@ void PocoCrowd::create_and_send_block()
 
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-                for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
+                for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
                 {
-                    std::cout << "Crowd: 3rd for loop with block matrix " << nonce << std::endl;
+                    std::cout << "Crowd: 3rd for loop with block matrix " << counter << std::endl;
 
                     if (sync.get_break_block_creation_loops()) break;
 
@@ -238,7 +238,7 @@ void PocoCrowd::create_and_send_block()
 
 
                     block_j_["prev_hash"] = prel_prev_hash_req;
-                    block_j_["nonce"] = nonce;
+                    block_j_["cnt"] = counter;
 
                     Crowd::Protocol proto;
                     std::string my_last_block_nr = proto.get_last_block_nr();

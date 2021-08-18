@@ -60,10 +60,10 @@ void PocoCoin::create_and_send_block_c()
 
             std::cout << "2nd for loop " << j << std::endl;
 
-            for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
+            for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
             {
 
-                std::cout << "3rd for loop " << nonce << std::endl;
+                std::cout << "3rd for loop " << counter << std::endl;
 
                 Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
@@ -110,7 +110,7 @@ void PocoCoin::create_and_send_block_c()
                 s_shptr_c_ = mt->calculate_root_hash_c(s_shptr_c_);
                 std::string datetime = mt->time_now_c();
                 std::string root_hash_data = s_shptr_c_->top();
-                block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
+                block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, counter);
 
                 mt->set_genesis_prev_hash_c();
                 block_j_c_["prev_hash"] = mt->get_genesis_prev_hash_c();
@@ -152,9 +152,9 @@ void PocoCoin::create_and_send_block_c()
 
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-                for (int nonce = 0; nonce < 10; nonce++) // Create 10 different blocks with the same number of included transactions
+                for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
                 {
-                    std::cout << "3rd for loop with block matrix " << nonce << std::endl;
+                    std::cout << "3rd for loop with block matrix " << counter << std::endl;
 
                     Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
@@ -202,7 +202,7 @@ void PocoCoin::create_and_send_block_c()
                     s_shptr_c_ = mt->calculate_root_hash_c(s_shptr_c_);
                     std::string datetime = mt->time_now_c();
                     std::string root_hash_data = s_shptr_c_->top();
-                    block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, nonce);
+                    block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, counter);
 
                     Common::Crypto crypto;
                     nlohmann::json the_block_j = *bmc->get_block_matrix().back().at(i);
