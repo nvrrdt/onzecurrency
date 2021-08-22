@@ -342,6 +342,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         std::string v;
         for (auto &[k, v] : parts)
         {
+            if (v == "0" || v == "") break; // TODO the parts need to be refactored everywhere as it's an ugly hack
             message_j["chosen_ones"].push_back(v);
         }
 

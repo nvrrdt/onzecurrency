@@ -166,7 +166,7 @@ void P2pNetwork::update_your_rocksdb_client(nlohmann::json buf_j)
 
 void P2pNetwork::update_your_matrices_client(nlohmann::json buf_j)
 {
-    std::cout << "update_your_matrices client " << buf_j.dump() << std::endl;
+    std::cout << "update_your_matrices client " << std::endl;
 
     nlohmann::json block_matrix_j = buf_j["bm"];
     

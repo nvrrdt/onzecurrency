@@ -217,39 +217,28 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
     }
     else if (from == to)
     {
-        std::string last;
-        for (it->SeekToLast(); it->Valid(); it->Prev())
-        {
-            last = it->key().ToString();
-            break;
-        }
-
+        count = TotalAmountOfPeers();
+    }
+    else if (from > to)
+    {
         for (it->SeekToFirst(); it->Valid(); it->Next())
         {
             if (it->key().ToString() > from)
             {
+                std::cout << "it->key(): " << it->key().ToString() << std::endl;
                 count++;
-
-                if (it->key().ToString() == last)
-                {
-                    for (it->SeekToFirst(); it->Valid(); it->Next())
-                    {
-                        count++;
-
-                        if (it->key().ToString() >= to)
-                        {
-                            break;
-                        }
-                    }
-                    break;
-                }
             }
         }
-    }
-    else
-    {
-        // Shouldn't happen!!
-        std::cerr << "ERROR: to should be >= to from" << std::endl;
+
+        for (it->SeekToFirst(); it->Valid(); it->Next())
+        {
+            count++;
+
+            if (it->key().ToString() >= to)
+            {
+                break;
+            }
+        }
     }
 
     delete it;
@@ -282,11 +271,23 @@ std::string Rocksy::FindPeerFromTillCount(std::string &key, uint256_t &count)
                 break;
             }
         }
-        else
+    }
+
+    // if next peer is the first in whole level db, go search from start
+    if (counter < count)
+    {
+        for (it->SeekToFirst(); it->Valid(); it->Next())
         {
-            // if next peer is the first in whole level db, go search from start
+            counter++;
+
+            if (counter == count)
+            {
+                string_key_counted_peer = it->key().ToString();
+                break;
+            }
         }
     }
+
     delete it;
 
     return string_key_counted_peer;

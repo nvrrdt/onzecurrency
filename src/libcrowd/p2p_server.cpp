@@ -1103,7 +1103,7 @@ std::cout << "block: " << block_j.dump() << std::endl;
 
 void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
 {
-    std::cout << "update_my_matrices server" << buf_j["bm"] << std::endl;
+    std::cout << "update_my_matrices server" << std::endl;
 
     nlohmann::json block_matrix_j = buf_j["bm"];
 
