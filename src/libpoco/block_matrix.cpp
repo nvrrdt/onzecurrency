@@ -430,11 +430,12 @@ delete rocksy1;
                 del++;
 
                 intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
-
+                std::vector<std::shared_ptr<nlohmann::json>> for_rocksdb_j = intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0);
+                
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;
                 pc.send_your_full_hash(i, final_block_j, new_block_nr); // TODO does your full hash recvr recv rocksdb?
-                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr);
+                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
             }
         }
 

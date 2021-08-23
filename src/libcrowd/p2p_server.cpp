@@ -740,6 +740,7 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
     nlohmann::json chosen_ones = buf_j["chosen_ones"];
+    nlohmann::json rocksdb_j = buf_j["rocksdb"];
 
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -754,6 +755,25 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
     if (full_hash_coord_from_me == full_hash_coord_from_coord)
     {
         std::cout << "Coordinator is truthful" << std::endl;
+
+std::cout << "block_nr: " << recv_latest_block_nr_s << std::endl;
+std::cout << "block: " << recv_block_s << std::endl;
+
+        // Save block
+        merkle_tree mt;
+        mt.save_block_to_file(recv_block_j, recv_latest_block_nr_s); // TODO what about parallel blocks?
+
+        // Fill rocksdb
+        for (auto& [k, v]: rocksdb_j.items())
+        {
+            nlohmann::json val_j = v;
+            std::string key_s = val_j["rocksdb"]["full_hash"];
+            std::string value_s = val_j["rocksdb"];
+
+            Rocksy* rocksy = new Rocksy("usersdb");
+            rocksy->Put(key_s, value_s);
+            delete rocksy;
+        }
 
         Protocol protocol;
         nlohmann::json saved_block_at_place_i = protocol.get_block_at(recv_latest_block_nr_s);
@@ -780,7 +800,7 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
 
         for (int i = 0; i < chosen_ones.size(); i++)
         {
-            if (chosen_ones[i] == buf_j["full_hash_req"])
+            if (chosen_ones[i] == buf_j["full_hash_coord"])
             {
                 j = i;
             }
@@ -881,7 +901,7 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+            std::cout << "Preparation for final_new_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -916,6 +936,26 @@ void P2pNetwork::new_final_block(nlohmann::json buf_j)
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
     nlohmann::json chosen_ones = buf_j["chosen_ones"];
+    nlohmann::json rocksdb_j = buf_j["rocksdb"];
+
+std::cout << "block_nr: " << recv_latest_block_nr_s << std::endl;
+std::cout << "block: " << recv_block_j.dump() << std::endl;
+
+    // Save block
+    merkle_tree mt;
+    mt.save_block_to_file(recv_block_j,recv_latest_block_nr_s);
+
+    // Fill rocksdb
+    for (auto& [k, v]: rocksdb_j.items())
+    {
+        nlohmann::json val_j = v;
+        std::string key_s = val_j["rocksdb"]["full_hash"];
+        std::string value_s = val_j["rocksdb"];
+
+        Rocksy* rocksy = new Rocksy("usersdb");
+        rocksy->Put(key_s, value_s);
+        delete rocksy;
+    }
 
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -947,7 +987,7 @@ void P2pNetwork::new_final_block(nlohmann::json buf_j)
 
     for (int i = 0; i < chosen_ones.size(); i++)
     {
-        if (chosen_ones[i] == buf_j["full_hash_req"])
+        if (chosen_ones[i] == buf_j["full_hash_coord"])
         {
             j = i;
         }
