@@ -41,7 +41,6 @@ void PocoCrowd::create_and_send_block()
 
     BlockMatrix *bm = new BlockMatrix();
     Synchronisation sync;
-    sync.set_break_block_creation_loops(false);
 
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;

@@ -851,17 +851,17 @@ std::cout << "block: " << recv_block_s << std::endl;
                 }
             }
         }
-
+std::cout << "__000" << std::endl;
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-
+std::cout << "__001" << std::endl;
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_final_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
         message_j["rocksdb"] = buf_j["rocksdb"];
-
+std::cout << "__002" << std::endl;
         int k;
         std::string v;
         for (auto &[k, v] : parts)
