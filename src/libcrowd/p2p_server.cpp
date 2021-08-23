@@ -767,8 +767,8 @@ std::cout << "block: " << recv_block_s << std::endl;
         for (auto& [k, v]: rocksdb_j.items())
         {
             nlohmann::json val_j = v;
-            std::string key_s = val_j["rocksdb"]["full_hash"];
-            std::string value_s = val_j["rocksdb"];
+            std::string key_s = val_j["full_hash"];
+            std::string value_s = val_j.dump();
 
             Rocksy* rocksy = new Rocksy("usersdb");
             rocksy->Put(key_s, value_s);
@@ -860,6 +860,7 @@ std::cout << "block: " << recv_block_s << std::endl;
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+        message_j["rocksdb"] = buf_j["rocksdb"];
 
         int k;
         std::string v;
@@ -871,6 +872,7 @@ std::cout << "block: " << recv_block_s << std::endl;
         to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
         to_sign_j["block"] = message_j["block"];
         to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+        to_sign_j["rocksdb"] = message_j["rocksdb"];
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         // to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
@@ -890,6 +892,7 @@ std::cout << "block: " << recv_block_s << std::endl;
         {
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == full_hash_coord_from_coord) continue;
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 
@@ -949,8 +952,8 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     for (auto& [k, v]: rocksdb_j.items())
     {
         nlohmann::json val_j = v;
-        std::string key_s = val_j["rocksdb"]["full_hash"];
-        std::string value_s = val_j["rocksdb"];
+        std::string key_s = val_j["full_hash"];
+        std::string value_s = val_j.dump();
 
         Rocksy* rocksy = new Rocksy("usersdb");
         rocksy->Put(key_s, value_s);
@@ -1047,6 +1050,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     message_j["latest_block_nr"] = buf_j["latest_block_nr"];
     message_j["block"] = buf_j["block"];
     message_j["full_hash_coord"] = buf_j["full_hash_coord"];
+    message_j["rocksdb"] = buf_j["rocksdb"];
 
     int k;
     std::string v;
@@ -1058,6 +1062,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
     to_sign_j["block"] = message_j["block"];
     to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
+    to_sign_j["rocksdb"] = message_j["rocksdb"];
     to_sign_j["chosen_ones"] = message_j["chosen_ones"];
     // to_sign_j["rocksdb"] = message_j["rocksdb"];
     std::string to_sign_s = to_sign_j.dump();
@@ -1075,6 +1080,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     {
         if (key == 1) continue;
         if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+        if (val == full_hash_coord_from_coord) continue;
         
         Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 
