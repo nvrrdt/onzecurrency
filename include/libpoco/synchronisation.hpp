@@ -35,7 +35,7 @@ namespace Poco
             return break_block_creation_loops_;
         }
 
-        std::string get_latest_datetime();
+        std::string get_genesis_datetime();
 
         static void set_break_block_creation_loops(bool break_loops)
         {

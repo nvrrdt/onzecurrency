@@ -553,9 +553,12 @@ std::cout << "22222" << std::endl;
         delete crypto;
 
         Crowd::P2pNetwork pn;
+        Poco::Synchronisation sync;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+            if (sync.get_break_block_creation_loops()) break;
+            
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
 std::cout << "33333" << std::endl;
@@ -694,9 +697,12 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
         delete crypto;
 
         Crowd::P2pNetwork pn;
+        Poco::Synchronisation sync;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+            if (sync.get_break_block_creation_loops()) break;
+            
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
@@ -851,17 +857,16 @@ std::cout << "block: " << recv_block_s << std::endl;
                 }
             }
         }
-std::cout << "__000" << std::endl;
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-std::cout << "__001" << std::endl;
+
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_final_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
         message_j["rocksdb"] = buf_j["rocksdb"];
-std::cout << "__002" << std::endl;
+
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -913,6 +918,7 @@ std::cout << "__002" << std::endl;
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+std::cout << "__007 and must be somewhere else" << std::endl; // TODO forget this?
     }
     else
     {

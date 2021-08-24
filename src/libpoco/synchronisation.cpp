@@ -23,7 +23,7 @@ void Synchronisation::get_sleep_and_create_block()
     std::cout << "intro_msg_vec.size() in Poco: " << intro_msg_vec_.get_intro_msg_vec().size() << std::endl;
     std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
 
-    std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
+    //std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
 
     // chosen ones are being informed here
     std::thread t2(&Poco::PocoCrowd::create_and_send_block, pococr_);
@@ -32,8 +32,12 @@ void Synchronisation::get_sleep_and_create_block()
     bmc_->add_received_block_vector_to_received_block_matrix();
     // std::thread xxxxxxxxxxxx pococo_.create_and_send_block_c();     // preliminary commented out
 
-    t1.join();
+    get_sleep_until();
+
+    //t1.join();
     t2.join();
+
+    
 
     get_sleep_and_create_block();
 }
@@ -45,7 +49,7 @@ void Synchronisation::get_sleep_until()
     set_break_block_creation_loops(false);
 
     // get datetime from latest block
-    std::string datetime = get_latest_datetime();
+    std::string datetime = get_genesis_datetime();
 
     int yy, month, dd, hh, mm, ss;
     struct tm whenStart;
@@ -71,19 +75,20 @@ void Synchronisation::get_sleep_until()
         std::time_t tt = std::chrono::system_clock::to_time_t(now);
         std::tm utc_tm = *gmtime(&tt);
         
-        if (utc_tm.tm_sec % 15 == utc_tm_block.tm_sec % 15)  // 15 = every 15 seconds
+        if (utc_tm.tm_sec % 20 == utc_tm_block.tm_sec % 20)  // 20 = every 20 seconds
         {
-            std::cout << "datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
+            std::cout << "break: datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
+
+            set_break_block_creation_loops(true);
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
             break;
         }
     }
-
-    set_break_block_creation_loops(true);
 }
 
-std::string Synchronisation::get_latest_datetime()
+std::string Synchronisation::get_genesis_datetime() // TODO make a static variable and set it in p2p.cpp
+                                                    // otherwise this function is called too much
 {
     std::string latest_datetime;
 
@@ -116,9 +121,9 @@ std::string Synchronisation::get_latest_datetime()
                 //     cout << "   " << *it << '\n';
                 // }
 
-                uint64_t n = v.size(); 
+                // uint64_t n = v.size(); 
 
-                std::ifstream stream(v[n-1].string(), std::ios::in | std::ios::binary);
+                std::ifstream stream(v[0].string(), std::ios::in | std::ios::binary);
                 std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                 nlohmann::json contents_j = nlohmann::json::parse(contents);
 

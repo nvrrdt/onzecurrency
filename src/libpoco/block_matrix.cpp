@@ -434,7 +434,7 @@ delete rocksy1;
                 
                 // inform chosen ones for final block
                 Poco::PocoCrowd pc;
-                pc.send_your_full_hash(i, final_block_j, new_block_nr); // TODO does your full hash recvr recv rocksdb?
+                pc.send_your_full_hash(i, final_block_j, new_block_nr);
                 pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
             }
         }
