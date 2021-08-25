@@ -705,6 +705,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
             
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == full_hash_coord) continue;
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 

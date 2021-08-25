@@ -45,7 +45,7 @@ void PocoCrowd::create_and_send_block()
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;
 
-    uint16_t limit_count = 1;
+    uint16_t limit_count = 0;
 
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());

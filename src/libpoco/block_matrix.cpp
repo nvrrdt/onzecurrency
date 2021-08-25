@@ -145,7 +145,7 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     auto calculated_hashes = get_calculated_hash_matrix();
     auto hashes_from_contents = get_prev_hash_matrix();
     add_received_block_vector_to_received_block_matrix();
-    auto received_block_matrix = get_received_block_matrix();
+    auto copy_received_block_matrix(get_received_block_matrix());
 
 std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
 std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
@@ -157,15 +157,26 @@ std::cout << "evaluate_both_block_matrices vphfc " << get_prev_hash_matrix().bac
 std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
 std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
 
-// for debugging purposes:
-for (int x = 0; x < received_block_matrix.size(); x++)
-{
-    for (int y = 0; y < received_block_matrix.at(x).size(); y++)
-    {
-        nlohmann::json content_j = *received_block_matrix.at(x).at(y);
-        std::cout << "recv_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
-    }
-}
+// // for debugging purposes:
+// std::cout << "recv_block_matrix size " << copy_received_block_matrix.size() << std::endl;
+// for (int x = 0; x < copy_received_block_matrix.size(); x++)
+// {
+//     for (int y = 0; y < copy_received_block_matrix.at(x).size(); y++)
+//     {
+//         nlohmann::json content_j = *copy_received_block_matrix.at(x).at(y);
+//         std::cout << "recv_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
+//     }
+// }
+
+// // for debugging purposes:
+// for (int x = 0; x < block_matrix.size(); x++)
+// {
+//     for (int y = 0; y < block_matrix.at(x).size(); y++)
+//     {
+//         nlohmann::json content_j = *block_matrix.at(x).at(y);
+//         std::cout << "this_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
+//     }
+// }
 
     // fill with positions who get removed later
     std::vector<std::vector<int16_t>> pos = {};
@@ -181,16 +192,16 @@ for (int x = 0; x < received_block_matrix.size(); x++)
     }
     int16_t pos_length = pos.back().size();
 
-    if (!block_matrix.empty() && !received_block_matrix.empty())
+    if (!block_matrix.empty() && !copy_received_block_matrix.empty())
     {
         // remove non-received blocks in the last block_vector of block_matrix
-        for (uint16_t i = block_matrix.back().size() - 1; i >= 0; i--)
+        for (int16_t i = block_matrix.back().size() - 1; i >= 0; i--)
         {
-            if (received_block_matrix.back().empty()) break;
+            if (copy_received_block_matrix.back().empty()) break;
 
-            for (uint16_t j = received_block_matrix.back().size() - 1; j >= 0; j--)
+            for (int16_t j = copy_received_block_matrix.back().size() - 1; j >= 0; j--)
             {
-                if (*block_matrix.back().at(i) == *received_block_matrix.back().at(j))
+                if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
                     std::cout << "received block found" << std::endl;
 
@@ -209,14 +220,20 @@ for (int x = 0; x < received_block_matrix.size(); x++)
             for (int16_t n = pos.back().size() - 1; n >= 0 ; n--)
             {
                 std::cout << "erase p received: " << pos.back().at(n) << std::endl;
-                
+std::cout << "n " << n << std::endl;
+std::cout << "bm_size " << block_matrix.back().size() << std::endl;
+std::cout << "ch_size " << calculated_hashes.back().size() << std::endl;
+std::cout << "hfc_size " << hashes_from_contents.back().size() << std::endl;
+
                 block_matrix.back().erase(block_matrix.back().begin() + pos.back().at(n));
                 calculated_hashes.back().erase(calculated_hashes.back().begin() + pos.back().at(n));
                 hashes_from_contents.back().erase(hashes_from_contents.back().begin() + pos.back().at(n));
             }
         }
-
+std::cout << "___0" << std::endl;
         clear_received_block_matrix();
+        copy_received_block_matrix.clear();
+std::cout << "___1" << std::endl;
     }
 
     /**
@@ -231,7 +248,7 @@ for (int x = 0; x < received_block_matrix.size(); x++)
      * then compare last - 2 and last -1, ...,
      * just until the final block remains
      */
-
+std::cout << "___00" << std::endl;
     if (!block_matrix.empty())
     {
         // get prev_hashes from within the latest vector and compare with the hashes from before latest vector
@@ -258,19 +275,26 @@ for (int x = 0; x < received_block_matrix.size(); x++)
 
         for (int16_t i = block_matrix.size() - 1 - 1; i >= 0; i--)
         {
+std::cout << "___01" << std::endl;
             for (int16_t j = calculated_hashes.at(i).size() - 1; j >= 0; j--)
             {
+std::cout << "___02" << std::endl;
                 for (int16_t k = hashes_from_contents.at(i+1).size() - 1; k >= 0; k--)
                 {
+std::cout << "___03" << std::endl;
                     if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k))
                     {
+std::cout << "___04" << std::endl;
                         pos.at(i).erase(pos.at(i).begin() + j);
                         std::cout << "Element found " << *calculated_hashes.at(i).at(j) << " " << *hashes_from_contents.at(i+1).at(k) << std::endl;
                         std::cout << "i " << i << " j " << j << " k " << k << std::endl;
                         break;
                     }
+std::cout << "___05" << std::endl;
                 }
+std::cout << "___06" << std::endl;
             }
+std::cout << "___07" << std::endl;
 
             for (int16_t n = pos.at(i).size() - 1; n >= 0 ; n--)
             {
@@ -278,6 +302,7 @@ for (int x = 0; x < received_block_matrix.size(); x++)
                 calculated_hashes.at(i).erase(calculated_hashes.at(i).begin() + pos.at(i).at(n));
                 hashes_from_contents.at(i).erase(hashes_from_contents.at(i).begin() + pos.at(i).at(n));
             }
+std::cout << "___08" << std::endl;
         }
 
         replace_block_matrix(block_matrix);
@@ -417,10 +442,6 @@ void BlockMatrix::save_final_block_to_file()
                     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
                     rocksy->Put(full_hash_req, rocksdb_s);
                     delete rocksy;
-
-Crowd::Rocksy* rocksy1 = new Crowd::Rocksy("usersdbreadonly");
-std::cout << "xx____ " << rocksy1->TotalAmountOfPeers() << std::endl;
-delete rocksy1;
 
                     m_j["rocksdb"] = rocksdb_j;
                     std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
