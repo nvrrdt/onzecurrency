@@ -517,10 +517,10 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
                 }
             }
         }
-std::cout << "11111" << std::endl;
+
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-std::cout << "22222" << std::endl;
+
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_prel_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
@@ -561,9 +561,9 @@ std::cout << "22222" << std::endl;
             
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-std::cout << "33333" << std::endl;
+
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-std::cout << "44444" << std::endl;
+
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];
@@ -743,6 +743,11 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
     // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
     // Then inform your underlying network
 
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
+
     nlohmann::json recv_block_j = buf_j["block"];
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
     std::string full_hash_coord_from_coord = buf_j["full_hash_coord"];
@@ -919,17 +924,11 @@ std::cout << "block: " << recv_block_s << std::endl;
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
-std::cout << "__007 and must be somewhere else" << std::endl; // TODO forget this?
     }
     else
     {
         std::cout << "Final coordinator is not truthful" << std::endl;
     }
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::new_final_block(nlohmann::json buf_j)
@@ -941,6 +940,11 @@ void P2pNetwork::new_final_block(nlohmann::json buf_j)
     // Compare the hashes from the block of the coordinator with your saved blocks' hashes
     // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
     // Then inform your underlying network
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
 
     nlohmann::json recv_block_j = buf_j["block"];
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
@@ -1108,11 +1112,6 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
         // p2p_client() to all chosen ones with intro_peer request
         pn.p2p_client(ip_from_peer, message);
     }
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::your_full_hash(nlohmann::json buf_j)

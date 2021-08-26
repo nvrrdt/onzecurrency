@@ -332,7 +332,7 @@ void BlockMatrix::save_final_block_to_file()
 
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
-
+std::cout << "_____0000-0" << std::endl;
     uint64_t value;
     std::istringstream iss(latest_block);
     iss >> value;
@@ -344,7 +344,7 @@ void BlockMatrix::save_final_block_to_file()
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
     boost::system::error_code c;
     boost::filesystem::path path(blockchain_folder_path);
-
+std::cout << "_____0000-1" << std::endl;
     std::string latest_block_s;
 
     if (!boost::filesystem::exists(path))
@@ -369,7 +369,7 @@ void BlockMatrix::save_final_block_to_file()
 
         latest_block_s = contents;
     }
-
+std::cout << "_____0000-2" << std::endl;
     nlohmann::json new_block_j = *get_block_matrix().front().at(0);
     std::string new_block_s = new_block_j.dump();
 

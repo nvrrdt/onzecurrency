@@ -252,19 +252,19 @@ void PocoCrowd::create_and_send_block()
 
                     // send hash of this block with the block contents to the co's, forget save_block_to_file
                     // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
-std::cout << "__000" << std::endl;
+
                     // send intro_block to co's
                     inform_chosen_ones_prel_block(my_next_block_nr, block_j_);
-std::cout << "__001" << std::endl;
+
                     // Add blocks to vector<vector<block_j_>>
                     bm->add_block_to_block_vector(block_j_);
                     bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
                     bm->add_prev_hash_to_prev_hash_vector(block_j_);
-std::cout << "__002" << std::endl;
+
                     // Update rocksdb and prepare your_full_hash
                     intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
                     ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-std::cout << "__003" << std::endl;
+
                     delete mt;
 
                     limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
@@ -273,23 +273,22 @@ std::cout << "__003" << std::endl;
             }
         }
     }
-std::cout << "__004" << std::endl;
     // clear these vectors
     copy_ip_hemail_vec.clear();
     copy_intro_msg_vec.clear();
-std::cout << "__005" << std::endl;
+
     // fill the matrices
     bm->add_block_vector_to_block_matrix();
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
     bm->add_prev_hash_vector_to_prev_hash_matrix();
-std::cout << "__006" << std::endl;
+
     intro_msg_s_mat_. add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-std::cout << "__007" << std::endl;
+
     // start the sifting process and save a final block
     bm->sifting_function_for_both_block_matrices();
     bm->save_final_block_to_file();
-std::cout << "__008" << std::endl;
+
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
     {
