@@ -135,6 +135,30 @@ void BlockMatrix::clear_received_block_matrix()
     received_block_matrix_.clear();
 }
 
+void BlockMatrix::add_sent_block_to_sent_block_vector(nlohmann::json block_j)
+{
+    std::shared_ptr<nlohmann::json> shared_block;
+    shared_block = std::make_shared<nlohmann::json> (block_j);
+    sent_block_vector_.push_back(shared_block);
+}
+
+void BlockMatrix::add_sent_block_vector_to_sent_block_matrix()
+{
+    sent_block_matrix_.push_back(sent_block_vector_);
+
+    sent_block_vector_.clear();
+}
+
+std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_sent_block_matrix()
+{
+    return sent_block_matrix_;
+}
+
+void BlockMatrix::clear_sent_block_matrix()
+{
+    sent_block_matrix_.clear();
+}
+
 void BlockMatrix::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
@@ -146,6 +170,8 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     auto hashes_from_contents = get_prev_hash_matrix();
     add_received_block_vector_to_received_block_matrix();
     auto copy_received_block_matrix(get_received_block_matrix());
+    add_sent_block_vector_to_sent_block_matrix();
+    auto copy_sent_block_matrix(get_sent_block_matrix());
 
 std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
 std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
@@ -194,18 +220,37 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
 
     if (!block_matrix.empty() && !copy_received_block_matrix.empty())
     {
+        // add non-sent blocks in the last block_vector of block_matrix to pos_sent
+        std::vector<int16_t> pos_sent = {};
+        for (int16_t i = 0; i < block_matrix.back().size(); i++)
+        {
+            for (int16_t j = 0; j < copy_sent_block_matrix.back().size(); j++)
+            {
+                if (*block_matrix.back().at(i) == *copy_sent_block_matrix.back().at(j))
+                {
+                    std::cout << "sent block found" << std::endl;
+
+                    pos_sent.push_back(i);
+                    break;
+                }
+                else
+                {
+                    std::cout << "sent block not found" << std::endl;
+                }
+            }
+        }
+
         // remove non-received blocks in the last block_vector of block_matrix
         for (int16_t i = block_matrix.back().size() - 1; i >= 0; i--)
         {
-            if (copy_received_block_matrix.back().empty()) break;
-
             for (int16_t j = copy_received_block_matrix.back().size() - 1; j >= 0; j--)
             {
-                if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
+                if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j) || i == pos_sent.back())
                 {
                     std::cout << "received block found" << std::endl;
 
                     pos.back().erase(pos.back().begin() + i);
+                    pos_sent.pop_back();
                     break;
                 }
                 else
@@ -229,6 +274,8 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
 
         clear_received_block_matrix();
         copy_received_block_matrix.clear();
+        clear_sent_block_matrix();
+        copy_sent_block_matrix.clear();
     }
 
     /**
@@ -270,26 +317,19 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
 
         for (int16_t i = block_matrix.size() - 1 - 1; i >= 0; i--)
         {
-std::cout << "___01" << std::endl;
             for (int16_t j = calculated_hashes.at(i).size() - 1; j >= 0; j--)
             {
-std::cout << "___02" << std::endl;
                 for (int16_t k = hashes_from_contents.at(i+1).size() - 1; k >= 0; k--)
                 {
-std::cout << "___03" << std::endl;
                     if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k))
                     {
-std::cout << "___04" << std::endl;
                         pos.at(i).erase(pos.at(i).begin() + j);
                         std::cout << "Element found " << *calculated_hashes.at(i).at(j) << " " << *hashes_from_contents.at(i+1).at(k) << std::endl;
                         std::cout << "i " << i << " j " << j << " k " << k << std::endl;
                         break;
                     }
-std::cout << "___05" << std::endl;
                 }
-std::cout << "___06" << std::endl;
             }
-std::cout << "___07" << std::endl;
 
             for (int16_t n = pos.at(i).size() - 1; n >= 0 ; n--)
             {
@@ -297,7 +337,6 @@ std::cout << "___07" << std::endl;
                 calculated_hashes.at(i).erase(calculated_hashes.at(i).begin() + pos.at(i).at(n));
                 hashes_from_contents.at(i).erase(hashes_from_contents.at(i).begin() + pos.at(i).at(n));
             }
-std::cout << "___08" << std::endl;
         }
 
         replace_block_matrix(block_matrix);
@@ -473,11 +512,13 @@ std::cout << "_____0005" << std::endl;
     }
 }
 
-std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_;
+std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_ = {};
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
-std::vector<std::shared_ptr<std::string>> BlockMatrix::calculated_hash_vector_;
+std::vector<std::shared_ptr<std::string>> BlockMatrix::calculated_hash_vector_ = {};
 std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::calculated_hash_matrix_ = {};
-std::vector<std::shared_ptr<std::string>> BlockMatrix::prev_hash_vector_;
+std::vector<std::shared_ptr<std::string>> BlockMatrix::prev_hash_vector_ = {};
 std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::prev_hash_matrix_ = {};
-std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_;
+std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_ = {};
 std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};
+std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::sent_block_vector_ = {};
+std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::sent_block_matrix_ = {};

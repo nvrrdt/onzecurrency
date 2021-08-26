@@ -392,6 +392,10 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+
+        // Should also fill the sent block vector
+        Poco::BlockMatrix bm;
+        bm.add_sent_block_to_sent_block_vector(block_j_);
     }
     else
     {

@@ -28,10 +28,17 @@ namespace Poco
         static void remove_front_from_block_matrix();
         static void remove_front_from_calculated_hashes();
         static void remove_front_from_prev_hashes();
+        
         static void add_received_block_to_received_block_vector(nlohmann::json block_j);
         static void add_received_block_vector_to_received_block_matrix();
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> get_received_block_matrix();
         static void clear_received_block_matrix();
+        
+        static void add_sent_block_to_sent_block_vector(nlohmann::json block_j);
+        static void add_sent_block_vector_to_sent_block_matrix();
+        static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> get_sent_block_matrix();
+        static void clear_sent_block_matrix();
+
         static void sifting_function_for_both_block_matrices();
         static void save_final_block_to_file();
     private:
@@ -43,6 +50,8 @@ namespace Poco
         static std::vector<std::vector<std::shared_ptr<std::string>>> prev_hash_matrix_;
         static std::vector<std::shared_ptr<nlohmann::json>> received_block_vector_;
         static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> received_block_matrix_;
+        static std::vector<std::shared_ptr<nlohmann::json>> sent_block_vector_;
+        static std::vector<std::vector<std::shared_ptr<nlohmann::json>>> sent_block_matrix_;
     private:
         static IntroMsgsMat intro_msg_s_mat_;
     };
