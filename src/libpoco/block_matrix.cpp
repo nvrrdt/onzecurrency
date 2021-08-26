@@ -181,7 +181,7 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
     // fill with positions who get removed later
     std::vector<std::vector<int16_t>> pos = {};
     std::vector<int16_t> p = {};
-    for (int16_t k = 0; k < block_matrix.size() - 1; k++)
+    for (int16_t k = 0; k < block_matrix.size(); k++)
     {
         for (int16_t m = 0; m < block_matrix.at(k).size(); m++)
         {
@@ -220,20 +220,15 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
             for (int16_t n = pos.back().size() - 1; n >= 0 ; n--)
             {
                 std::cout << "erase p received: " << pos.back().at(n) << std::endl;
-std::cout << "n " << n << std::endl;
-std::cout << "bm_size " << block_matrix.back().size() << std::endl;
-std::cout << "ch_size " << calculated_hashes.back().size() << std::endl;
-std::cout << "hfc_size " << hashes_from_contents.back().size() << std::endl;
 
                 block_matrix.back().erase(block_matrix.back().begin() + pos.back().at(n));
                 calculated_hashes.back().erase(calculated_hashes.back().begin() + pos.back().at(n));
                 hashes_from_contents.back().erase(hashes_from_contents.back().begin() + pos.back().at(n));
             }
         }
-std::cout << "___0" << std::endl;
+
         clear_received_block_matrix();
         copy_received_block_matrix.clear();
-std::cout << "___1" << std::endl;
     }
 
     /**
@@ -248,7 +243,7 @@ std::cout << "___1" << std::endl;
      * then compare last - 2 and last -1, ...,
      * just until the final block remains
      */
-std::cout << "___00" << std::endl;
+
     if (!block_matrix.empty())
     {
         // get prev_hashes from within the latest vector and compare with the hashes from before latest vector
@@ -383,9 +378,10 @@ void BlockMatrix::save_final_block_to_file()
         uint16_t del = 0;
 
         auto temporary_intro_msg_s_3d_mat = intro_msg_s_mat_.get_intro_msg_s_3d_mat();
-
+std::cout << "_____0000" << std::endl;
         for (uint32_t i = 1; i < get_block_matrix().size(); i++)
         {
+std::cout << "_____0001" << std::endl;
             if (get_block_matrix().at(i).size() == 1)
             {
                 // save block
@@ -412,10 +408,11 @@ void BlockMatrix::save_final_block_to_file()
                 {
                     cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
                 }
-
+std::cout << "_____0002" << std::endl;
                 // actual saving to rocksdb
                 for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).size(); j++)
                 {
+std::cout << "_____0003" << std::endl;
                     nlohmann::json m_j;
                     m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).at(j);
 
@@ -459,10 +456,11 @@ void BlockMatrix::save_final_block_to_file()
                 pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
             }
         }
-
+std::cout << "_____0004" << std::endl;
         // if last final block is saved --> delete blocks in matrices of i-1 --> don't delete the last final block from the matrices
         for (uint16_t j = 0; j < del; j++)
         {
+std::cout << "_____0005" << std::endl;
             remove_front_from_block_matrix();
             remove_front_from_calculated_hashes();
             remove_front_from_prev_hashes();
