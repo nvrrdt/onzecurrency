@@ -195,33 +195,17 @@ void P2pNetwork::update_my_blocks_and_rocksdb_client(nlohmann::json buf_j)
     // send blocks to peer
 
     Protocol proto;
-    std::string my_latest_block = proto.get_last_block_nr();
     std::string req_latest_block = buf_j["block_nr"];
 
     nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
+//std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
 
-    uint64_t my_value;
-    std::istringstream iss(my_latest_block);
-    iss >> my_value;
-
-    uint64_t req_value;
-    std::istringstream isss(req_latest_block);
-    isss >> req_value;
-
-    uint64_t next_req_value = req_value + 1;
-
-//std::cout << "next_req_value: " << next_req_value << ", my_value:" << my_value << std::endl;
-    for (uint64_t i = next_req_value; i <= my_value; i++)
+    for (auto& i: list_of_blocks_j.items())
     {
-        nlohmann::json block_j = list_of_blocks_j[i]["block"];
-//std::cout << "block_j: " << block_j << std::endl;
-//std::cout << "iiiiiiii: " << i << std::endl;
         nlohmann::json msg;
         msg["req"] = "update_your_blocks";
-        std::string block_nr_j = list_of_blocks_j[i]["block_nr"];
-        msg["block_nr"] = block_nr_j;
-//std::cout << "block_nr_j: " << block_nr_j << std::endl;
-        msg["block"] = block_j;
+        msg["block_nr"] = i.value()["block_nr"];
+        msg["block"] = i.value()["block"];
         set_resp_msg_client(msg.dump());
     }
 
@@ -235,7 +219,7 @@ void P2pNetwork::update_my_blocks_and_rocksdb_client(nlohmann::json buf_j)
         msg["req"] = "update_your_rocksdb";
         msg["key"] = user;
 
-        std::string u = user.dump();
+        std::string u = user;
         std::string value = rocksy->Get(u);
         msg["value"] = value;
 

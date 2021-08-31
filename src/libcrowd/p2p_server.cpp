@@ -197,14 +197,10 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 
                 for (uint64_t i = 0; i <= value; i++)
                 {
-                    nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                    //std::cout << "block_j: " << block_j << std::endl;
                     nlohmann::json msg;
                     msg["req"] = "update_your_blocks";
-                    std::ostringstream o;
-                    o << i;
-                    msg["block_nr"] = o.str();
-                    msg["block"] = block_j;
+                    msg["block_nr"] = list_of_blocks_j[i]["block_nr"];
+                    msg["block"] = list_of_blocks_j[i]["block"];
                     set_resp_msg_server(msg.dump());
                 }
 
@@ -1132,20 +1128,16 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     
     nlohmann::json block_j = buf_j["block"];
     std::string req_latest_block_nr = buf_j["block_nr"];
-std::cout << "block_nr: " << req_latest_block_nr << std::endl;
-std::cout << "block: " << block_j.dump() << std::endl;
+// std::cout << "block_nr: " << req_latest_block_nr << std::endl;
+// std::cout << "block: " << block_j.dump() << std::endl;
 
-    // Save block
-    merkle_tree mt;
-    mt.save_block_to_file(block_j,req_latest_block_nr);
-
-    // Fill rocksdb
-    std::string key_s = buf_j["full_hash"];
-    std::string value_s = buf_j["rocksdb"].dump();
-
-    Rocksy* rocksy = new Rocksy("usersdb");
-    rocksy->Put(key_s, value_s);
-    delete rocksy;
+    // Update my blocks and rocksdb_
+    Protocol proto;
+    std::string my_latest_block = proto.get_last_block_nr();
+    nlohmann::json m_j;
+    m_j["req"] = "update_my_blocks_and_rocksdb";
+    m_j["block_nr"] = my_latest_block;
+    set_resp_msg_server(m_j.dump());
 
     // Update my matrices
     nlohmann::json mm_j;
