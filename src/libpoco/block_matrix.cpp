@@ -220,7 +220,7 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
 
     if (!block_matrix.empty() && !copy_received_block_matrix.empty())
     {
-        // add non-sent blocks in the last block_vector of block_matrix to pos_sent
+        // add sent blocks to pos_sent
         std::vector<int16_t> pos_sent = {};
         for (int16_t i = 0; i < block_matrix.back().size(); i++)
         {
@@ -233,38 +233,46 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
                     pos_sent.push_back(i);
                     break;
                 }
-                else
-                {
-                    std::cout << "sent block not found" << std::endl;
-                }
             }
         }
 
-        // remove non-received blocks in the last block_vector of block_matrix
-        for (int16_t i = block_matrix.back().size() - 1; i >= 0; i--)
+        // add received blocks to pos_recv
+        std::vector<int16_t> pos_recv = {};
+        for (int16_t i = 0; i < block_matrix.back().size(); i++)
         {
-            for (int16_t j = copy_received_block_matrix.back().size() - 1; j >= 0; j--)
+            for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
-                if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j) || i == pos_sent.back())
+                if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
                     std::cout << "received block found" << std::endl;
 
-                    pos.back().erase(pos.back().begin() + i);
-                    pos_sent.pop_back();
+                    pos_recv.push_back(i);
                     break;
-                }
-                else
-                {
-                    std::cout << "received block not found" << std::endl;
                 }
             }
         }
 
+        // remove sent and received blocks from pos_sent and pos_recv matrix
+        for (int16_t i = pos.back().size() - 1; i >= 0; i--)
+        {
+            if (i == pos_sent.back())
+            {
+                pos.back().erase(pos.back().begin() + pos_sent.back());
+                pos_sent.pop_back();
+            }
+            else if (i == pos_recv.back())
+            {
+                pos.back().erase(pos.back().begin() + pos_recv.back());
+                pos_recv.pop_back();
+            }
+        }
+
+        // erase the non-sent and non-received blocks from pos
         if (pos_length != pos.back().size())
         {
             for (int16_t n = pos.back().size() - 1; n >= 0 ; n--)
             {
-                std::cout << "erase p received: " << pos.back().at(n) << std::endl;
+                std::cout << "erase p sent and received: " << pos.back().at(n) << std::endl;
 
                 block_matrix.back().erase(block_matrix.back().begin() + pos.back().at(n));
                 calculated_hashes.back().erase(calculated_hashes.back().begin() + pos.back().at(n));
@@ -371,7 +379,7 @@ void BlockMatrix::save_final_block_to_file()
 
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
-std::cout << "_____0000-0" << std::endl;
+
     uint64_t value;
     std::istringstream iss(latest_block);
     iss >> value;
@@ -383,7 +391,7 @@ std::cout << "_____0000-0" << std::endl;
     std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
     boost::system::error_code c;
     boost::filesystem::path path(blockchain_folder_path);
-std::cout << "_____0000-1" << std::endl;
+
     std::string latest_block_s;
 
     if (!boost::filesystem::exists(path))
@@ -408,107 +416,104 @@ std::cout << "_____0000-1" << std::endl;
 
         latest_block_s = contents;
     }
-std::cout << "_____0000-2" << std::endl;
-    nlohmann::json new_block_j = *get_block_matrix().front().at(0);
-    std::string new_block_s = new_block_j.dump();
+    
+    uint16_t del = 0;
 
-    if (latest_block_s == new_block_s)
+    auto temporary_intro_msg_s_3d_mat = intro_msg_s_mat_.get_intro_msg_s_3d_mat();
+
+    for (uint32_t i = 0; i < get_block_matrix().size(); i++)
     {
-        uint16_t del = 0;
 
-        auto temporary_intro_msg_s_3d_mat = intro_msg_s_mat_.get_intro_msg_s_3d_mat();
-std::cout << "_____0000" << std::endl;
-        for (uint32_t i = 1; i < get_block_matrix().size(); i++)
+        if (get_block_matrix().at(i).empty()) continue;
+
+        nlohmann::json l_block_j = *get_block_matrix().at(i).at(0);
+        std::string l_block_s = l_block_j.dump();
+
+        if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
-std::cout << "_____0001" << std::endl;
-            if (get_block_matrix().at(i).size() == 1)
+            // save block
+            std::cout << "new block added " << new_block_nr << std::endl;
+
+            nlohmann::json final_block_j = *get_block_matrix().at(i+1).at(0); // i+1 is final block
+            
+            // actual saving of block starts here
+            Crowd::ConfigDir cd;
+            std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
+
+            std::string final_block_s = final_block_j.dump();
+
+            uint32_t first_chars = 11 - new_block_nr.length();
+            std::string number = "";
+            for (int j = 0; j <= first_chars; j++)
             {
-                // save block
-                std::cout << "new block added " << new_block_nr << std::endl;
-
-                nlohmann::json final_block_j = *get_block_matrix().at(i).at(0); // i-1 is final block
-                
-                // actual saving of block starts here
-                Crowd::ConfigDir cd;
-                std::string blockchain_folder_path = cd.GetConfigDir() + "blockchain/crowd";
-
-                std::string final_block_s = final_block_j.dump();
-
-                uint32_t first_chars = 11 - new_block_nr.length();
-                std::string number = "";
-                for (int j = 0; j <= first_chars; j++)
-                {
-                    number.append("0");
-                }
-                number.append(new_block_nr);
-
-                std::string block_file = "blockchain/crowd/block_" + number + ".json";
-                if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
-                {
-                    cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
-                }
-std::cout << "_____0002" << std::endl;
-                // actual saving to rocksdb
-                for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).size(); j++)
-                {
-std::cout << "_____0003" << std::endl;
-                    nlohmann::json m_j;
-                    m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).at(j);
-
-                    std::string full_hash_req = m_j["rocksdb"]["full_hash"];
-
-                    Common::Crypto crypto;
-                    // update rocksdb
-                    nlohmann::json rocksdb_j;
-                    rocksdb_j["version"] = "O.1";
-                    rocksdb_j["ip"] = m_j["ip"];
-                    rocksdb_j["online"] = true;
-                    rocksdb_j["server"] = true;
-                    rocksdb_j["fullnode"] = true;
-                    // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
-                    rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
-                    rocksdb_j["full_hash"] = full_hash_req;
-                    Crowd::Protocol proto;
-                    rocksdb_j["block_nr"] = new_block_nr;
-                    rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
-                    rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
-                    std::string rocksdb_s = rocksdb_j.dump();
-
-                    // Store to rocksdb for coordinator
-                    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-                    rocksy->Put(full_hash_req, rocksdb_s);
-                    delete rocksy;
-
-                    m_j["rocksdb"] = rocksdb_j;
-                    std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
-                    temporary_intro_msg_s_3d_mat.at(i).at(0).at(j) = ptr; // adding rocksdb
-                }
-
-                del++;
-
-                intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
-                std::vector<std::shared_ptr<nlohmann::json>> for_rocksdb_j = intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0);
-                
-                // inform chosen ones for final block
-                Poco::PocoCrowd pc;
-                pc.send_your_full_hash(i, final_block_j, new_block_nr);
-                pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
+                number.append("0");
             }
-        }
-std::cout << "_____0004" << std::endl;
-        // if last final block is saved --> delete blocks in matrices of i-1 --> don't delete the last final block from the matrices
-        for (uint16_t j = 0; j < del; j++)
-        {
-std::cout << "_____0005" << std::endl;
-            remove_front_from_block_matrix();
-            remove_front_from_calculated_hashes();
-            remove_front_from_prev_hashes();
+            number.append(new_block_nr);
 
-            Poco::IntroMsgsMat imm;
-            imm.remove_front_from_intro_msg_s_3d_mat();
-            Poco::IpAllHashes iah;
-            iah.remove_front_from_ip_all_hashes_3d_mat();
+            std::string block_file = "blockchain/crowd/block_" + number + ".json";
+            if (!boost::filesystem::exists(blockchain_folder_path + "/block_" + number + ".json"))
+            {
+                cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
+            }
+
+            // actual saving to rocksdb
+            for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
+            {
+                nlohmann::json m_j;
+                m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).at(j);
+
+                std::string full_hash_req = m_j["rocksdb"]["full_hash"];
+
+                Common::Crypto crypto;
+                // update rocksdb
+                nlohmann::json rocksdb_j;
+                rocksdb_j["version"] = "O.1";
+                rocksdb_j["ip"] = m_j["ip"];
+                rocksdb_j["online"] = true;
+                rocksdb_j["server"] = true;
+                rocksdb_j["fullnode"] = true;
+                // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
+                rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
+                rocksdb_j["full_hash"] = full_hash_req;
+                Crowd::Protocol proto;
+                rocksdb_j["block_nr"] = new_block_nr;
+                rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
+                rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
+                std::string rocksdb_s = rocksdb_j.dump();
+
+                // Store to rocksdb for coordinator
+                Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+                rocksy->Put(full_hash_req, rocksdb_s);
+                delete rocksy;
+
+                m_j["rocksdb"] = rocksdb_j;
+                std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
+                temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
+            }
+
+            del++;
+
+            intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
+            std::vector<std::shared_ptr<nlohmann::json>> for_rocksdb_j = intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0);
+            
+            // inform chosen ones for final block
+            Poco::PocoCrowd pc;
+            pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
+            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
         }
+    }
+
+    // if last final block is saved --> delete blocks in matrices of i-1 --> don't delete the last final block from the matrices
+    for (uint16_t j = 0; j < del; j++)
+    {
+        remove_front_from_block_matrix();
+        remove_front_from_calculated_hashes();
+        remove_front_from_prev_hashes();
+
+        Poco::IntroMsgsMat imm;
+        imm.remove_front_from_intro_msg_s_3d_mat();
+        Poco::IpAllHashes iah;
+        iah.remove_front_from_ip_all_hashes_3d_mat();
     }
 }
 
