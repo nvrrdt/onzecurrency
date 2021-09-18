@@ -235,8 +235,11 @@ void P2pNetwork::update_my_matrices_client(nlohmann::json buf_j)
     // Update your matrices:
     nlohmann::json msg;
     Poco::BlockMatrix bm;
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
     nlohmann::json contents_j;
     msg["req"] = "update_my_matrices";
+
     for (int i = 0; i < bm.get_block_matrix().size(); i++)
     {
         for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
@@ -245,6 +248,33 @@ void P2pNetwork::update_my_matrices_client(nlohmann::json buf_j)
         }
     }
     msg["bm"] = contents_j;
+    contents_j.clear();
+
+    for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
+    {
+        for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
+        {
+            for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
+            {
+                contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
+            }
+        }
+    }
+    msg["imm"] = contents_j;
+    contents_j.clear();
+
+    for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+    {
+        for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+        {
+            for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+            {
+                contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
+                contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
+            }
+        }
+    }
+    msg["iah"] = contents_j;
     contents_j.clear();
 
     set_resp_msg_client(msg.dump());

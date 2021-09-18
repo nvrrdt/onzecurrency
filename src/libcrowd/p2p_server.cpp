@@ -1150,11 +1150,17 @@ void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
     std::cout << "update_my_matrices server" << std::endl;
 
     nlohmann::json block_matrix_j = buf_j["bm"];
+    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["iah"];
 
     Poco::BlockMatrix bm;
-    bm.get_block_matrix().clear();
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
+
+    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
     bm.get_calculated_hash_matrix().clear();
     bm.get_prev_hash_matrix().clear();
+
     for (auto& [k1, v1] : block_matrix_j.items())
     {
         for (auto& [k2, v2] : v1.items())
@@ -1167,6 +1173,38 @@ void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
         bm.add_block_vector_to_block_matrix();
         bm.add_calculated_hash_vector_to_calculated_hash_matrix();
         bm.add_prev_hash_vector_to_prev_hash_matrix();
+    }
+
+    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+            }
+
+            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        }
+
+        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    }
+
+    for (auto& [k1, v1] : ip_all_hashes_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
+            }
+
+            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        }
+
+        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
     }
 
     // Disconect from client

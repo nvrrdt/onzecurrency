@@ -282,7 +282,7 @@ void PocoCrowd::create_and_send_block()
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
     bm->add_prev_hash_vector_to_prev_hash_matrix();
 
-    intro_msg_s_mat_. add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    intro_msg_s_mat_.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
 
     // start the sifting process and save a final block
