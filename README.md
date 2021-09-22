@@ -1,24 +1,32 @@
-### onze-terminal, libcommon, liblogin and libcrowd
+## onzecurrency
+
+Onzecurrency is a decentralised blockchain with a new kind of consensus algorithm called poco or proof of chosen ones.  
+If you like to know the technicalities of poco please read [this paper](papers/onzecurrency_crowd.pdf).  
+Compared to proof of work poco is energy friendly, compared to proof of stake poco has a fairer reward system.  
+Poco is a type of blockchain that is susceptible to 51% Sybil attacks, compared to the 51% compute attack of proof of work.  
+Also poco is normally easier regulatable, while pseudonimity remains possible.
+
+## onze-terminal, libcommon, liblogin, libpoco, libcrowd and libcoin
 
 #### build and test procedure
 - docker and docker-compose needs to be installed
 - sudo docker-compose run -p 1975:1975/tcp -p 1975:1975/udp onzecurrency bash
 - python3 ./scripts/build.py -rcd   # to install cryptopp and enet
 - python3 ./scripts/build.py -p     # to build and package the current state of onzecurrency
-- rm -rf ./config && onze-terminal
+- rm -rf ./config && onze-terminal  # for running onze-terminal once, see the test procedure below for a group of servers
 - python3 ./scripts/build.py -t     # there aren't many tests ...
 
-#### test procedure with 4 servers
-- foresee 4 servers (in the cloud)
+#### test procedure with 6 servers
+- foresee 6 servers (in the cloud)
 
 - in a first terminal: cd to onzecurrency folder; python3 ./scripts/build.py -s   
  = scp packaged deb file to servers, ip addresses should be adapted in ./scripts/build.py
 - in a second terminal: cd to onzecurrency folder
 - ./scripts/tmux.sh
-- ssh into the 4 servers
-- dpkg -i ./onzecurrency-0.1.1-Linux.deb
-- apt-get -f install
-- rm -rf /onzecurrency/.config && onze-terminal
+- ssh into the 6 servers
+- dpkg -i ./onzecurrency-0.1.1-Linux.deb        # do in each terminal
+- apt-get -f install                            # do in each terminal
+- rm -rf /onzecurrency/.config && onze-terminal # do in each terminal
 
 #### doing a new test procedure on the server
 - dpkg -i ./onzecurrency-0.1.1-Linux.deb && apt-get -f install && rm -rf /onzecurrency/.config && onze-terminal  
@@ -26,7 +34,7 @@
 #### only testing the program
 - rm -rf /onzecurrency/.config && onze-terminal
 
-### some commands for easy retrieval:
+## some commands for easy retrieval:
 
 #### docker
 - sudo docker-compose up
