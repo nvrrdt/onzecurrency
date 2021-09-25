@@ -520,46 +520,66 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
 // std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size() << std::endl;
 // std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size() << std::endl;
 
-    // Send your_full_hash request to intro_peer's
-    for (uint16_t i = 0; i < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size(); i++)
+    Crowd::FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+
+    Crypto* crypto = new Crypto();
+    std::string block_s = final_block_j.dump();
+    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    delete crypto;
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    delete rocksy;
+
+    nlohmann::json message_j;
+
+    if (co_from_this_block == my_full_hash)
     {
-        nlohmann::json msg_j;
-        msg_j["req"] = "your_full_hash";
-        nlohmann::json val_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).at(i);
-        msg_j["full_hash"] = val_j["rocksdb"]["full_hash"];
-        msg_j["prev_hash"] = val_j["rocksdb"]["prev_hash"];
-        msg_j["block"] = final_block_j;
-        msg_j["block_nr"] = new_block_nr;
+        // Send your_full_hash request to intro_peer's
+        for (uint16_t i = 0; i < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size(); i++)
+        {
+            nlohmann::json msg_j;
+            msg_j["req"] = "your_full_hash";
+            nlohmann::json val_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).at(i);
+            msg_j["full_hash"] = val_j["rocksdb"]["full_hash"];
+            msg_j["prev_hash"] = val_j["rocksdb"]["prev_hash"];
+            msg_j["block"] = final_block_j;
+            msg_j["block_nr"] = new_block_nr;
 
-        msg_j["rocksdb"] = val_j["rocksdb"];
+            msg_j["rocksdb"] = val_j["rocksdb"];
 
-        std::string msg_s = msg_j.dump();
+            std::string msg_s = msg_j.dump();
 
-        std::string peer_ip;
-        Crowd::P2p p2p;
-        std::pair<enet_uint32, std::string> ip_nr = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
-        p2p.number_to_ip_string(ip_nr.first, peer_ip);
-        
-        std::cout << "_______key: " << i << " ip: " << peer_ip << ", value: " << ip_nr.first << std::endl;
-        Crowd::P2pNetwork pn;
-        pn.p2p_client(peer_ip, msg_s);
+            std::string peer_ip;
+            Crowd::P2p p2p;
+            std::pair<enet_uint32, std::string> ip_nr = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
+            p2p.number_to_ip_string(ip_nr.first, peer_ip);
+            
+            std::cout << "_______key: " << i << " ip: " << peer_ip << ", value: " << ip_nr.first << std::endl;
+            Crowd::P2pNetwork pn;
+            pn.p2p_client(peer_ip, msg_s);
+        }
+
+        // // for debugging purposes:
+        // Poco::IpAllHashes iah;
+        // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+        // {
+        //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+        //     {
+        //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+        //         {
+        //             auto content = *iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k);
+        //             std::cout << "all hashes entry " << i << " " << j << " " << k << " " << content.first << " (oldest first)" << std::endl;
+        //         }
+        //     }
+        // }
+
+        std::cout << "Your_full_hash's sent" << std::endl;
     }
-
-    // // for debugging purposes:
-    // Poco::IpAllHashes iah;
-    // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
-    // {
-    //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
-    //     {
-    //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
-    //         {
-    //             auto content = *iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k);
-    //             std::cout << "all hashes entry " << i << " " << j << " " << k << " " << content.first << " (oldest first)" << std::endl;
-    //         }
-    //     }
-    // }
-
-    std::cout << "Your_full_hash's sent" << std::endl;
+    else
+    {
+        std::cout << "Your_full_hash not sent!" << std::endl;
+    }
 }
 
 // the block still needs to be hashed and the hash sent
