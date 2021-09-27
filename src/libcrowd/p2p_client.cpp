@@ -288,7 +288,7 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
     std::cout << "new_peer: " << std::endl;
     // should read the timestamp of the first new_peer request received
     
-    // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+    // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
     intro_msg_vec_.add_to_intro_msg_vec(buf_j);
     
     if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes

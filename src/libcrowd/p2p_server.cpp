@@ -334,7 +334,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 }
             }
 
-            // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+            // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
             ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
@@ -403,7 +403,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     std::cout << "New_peer req recv: " << std::endl;
     // should read the timestamp of the first new_peer request received
     
-    // wait 20 seconds of > 1 MB to create block, to process the timestamp if you are the first new_peer request
+    // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
     intro_msg_vec_.add_to_intro_msg_vec(buf_j);
 
     ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(buf_j["ip"], buf_j["hash_of_email"]); // TODO you have to reset this
