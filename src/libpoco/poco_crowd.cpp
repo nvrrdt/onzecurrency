@@ -405,7 +405,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
 }
 
 
-void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, std::vector<std::shared_ptr<nlohmann::json>> for_rocksdb_j)
+void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -434,17 +434,6 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         message_j["block"] = final_block_j;
         message_j["full_hash_coord"] = co_from_this_block;
 
-        nlohmann::json rocksdb_j;
-        for (auto& el: for_rocksdb_j)
-        {
-            nlohmann::json val = *el;
-            
-            rocksdb_j = 
-            {
-                {"rocksdb", val["rocksdb"]}
-            };
-        }
-
         message_j["rocksdb"] = rocksdb_j;
 
         int k;
@@ -453,8 +442,6 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         {
             message_j["chosen_ones"].push_back(v);
         }
-
-        
 
         to_sign_j["latest_block_nr"] = new_block_nr;
         to_sign_j["block"] = final_block_j;

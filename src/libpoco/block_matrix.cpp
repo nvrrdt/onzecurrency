@@ -456,10 +456,14 @@ void BlockMatrix::save_final_block_to_file()
                 cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
             }
 
+            // Send their full_hash to the new users
+            Poco::PocoCrowd pc;
+            pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
+
             // actual saving to rocksdb
+            nlohmann::json m_j, m_j_rocksdb;
             for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
             {
-                nlohmann::json m_j;
                 m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).at(j);
 
                 std::string full_hash_req = m_j["rocksdb"]["full_hash"];
@@ -486,20 +490,19 @@ void BlockMatrix::save_final_block_to_file()
                 rocksy->Put(full_hash_req, rocksdb_s);
                 delete rocksy;
 
-                m_j["rocksdb"] = rocksdb_j;
+                m_j_rocksdb.push_back(rocksdb_j);
                 std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
                 temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
             }
 
+            m_j["rocksdb"] = m_j_rocksdb;
+
             del++;
 
             intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
-            std::vector<std::shared_ptr<nlohmann::json>> for_rocksdb_j = intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0);
             
             // inform chosen ones for final block
-            Poco::PocoCrowd pc;
-            pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
-            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
+            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb);
         }
     }
 
