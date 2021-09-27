@@ -457,7 +457,6 @@ void BlockMatrix::save_final_block_to_file()
             }
 
             // actual saving to rocksdb
-            std::map<std::string, std::string> store_rocksdb_here; 
             for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
             {
                 nlohmann::json m_j;
@@ -482,8 +481,10 @@ void BlockMatrix::save_final_block_to_file()
                 rocksdb_j["rsa_pub_key"] = m_j["rsa_pub_key"];
                 std::string rocksdb_s = rocksdb_j.dump();
 
-                // Store to vector to send later
-                store_rocksdb_here[full_hash_req] = rocksdb_s;
+                // Store to rocksdb for coordinator
+                Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+                rocksy->Put(full_hash_req, rocksdb_s);
+                delete rocksy;
 
                 m_j["rocksdb"] = rocksdb_j;
                 std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
@@ -499,18 +500,6 @@ void BlockMatrix::save_final_block_to_file()
             Poco::PocoCrowd pc;
             pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
             pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, for_rocksdb_j);
-
-            // save rocksdb here
-            for ( auto r : store_rocksdb_here )
-            {
-                std::string f = r.first;
-                std::string s = r.second;
-                
-                // Store to rocksdb for coordinator
-                Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
-                rocksy->Put(f, s);
-                delete rocksy;
-            }
         }
     }
 
