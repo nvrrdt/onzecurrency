@@ -373,6 +373,15 @@ void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
     // you may close this connection
     std::cout << "Connection closed by other server, start this server (client)" << std::endl;
 
+    // start server
+    std::packaged_task<void()> task1([] {
+        P2pNetwork pn;
+        pn.p2p_server();
+    });
+    // Run task on new thread.
+    std::thread t1(std::move(task1));
+    t1.join();
+
     set_closed_client("close_this_conn");
 }
 

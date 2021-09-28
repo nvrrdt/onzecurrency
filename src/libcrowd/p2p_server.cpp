@@ -772,7 +772,7 @@ std::cout << "block: " << recv_block_s << std::endl;
         mt.save_block_to_file(recv_block_j, recv_latest_block_nr_s); // TODO what about parallel blocks?
 
         // Fill rocksdb
-        for (auto& v: rocksdb_j.items())
+        for (auto& [k, v]: rocksdb_j.items())
         {
             nlohmann::json val_j = v;
             std::string key_s = val_j["full_hash"];
@@ -956,7 +956,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     mt.save_block_to_file(recv_block_j,recv_latest_block_nr_s);
 
     // Fill rocksdb
-    for (auto& v: rocksdb_j.items())
+    for (auto& [k, v]: rocksdb_j.items())
     {
         nlohmann::json val_j = v;
         std::string key_s = val_j["full_hash"];
