@@ -365,6 +365,15 @@ void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
     // compare the received hash
     std::cout << "The hash comparison is (client): " << buf_j["hash_comp"] << std::endl;
 
+    // start server
+    std::packaged_task<void()> task1([] {
+        P2pNetwork pn;
+        pn.p2p_server();
+    });
+    // Run task on new thread.
+    std::thread t1(std::move(task1));
+    t1.join();
+
     set_closed_client("close_this_conn");
 }
 
