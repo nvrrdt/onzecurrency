@@ -131,6 +131,16 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     std::string req_latest_block = buf_j["latest_block"];
     enet_uint32 req_ip = buf_j["ip"];
 
+    if (req_ip == event_.peer->address.host)
+    {
+        // Disconect from client
+        nlohmann::json msg_j;
+        msg_j["req"] = "close_same_conn";
+        set_resp_msg_server(msg_j.dump());
+
+        return;
+    }
+
     // Validate email && verify message
     Auth auth;
 

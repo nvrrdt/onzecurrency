@@ -47,8 +47,9 @@ void P2pNetwork::handle_read_client()
         req_conversion["new_co"] =              10;
         req_conversion["your_full_hash"] =      11;
         req_conversion["hash_comparison"] =     12;
-        req_conversion["close_this_conn"] =     13;
-        req_conversion["close_this_conn_and_create"] =      14;
+        req_conversion["close_same_conn"] =     13;
+        req_conversion["close_this_conn"] =     14;
+        req_conversion["close_this_conn_and_create"] =      15;
 
         switch (req_conversion[req])
         {
@@ -76,9 +77,11 @@ void P2pNetwork::handle_read_client()
                         break;
             case 12:    hash_comparison_client(buf_j);
                         break;
-            case 13:    close_this_conn_client(buf_j);
+            case 13:    close_same_conn_client(buf_j);
                         break;
-            case 14:    close_this_conn_and_create_client(buf_j);
+            case 14:    close_this_conn_client(buf_j);
+                        break;
+            case 15:    close_this_conn_and_create_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -365,31 +368,21 @@ void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
     // compare the received hash
     std::cout << "The hash comparison is (client): " << buf_j["hash_comp"] << std::endl;
 
-    // start server
-    std::packaged_task<void()> task1([] {
-        P2pNetwork pn;
-        pn.p2p_server();
-    });
-    // Run task on new thread.
-    std::thread t1(std::move(task1));
-    t1.join();
-
     set_closed_client("close_this_conn");
+}
+
+void P2pNetwork::close_same_conn_client(nlohmann::json buf_j)
+{
+    // you may close this connection
+    std::cout << "Connection closed by other server, start this server (same client)" << std::endl;
+
+    set_closed_client("close_same_conn");
 }
 
 void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
     std::cout << "Connection closed by other server, start this server (client)" << std::endl;
-
-    // start server
-    std::packaged_task<void()> task1([] {
-        P2pNetwork pn;
-        pn.p2p_server();
-    });
-    // Run task on new thread.
-    std::thread t1(std::move(task1));
-    t1.join();
 
     set_closed_client("close_this_conn");
 }
@@ -518,7 +511,8 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
             }
         }
 
-        if (get_closed_client() == "close_this_conn"
+        if (get_closed_client() == "close_same_conn"
+            || get_closed_client() == "close_this_conn"
             || get_closed_client() == "close_this_conn_and_create"
             || get_closed_client() == "new_co")
         {

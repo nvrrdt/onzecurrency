@@ -24,18 +24,6 @@ using namespace Crowd;
 
 bool P2p::start_crowd(std::map<std::string, std::string> cred)
 {
-    // TODO Somehow I think these:
-    // std::packaged_task<void()> task1([] {
-    //     P2pNetwork pn;
-    //     pn.p2p_server();
-    // });
-    // // Run task on new thread.
-    // std::thread t1(std::move(task1));
-    // t1.join();
-    // aren't necessary (everyhere), but tests show it doesn't work without
-    // didn't go deep into the test though ...
-    // There's imediately a join so ...
-
     if (cred["new_peer"] == "true")
     {
         Rocksy* rocksy = new Rocksy("usersdb");
@@ -130,6 +118,10 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             pn.p2p_client(ip_mother_peer, message);
             if (pn.get_closed_client() == "closed_conn")
             {
+                // TODO must be implemented
+            }
+            else if (pn.get_closed_client() == "close_same_conn")
+            {
                 std::cout << "Connection was closed, probably no server reachable, maybe you are genesis" << std::endl;
 
                 // you are the only peer (genesis) and can create a block
@@ -203,50 +195,19 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 PrevHash ph;
                 ph.save_my_prev_hash_to_file(prev_hash);
 
-                // Prepare the creation of new blocks
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
-                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-
-                // start server
-                std::packaged_task<void()> task1([] {
-                    P2pNetwork pn;
-                    pn.p2p_server();
-                });
-                // Run task on new thread.
-                std::thread t2(std::move(task1));
-                t1.join();
-                t2.join();
+                sync->get_sleep_and_create_block();
             }
             else if (pn.get_closed_client() == "close_this_conn_and_create")
             {
                 std::cout << "Connection closed by other server, start this server (p2p) and create" << std::endl;
 
-                // Prepare the creation of new blocks
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
-                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-
-                // start server
-                std::packaged_task<void()> task1([] {
-                    P2pNetwork pn;
-                    pn.p2p_server();
-                });
-                // Run task on new thread.
-                std::thread t2(std::move(task1));
-                t1.join();
-                t2.join();
+                sync->get_sleep_and_create_block();
             }
             else if (pn.get_closed_client() == "close_this_conn")
             {
                 std::cout << "Connection closed by other server, start this server (p2p)" << std::endl;
-
-                // start server
-                std::packaged_task<void()> task1([] {
-                    P2pNetwork pn;
-                    pn.p2p_server();
-                });
-                // Run task on new thread.
-                std::thread t1(std::move(task1));
-                t1.join();
             }
             else if (pn.get_closed_client() == "new_co")
             {
@@ -258,32 +219,13 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
 
                 std::cout << "The p2p_client did it's job and the new_co too" << std::endl;
 
-                // Prepare the creation of new blocks
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
-                std::thread t1(&Poco::Synchronisation::get_sleep_and_create_block, sync);
-
-                // start server
-                std::packaged_task<void()> task1([] {
-                    P2pNetwork pn;
-                    pn.p2p_server();
-                });
-                // Run task on new thread.
-                std::thread t2(std::move(task1));
-                t1.join();
-                t2.join();
+                sync->get_sleep_and_create_block();
             }
             else
             {
                 // Is this else necessary, looks like a fallback ...
                 std::cout << "The p2p_client did it's job succesfully" << std::endl;
-
-                std::packaged_task<void()> task1([] {
-                    P2pNetwork pn;
-                    pn.p2p_server();
-                });
-                // Run task on new thread.
-                std::thread t1(std::move(task1));
-                t1.join();
             }
             return true;
         }
@@ -374,16 +316,6 @@ std::cout << "intro online message sent to " << ip_next_peer << std::endl;
             }
 
             delete rocksy;
-
-            std::cout << "Start server ..." << std::endl;
-
-            std::packaged_task<void()> task1([] {
-                P2pNetwork pn;
-                pn.p2p_server();
-            });
-            // Run task on new thread.
-            std::thread t1(std::move(task1));
-            t1.join();
         }
         else
         {

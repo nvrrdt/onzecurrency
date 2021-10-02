@@ -1,4 +1,6 @@
-#include <string>
+
+#include "main.hpp"
+
 #include <map>
 
 #include "auth.hpp"
@@ -7,8 +9,7 @@
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
-#include "main.hpp"
-
+using namespace Crowd;
 using namespace Coin;
 
 int main(int argc, char *argv[])
@@ -21,6 +22,7 @@ int main(int argc, char *argv[])
         std::cerr << "Error with authenticating" << std::endl;
         return 1;
     } else {
+        // start crowd
         std::packaged_task<void()> task1([cred] {
             P2p p;
             p.start_crowd(cred);
@@ -28,10 +30,25 @@ int main(int argc, char *argv[])
         // Run task on new thread.
         std::thread t1(std::move(task1));
 
-        // P2pNetworkC pnc;
-        // pnc.start_coin();
+        // start coin
+        std::packaged_task<void()> task2([cred] {
+            // P2pNetworkC pnc;
+            // pnc.start_coin();
+        });
+        // Run task on new thread.
+        std::thread t2(std::move(task2));
+
+        // start server
+        std::packaged_task<void()> task3([] {
+            P2pNetwork pn;
+            pn.p2p_server();
+        });
+        // Run task on new thread.
+        std::thread t3(std::move(task3));
 
         t1.join();
+        t2.join();
+        t3.join();
        
     }
 
