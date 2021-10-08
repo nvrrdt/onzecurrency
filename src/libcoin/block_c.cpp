@@ -203,14 +203,9 @@ std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::st
     return block_s;
 }
 
-void merkle_tree_c::set_genesis_prev_hash_c()
+std::string merkle_tree_c::get_genesis_prev_hash_c()
 {
     std::string genesis_message = "secrets are dumb, omnivalently speaking", genesis_prev_hash;
     Common::Crypto crypto;
-    genesis_prev_hash_c_ = crypto.bech32_encode_sha256(genesis_prev_hash);
-}
-
-std::string merkle_tree_c::get_genesis_prev_hash_c()
-{
-    return genesis_prev_hash_c_;
+    return crypto.bech32_encode_sha256(genesis_message);
 }

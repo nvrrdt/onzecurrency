@@ -81,7 +81,6 @@ void PocoCrowd::create_and_send_block()
                 std::string fh_s;
                 std::string prel_full_hash_req;
 
-                mt->set_genesis_prev_hash(); // TODO remove this set to the get
                 std::string prel_prev_hash_req = mt->get_genesis_prev_hash();
                 block_j_["prev_hash"] = prel_prev_hash_req;
                 block_j_["cnt"] = counter;

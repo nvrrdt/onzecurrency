@@ -199,7 +199,7 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
         {
             std::cout << "Is a directory, is empty" << std::endl;
 
-            block_j["prev_hash"] = genesis_prev_hash_;
+            block_j["prev_hash"] =  get_genesis_prev_hash();
             block_s = block_j.dump();
             std::string block_file = "blockchain/crowd/block_000000000000.json";
             if (!boost::filesystem::exists(blockchain_folder_path + "/block_000000000000.json"))
@@ -212,14 +212,9 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
     return block_s;
 }
 
-void merkle_tree::set_genesis_prev_hash()
+std::string merkle_tree::get_genesis_prev_hash()
 {
     std::string genesis_message = "secrets are dumb, omnivalently speaking", genesis_prev_hash;
     Common::Crypto crypto;
-    genesis_prev_hash_ = crypto.bech32_encode_sha256(genesis_prev_hash);
-}
-
-std::string merkle_tree::get_genesis_prev_hash()
-{
-    return genesis_prev_hash_;
+    return crypto.bech32_encode_sha256(genesis_message);
 }

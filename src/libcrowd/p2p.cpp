@@ -127,7 +127,6 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 // you are the only peer (genesis) and can create a block
 
                 merkle_tree mt;
-                mt.set_genesis_prev_hash();
                 std::string prev_hash = mt.get_genesis_prev_hash();
                 std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
                 std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);

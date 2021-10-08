@@ -22,7 +22,6 @@ namespace Coin
         std::string time_now_c();
         std::shared_ptr<std::stack<std::string>> calculate_root_hash_c(std::shared_ptr<std::stack<std::string>> &s_shptr);
         std::string save_block_to_file_c(nlohmann::json &block_j, std::string &latest_block);
-        void set_genesis_prev_hash_c();
         std::string get_genesis_prev_hash_c();
     private:
         std::shared_ptr<std::stack<std::string>> pop_two_and_hash_c(std::shared_ptr<std::stack<std::string>> &s_shptr);

@@ -112,7 +112,6 @@ void PocoCoin::create_and_send_block_c()
                 std::string root_hash_data = s_shptr_c_->top();
                 block_j_c_ = mt->create_block_c(datetime, root_hash_data, entry_transactions_j, counter);
 
-                mt->set_genesis_prev_hash_c();
                 block_j_c_["prev_hash"] = mt->get_genesis_prev_hash_c();
 
                 std::string my_next_block_nr = "0";

@@ -51,7 +51,6 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
                 if (v.empty())
                 {
                     Coin::merkle_tree_c mt;
-                    mt.set_genesis_prev_hash_c();
                     prev_hash = mt.get_genesis_prev_hash_c();
                 }
                 else
@@ -77,7 +76,6 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
             boost::filesystem::create_directories(p);
 
             Coin::merkle_tree_c mt;
-            mt.set_genesis_prev_hash_c();
             prev_hash = mt.get_genesis_prev_hash_c();
         }
     }
