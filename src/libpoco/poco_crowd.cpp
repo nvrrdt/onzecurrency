@@ -370,7 +370,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             if (sync.get_break_block_creation_loops()) break;
 
             if (key == 1) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -465,7 +465,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         {
             if (key == 1) continue;
             if (val == co_from_this_block) continue; // = coordinator
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 

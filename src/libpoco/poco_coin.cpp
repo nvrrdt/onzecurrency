@@ -332,7 +332,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
         {
             if (key == 1) continue;
             if (val == full_hash_req) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 

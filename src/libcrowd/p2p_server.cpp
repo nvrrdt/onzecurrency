@@ -255,7 +255,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             {
 //std::cout << "i: " << i << ", val: " << parts[i] << std::endl;
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
-                if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
+                if (parts[i] == "") continue; // UGLY hack: "" should be "0"
                 
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
@@ -292,7 +292,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
 //std::cout << "___i2: " << i << ", parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
 //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
-                        if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
+                        if (parts_underlying[i] == my_full_hash) continue;
 //std::cout << "i2: " << i << " parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
@@ -542,7 +542,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
             if (sync.get_break_block_creation_loops()) break;
             
             if (key == 1) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
 
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
 
@@ -686,7 +686,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
             if (sync.get_break_block_creation_loops()) break;
             
             if (key == 1) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
@@ -889,7 +889,7 @@ std::cout << "___07 " << std::endl;
         {
 std::cout << "___08 " << std::endl;
             if (key == 1) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
 std::cout << "___09 " << std::endl;
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
@@ -1077,7 +1077,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     for (auto &[key, val] : parts)
     {
         if (key == 1) continue;
-        if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+        if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == full_hash_coord_from_coord) continue;
         
         Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
@@ -1401,7 +1401,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
         {
             if (key == 1) continue;
             if (val == full_hash) continue;
-            if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1556,7 +1556,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     {
         if (key == 1) continue;
         if (val == full_hash) continue;
-        if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+        if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));

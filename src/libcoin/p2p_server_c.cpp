@@ -177,7 +177,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                 {
                     if (key == 1) continue;
                     if (val == full_hash_req) continue;
-                    if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                    if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
                     Rocksy* rocksy = new Rocksy("usersdb");
 
@@ -364,7 +364,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                 {
                     if (key == 1) continue;
                     if (val == full_hash_req) continue;
-                    if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                    if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
                     Rocksy* rocksy = new Rocksy("usersdb");
 
@@ -551,7 +551,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                 {
                     if (key == 1) continue;
                     if (val == full_hash_req) continue;
-                    if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                    if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
                     Rocksy* rocksy = new Rocksy("usersdb");
 
@@ -688,7 +688,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
             {
                 if (key == 1) continue;
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
-                if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
                 Rocksy* rocksy = new Rocksy("usersdb");
 
@@ -858,7 +858,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
             {
                 if (key == 1) continue;
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
-                if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
                 Rocksy* rocksy = new Rocksy("usersdb");
 
@@ -1029,7 +1029,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
             {
                 if (key == 1) continue;
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
-                if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+                if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
                 Rocksy* rocksy = new Rocksy("usersdb");
 
