@@ -169,11 +169,18 @@ void P2pNetwork::update_your_rocksdb_client(nlohmann::json buf_j)
 
 void P2pNetwork::update_your_matrices_client(nlohmann::json buf_j)
 {
-    std::cout << "update_your_matrices client " << std::endl;
-
     nlohmann::json block_matrix_j = buf_j["bm"];
-    
+    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["iah"];
+
     Poco::BlockMatrix bm;
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
+
+    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
+    bm.get_calculated_hash_matrix().clear();
+    bm.get_prev_hash_matrix().clear();
+
     for (auto& [k1, v1] : block_matrix_j.items())
     {
         for (auto& [k2, v2] : v1.items())
@@ -188,8 +195,37 @@ void P2pNetwork::update_your_matrices_client(nlohmann::json buf_j)
         bm.add_prev_hash_vector_to_prev_hash_matrix();
     }
 
-    // TODO do intro_msg_vec and ip_hemail_vec need to be communicated too
-    //      or maybe start participating in the network in the next iteration?
+    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+            }
+
+            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        }
+
+        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    }
+
+    for (auto& [k1, v1] : ip_all_hashes_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
+            }
+
+            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        }
+
+        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+    }
 }
 
 void P2pNetwork::update_my_blocks_and_rocksdb_client(nlohmann::json buf_j)
@@ -233,7 +269,7 @@ void P2pNetwork::update_my_blocks_and_rocksdb_client(nlohmann::json buf_j)
 
 void P2pNetwork::update_my_matrices_client(nlohmann::json buf_j)
 {
-    std::cout << "update_my_matrices client" << std::endl;
+    std::cout << "update_your_matrices client" << std::endl;
 
     // Update your matrices:
     nlohmann::json msg;
@@ -241,7 +277,7 @@ void P2pNetwork::update_my_matrices_client(nlohmann::json buf_j)
     Poco::IntroMsgsMat imm;
     Poco::IpAllHashes iah;
     nlohmann::json contents_j;
-    msg["req"] = "update_my_matrices";
+    msg["req"] = "update_your_matrices";
 
     for (int i = 0; i < bm.get_block_matrix().size(); i++)
     {

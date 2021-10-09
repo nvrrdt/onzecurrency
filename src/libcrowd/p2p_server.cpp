@@ -47,8 +47,9 @@ void P2pNetwork::handle_read_server()
         req_conversion["update_my_matrices"] =  12;
         req_conversion["hash_comparison"] =     13;
         req_conversion["update_my_blocks_and_rocksdb"] = 14;
-        req_conversion["intro_online"] =        15;
-        req_conversion["new_online"] =          16;
+        req_conversion["update_your_matrices"] =    15;
+        req_conversion["intro_online"] =        16;
+        req_conversion["new_online"] =          17;
 
         switch (req_conversion[req])
         {
@@ -80,9 +81,11 @@ void P2pNetwork::handle_read_server()
                         break;
             case 14:    update_my_blocks_and_rocksdb(buf_j);
                         break;
-            case 15:    intro_online(buf_j);
+            case 15:    update_your_matrices_server(buf_j);
                         break;
-            case 16:    new_online(buf_j);
+            case 16:    intro_online(buf_j);
+                        break;
+            case 17:    new_online(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_server_c(buf_j);
@@ -194,8 +197,8 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             std::string my_latest_block = proto.get_last_block_nr();
             // std::cout << "My latest block: " << my_latest_block << std::endl;
             // std::cout << "Req latest block: " << req_latest_block << std::endl;
-            
-            // update blockchains and rockdb's
+
+            // update blockchain - TODO it's better to only upload the first block as this is necssary for time synchronisation
             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
                 // Update blockchain: send latest block to peer
@@ -213,34 +216,6 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     msg["block"] = list_of_blocks_j[i]["block"];
                     set_resp_msg_server(msg.dump());
                 }
-
-                // Update rockdb's:
-                // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
-                // , then lookup those user_id's in rocksdb and send
-                nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
-
-                Rocksy* rocksy = new Rocksy("usersdb");
-                for (auto& user : list_of_users_j) // TODO better make a string with all keys with its values and send that once
-                {
-                    nlohmann::json msg;
-                    msg["req"] = "update_your_rocksdb";
-                    msg["key"] = user;
-
-                    std::string u = user;
-                    std::string value = rocksy->Get(u);
-                    msg["value"] = value;
-
-                    set_resp_msg_server(msg.dump());
-                }
-                delete rocksy;
-            }
-            else if (req_latest_block > my_latest_block)
-            {
-                // TODO: update your own blockchain
-                nlohmann::json msg;
-                msg["req"] = "update_my_blocks_and_rocksdb"; // TODO ... and update my block_matrix
-                msg["block_nr"] = my_latest_block;
-                set_resp_msg_server(msg.dump());
             }
 
             // Disconect from client
@@ -282,7 +257,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "0" || parts[i] == "") continue; // UGLY hack: "" should be "0"
                 
-                Rocksy* rocksy = new Rocksy("usersdb");
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
                 std::string val = parts[i];
@@ -311,13 +286,14 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
                     std::string next_hash = parts[2];
                     std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
                     std::string key2, val2;
-                    Rocksy* rocksy = new Rocksy("usersdb");
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
                     for (int i = 1; i <= parts_underlying.size(); i++)
                     {
-                        //std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
+//std::cout << "___i2: " << i << ", parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
+//std::cout << "i2: " << i << " val2: " << parts_underlying[i] << std::endl;
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                         if (parts_underlying[i] == my_full_hash || parts_underlying[i] == "0") continue;
-    //std::cout << "parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
+//std::cout << "i2: " << i << " parts_underlying: " << parts_underlying[i] << ", my_full_hash: " << my_full_hash << std::endl;
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
@@ -828,18 +804,21 @@ std::cout << "block: " << recv_block_s << std::endl;
         {
             if (i < j)
             {
+std::cout << "___000_ " << std::endl;
                 if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
                 std::string c_one = chosen_ones[i];
-                Rocksy* rocksy = new Rocksy("usersdb");
+std::cout << "___00 c_one " << c_one << std::endl;
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
+std::cout << "___01 value_j " << value_j.dump() << std::endl;
                 delete rocksy;
 
                 enet_uint32 ip = value_j["ip"];
                 std::string peer_ip;
                 P2p p2p;
                 p2p.number_to_ip_string(ip, peer_ip);
-
+std::cout << "___02 " << std::endl;
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison";
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
@@ -852,7 +831,7 @@ std::cout << "block: " << recv_block_s << std::endl;
                 continue;
             }
         }
-
+std::cout << "___03 " << std::endl;
         // inform your underlying ones from this block
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
@@ -869,16 +848,17 @@ std::cout << "block: " << recv_block_s << std::endl;
                 }
             }
         }
+std::cout << "___04 " << std::endl;
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-
+std::cout << "___05 " << std::endl;
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_final_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
         message_j["rocksdb"] = buf_j["rocksdb"];
-
+std::cout << "___06 " << std::endl;
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -902,16 +882,17 @@ std::cout << "block: " << recv_block_s << std::endl;
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-
+std::cout << "___07 " << std::endl;
         Crowd::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+std::cout << "___08 " << std::endl;
             if (key == 1) continue;
             if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
-            
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+std::cout << "___09 " << std::endl;
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1020,7 +1001,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
             if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
             std::string c_one = chosen_ones[i];
-            Rocksy* rocksy = new Rocksy("usersdb");
+            Rocksy* rocksy = new Rocksy("usersdbreadonly");
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
             delete rocksy;
 
@@ -1099,7 +1080,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
         if (val == my_full_hash || val == "" || val == "0") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == full_hash_coord_from_coord) continue;
         
-        Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+        Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1268,7 +1249,7 @@ void P2pNetwork::update_my_blocks_and_rocksdb(nlohmann::json buf_j)
     // Update rockdb's:
     nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
                                                                                                         // maybe even a stack is better ...
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     for (auto& user : list_of_users_j)
     {
         nlohmann::json msg;
@@ -1282,6 +1263,67 @@ void P2pNetwork::update_my_blocks_and_rocksdb(nlohmann::json buf_j)
         set_resp_msg_server(msg.dump());
     }
     delete rocksy;
+}
+
+void P2pNetwork::update_your_matrices_server(nlohmann::json buf_j)
+{
+    nlohmann::json block_matrix_j = buf_j["bm"];
+    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["iah"];
+
+    Poco::BlockMatrix bm;
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
+
+    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
+    bm.get_calculated_hash_matrix().clear();
+    bm.get_prev_hash_matrix().clear();
+
+    for (auto& [k1, v1] : block_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            bm.add_block_to_block_vector(v2);
+            bm.add_calculated_hash_to_calculated_hash_vector(v2);
+            bm.add_prev_hash_to_prev_hash_vector(v2);
+        }
+
+        bm.add_block_vector_to_block_matrix();
+        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+        bm.add_prev_hash_vector_to_prev_hash_matrix();
+    }
+
+    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+            }
+
+            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        }
+
+        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    }
+
+    for (auto& [k1, v1] : ip_all_hashes_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
+            }
+
+            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        }
+
+        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+    }
 }
 
 void P2pNetwork::intro_online(nlohmann::json buf_j)

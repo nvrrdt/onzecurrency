@@ -115,7 +115,7 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
     uint256_t counter, total_counter;
     std::map<uint32_t, uint256_t> chosen_ones_counter;
 
-    for (int i = 1; i <= nmax; i++) // nmax = amoutn of chosen ones
+    for (int i = 1; i <= nmax; i++) // nmax = amount of chosen ones
     {
         chosen_ones_counter[i] = 0;
     }
@@ -203,6 +203,8 @@ std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash,
     for (int i = 1; i <= chosen_ones_counter.size(); i++)
     {
         uint256_t val = chosen_ones_counter[i];
+
+        if (val == 0) continue;
 
         if (i == 1)
         {

@@ -84,6 +84,7 @@ namespace Crowd
         void update_my_matrices(nlohmann::json buf_j);
         void hash_comparison(nlohmann::json buf_j);
         void update_my_blocks_and_rocksdb(nlohmann::json buf_j);
+        void update_your_matrices_server(nlohmann::json buf_j);
         void intro_online(nlohmann::json buf_j);
         void new_online(nlohmann::json buf_j);
 

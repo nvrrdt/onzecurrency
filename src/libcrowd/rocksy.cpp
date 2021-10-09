@@ -205,7 +205,7 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
         {
             if (it->key().ToString() > from)
             {
-                std::cout << "it->key(): " << it->key().ToString() << std::endl;
+                // std::cout << "it->key(): " << it->key().ToString() << std::endl;
                 count++;
 
                 if (it->key().ToString() >= to)
@@ -225,7 +225,7 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
         {
             if (it->key().ToString() > from)
             {
-                std::cout << "it->key(): " << it->key().ToString() << std::endl;
+                // std::cout << "it->key(): " << it->key().ToString() << std::endl;
                 count++;
             }
         }
