@@ -198,24 +198,15 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             // std::cout << "My latest block: " << my_latest_block << std::endl;
             // std::cout << "Req latest block: " << req_latest_block << std::endl;
 
-            // update blockchain - TODO it's better to only upload the first block as this is necssary for time synchronisation
             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
-                // Update blockchain: send latest block to peer
-                nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
-                //std::cout << "list_of_blocks_s: " << list_of_blocks_j.dump() << std::endl;
-                uint64_t value;
-                std::istringstream iss(my_latest_block);
-                iss >> value;
+                // Send first block to peer to enable datetime synchonisation
+                nlohmann::json first_block_j = proto.get_block_at("0");
 
-                for (uint64_t i = 0; i <= value; i++)
-                {
-                    nlohmann::json msg;
-                    msg["req"] = "update_your_blocks";
-                    msg["block_nr"] = list_of_blocks_j[i]["block_nr"];
-                    msg["block"] = list_of_blocks_j[i]["block"];
-                    set_resp_msg_server(msg.dump());
-                }
+                nlohmann::json msg;
+                msg["req"] = "send_first_block";
+                msg["block"] = first_block_j;
+                set_resp_msg_server(msg.dump());
             }
 
             // Disconect from client
@@ -819,6 +810,7 @@ std::cout << "___01 value_j " << value_j.dump() << std::endl;
                 P2p p2p;
                 p2p.number_to_ip_string(ip, peer_ip);
 std::cout << "___02 " << std::endl;
+std::cout << "___02 peer_ip " << peer_ip << std::endl;
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison";
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;

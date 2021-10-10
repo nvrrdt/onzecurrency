@@ -50,6 +50,7 @@ void P2pNetwork::handle_read_client()
         req_conversion["close_same_conn"] =     13;
         req_conversion["close_this_conn"] =     14;
         req_conversion["close_this_conn_and_create"] =      15;
+        req_conversion["send_first_block"] =      16;
 
         switch (req_conversion[req])
         {
@@ -82,6 +83,8 @@ void P2pNetwork::handle_read_client()
             case 14:    close_this_conn_client(buf_j);
                         break;
             case 15:    close_this_conn_and_create_client(buf_j);
+                        break;
+            case 16:    send_first_block_received_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -429,6 +432,17 @@ void P2pNetwork::close_this_conn_and_create_client(nlohmann::json buf_j)
     std::cout << "Connection closed by other server, start this server (client) and create" << std::endl;
 
     set_closed_client("close_this_conn_and_create");
+}
+
+void P2pNetwork::send_first_block_received_client(nlohmann::json buf_j)
+{
+    std::cout << "Received first block (client)" << std::endl;
+
+    nlohmann::json first_block_j = buf_j["block"];
+    std::string block_nr = "0";
+
+    merkle_tree mt;
+    mt.save_block_to_file(first_block_j, block_nr);
 }
 
 void P2pNetwork::set_resp_msg_client(std::string msg)

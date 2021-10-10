@@ -103,6 +103,7 @@ namespace Crowd
         void close_same_conn_client(nlohmann::json buf_j);
         void close_this_conn_client(nlohmann::json buf_j);
         void close_this_conn_and_create_client(nlohmann::json buf_j);
+        void send_first_block_received_client(nlohmann::json buf_j);
 
         static bool get_quit_server_req()
         {
