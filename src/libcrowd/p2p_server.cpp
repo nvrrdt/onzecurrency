@@ -37,19 +37,15 @@ void P2pNetwork::handle_read_server()
         req_conversion["connect"] =             2;
         req_conversion["intro_peer"] =          3;
         req_conversion["new_peer"] =            4;
-        req_conversion["update_your_blocks"] =  5;
-        req_conversion["update_your_rocksdb"] = 6;
         req_conversion["intro_prel_block"] =    7;
         req_conversion["new_prel_block"] =      8;
         req_conversion["intro_final_block"] =   9;
         req_conversion["new_final_block"] =     10;
         req_conversion["your_full_hash"] =      11;
-        req_conversion["update_my_matrices"] =  12;
         req_conversion["hash_comparison"] =     13;
-        req_conversion["update_my_blocks_and_rocksdb"] = 14;
-        req_conversion["update_your_matrices"] =    15;
         req_conversion["intro_online"] =        16;
         req_conversion["new_online"] =          17;
+        req_conversion["update_you"] =          18;
 
         switch (req_conversion[req])
         {
@@ -61,10 +57,6 @@ void P2pNetwork::handle_read_server()
                         break;
             case 4:     new_peer(buf_j);
                         break;
-            case 5:     update_your_blocks(buf_j);
-                        break;
-            case 6:     update_your_rocksdb(buf_j);
-                        break;
             case 7:     intro_prel_block(buf_j);
                         break;
             case 8:     new_prel_block(buf_j);
@@ -75,17 +67,13 @@ void P2pNetwork::handle_read_server()
                         break;
             case 11:    your_full_hash(buf_j);
                         break;
-            case 12:    update_my_matrices(buf_j);
-                        break;
             case 13:    hash_comparison(buf_j);
-                        break;
-            case 14:    update_my_blocks_and_rocksdb(buf_j);
-                        break;
-            case 15:    update_your_matrices_server(buf_j);
                         break;
             case 16:    intro_online(buf_j);
                         break;
             case 17:    new_online(buf_j);
+                        break;
+            case 18:    update_you_server(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_server_c(buf_j);
@@ -389,32 +377,6 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
     set_resp_msg_server(m_j.dump());
-}
-
-void P2pNetwork::update_your_blocks(nlohmann::json buf_j)
-{
-    std::cout << "update_your_blocks server" << std::endl;
-    // save blocks to blockchain folder
-
-    nlohmann::json block_j = buf_j["block"];
-    std::string block_nr = buf_j["block_nr"];
-    // std::cout << "block_s: " << block_j.dump() << std::endl;
-    // std::cout << "block_nr: " << block_nr << std::endl;
-
-    merkle_tree mt;
-    mt.save_block_to_file(block_j, block_nr);
-}
-
-void P2pNetwork::update_your_rocksdb(nlohmann::json buf_j)
-{
-    std::cout << "update_your_rocksdb server" << std::endl;
-
-    std::string key_s = buf_j["key"];
-    std::string value_s = buf_j["value"];
-
-    Rocksy* rocksy = new Rocksy("usersdb");
-    rocksy->Put(key_s, value_s);
-    delete rocksy;
 }
 
 void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
@@ -1114,85 +1076,12 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
 // std::cout << "block_nr: " << req_latest_block_nr << std::endl;
 // std::cout << "block: " << block_j.dump() << std::endl;
 
-    // Update my blocks and rocksdb_
+    // Update my blocks, rocksdb and matrices
     Protocol proto;
     std::string my_latest_block = proto.get_last_block_nr();
     nlohmann::json m_j;
-    m_j["req"] = "update_my_blocks_and_rocksdb";
+    m_j["req"] = "update_me";
     m_j["block_nr"] = my_latest_block;
-    set_resp_msg_server(m_j.dump());
-
-    // Update my matrices
-    nlohmann::json mm_j;
-    mm_j["req"] = "update_my_matrices";
-    set_resp_msg_server(mm_j.dump());
-}
-
-void P2pNetwork::update_my_matrices(nlohmann::json buf_j)
-{
-    std::cout << "update_my_matrices server" << std::endl;
-
-    nlohmann::json block_matrix_j = buf_j["bm"];
-    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
-    nlohmann::json ip_all_hashes_j = buf_j["iah"];
-
-    Poco::BlockMatrix bm;
-    Poco::IntroMsgsMat imm;
-    Poco::IpAllHashes iah;
-
-    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
-    bm.get_calculated_hash_matrix().clear();
-    bm.get_prev_hash_matrix().clear();
-
-    for (auto& [k1, v1] : block_matrix_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            bm.add_block_to_block_vector(v2);
-            bm.add_calculated_hash_to_calculated_hash_vector(v2);
-            bm.add_prev_hash_to_prev_hash_vector(v2);
-        }
-
-        bm.add_block_vector_to_block_matrix();
-        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
-        bm.add_prev_hash_vector_to_prev_hash_matrix();
-    }
-
-    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            for (auto& [k3, v3] : v2.items())
-            {
-                imm.add_intro_msg_to_intro_msg_s_vec(v3);
-            }
-
-            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
-        }
-
-        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
-    }
-
-    for (auto& [k1, v1] : ip_all_hashes_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            for (auto& [k3, v3] : v2.items())
-            {
-                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
-                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
-                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
-            }
-
-            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-        }
-
-        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-    }
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
     set_resp_msg_server(m_j.dump());
 }
 
@@ -1200,122 +1089,6 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
 {
     // compare the received hash
     std::cout << "The hash comparison is (server): " <<  buf_j["hash_comp"] << std::endl;
-}
-
-void P2pNetwork::update_my_blocks_and_rocksdb(nlohmann::json buf_j)
-{
-    std::cout << "update_your_blocks_and_rocksdb server" << std::endl;
-    // send blocks to peer
-
-    Protocol proto;
-    std::string my_latest_block = proto.get_last_block_nr();
-    std::string req_latest_block = buf_j["block_nr"];
-
-    nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
-
-    uint64_t my_value;
-    std::istringstream iss(my_latest_block);
-    iss >> my_value;
-
-    uint64_t req_value;
-    std::istringstream isss(req_latest_block);
-    isss >> req_value;
-
-    uint64_t next_req_value = req_value + 1;
-
-//std::cout << "next_req_value: " << next_req_value << ", my_value:" << my_value << std::endl;
-    for (uint64_t i = next_req_value; i <= my_value; i++)
-    {
-        nlohmann::json block_j = list_of_blocks_j[i]["block"];
-//std::cout << "block_j: " << block_j << std::endl;
-//std::cout << "iiiiiiii: " << i << std::endl;
-        nlohmann::json msg;
-        msg["req"] = "update_your_blocks";
-        std::string block_nr_j = list_of_blocks_j[i]["block_nr"];
-        msg["block_nr"] = block_nr_j;
-//std::cout << "block_nr_j: " << block_nr_j << std::endl;
-        msg["block"] = block_j;
-        set_resp_msg_client(msg.dump());
-    }
-
-    // Update rockdb's:
-    nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
-                                                                                                        // maybe even a stack is better ...
-    Rocksy* rocksy = new Rocksy("usersdbreadonly");
-    for (auto& user : list_of_users_j)
-    {
-        nlohmann::json msg;
-        msg["req"] = "update_your_rocksdb";
-        msg["key"] = user;
-
-        std::string u = user;
-        std::string value = rocksy->Get(u);
-        msg["value"] = value;
-
-        set_resp_msg_server(msg.dump());
-    }
-    delete rocksy;
-}
-
-void P2pNetwork::update_your_matrices_server(nlohmann::json buf_j)
-{
-    nlohmann::json block_matrix_j = buf_j["bm"];
-    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
-    nlohmann::json ip_all_hashes_j = buf_j["iah"];
-
-    Poco::BlockMatrix bm;
-    Poco::IntroMsgsMat imm;
-    Poco::IpAllHashes iah;
-
-    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
-    bm.get_calculated_hash_matrix().clear();
-    bm.get_prev_hash_matrix().clear();
-
-    for (auto& [k1, v1] : block_matrix_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            bm.add_block_to_block_vector(v2);
-            bm.add_calculated_hash_to_calculated_hash_vector(v2);
-            bm.add_prev_hash_to_prev_hash_vector(v2);
-        }
-
-        bm.add_block_vector_to_block_matrix();
-        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
-        bm.add_prev_hash_vector_to_prev_hash_matrix();
-    }
-
-    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            for (auto& [k3, v3] : v2.items())
-            {
-                imm.add_intro_msg_to_intro_msg_s_vec(v3);
-            }
-
-            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
-        }
-
-        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
-    }
-
-    for (auto& [k1, v1] : ip_all_hashes_j.items())
-    {
-        for (auto& [k2, v2] : v1.items())
-        {
-            for (auto& [k3, v3] : v2.items())
-            {
-                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
-                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
-                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
-            }
-
-            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-        }
-
-        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-    }
 }
 
 void P2pNetwork::intro_online(nlohmann::json buf_j)
@@ -1576,6 +1349,100 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     rocksy->Put(full_hash, value_s);
 
     delete rocksy;
+}
+
+void P2pNetwork::update_you_server(nlohmann::json buf_j)
+{
+    std::cout << "Update_me: receive all blocks, rocksdb and matrices from server (server)" << std::endl;
+
+    // Update blocks
+    nlohmann::json blocks_j = buf_j["blocks"];
+    for (auto& b: blocks_j.items())
+    {
+        nlohmann::json block_j = b.value()["block"];
+        std::string block_nr = b.value()["block_nr"];
+
+        merkle_tree mt;
+        mt.save_block_to_file(block_j, block_nr);
+    }
+std::cout << "__00_s " << std::endl;
+    // Update rocksdb
+    nlohmann::json rdb_j = buf_j["rocksdb"];
+std::cout << "__00_s " << rdb_j.dump() << std::endl;
+    for (auto& element : rdb_j)
+    {
+        std::string key_s = element["full_hash"];
+        std::string value_s = element.dump();
+std::cout << "__00_s k " << key_s << std::endl;
+std::cout << "__00_s v " << value_s << std::endl;
+        Rocksy* rocksy = new Rocksy("usersdb");
+        rocksy->Put(key_s, value_s);
+        delete rocksy;
+    }
+std::cout << "__01_s " << std::endl;
+    // Update matrices
+    nlohmann::json block_matrix_j = buf_j["bm"];
+    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["iah"];
+
+    Poco::BlockMatrix bm;
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
+std::cout << "__02_s " << std::endl;
+    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
+    bm.get_calculated_hash_matrix().clear();
+    bm.get_prev_hash_matrix().clear();
+std::cout << "__03_s " << std::endl;
+    for (auto& [k1, v1] : block_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            bm.add_block_to_block_vector(v2);
+            bm.add_calculated_hash_to_calculated_hash_vector(v2);
+            bm.add_prev_hash_to_prev_hash_vector(v2);
+        }
+
+        bm.add_block_vector_to_block_matrix();
+        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+        bm.add_prev_hash_vector_to_prev_hash_matrix();
+    }
+std::cout << "__04_s " << std::endl;
+    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+            }
+
+            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        }
+
+        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    }
+std::cout << "__05_s " << std::endl;
+    for (auto& [k1, v1] : ip_all_hashes_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
+            }
+
+            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        }
+
+        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+    }
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::set_resp_msg_server(std::string msg)

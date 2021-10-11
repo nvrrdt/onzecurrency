@@ -464,8 +464,8 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
-            if (val == co_from_this_block) continue; // = coordinator
-            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            //if (val == co_from_this_block) continue; // = coordinator
+            //if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -498,7 +498,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     }
 }
 
-void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr)
+void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr, std::vector<std::string> list_of_new_users)
 {
     // your_full_hash must only be sent when a block is final!!
 
@@ -515,6 +515,17 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    for (auto& element: list_of_new_users)
+    {
+        if (co_from_this_block == element)
+        {
+            co_from_this_block = rocksy->FindNextPeer(co_from_this_block);
+        }
+        else
+        {
+            break;
+        }
+    }
     delete rocksy;
 
     nlohmann::json message_j;

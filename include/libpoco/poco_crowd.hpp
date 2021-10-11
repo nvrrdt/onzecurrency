@@ -27,7 +27,7 @@ namespace Poco
         static void set_hash_of_new_block(std::string block);
         void reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_j);
         void inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j);
-        void send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr);
+        void send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr, std::vector<std::string> list_of_new_users);
     private:
         void inform_chosen_ones_prel_block(std::string my_next_block, nlohmann::json block_j);
     private:

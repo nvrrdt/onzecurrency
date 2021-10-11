@@ -235,13 +235,14 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
                 }
             }
         }
-
+std::cout << "_____0000 " << std::endl;
         // add received blocks to pos_recv
         std::vector<int16_t> pos_recv = {};
         for (int16_t i = 0; i < block_matrix.back().size(); i++)
         {
             for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
+std::cout << "_____0001 " << std::endl;
                 if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
                     std::cout << "received block found" << std::endl;
@@ -251,10 +252,11 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
                 }
             }
         }
-
+std::cout << "_____0002 " << std::endl;
         // remove sent and received blocks from pos_sent and pos_recv matrix
         for (int16_t i = pos.back().size() - 1; i >= 0; i--)
         {
+std::cout << "_____0003 " << std::endl;
             if (i == pos_sent.back())
             {
                 pos.back().erase(pos.back().begin() + pos_sent.back());
@@ -266,7 +268,7 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
                 pos_recv.pop_back();
             }
         }
-
+std::cout << "_____0004 " << std::endl;
         // erase the non-sent and non-received blocks from pos
         if (pos_length != pos.back().size())
         {
@@ -279,7 +281,7 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
                 hashes_from_contents.back().erase(hashes_from_contents.back().begin() + pos.back().at(n));
             }
         }
-
+std::cout << "_____0005 " << std::endl;
         clear_received_block_matrix();
         copy_received_block_matrix.clear();
         clear_sent_block_matrix();
@@ -456,12 +458,9 @@ void BlockMatrix::save_final_block_to_file()
                 cd.CreateFileInConfigDir(block_file, final_block_s); // TODO: make it count
             }
 
-            // Send their full_hash to the new users
-            Poco::PocoCrowd pc;
-            pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
-
             // actual saving to rocksdb
             nlohmann::json m_j, m_j_rocksdb;
+            std::vector<std::string> list_of_new_users;
             for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
             {
                 m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).at(j);
@@ -493,6 +492,8 @@ void BlockMatrix::save_final_block_to_file()
                 m_j_rocksdb.push_back(rocksdb_j);
                 std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
                 temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
+
+                list_of_new_users.push_back(full_hash_req);
             }
 
             m_j["rocksdb"] = m_j_rocksdb;
@@ -501,6 +502,9 @@ void BlockMatrix::save_final_block_to_file()
 
             intro_msg_s_mat_.replace_intro_msg_s_3d_mat(temporary_intro_msg_s_3d_mat);
             
+            // Send their full_hash to the new users
+            Poco::PocoCrowd pc;
+            pc.send_your_full_hash(i+1, final_block_j, new_block_nr, list_of_new_users);
             // inform chosen ones for final block
             pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb);
         }
