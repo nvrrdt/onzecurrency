@@ -515,11 +515,22 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
-    for (auto& element: list_of_new_users)
+    bool is_part = false;
+    for (;;)
     {
-        if (co_from_this_block == element)
+        // it breaks when the new users (from a new block) are yet part of all the users
+        for (auto& element: list_of_new_users)
+        {
+            if (co_from_this_block == element)
+            {
+                is_part = true;
+            }
+        }
+
+        if (is_part)
         {
             co_from_this_block = rocksy->FindNextPeer(co_from_this_block);
+            is_part = false;
         }
         else
         {
