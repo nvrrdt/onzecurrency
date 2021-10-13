@@ -404,7 +404,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
 }
 
 
-void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j)
+void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j, std::vector<std::string> list_of_new_users)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -415,6 +415,28 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    bool is_part = false;
+    for (;;)
+    {
+        // it breaks when the new users (from a new block) are yet part of all the users
+        for (auto& element: list_of_new_users)
+        {
+            if (co_from_this_block == element)
+            {
+                is_part = true;
+            }
+        }
+
+        if (is_part)
+        {
+            co_from_this_block = rocksy->FindNextPeer(co_from_this_block);
+            is_part = false;
+        }
+        else
+        {
+            break;
+        }
+    }
     delete rocksy;
 
     nlohmann::json message_j;

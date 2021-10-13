@@ -277,16 +277,14 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     {
         nlohmann::json usr;
         std::string u = user;
-std::cout << "uuuuuser " << u << std::endl;
-std::cout << "uuuuuser " << rocksy->Get(u) << std::endl;
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(u));
         usr = {u: value_j};
         rdb.push_back(usr);
     }
     delete rocksy;
-std::cout << "__0___00 " << std::endl;
+
     msg["rocksdb"] = rdb;
-std::cout << "__0___01 " << std::endl;
+
     // Update matrices
     Poco::BlockMatrix bm;
     Poco::IntroMsgsMat imm;
@@ -302,7 +300,7 @@ std::cout << "__0___01 " << std::endl;
     }
     msg["bm"] = contents_j;
     contents_j.clear();
-std::cout << "__0___02 " << std::endl;
+
     for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
     {
         for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
@@ -315,7 +313,7 @@ std::cout << "__0___02 " << std::endl;
     }
     msg["imm"] = contents_j;
     contents_j.clear();
-std::cout << "__0___03 " << std::endl;
+
     for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
     {
         for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
@@ -329,9 +327,8 @@ std::cout << "__0___03 " << std::endl;
     }
     msg["iah"] = contents_j;
     contents_j.clear();
-std::cout << "__0___04 " << std::endl;
-    set_resp_msg_client(msg.dump());
 
+    set_resp_msg_client(msg.dump());
 }
 
 void P2pNetwork::set_resp_msg_client(std::string msg)

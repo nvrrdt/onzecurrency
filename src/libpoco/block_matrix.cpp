@@ -242,7 +242,7 @@ std::cout << "_____0000 " << std::endl;
         {
             for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
-std::cout << "_____0001 " << std::endl;
+//std::cout << "_____0001 " << *block_matrix.back().at(i) << std::endl << "000000 " << *copy_received_block_matrix.back().at(j) << std::endl;
                 if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
                     std::cout << "received block found" << std::endl;
@@ -257,12 +257,12 @@ std::cout << "_____0002 " << std::endl;
         for (int16_t i = pos.back().size() - 1; i >= 0; i--)
         {
 std::cout << "_____0003 " << std::endl;
-            if (i == pos_sent.back())
+            if (!pos_sent.empty() && i == pos_sent.back())
             {
                 pos.back().erase(pos.back().begin() + pos_sent.back());
                 pos_sent.pop_back();
             }
-            else if (i == pos_recv.back())
+            else if (!pos_recv.empty() && i == pos_recv.back())
             {
                 pos.back().erase(pos.back().begin() + pos_recv.back());
                 pos_recv.pop_back();
@@ -506,7 +506,7 @@ void BlockMatrix::save_final_block_to_file()
             Poco::PocoCrowd pc;
             pc.send_your_full_hash(i+1, final_block_j, new_block_nr, list_of_new_users);
             // inform chosen ones for final block
-            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb);
+            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb, list_of_new_users);
         }
     }
 

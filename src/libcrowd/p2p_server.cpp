@@ -764,7 +764,7 @@ std::cout << "___000_ " << std::endl;
 std::cout << "___00 c_one " << c_one << std::endl;
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
-std::cout << "___01 value_j " << value_j.dump() << std::endl;
+//std::cout << "___01 value_j " << value_j.dump() << std::endl;
                 delete rocksy;
 
                 enet_uint32 ip = value_j["ip"];
@@ -792,9 +792,9 @@ std::cout << "___03 " << std::endl;
         {
             if (chosen_ones[i] == my_full_hash)
             {
-                if (i != chosen_ones.size() - 1)
+                if (chosen_ones.size() > 1 && i < chosen_ones.size() - 1)
                 {
-                    next_full_hash = chosen_ones[i];
+                    next_full_hash = chosen_ones[i+1];
                 }
                 else
                 {
@@ -983,9 +983,9 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
     {
         if (chosen_ones[i] == my_full_hash)
         {
-            if (i != chosen_ones.size() - 1)
+            if (chosen_ones.size() > 1 && i < chosen_ones.size() - 1)
             {
-                next_full_hash = chosen_ones[i];
+                next_full_hash = chosen_ones[i+1];
             }
             else
             {
@@ -1089,6 +1089,11 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
 {
     // compare the received hash
     std::cout << "The hash comparison is (server): " <<  buf_j["hash_comp"] << std::endl;
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::intro_online(nlohmann::json buf_j)
