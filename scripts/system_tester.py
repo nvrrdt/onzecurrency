@@ -14,17 +14,20 @@ import sys
 import os
 import subprocess
 from pathlib import Path
-import time
 import queue, threading
 
 def main():
-    # Cd to scripts/build.py directory
+    # Cd to script directory
     os.chdir(os.path.dirname(__file__))
 
+    # Variables
     ips = ["51.158.68.232", "51.15.226.67"] # , "51.15.248.67", "212.47.254.170", "212.47.234.94", "212.47.236.102"]
+    block_creation_delay = 20 # seconds
     
-    string = 'er@er.c0'
+    # Constant
+    string = 'er@er.c0' # username
 
+    # Set unique username in each server's remote_script_test.py
     for ip in ips:
         with open('remote_script_test.py', 'r') as file :
             filedata = file.read()
@@ -46,18 +49,20 @@ def main():
         file.write(filedata)
     file.close()
 
+    # Queue to use in the threads
     q = queue.Queue()
     for ip in ips:
         q.put(ip)
 
-    threads = [ threading.Thread(target=worker, args=(q,)) for _i in range(len(ips)) ]
+    # Creating a thread for each server
+    threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay)) for _i in range(len(ips)) ]
     for thread in threads:
         thread.start()
 
-def worker(q):
+def worker(q, total_servers, block_creation_delay):
     ip = q.get()
-    subprocess.call('ssh root@' + ip + ' nohup python3 remote_script_test.py', shell=True)
-    time.sleep(20) # wait 20 seconds == block creation delay
+    order = total_servers - q.qsize()
+    subprocess.call('ssh root@' + ip + ' python3 remote_script_test.py ' + str(order) + ' ' + str(total_servers) + ' ' + str(block_creation_delay), shell=True)
     return
 
 def project_path(sub_dir):
