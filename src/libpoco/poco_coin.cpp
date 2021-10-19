@@ -255,7 +255,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
     std::string block_s = block_j.dump();
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
-    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     delete rocksy;
 
@@ -334,7 +334,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
             if (val == full_hash_req) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -420,7 +420,7 @@ void PocoCoin::evaluate_transactions()
     }
 
     // also for every tx: lookup funds in rocksy (blockchain must be verified!) and verify if they fulfill the tx
-    Crowd::Rocksy* rocksy = new Crowd::Rocksy("transactionsdb");
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("transactionsdbreadonly");
     for (uint16_t i = 0; i < full_hashes_reqs_vec.size(); i++)
     {
         std::string full_hash_req = full_hashes_reqs_vec[i];

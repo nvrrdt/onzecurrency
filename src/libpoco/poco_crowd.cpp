@@ -543,6 +543,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
         // it breaks when the new users (from a new block) are yet part of all the users
         for (auto& element: list_of_new_users)
         {
+std::cout << "__________00000 element: " << element << " " << co_from_this_block << std::endl;
             if (co_from_this_block == element)
             {
                 is_part = true;

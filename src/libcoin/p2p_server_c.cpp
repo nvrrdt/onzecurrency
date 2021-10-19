@@ -76,7 +76,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
     std::string amount = buf_j["amount"];
     std::string signature = buf_j["signature"];
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
@@ -109,7 +109,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
         std::string prel_coordinator = full_hash_req + hash_latest_block;
 
-        Rocksy* rocksy = new Rocksy("usersdb");
+        Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string full_hash_coordinator = rocksy->FindChosenOne(prel_coordinator);
         delete rocksy;
         
@@ -118,7 +118,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
             std::cout << "Hello_tx: I'm the coordinator" << std::endl;
 
             // Are funds sufficient? Create a second rocksdb here!
-            Rocksy* rocksy = new Rocksy("transactionsdb");
+            Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
             uint64_t funds = contents_j["funds"];
             delete rocksy;
@@ -179,7 +179,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                     if (val == full_hash_req) continue;
                     if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
-                    Rocksy* rocksy = new Rocksy("usersdb");
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -240,7 +240,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 
     // introduce chosen ones!!! and coordinator should be verified
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
@@ -285,7 +285,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
             std::cout << "Intro_tx: I'm a chosen_one" << std::endl;
 
             // Are funds sufficient?
-            Rocksy* rocksy = new Rocksy("transactionsdb");
+            Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
             uint64_t funds = contents_j["funds"];
             delete rocksy;
@@ -366,7 +366,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                     if (val == full_hash_req) continue;
                     if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
-                    Rocksy* rocksy = new Rocksy("usersdb");
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -427,7 +427,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
 
     // introduce chosen ones!!! and coordinator should be verified
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
@@ -472,7 +472,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
             std::cout << "New_tx: I'm a secondary chosen_one" << std::endl;
 
             // Are funds sufficient?
-            Rocksy* rocksy = new Rocksy("transactionsdb");
+            Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
             uint64_t funds = contents_j["funds"];
             delete rocksy;
@@ -553,7 +553,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                     if (val == full_hash_req) continue;
                     if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                     
-                    Rocksy* rocksy = new Rocksy("usersdb");
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -611,7 +611,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
     nlohmann::json chosen_ones_reward = buf_j["chosen_ones_reward"];
     std::string signature = buf_j["signature"];
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
@@ -640,7 +640,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
-        Rocksy* rocksy = new Rocksy("usersdb");
+        Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string chosen_ones_s = chosen_ones_reward.dump();
         std::string hash_of_cos = crypto->bech32_encode_sha256(chosen_ones_s);
         std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
@@ -690,7 +690,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
                 if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
-                Rocksy* rocksy = new Rocksy("usersdb");
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -761,7 +761,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 
     // introduce chosen ones!!! and coordinator should be verified
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string coordinator = chosen_ones[0]; // TODO should be element of chosen_ones as the json is sorted
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
@@ -860,7 +860,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
                 if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
-                Rocksy* rocksy = new Rocksy("usersdb");
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -932,7 +932,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
 
     // introduce chosen ones!!! and coordinator should be verified
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string coordinator = chosen_ones[0]; // TODO should be element of chosen_ones as the json is sorted
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
@@ -1031,7 +1031,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
                 // if (val == full_hash_req) continue; // TODO: Maybe a chosen_one_reward shouldn't be a chosen_one
                 if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
                 
-                Rocksy* rocksy = new Rocksy("usersdb");
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1186,7 +1186,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     std::string recv_block_s = recv_block_j.dump();
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
     if (full_hash_coord_from_me == buf_j["full_hash_req"])
     {
@@ -1259,7 +1259,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
                 if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
                 std::string c_one = chosen_ones[i];
-                Rocksy* rocksy = new Rocksy("usersdb");
+                Rocksy* rocksy = new Rocksy("usersdbreadonly");
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
                 delete rocksy;
 

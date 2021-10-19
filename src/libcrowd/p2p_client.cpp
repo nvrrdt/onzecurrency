@@ -272,7 +272,7 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
                                                                                                         // maybe even a stack is better ...
     // Update rocksdb
     nlohmann::json rdb;
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     for (auto& user : list_of_users_j)
     {
         nlohmann::json usr;

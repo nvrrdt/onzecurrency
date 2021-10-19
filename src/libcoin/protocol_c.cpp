@@ -200,7 +200,7 @@ std::string ProtocolC::get_last_block_nr_c()
     
 //     std::map<int, std::string> calculated_hashes;
 //     std::string the_hash;
-//     Rocksy* rocksy = new Rocksy("usersdb");
+//     Rocksy* rocksy = new Rocksy("usersdbreadonly");
 //     for (int i = 1; i <= chosen_ones_counter.size(); i++)
 //     {
 //         uint256_t val = chosen_ones_counter[i];

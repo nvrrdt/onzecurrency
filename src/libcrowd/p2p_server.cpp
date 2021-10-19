@@ -170,7 +170,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
 std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << " , " << prel_first_full_hash_req << std::endl;
 
-        Rocksy* rocksy = new Rocksy("usersdb");
+        Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string prel_first_coordinator_server = rocksy->FindChosenOne(prel_first_full_hash_req);
         delete rocksy;
         
@@ -313,7 +313,7 @@ std::cout << "______: " << prel_first_prev_hash_req << " , " << email_of_req << 
             message_j["req"] = "new_co";
 std::cout << "prel_first_coordinator_server:______ " << prel_first_coordinator_server << std::endl;
 
-            Rocksy* rocksy = new Rocksy("usersdb");
+            Rocksy* rocksy = new Rocksy("usersdbreadonly");
 std::cout << "usersdb size:______ " << rocksy->TotalAmountOfPeers() << std::endl;
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
             enet_uint32 peer_ip = value_j["ip"];
@@ -492,12 +492,10 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            if (sync.get_break_block_creation_loops()) break;
-            
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
 
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -636,13 +634,11 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            if (sync.get_break_block_creation_loops()) break;
-            
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
             
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -695,9 +691,13 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
     std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
+    
+std::cout << "________0000000 me " << full_hash_coord_from_me << " coord " << full_hash_coord_from_coord << std::endl;
+std::cout << "________0000001 total amount of peers" << rocksy->TotalAmountOfPeers() << std::endl;
     delete rocksy;
+
 
     if (full_hash_coord_from_me == full_hash_coord_from_coord)
     {
@@ -865,6 +865,7 @@ std::cout << "___09 " << std::endl;
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+std::cout << "___10 " << std::endl;
     }
     else
     {
@@ -1108,7 +1109,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
     to_verify_j["server"] = buf_j["server"];
     to_verify_j["fullnode"] = buf_j["fullnode"];
 
-    Rocksy* rocksy = new Rocksy("usersdb");
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string full_hash = buf_j["full_hash"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];

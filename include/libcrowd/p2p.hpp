@@ -113,7 +113,7 @@ namespace Crowd
             return server_ == "true" ? true : false;
         }
     private:
-        Rocksy* rocksy_ = new Rocksy("usersdb");
+        Rocksy* rocksy_ = new Rocksy("usersdbreadonly");
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;
@@ -152,7 +152,7 @@ namespace Crowd
             return pub_key_;
         }
     private:
-        Rocksy* rocksy_ = new Rocksy("usersdb");
+        Rocksy* rocksy_ = new Rocksy("usersdbreadonly");
         std::string key_;
         nlohmann::json value_j_;
         std::string ip_;
