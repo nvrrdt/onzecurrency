@@ -505,7 +505,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+            std::cout << "Preparation for new_prel_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -648,7 +648,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for secondary prel_new_block: " << peer_ip << std::endl;
+            std::cout << "Preparation for secondary new_prel_block: " << peer_ip << std::endl;
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -673,11 +673,6 @@ void P2pNetwork::intro_final_block(nlohmann::json buf_j)
     // Compare the hashes from the block of the coordinator with your saved blocks' hashes
     // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
     // Then inform your underlying network
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
 
     nlohmann::json recv_block_j = buf_j["block"];
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
@@ -837,7 +832,6 @@ std::cout << "___06 " << std::endl;
         }
         delete crypto;
 std::cout << "___07 " << std::endl;
-        Crowd::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -863,13 +857,18 @@ std::cout << "___09 " << std::endl;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            p2p_client(ip_from_peer, message);
         }
 std::cout << "___10 " << std::endl;
     }
     else
     {
         std::cout << "Final coordinator is not truthful" << std::endl;
+
+        // Disconect from client
+        nlohmann::json m_j;
+        m_j["req"] = "close_this_conn";
+        set_resp_msg_server(m_j.dump());
     }
 }
 
@@ -1045,7 +1044,7 @@ std::cout << "block: " << recv_block_j.dump() << std::endl;
         
         std::string message = message_j.dump();
 
-        std::cout << "Preparation for prel_new_block: " << peer_ip << std::endl;
+        std::cout << "Preparation for new_final_block: " << peer_ip << std::endl;
 
         std::string ip_from_peer;
         Crowd::P2p p2p;
