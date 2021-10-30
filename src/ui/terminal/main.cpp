@@ -9,17 +9,35 @@
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
+#include "plog/Log.h"
+#include "plog/Initializers/RollingFileInitializer.h"
+#include "globals.hpp"
+
+extern int USE_LOG;
+
 using namespace Crowd;
 using namespace Coin;
 
+
 int main(int argc, char *argv[])
 {
+    plog::init(plog::debug, "log/loggi", 2000000, 3); // Initialize the logger
+
     Auth a;
     std::map<std::string, std::string> cred = a.authentication();
 
     if (cred["error"] == "true")
     {
-        std::cerr << "Error with authenticating" << std::endl;
+        Common::Globals g;
+        if (g.get_use_log())
+        {
+            PLOG_DEBUG << "Error with authenticating";
+        }
+        else
+        {
+            std::cerr << "Error with authenticating" << std::endl;
+        }
+        
         return 1;
     } else {
         // start crowd

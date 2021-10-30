@@ -13,9 +13,10 @@ def main():
     parser = argparse.ArgumentParser()
     
     # Adding optional arguments
-    parser.add_argument("-r", "--remove-build-dir", help = "Remove build directory", action="store_true")
+    parser.add_argument("-r", "--remove-build-and-log-dir", help = "Remove build and log directory", action="store_true")
     parser.add_argument("-c", "--cryptopp", help = "Install cryptopp with make", action="store_true")
     parser.add_argument("-d", "--enet", help = "Install ENet with make", action="store_true")
+    parser.add_argument("-l", "--plog", help = "Install plog", action="store_true")
     parser.add_argument("-m", "--make", help = "Make", action="store_true")
     parser.add_argument("-n", "--ninja", help = "Make", action="store_true")
     parser.add_argument("-u", "--uninstall", help = "Make uninstall", action="store_true")
@@ -28,9 +29,11 @@ def main():
     args = parser.parse_args()
     
     # Do not use ELIF, combining options doesn't work then
-    if args.remove_build_dir:
-        if os.path.exists(project_path("build")):
+    if args.remove_build_and_log_dir:
+        if os.path.exists(project_path("build")) :
             subprocess.call('rm -r ' + project_path("build"), shell=True)  # suppose we're in ./scripts directory
+        if os.path.exists(project_path("log")) :
+            subprocess.call('rm -r ' + project_path("log"), shell=True)
     if args.cryptopp:
         subprocess.call('cd ' + project_path("build") + \
             ' && git clone --recursive https://github.com/weidai11/cryptopp.git' \
@@ -44,6 +47,14 @@ def main():
             ' && cd enet' \
             ' && git checkout e0e7045' \
             ' && autoreconf -i && ./configure && make && make install', shell=True)
+    if args.plog:
+        if os.path.exists(project_path("include/plog")) :
+            subprocess.call('rm -r ' + project_path("include/plog"), shell=True)
+            
+        subprocess.call('cd ' + project_path("build") + \
+            ' && git clone --recursive https://github.com/SergiusTheBest/plog.git' \
+            ' && cd plog' \
+            ' && cp -r include/plog ../../include', shell=True)
     if args.make:
         subprocess.call('cd ' + project_path("build") + \
             ' && cmake -DCMAKE_BUILD_TYPE=Debug ..' \

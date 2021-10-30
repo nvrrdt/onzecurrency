@@ -3,3 +3,4 @@ build/*
 COMMANDS.md
 Testing/*
 .config
+log/*
