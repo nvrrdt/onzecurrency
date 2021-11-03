@@ -5,6 +5,8 @@
 
 #include "configdir.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 void FullHash::save_full_hash_to_file(std::string& full_hash)
@@ -28,7 +30,8 @@ std::string FullHash::get_full_hash_from_file()
     }
     else
     {
-        std::cout << "Full_hash file doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Full_hash file doesn't exist!!"});
         fh = "";
     }
 

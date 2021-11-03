@@ -2,28 +2,31 @@
 
 #include "rocksy.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 Rocksy::Rocksy(std::string which_db)
 {
+    Common::Print_or_log pl;
+
     rocksdb::Options options;
     options.create_if_missing = true;
     if (which_db == "usersdb")
     {
         rocksdb::Status s = rocksdb::DB::Open(options, usersdb_folder_path, &db);
-        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
+        pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", usersdb_folder_path});
     }
     else if (which_db == "usersdbreadonly")
     {
         rocksdb::Status s = rocksdb::DB::OpenForReadOnly(options, usersdb_folder_path, &db);
-        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << usersdb_folder_path << std::endl;
+        pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", usersdb_folder_path});
     }
     else if (which_db == "transactionsdb")
     {
         rocksdb::Status s = rocksdb::DB::Open(options, transactionsdb_folder_path, &db);
-        std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << " : " << transactionsdb_folder_path << std::endl;
+        pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", transactionsdb_folder_path});
     }
-    std::cout << "s == ok: " << s.ok() << " : " << s.ToString() << std::endl;
 }
 Rocksy::~Rocksy()
 {
@@ -89,7 +92,8 @@ std::string Rocksy::FindNextPeer(std::string &key)
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        //std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
+        //Common::Print_or_log pl;
+        //pl.handle_print_or_log({it->key().ToString(), ":", it->value().ToString()});
         if (it->key().ToString() > key)
         {
             string_key_next_peer = it->key().ToString();
@@ -120,7 +124,8 @@ std::string Rocksy::FindServerPeer(std::string &key)
     {
         if (it->key().ToString() >= key)
         {
-            std::cout << "it: " << it->value().ToString() << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"it:", it->value().ToString()});
             // Search in it->value for server enabledness
             nlohmann::json j = nlohmann::json::parse(it->value().ToString());
             if (j["server"] == true)
@@ -146,7 +151,8 @@ std::string Rocksy::FindNextServerPeer(std::string &string_key)
     iss >> key;
     if (iss.fail())
     {
-        std::cerr << "ERROR in creating the uint for the key!\n";
+        Common::Print_or_log pl;
+    pl.handle_print_or_log({"ERROR in creating the uint for the key!"});
         return "1";
     }
 
@@ -187,7 +193,8 @@ uint256_t Rocksy::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be us
     iss >> num;
     if (iss.fail())
     {
-        std::cerr << "ERROR in creating the uint for the total_amount_of_peers!\n";
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"ERROR in creating the uint for the total_amount_of_peers!"});
         return 1;
     }
 
@@ -205,7 +212,8 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
         {
             if (it->key().ToString() > from)
             {
-                // std::cout << "it->key(): " << it->key().ToString() << std::endl;
+                // Common::Print_or_log pl;
+                // pl.handle_print_or_log({"it->key():", it->key().ToString()});
                 count++;
 
                 if (it->key().ToString() >= to)
@@ -225,7 +233,8 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
         {
             if (it->key().ToString() > from)
             {
-                // std::cout << "it->key(): " << it->key().ToString() << std::endl;
+                // Common::Print_or_log pl;
+                // pl.handle_print_or_log({"it->key():", it->key().ToString()});
                 count++;
             }
         }
@@ -260,7 +269,8 @@ std::string Rocksy::FindPeerFromTillCount(std::string &key, uint256_t &count)
             break;
         }
 
-        // std::cout << it->key().ToString() << ": "  << it->value().ToString() << std::endl;
+        // Common::Print_or_log pl;
+        // pl.handle_print_or_log({it->key().ToString(), ":", it->value().ToString()});
         if (it->key().ToString() > key)
         {
             counter++;
@@ -298,6 +308,7 @@ void Rocksy::DatabaseDump()
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        std::cout << "DatabaseDump: " << it->key().ToString() << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"DatabaseDump:", it->key().ToString()});
     }
 }

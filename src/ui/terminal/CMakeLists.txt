@@ -12,6 +12,7 @@ find_package(ENet REQUIRED)
 add_executable(onze-terminal main.cpp)
 
 target_include_directories(onze-terminal PUBLIC
+                          "${PROJECT_SOURCE_DIR}/include/plog"
                           "${PROJECT_SOURCE_DIR}/include/ui/terminal"
                           "${PROJECT_SOURCE_DIR}/include/libcommon"
                           "${PROJECT_SOURCE_DIR}/include/liblogin"
@@ -19,7 +20,7 @@ target_include_directories(onze-terminal PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libcoin"
                           "${PROJECT_SOURCE_DIR}/include/libpoco"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
-                          "${PROJECT_SOURCE_DIR}/include/plog"
+                          
                           ${ENET_INCLUDE_DIRS}
                           )
 

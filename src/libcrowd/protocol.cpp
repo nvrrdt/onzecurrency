@@ -12,6 +12,9 @@
 #include "configdir.hpp"
 #include "crypto.hpp"
 
+#include "print_or_log.hpp"
+#include <boost/lexical_cast.hpp>
+
 using namespace Crowd;
 
 std::string Protocol::get_last_block_nr()
@@ -52,6 +55,8 @@ std::string Protocol::get_last_block_nr()
 
 std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_peers)
 {
+    Common::Print_or_log pl;
+
     const int nmax = 100;   // max number of peers per section
     uint32_t maxreallayers;             // number of layers
     uint256_t tmaxmax = 0, tmaxmin = 0, overshoot = 0, tlayer = 0;
@@ -69,15 +74,15 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
 
         if (amount_of_peers <= tmaxmax)
         {
-            // std::cout << std::endl << "max peers last layer: " << tlayer << std::endl;
-            // std::cout << "max peers all layers: " << tmaxmax << std::endl;
-            std::cout << std::endl << "amount of layers: " << maxreallayers << std::endl;
-            std::cout << "amount_of_peers: " << amount_of_peers << std::endl;
+            // pl.handle_print_or_log({"max peers last layer:", std::to_string(tlayer)});
+            // pl.handle_print_or_log({"max peers all layers:", std::to_string(tmaxmax)});
+            pl.handle_print_or_log({"amount of layers:", std::to_string(maxreallayers)});
+            pl.handle_print_or_log({"amount_of_peers:", amount_of_peers.str()});
             break;
         }
         else if (maxreallayers == imax && amount_of_peers > tmaxmax)
         {
-            std::cerr << "ERROR: change imax as there are more peers than imax can handle" << std::endl;
+            pl.handle_print_or_log({"ERROR: change imax as there are more peers than imax can handle"});
         }
     }
 
@@ -93,23 +98,23 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
     {
         quotient = 0;
         remainder = overshoot;
-        // std::cout << "quotient: " << quotient << std::endl;
-        // std::cout << "remainder: " << remainder << std::endl;
+        // pl.handle_print_or_log({"quotient:", std::to_string(quotient)});
+        // pl.handle_print_or_log({"remainder:", std::to_string(remainder)});
     }
     else
     {
         quotient = overshoot / layercontents.at(maxreallayers-1);
         remainder = overshoot % layercontents.at(maxreallayers-1);
-        // std::cout << remainder << " buckets in last layer with " << quotient+1 << " peers and " << (layercontents.at(maxreallayers-2))-remainder << " buckets with " << quotient << " peers." << std::endl;
-        // std::cout << overshoot << " (overshoot) must be equal to " << (remainder*(quotient+1))+((layercontents.at(maxreallayers-2)-remainder)*quotient) << " (calculation of here before mentioned numbers)" << std::endl;
+        // pl.handle_print_or_log({std::to_string(remainder), "buckets in last layer with", std::to_string(quotient+1), "peers and", std::to_string((layercontents.at(maxreallayers-2))-remainder), "buckets with", std::to_string(quotient), "peers."});
+        // pl.handle_print_or_log({std::to_string(overshoot), "(overshoot) must be equal to", std::to_string((remainder*(quotient+1))+((layercontents.at(maxreallayers-2)-remainder)*quotient)), "(calculation of here before mentioned numbers)"});
     }
 
-    // std::cout << "numberlayers: " << maxreallayers << std::endl;
-    // std::cout << "numbermaxbucketslastlayer: " << remainder << std::endl;
-    // std::cout << "contentsmaxbucketslastlayer: " << quotient+1 << std::endl;
-    // std::cout << "numberminbucketslastlayer: " << ((maxreallayers == 1) ? 100-remainder : (layercontents.at(maxreallayers-1)-remainder)) << std::endl;
-    // std::cout << "contentsminbucketslastlayer: " << quotient << std::endl;
-    // std::cout << "overshootlastlayer: " << overshoot << std::endl;
+    // pl.handle_print_or_log({"numberlayers:" << std::to_string(maxreallayers)});
+    // pl.handle_print_or_log({"numbermaxbucketslastlayer:", std::to_string(remainder)});
+    // pl.handle_print_or_log({"contentsmaxbucketslastlayer:", std::to_string(quotient+1)});
+    // pl.handle_print_or_log({"numberminbucketslastlayer:", ((maxreallayers == 1) ? std::to_string(100-remainder) : std::to_string((layercontents.at(maxreallayers-1)-remainder)))});
+    // pl.handle_print_or_log({"contentsminbucketslastlayer:", std::to_string(quotient)});
+    // pl.handle_print_or_log({"overshootlastlayer:", std::to_string(overshoot)});
 
     // the peers between every top layer peer are counted and put in a map
     uint256_t counter, total_counter;
@@ -162,10 +167,10 @@ std::map<uint32_t, uint256_t> Protocol::layers_management(uint256_t &amount_of_p
                 }
             }
         }
-        // std::cout << "coc: " << i << " " << chosen_ones_counter[i] << std::endl;
+        // pl.handle_print_or_log({"coc:", std::to_string(i), std::to_string(chosen_ones_counter[i])});
         // total_counter += chosen_ones_counter[i];
     }
-    std::cout << "amount of peers to verify: " << total_counter << std::endl;
+    pl.handle_print_or_log({"amount of peers to verify:", total_counter.str()});
 
     return chosen_ones_counter;
 }
@@ -229,17 +234,19 @@ nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
     ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/crowd");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing the next:\n";
+                pl.handle_print_or_log({p.string(), "is a directory containing the next:"});
 
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
@@ -255,7 +262,7 @@ nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
                 isss >> value_peer;
                 for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
                 {
-                    std::cout << "   " << *it << '\n';
+                    pl.handle_print_or_log({"   ", (*it).string()});
 
                     std::string str = it->stem().string();
                     std::uint64_t value_this_blockchain_dir;
@@ -263,7 +270,7 @@ nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
                     iss >> value_this_blockchain_dir;
                     if (latest_block_peer != "no blockchain present in folder")
                     {
-                        std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
+                        pl.handle_print_or_log({"value_this_blockchain_dir:", std::to_string(value_this_blockchain_dir), "value_peer:", std::to_string(value_peer)});
                         if (value_this_blockchain_dir == value_peer)
                         {
                             std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
@@ -293,17 +300,17 @@ nlohmann::json Protocol::get_blocks_from(std::string &latest_block_peer)
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return all_blocks_j;
@@ -316,17 +323,19 @@ std::string Protocol::get_all_users_from(std::string &latest_block_peer)
     ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/crowd");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing the next:\n";
+                pl.handle_print_or_log({p.string(), "is a directory containing the next:"});
 
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
@@ -339,7 +348,7 @@ std::string Protocol::get_all_users_from(std::string &latest_block_peer)
                 nlohmann::json block_j;
                 for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
                 {
-                    std::cout << "   " << *it << '\n';
+                    pl.handle_print_or_log({"   ", (*it).string()});
 
                     std::string str = it->stem().string();
                     std::uint64_t value_this_blockchain_dir;
@@ -349,7 +358,7 @@ std::string Protocol::get_all_users_from(std::string &latest_block_peer)
 
                     std::istringstream isss(latest_block_peer);
                     isss >> value_peer;
-                    std::cout << "value_this_blockchain_dir: " << value_this_blockchain_dir << " value_peer: " << value_peer << '\n';
+                    pl.handle_print_or_log({"value_this_blockchain_dir:", std::to_string(value_this_blockchain_dir), "value_peer:", std::to_string(value_peer)});
                     if (value_this_blockchain_dir >= value_peer)
                     {
                         std::ifstream stream(it->string(), std::ios::in | std::ios::binary);
@@ -368,17 +377,17 @@ std::string Protocol::get_all_users_from(std::string &latest_block_peer)
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return all_users.dump();

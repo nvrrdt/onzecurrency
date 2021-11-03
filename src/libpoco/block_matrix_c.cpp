@@ -6,6 +6,8 @@
 #include "protocol_c.hpp"
 #include "merkle_tree_c.hpp"
 
+#include "print_or_log.hpp"
+
 #include "block_matrix.hpp"
 
 using namespace Poco;
@@ -62,12 +64,13 @@ void BlockMatrixC::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 
-    std::cout << "evaluate_both_block_matrices" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"evaluate_both_block_matrices"});
 
-    // std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
-    // std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
-    // std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
-    // std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
+    // pl.handle_print_or_log({"evaluate_both_block_matrices m ", std::to_string(get_block_matrix().size())});
+    // pl.handle_print_or_log({"evaluate_both_block_matrices v " << std::to_string(get_block_matrix().back().size())});
+    // pl.handle_print_or_log({"evaluate_both_block_matrices rm " << std::to_string(get_received_block_matrix().size())});
+    // pl.handle_print_or_log({"evaluate_both_block_matrices rv " << std::to_string(get_received_block_matrix().back().size())});
 
     for (uint16_t i = 0; i < get_block_matrix().back().size(); i++)
     {
@@ -102,6 +105,7 @@ void BlockMatrixC::sifting_function_for_both_block_matrices()
 
 void BlockMatrixC::save_final_block_to_file()
 {
+    Common::Print_or_log pl;
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
 
@@ -134,13 +138,13 @@ void BlockMatrixC::save_final_block_to_file()
 
     if(!isDir)
     {
-        std::cout << "Error Response: " << c << std::endl;
+        pl.handle_print_or_log({"Error Response:", std::to_string(c.value())});
     }
     else
     {
         if (latest_block != "no blockchain present in folder")
         {
-            std::cout << "Directory not empty" << std::endl;
+            pl.handle_print_or_log({"Directory not empty"});
             block_s = block_j.dump();
 
             uint32_t first_chars = 11 - latest_block.length();
@@ -159,7 +163,7 @@ void BlockMatrixC::save_final_block_to_file()
         }
         else
         {
-            std::cout << "Is a directory, is empty" << std::endl;
+            pl.handle_print_or_log({"Is a directory, is empty"});
 
             Crowd::merkle_tree mt;
             block_j["prev_hash"] = mt.get_genesis_prev_hash();

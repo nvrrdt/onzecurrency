@@ -1,5 +1,7 @@
 #include "configdir.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 ConfigDir::ConfigDir()
@@ -30,7 +32,8 @@ ConfigDir::ConfigDir()
         }
         catch (boost::filesystem::filesystem_error &e)
         {
-            std::cerr << e.what() << '\n';
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({e.what()});
         }
     }
 }

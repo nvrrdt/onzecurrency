@@ -12,6 +12,8 @@
 #include "sha3.h"
 #include "filters.h"
 
+#include "print_or_log.hpp"
+
 using namespace Common;
 using namespace CryptoPP;
 using namespace bech32;
@@ -180,7 +182,8 @@ void Crypto::ecdsa_save_private_key( const ECDSA<ECP, SHA256>::PrivateKey& key )
     }
     else
     {
-        std::cout << "Ecdsa_priv_key existed already!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_priv_key existed already!!"});
     }
 }
 
@@ -194,7 +197,8 @@ void Crypto::ecdsa_save_public_key( const ECDSA<ECP, SHA256>::PublicKey& key )
     }
     else
     {
-        std::cout << "Ecdsa_pub_key existed already!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key existed already!!"});
     }
 }
 
@@ -208,7 +212,8 @@ void Crypto::ecdsa_load_private_key( ECDSA<ECP, SHA256>::PrivateKey& key )
     }
     else
     {
-        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -222,7 +227,8 @@ void Crypto::ecdsa_load_public_key( ECDSA<ECP, SHA256>::PublicKey& key )
     }
     else
     {
-        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -240,7 +246,6 @@ void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey&
             std::string str;
             while(getline(pk, str))
             {
-                // std::cout << "hey1: " << str << std::endl;
                 private_key_h += str;
             }
             pk.close(); //close the file object.
@@ -254,7 +259,8 @@ void Crypto::ecdsa_load_private_key_from_string( ECDSA<ECP, SHA256>::PrivateKey&
     }
     else
     {
-        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -272,7 +278,6 @@ void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& p
             std::string str;
             while(getline(pk, str))
             {
-                // std::cout << "hey2: " << str << std::endl;
                 public_key_h += str;
             }
             pk.close(); //close the file object.
@@ -286,7 +291,8 @@ void Crypto::ecdsa_load_public_key_from_string( ECDSA<ECP, SHA256>::PublicKey& p
     }
     else
     {
-        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -339,7 +345,8 @@ void Crypto::ecdsa_save_private_key_as_string(const ECDSA<ECP, SHA256>::PrivateK
     }
     else
     {
-        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -354,7 +361,8 @@ void Crypto::ecdsa_save_public_key_as_string(const ECDSA<ECP, SHA256>::PublicKey
     }
     else
     {
-        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -371,7 +379,6 @@ void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
             std::string str;
             while(getline(pk, str))
             {
-                // std::cout << "hey3: " << str << std::endl;
                 private_key += str;
             }
             pk.close(); //close the file object.
@@ -379,7 +386,8 @@ void Crypto::ecdsa_load_private_key_as_string(std::string &private_key)
     }
     else
     {
-        std::cout << "Ecdsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -396,7 +404,6 @@ void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
             std::string str;
             while(getline(pk, str))
             {
-                // std::cout << "hey4: " << str << std::endl;
                 public_key += str;
             }
             pk.close(); //close the file object.
@@ -404,7 +411,8 @@ void Crypto::ecdsa_load_public_key_as_string(std::string &public_key)
     }
     else
     {
-        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -463,7 +471,8 @@ void Crypto::rsa_save_private_key( RSA::PrivateKey& key )
     }
     else
     {
-        std::cout << "Rsa_priv_key existed already!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_priv_key existed already!!"});
     }
 }
 
@@ -477,7 +486,8 @@ void Crypto::rsa_save_public_key( RSA::PublicKey& key )
     }
     else
     {
-        std::cout << "Rsa_pub_key existed already!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_pub_key existed already!!"});
     }
 }
 
@@ -491,7 +501,8 @@ void Crypto::rsa_load_private_key( RSA::PrivateKey& key )
     }
     else
     {
-        std::cout << "Rsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -505,7 +516,8 @@ void Crypto::rsa_load_public_key( RSA::PublicKey& key )
     }
     else
     {
-        std::cout << "Rsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -520,7 +532,8 @@ void Crypto::rsa_save_private_key_as_string(RSA::PrivateKey& key)
     }
     else
     {
-        std::cout << "Rsa_priv_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_priv_key doesn't exist!!"});
     }
 }
 
@@ -535,7 +548,8 @@ void Crypto::rsa_save_public_key_as_string(RSA::PublicKey& key)
     }
     else
     {
-        std::cout << "Rsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Rsa_pub_key doesn't exist!!"});
     }
 }
 
@@ -552,7 +566,6 @@ void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
             std::string str;
             while(getline(pk, str))
             {
-                // std::cout << "hey5: " << str << std::endl;
                 rsa_pub_key += str;
             }
             pk.close(); //close the file object.
@@ -560,7 +573,8 @@ void Crypto::rsa_load_public_key_as_string_from_file(std::string &rsa_pub_key)
     }
     else
     {
-        std::cout << "Ecdsa_pub_key doesn't exist!!" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ecdsa_pub_key doesn't exist!!"});
     }
 }
 

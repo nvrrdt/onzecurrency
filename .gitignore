@@ -4,3 +4,4 @@ COMMANDS.md
 Testing/*
 .config
 log/*
+include/plog/*

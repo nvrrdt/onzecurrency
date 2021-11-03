@@ -1,6 +1,8 @@
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 std::string P2pNetwork::closed_client_ = "";
@@ -89,7 +91,8 @@ void P2pNetwork::register_for_nat_traversal_client(nlohmann::json buf_j)
     {
         // TODO: what if there was no response from the server?
 
-        std::cout << "Ack for registering this client to a server" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Ack for registering this client to a server"});
     }
 }
 
@@ -97,7 +100,9 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
 {
     if (buf_j["connect"] == "ok")
     {
-        std::cout << "connect = ok" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"connect = ok"});
+        
         nlohmann::json message_j;
         message_j["connect"] = "true";
 
@@ -105,7 +110,9 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
         // TODO: needs to be tested that there is really a connection between the two peers
         if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
         {
-            std::cout << "message send to id_to from id_from" << std::endl;
+
+            pl.handle_print_or_log({"message send to id_to from id_from"});
+
             std::string peer_ip = buf_j["ip_to"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
@@ -114,7 +121,7 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "message send to id_from from id_to" << std::endl;
+            pl.handle_print_or_log({"message send to id_from from id_to"});
             std::string peer_ip = buf_j["ip_from"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
@@ -128,7 +135,8 @@ void P2pNetwork::connect_true_client(nlohmann::json buf_j)
 {
     if (buf_j["connect"] == "true") // something wrong here when implementing the switch
     {
-        std::cout << "connection established" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"connection established"});
     }
 }
 
@@ -137,7 +145,8 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
     // TODO there are 2 new_peer functions that need to be the same, so put them in one function somewhere
 
     // new_peer
-    std::cout << "new_peer: " << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_peer client:"});
     // should read the timestamp of the first new_peer request received
     
     // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
@@ -165,7 +174,9 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
 void P2pNetwork::new_co_client(nlohmann::json buf_j)
 {
     // send flag to start_crowd function
-    std::cout << "new_co: " << buf_j["ip_co"] << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_co:", buf_j["ip_co"]});
+
     uint32_t peer_ip = buf_j["ip_co"];
     set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
     set_closed_client("new_co");
@@ -176,8 +187,10 @@ void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
     // my full hash
     std::string full_hash = buf_j["full_hash"];
     std::string prev_hash = buf_j["prev_hash"];
-    std::cout << "New peer's full_hash (client): " << full_hash << std::endl;
-    std::cout << "New peer's prev_hash (client): " << prev_hash << std::endl;
+
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"New peer's full_hash (client): ", full_hash});
+    pl.handle_print_or_log({"New peer's prev_hash (client): ", prev_hash});
 
     // save full_hash
     FullHash fh;
@@ -206,7 +219,7 @@ void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
         delete rocksy;
     }
 
-    std::cout << "Connection closed by other server, start this server" << std::endl; // TODO here starts duplicate code
+    pl.handle_print_or_log({"Connection closed by other server, start this server"}); // TODO here starts duplicate code
 
     // Disconect from server
     set_closed_client("close_this_conn");
@@ -215,7 +228,8 @@ void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
 void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
 {
     // compare the received hash
-    std::cout << "The hash comparison is (client): " << buf_j["hash_comp"] << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"The hash comparison is (client):", buf_j["hash_comp"]});
 
     set_closed_client("close_this_conn");
 }
@@ -223,7 +237,8 @@ void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
 void P2pNetwork::close_same_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
-    std::cout << "Connection closed by other server, start this server (same client)" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Connection closed by other server, start this server (same client)"});
 
     set_closed_client("close_same_conn");
 }
@@ -231,7 +246,8 @@ void P2pNetwork::close_same_conn_client(nlohmann::json buf_j)
 void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
-    std::cout << "Connection closed by other server, start this server (client)" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Connection closed by other server, start this server (client)"});
 
     set_closed_client("close_this_conn");
 }
@@ -239,14 +255,16 @@ void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
 void P2pNetwork::close_this_conn_and_create_client(nlohmann::json buf_j)
 {
     // you may close this connection
-    std::cout << "Connection closed by other server, start this server (client) and create" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Connection closed by other server, start this server (client) and create"});
 
     set_closed_client("close_this_conn_and_create");
 }
 
 void P2pNetwork::send_first_block_received_client(nlohmann::json buf_j)
 {
-    std::cout << "Received first block (client)" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Received first block (client)"});
 
     nlohmann::json first_block_j = buf_j["block"];
     std::string block_nr = "0";
@@ -257,7 +275,8 @@ void P2pNetwork::send_first_block_received_client(nlohmann::json buf_j)
 
 void P2pNetwork::update_me_client(nlohmann::json buf_j)
 {
-    std::cout << "Update_you: send all blocks, rocksdb and matrices to server (client)" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Update_you: send all blocks, rocksdb and matrices to server (client)"});
 
     std::string req_latest_block = buf_j["block_nr"];
 

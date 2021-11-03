@@ -13,6 +13,8 @@
 #include "prev_hash.hpp"
 #include "full_hash.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 std::map<std::string, std::string> Auth::authentication()
@@ -137,7 +139,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
         }
         else
         {
-            std::cerr << "ERROR in comparing email and full_hash between input and blockchain!\n";
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"ERROR in comparing email and full_hash between input and blockchain!"});
 
             cred["error"] = "true";
             return cred;
@@ -145,7 +148,8 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     }
     else
     {
-        std::cerr << "User not in database, priv_key and prev_key present!\n"; // TODO: multiple persons should be able to login
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"User not in database, priv_key and prev_key present!"}); // TODO: multiple persons should be able to login
 
         Rocksy* rocksy = new Rocksy("usersdb");
         rocksy->DatabaseDump();

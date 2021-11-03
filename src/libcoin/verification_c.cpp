@@ -4,6 +4,8 @@
 
 #include "crypto.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Coin;
 
 bool VerificationC::verify_all_blocks()
@@ -28,7 +30,9 @@ bool VerificationC::verify_all_blocks()
         {
             if (i == blocks_vec.size() - 1 - 1) // because last block can't be verified because of the lack of a prev_hash
             {
-                std::cout << "Blockchain verified and ok" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Blockchain verified and ok"});
+                
                 return true;
             }
             else
@@ -37,10 +41,14 @@ bool VerificationC::verify_all_blocks()
             }
         }
 
-        std::cout << "Blockchain verified but not ok" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Blockchain verified but not ok"});
+        
         return false;
     }
 
-    std::cout << "Blockchain not verified and not ok, it may be there's only 1 block" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Blockchain not verified and not ok, it may be there's only 1 block"});
+        
     return false;
 }

@@ -6,10 +6,14 @@
 #include "crypto.hpp"
 #include "verification_c.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Coin;
 
 void P2pNetworkC::start_coin()
 {
+    Common::Print_or_log pl;
+
     VerificationC verification;
     verification.verify_all_blocks();
 
@@ -36,8 +40,9 @@ void P2pNetworkC::start_coin()
 
         if (P2pNetworkC::validate_full_hash(to_full_hash) && P2pNetworkC::validate_amount(amount))
         {
-            std::cout << "Send hello_tx" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Send hello_tx"});
+            
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
             FullHash fh;
             std::string my_full_hash = fh.get_full_hash_from_file();
@@ -66,7 +71,7 @@ void P2pNetworkC::start_coin()
             to_sign_j["tx_to"] = to_full_hash;
             to_sign_j["amount"] = amount;
             std::string to_sign_s = to_sign_j.dump();
-            // std::cout << "to_sign_s: " << to_sign_s << std::endl;
+            // pl.handle_print_or_log({"to_sign_s:", to_sign_s});
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
             Common::Crypto crypto;

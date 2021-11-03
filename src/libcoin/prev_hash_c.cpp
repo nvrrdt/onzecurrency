@@ -12,6 +12,9 @@
 #include "crypto.hpp"
 #include "merkle_tree_c.hpp"
 
+#include "print_or_log.hpp"
+#include <boost/lexical_cast.hpp>
+
 using namespace Crowd;
 using namespace Coin;
 
@@ -23,18 +26,20 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
     ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/coin");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing:\n";
-
+                pl.handle_print_or_log({p.string(), "is a directory containing:"});
+                
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
 
@@ -66,12 +71,12 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist: create\n";
+            pl.handle_print_or_log({p.string(), "does not exist: create"});
 
             boost::filesystem::create_directories(p);
 
@@ -81,7 +86,7 @@ std::string PrevHashC::calculate_hash_from_last_block_c()
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return prev_hash;
@@ -94,17 +99,19 @@ std::vector<std::string> PrevHashC::get_prev_hashes_vec_from_files_c()
     ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/coin");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing the following:\n";
+                pl.handle_print_or_log({p.string(), "is a directory containing the following:"});
 
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
@@ -121,22 +128,22 @@ std::vector<std::string> PrevHashC::get_prev_hashes_vec_from_files_c()
                     nlohmann::json contents_j = nlohmann::json::parse(contents);
                     prev_hashes.push_back(contents_j["prev_hash"]);
 
-                    std::cout << "   prev_hash: " << contents_j["prev_hash"] << std::endl;
+                    pl.handle_print_or_log({"prev_hash:", contents_j["prev_hash"]});
                 }
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return prev_hashes;
@@ -149,17 +156,19 @@ std::vector<std::string> PrevHashC::get_blocks_vec_from_files_c()
     ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/coin");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing the following:\n";
+                pl.handle_print_or_log({p.string(), "is a directory containing the following:"});
 
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
@@ -175,22 +184,22 @@ std::vector<std::string> PrevHashC::get_blocks_vec_from_files_c()
                     std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
                     blocks.push_back(contents);
 
-                    //std::cout << "   blocks: " << contents << std::endl;
+                    //pl.handle_print_or_log({"   blocks:", contents});
                 }
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return blocks;

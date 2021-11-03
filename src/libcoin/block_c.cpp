@@ -25,6 +25,8 @@
 
 #include "merkle_tree_c.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 using namespace Coin;
 
@@ -163,13 +165,16 @@ std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::st
 
     if(!isDir)
     {
-        std::cout << "Error Response: " << c << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Error Response:"});
     }
     else
     {
         if (latest_block != "no blockchain present in folder")
         {
-            std::cout << "Directory not empty" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Directory not empty"});
+                        
             block_s = block_j.dump();
 
             uint32_t first_chars = 11 - latest_block.length();
@@ -188,8 +193,9 @@ std::string merkle_tree_c::save_block_to_file_c(nlohmann::json &block_j, std::st
         }
         else
         {
-            std::cout << "Is a directory, is empty" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Is a directory, is empty"});
+            
             block_j["prev_hash"] = get_genesis_prev_hash_c();
             block_s = block_j.dump();
             std::string block_file = "blockchain/coin/block_000000000000.json";

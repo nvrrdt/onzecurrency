@@ -10,6 +10,8 @@
 #include "all_hashes_mat.hpp"
 #include "poco_crowd.hpp"
 
+#include "print_or_log.hpp"
+
 #include "block_matrix.hpp"
 
 using namespace Poco;
@@ -163,7 +165,8 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 
-    std::cout << "sifting_function_for_both_block_matrices" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"sifting_function_for_both_block_matrices"});
 
     auto block_matrix = get_block_matrix();
     auto calculated_hashes = get_calculated_hash_matrix();
@@ -173,24 +176,24 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     add_sent_block_vector_to_sent_block_matrix();
     auto copy_sent_block_matrix(get_sent_block_matrix());
 
-std::cout << "evaluate_both_block_matrices m " << get_block_matrix().size() << std::endl;
-std::cout << "evaluate_both_block_matrices v " << get_block_matrix().back().size() << std::endl;
-std::cout << "evaluate_both_block_matrices mcph " << get_calculated_hash_matrix().size() << std::endl;
-std::cout << "evaluate_both_block_matrices vcph " << get_calculated_hash_matrix().back().size() << std::endl;
-std::cout << "evaluate_both_block_matrices mphfc " << get_prev_hash_matrix().size() << std::endl;
-std::cout << "evaluate_both_block_matrices vphfc " << get_prev_hash_matrix().back().size() << std::endl;
+pl.handle_print_or_log({"evaluate_both_block_matrices m", std::to_string(get_block_matrix().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices v", std::to_string(get_block_matrix().back().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices mcph", std::to_string(get_calculated_hash_matrix().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices vcph", std::to_string(get_calculated_hash_matrix().back().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices mphfc", std::to_string(get_prev_hash_matrix().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices vphfc", std::to_string(get_prev_hash_matrix().back().size())});
 
-std::cout << "evaluate_both_block_matrices rm " << get_received_block_matrix().size() << std::endl;
-std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().back().size() << std::endl;
+pl.handle_print_or_log({"evaluate_both_block_matrices rm", std::to_string(get_received_block_matrix().size())});
+pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_received_block_matrix().back().size())});
 
 // // for debugging purposes:
-// std::cout << "recv_block_matrix size " << copy_received_block_matrix.size() << std::endl;
+// pl.handle_print_or_log({"recv_block_matrix size", std::to_string(copy_received_block_matrix.size())});
 // for (int x = 0; x < copy_received_block_matrix.size(); x++)
 // {
 //     for (int y = 0; y < copy_received_block_matrix.at(x).size(); y++)
 //     {
 //         nlohmann::json content_j = *copy_received_block_matrix.at(x).at(y);
-//         std::cout << "recv_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
+//         pl.handle_print_or_log({"recv_block_matrix", std::to_string(x), std::to_string(y), "(oldest first)", content_j.dump()});
 //     }
 // }
 
@@ -200,7 +203,7 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
 //     for (int y = 0; y < block_matrix.at(x).size(); y++)
 //     {
 //         nlohmann::json content_j = *block_matrix.at(x).at(y);
-//         std::cout << "this_block_matrix " << x << " " << y << " (oldest first) " << content_j.dump() << std::endl << std::endl;
+//         pl.handle_print_or_log({"this_block_matrix", std::to_string(x), std::to_string(y), "(oldest first)", content_j.dump()});
 //     }
 // }
 
@@ -228,35 +231,35 @@ std::cout << "evaluate_both_block_matrices rv " << get_received_block_matrix().b
             {
                 if (*block_matrix.back().at(i) == *copy_sent_block_matrix.back().at(j))
                 {
-                    std::cout << "sent block found" << std::endl;
+                    pl.handle_print_or_log({"sent block found"});
 
                     pos_sent.push_back(i);
                     break;
                 }
             }
         }
-std::cout << "_____0000 " << std::endl;
+pl.handle_print_or_log({"_____0000"});
         // add received blocks to pos_recv
         std::vector<int16_t> pos_recv = {};
         for (int16_t i = 0; i < block_matrix.back().size(); i++)
         {
             for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
-//std::cout << "_____0001 " << *block_matrix.back().at(i) << std::endl << "000000 " << *copy_received_block_matrix.back().at(j) << std::endl;
+//pl.handle_print_or_log({"_____0001", *block_matrix.back().at(i), "000000", *copy_received_block_matrix.back().at(j)});
                 if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
-                    std::cout << "received block found" << std::endl;
+                    pl.handle_print_or_log({"received block found"});
 
                     pos_recv.push_back(i);
                     break;
                 }
             }
         }
-std::cout << "_____0002 " << std::endl;
+pl.handle_print_or_log({"_____0002"});
         // remove sent and received blocks from pos_sent and pos_recv matrix
         for (int16_t i = pos.back().size() - 1; i >= 0; i--)
         {
-std::cout << "_____0003 " << std::endl;
+pl.handle_print_or_log({"_____0003"});
             if (!pos_sent.empty() && i == pos_sent.back())
             {
                 pos.back().erase(pos.back().begin() + pos_sent.back());
@@ -268,20 +271,20 @@ std::cout << "_____0003 " << std::endl;
                 pos_recv.pop_back();
             }
         }
-std::cout << "_____0004 " << std::endl;
+pl.handle_print_or_log({"_____0004"});
         // erase the non-sent and non-received blocks from pos
         if (pos_length != pos.back().size())
         {
             for (int16_t n = pos.back().size() - 1; n >= 0 ; n--)
             {
-                std::cout << "erase p sent and received: " << pos.back().at(n) << std::endl;
+                pl.handle_print_or_log({"erase p sent and received:", std::to_string(pos.back().at(n))});
 
                 block_matrix.back().erase(block_matrix.back().begin() + pos.back().at(n));
                 calculated_hashes.back().erase(calculated_hashes.back().begin() + pos.back().at(n));
                 hashes_from_contents.back().erase(hashes_from_contents.back().begin() + pos.back().at(n));
             }
         }
-std::cout << "_____0005 " << std::endl;
+pl.handle_print_or_log({"_____0005"});
         clear_received_block_matrix();
         copy_received_block_matrix.clear();
         clear_sent_block_matrix();
@@ -311,7 +314,7 @@ std::cout << "_____0005 " << std::endl;
         //     for (int y = 0; y < calculated_hashes.at(x).size(); y++)
         //     {
         //         std::string content = *calculated_hashes.at(x).at(y);
-        //         std::cout << "calculated_hashes " << x << " " << y << " (oldest first) " << content << std::endl << std::endl;
+        //         pl.handle_print_or_log({"calculated_hashes", std::to_string(x), std::to_string(y), "(oldest first)", content});
         //     }
         // }
 
@@ -321,7 +324,7 @@ std::cout << "_____0005 " << std::endl;
         //     for (int w = 0; w < hashes_from_contents.at(v).size(); w++)
         //     {
         //         std::string content = *hashes_from_contents.at(v).at(w);
-        //         std::cout << "hashes_from_contents " << v << " " << w << " (oldest first) " << content << std::endl << std::endl;
+        //         pl.handle_print_or_log({"hashes_from_contents", std::to_string(v), std::to_string(w), "(oldest first)", content});
         //     }
         // }
 
@@ -334,8 +337,8 @@ std::cout << "_____0005 " << std::endl;
                     if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k))
                     {
                         pos.at(i).erase(pos.at(i).begin() + j);
-                        std::cout << "Element found " << *calculated_hashes.at(i).at(j) << " " << *hashes_from_contents.at(i+1).at(k) << std::endl;
-                        std::cout << "i " << i << " j " << j << " k " << k << std::endl;
+                        pl.handle_print_or_log({"Element found", *calculated_hashes.at(i).at(j), *hashes_from_contents.at(i+1).at(k)});
+                        pl.handle_print_or_log({"i", std::to_string(i), "j", std::to_string(j), "k", std::to_string(k)});
                         break;
                     }
                 }
@@ -359,7 +362,7 @@ std::cout << "_____0005 " << std::endl;
         //     for (int j = 0; j < block_matrix.at(i).size(); j++)
         //     {
         //         nlohmann::json content_j = *block_matrix.at(i).at(j);
-        //         std::cout << "block matrix entries " << i << " " << j << " (oldest first)" << std::endl;
+        //         pl.handle_print_or_log({"block matrix entries", std::to_string(i), std::to_string(j), "(oldest first)"});
         //     }
         // }
     }
@@ -377,7 +380,8 @@ void BlockMatrix::save_final_block_to_file()
      * --> TODO if not the same: update blockchain from someone, but this shouldn't happen
      */
 
-    std::cout << "Save final block" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Save final block"});
 
     Crowd::Protocol proto;
     std::string latest_block = proto.get_last_block_nr();
@@ -398,7 +402,7 @@ void BlockMatrix::save_final_block_to_file()
 
     if (!boost::filesystem::exists(path))
     {
-        std::cout << "error: path doesn't exist " << std::endl;
+        pl.handle_print_or_log({"error: path doesn't exist"});
         return;
     }
     else
@@ -434,7 +438,7 @@ void BlockMatrix::save_final_block_to_file()
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
             // save block
-            std::cout << "new block added " << new_block_nr << std::endl;
+            pl.handle_print_or_log({"new block added", new_block_nr});
 
             nlohmann::json final_block_j = *get_block_matrix().at(i+1).at(0); // i+1 is final block
             

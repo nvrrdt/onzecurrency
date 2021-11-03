@@ -7,6 +7,8 @@
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Common;
 using namespace Poco;
 
@@ -37,7 +39,8 @@ void PocoCrowd::create_and_send_block()
     // * You should also pickup leftover new_peers that weren't processed
 
     // The second part of the capstone implementation of poco:
-    std::cout << "create_and_send_block" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"create_and_send_block"});
 
     BlockMatrix *bm = new BlockMatrix();
     Synchronisation sync;
@@ -57,20 +60,20 @@ void PocoCrowd::create_and_send_block()
 
     if (bm->get_block_matrix().empty()) // TODO I think get_block_matrix is never empty
     {
-        std::cout << "Crowd: No block_matrix: you're probably bootstrapping coin" << std::endl;           
+        pl.handle_print_or_log({"Crowd: No block_matrix: you're probably bootstrapping coin"});
 
         for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-            std::cout << "Crowd: 2nd for loop " << j << std::endl;
+            pl.handle_print_or_log({"Crowd: 2nd for loop", std::to_string(j)});
 
             if (sync.get_break_block_creation_loops()) break;
 
             for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included new_peers
             {
 
-                std::cout << "Crowd: 3rd for loop " << counter << std::endl;
+                pl.handle_print_or_log({"Crowd: 3rd for loop", std::to_string(counter)});
 
                 if (sync.get_break_block_creation_loops()) break;
 
@@ -87,7 +90,7 @@ void PocoCrowd::create_and_send_block()
 
                 for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
                 {
-                    std::cout << "Crowd: 4th for loop " << l << std::endl;
+                    pl.handle_print_or_log({"Crowd: 4th for loop", std::to_string(l)});
 
                     imv_j = *copy_intro_msg_vec.at(l);
 
@@ -160,11 +163,11 @@ void PocoCrowd::create_and_send_block()
     }
     else
     {
-        std::cout << "Crowd: Normal execution for block creation ..." << std::endl;           
+        pl.handle_print_or_log({"Crowd: Normal execution for block creation ..."});
 
         for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
         {
-            std::cout << "Crowd: 1st for loop with block matrix " << i << std::endl;
+            pl.handle_print_or_log({"Crowd: 1st for loop with block matrix", std::to_string(i)});
 
             if (sync.get_break_block_creation_loops()) break;
 
@@ -174,7 +177,7 @@ void PocoCrowd::create_and_send_block()
 
             for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
-                std::cout << "Crowd: 2nd for loop with block matrix " << j << std::endl;
+                pl.handle_print_or_log({"Crowd: 2nd for loop with block matrix", std::to_string(j)});
 
                 if (sync.get_break_block_creation_loops()) break;
 
@@ -182,7 +185,7 @@ void PocoCrowd::create_and_send_block()
 
                 for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
                 {
-                    std::cout << "Crowd: 3rd for loop with block matrix " << counter << std::endl;
+                    pl.handle_print_or_log({"Crowd: 3rd for loop with block matrix", std::to_string(counter)});
 
                     if (sync.get_break_block_creation_loops()) break;
 
@@ -196,7 +199,7 @@ void PocoCrowd::create_and_send_block()
 
                     for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
-                        std::cout << "Crowd: 4th for loop with block matrix " << l << std::endl;
+                        pl.handle_print_or_log({"Crowd: 4th for loop with block matrix", std::to_string(l)});
                         
                         imv_j = *copy_intro_msg_vec.at(l);
 
@@ -294,20 +297,21 @@ void PocoCrowd::create_and_send_block()
         for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
         {
             nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
-            std::cout << "block matrix entry " << i << " " << j << " (oldest first)" << std::endl;
+            pl.handle_print_or_log({"block matrix entry", std::to_string(i), std::to_string(j), "(oldest first)"});
         }
     }
 
     delete bm;
 
-std::cout << "--------5: " << std::endl;
+pl.handle_print_or_log({"--------5:"});
 }
 
 void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j)
 {
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-    // std::cout << "My_full_hash already present in file:__ " << my_full_hash << std::endl;
+    Common::Print_or_log pl;
+    // pl.handle_print_or_log({"My_full_hash already present in file:__ ", my_full_hash});
 
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();
@@ -323,7 +327,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
     if (co_from_this_block == my_full_hash)
     {
         // You are the preliminary coordinator!
-        std::cout << "Inform my fellow chosen_ones as prel coordinator" << std::endl;
+        pl.handle_print_or_log({"Inform my fellow chosen_ones as prel coordinator"});
 
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
@@ -382,7 +386,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for intro_prel_block: " << peer_ip << std::endl;
+            pl.handle_print_or_log({"Preparation for intro_prel_block:", std::to_string(peer_ip)});
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -399,13 +403,15 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
     else
     {
         // You're not the preliminary coordinator!
-        std::cout << "You're not the prel coordinator!" << std::endl;
+        pl.handle_print_or_log({"You're not the prel coordinator!"});
     }
 }
 
 
 void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j, std::vector<std::string> list_of_new_users)
 {
+    Common::Print_or_log pl;
+
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
@@ -444,7 +450,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     if (co_from_this_block == my_full_hash)
     {
         // You are the coordinator!
-        std::cout << "Inform my fellow chosen_ones as final coordinator" << std::endl;
+        pl.handle_print_or_log({"Inform my fellow chosen_ones as final coordinator"});
 
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
@@ -499,7 +505,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for intro_final_block: " << peer_ip << std::endl;
+            pl.handle_print_or_log({"Preparation for intro_final_block:", std::to_string(peer_ip)});
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -516,7 +522,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     else
     {
         // You're not the final coordinator!
-        std::cout << "You're not the final coordinator!" << std::endl;
+        pl.handle_print_or_log({"You're not the final coordinator!"});
     }
 }
 
@@ -524,9 +530,10 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
 {
     // your_full_hash must only be sent when a block is final!!
 
-// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().size() << std::endl;
-// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size() << std::endl;
-// std::cout << "intro_msg_s " << intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size() << std::endl;
+    Common::Print_or_log pl;
+// pl.handle_print_or_log({"intro_msg_s", std::to_string(intro_msg_s_mat_.get_intro_msg_s_3d_mat().size())});
+// pl.handle_print_or_log({"intro_msg_s", std::to_string(intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).size())});
+// pl.handle_print_or_log({"intro_msg_s", std::to_string(intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size())});
 
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -543,7 +550,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
         // it breaks when the new users (from a new block) are yet part of all the users
         for (auto& element: list_of_new_users)
         {
-std::cout << "__________00000 element: " << element << " " << co_from_this_block << std::endl;
+pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block});
             if (co_from_this_block == element)
             {
                 is_part = true;
@@ -586,7 +593,7 @@ std::cout << "__________00000 element: " << element << " " << co_from_this_block
             std::pair<enet_uint32, std::string> ip_nr = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
             p2p.number_to_ip_string(ip_nr.first, peer_ip);
             
-            std::cout << "_______key: " << i << " ip: " << peer_ip << ", value: " << ip_nr.first << std::endl;
+            pl.handle_print_or_log({"_______key:", std::to_string(i), "ip:", peer_ip, ", value:", std::to_string(ip_nr.first)});
             Crowd::P2pNetwork pn;
             pn.p2p_client(peer_ip, msg_s);
         }
@@ -600,16 +607,16 @@ std::cout << "__________00000 element: " << element << " " << co_from_this_block
         //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
         //         {
         //             auto content = *iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k);
-        //             std::cout << "all hashes entry " << i << " " << j << " " << k << " " << content.first << " (oldest first)" << std::endl;
+        //             pl.handle_print_or_log({"all hashes entry" std::to_string(i), std::to_string(j) std::to_string(k), std::to_string(content.first), "(oldest first)"});
         //         }
         //     }
         // }
 
-        std::cout << "Your_full_hash's sent" << std::endl;
+        pl.handle_print_or_log({"Your_full_hash's sent"});
     }
     else
     {
-        std::cout << "Your_full_hash not sent!" << std::endl;
+        pl.handle_print_or_log({"Your_full_hash not sent!"});
     }
 }
 
@@ -647,6 +654,8 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     // hello_reward req with nlohmann::json chosen_ones as argument
     // coordinator is hash of chosen_ones
 
+    Common::Print_or_log pl;
+
     Common::Crypto crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string chosen_ones_s = chosen_ones_reward_j.dump();
@@ -671,7 +680,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     to_sign_j["hash_of_block"] = get_hash_of_new_block();
     to_sign_j["chosen_ones_reward"] = chosen_ones_reward_j;
     std::string to_sign_s = to_sign_j.dump();
-    // std::cout << "to_sign_s: " << to_sign_s << std::endl;
+    // pl.handle_print_or_log({"to_sign_s:", to_sign_s});
     ECDSA<ECP, SHA256>::PrivateKey private_key;
     std::string signature;
     crypto.ecdsa_load_private_key_from_string(private_key);
@@ -682,7 +691,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
 
     std::string message_s = message_j.dump();
 
-    std::cout << "Hello_reward request sent" << std::endl;
+    pl.handle_print_or_log({"Hello_reward request sent"});
 
     Crowd::P2pNetwork pn;
     pn.p2p_client(ip_s, message_s);

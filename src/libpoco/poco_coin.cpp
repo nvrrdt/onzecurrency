@@ -10,6 +10,8 @@
 #include "block_matrix.hpp"
 #include "full_hash.hpp"
 
+#include "print_or_log.hpp"
+
 #include <vector>
 #include <algorithm>
 #include <sstream>
@@ -46,24 +48,25 @@ void PocoCoin::create_and_send_block_c()
     // * You should also pickup leftover transactions that weren't processed
 
     // The second part of the capstone implementation of poco:
-    std::cout << "create_and_send_block_c" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"create_and_send_block_c"});
 
     BlockMatrixC *bmc = new BlockMatrixC();
 
     if (bmc->get_block_matrix().empty())
     {
-        std::cout << "No block_matrix: you're probably bootstrapping coin" << std::endl;           
+        pl.handle_print_or_log({"No block_matrix: you're probably bootstrapping coin"});
 
         for (uint16_t j = tx_->get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
             // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-            std::cout << "2nd for loop " << j << std::endl;
+            pl.handle_print_or_log({"2nd for loop", std::to_string(j)});
 
             for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
             {
 
-                std::cout << "3rd for loop " << counter << std::endl;
+                pl.handle_print_or_log({"3rd for loop", std::to_string(counter)});
 
                 Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
@@ -78,7 +81,7 @@ void PocoCoin::create_and_send_block_c()
 
                 for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
-                    std::cout << "4th for loop " << l << std::endl;
+                    pl.handle_print_or_log({"4th for loop", std::to_string(l)});
 
                     *m_v = *tx_->get_transactions().at(l).second;
 
@@ -129,17 +132,15 @@ void PocoCoin::create_and_send_block_c()
                 delete m_v;
                 delete full_hash_req;
             }
-            std::cout << "11 " << std::endl;
         }
-        std::cout << "22 " << std::endl;
     }
     else
     {
-        std::cout << "Normal execution for block creation ..." << std::endl;           
+        pl.handle_print_or_log({"Normal execution for block creation ..."});
 
         for (uint16_t i = 0; i < bmc->get_block_matrix().back().size(); i++)
         {
-            std::cout << "1st for loop with block matrix " << i << std::endl;
+            pl.handle_print_or_log({"1st for loop with block matrix", std::to_string(i)});
 
             /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
             // in the future there will be a lot of finetuning work on this function
@@ -147,13 +148,13 @@ void PocoCoin::create_and_send_block_c()
 
             for (uint16_t j = tx_->get_transactions().size(); j > 0; j--) // Decrease the amount of transactions in the blocks
             {
-                std::cout << "2nd for loop with block matrix " << j << std::endl;
+                pl.handle_print_or_log({"2nd for loop with block matrix", std::to_string(j)});
 
                 // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
                 for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
                 {
-                    std::cout << "3rd for loop with block matrix " << counter << std::endl;
+                    pl.handle_print_or_log({"3rd for loop with block matrix", std::to_string(counter)});
 
                     Coin::merkle_tree_c *mt = new Coin::merkle_tree_c();
 
@@ -168,7 +169,7 @@ void PocoCoin::create_and_send_block_c()
 
                     for (uint16_t l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                     {
-                        std::cout << "4th for loop with block matrix " << l << std::endl;
+                        pl.handle_print_or_log({"4th for loop with block matrix", std::to_string(l)});
 
                         *m_v = *tx_->get_transactions().at(l).second;
 
@@ -246,7 +247,8 @@ void PocoCoin::create_and_send_block_c()
 
 void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req)
 {
-    std::cout << "inform_chosen_ones_c" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"inform_chosen_ones_c"});
 
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
@@ -264,7 +266,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
     if (co_from_this_block == my_full_hash)
     {
         // You are the coordinator!
-        std::cout << "Inform my fellow chosen_ones as coordinator coin" << std::endl;
+        pl.handle_print_or_log({"Inform my fellow chosen_ones as coordinator coin"});
 
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
@@ -344,7 +346,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
             
             std::string message = message_j.dump();
 
-            std::cout << "Preparation for intro_block coin: " << peer_ip << std::endl;
+            pl.handle_print_or_log({"Preparation for intro_block coin:", std::to_string(peer_ip)});
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
@@ -362,12 +364,14 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
     else
     {
         // You're not the coordinator!
-        std::cout << "You're not the coordinator coin!" << std::endl;
+        pl.handle_print_or_log({"You're not the coordinator coin!"});
     }
 }
 
 void PocoCoin::evaluate_transactions()
 {
+    Common::Print_or_log pl;
+
     // for every tx: lookup its payer's full_hash and compare with all the others, if duplicate then verify the resulting funds after every tx
     // double spending problem solution:
     Transactions tx;
@@ -440,7 +444,7 @@ void PocoCoin::evaluate_transactions()
         if (funds >= total_amount)
         {
             // Funds sufficient
-            std::cout << "Funds sufficient" << std::endl;
+            pl.handle_print_or_log({"Funds sufficient"});
 
             continue;
         }
@@ -456,14 +460,14 @@ void PocoCoin::evaluate_transactions()
             if (it != total_same_payer_payments.end() && funds >= total_amount)
             {
                 // Funds sufficient for multiple payments
-                std::cout << "Funds sufficient for multiple payments" << std::endl;
+                pl.handle_print_or_log({"Funds sufficient for multiple payments"});
 
                 continue;
             }
             else
             {
                 // Funds not sufficient
-                std::cout << "Funds not sufficient" << std::endl; // TODO send message to payer and payee
+                pl.handle_print_or_log({"Funds not sufficient"}); // TODO send message to payer and payee
 
                 if (it != total_same_payer_payments.end())
                 {

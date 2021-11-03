@@ -54,7 +54,8 @@ def main():
         subprocess.call('cd ' + project_path("build") + \
             ' && git clone --recursive https://github.com/SergiusTheBest/plog.git' \
             ' && cd plog' \
-            ' && cp -r include/plog ../../include', shell=True)
+            ' && mkdir ../../include/plog' \
+            ' && cp -r include/plog ../../include/plog', shell=True)
     if args.make:
         subprocess.call('cd ' + project_path("build") + \
             ' && cmake -DCMAKE_BUILD_TYPE=Debug ..' \

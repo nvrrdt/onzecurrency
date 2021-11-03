@@ -25,6 +25,7 @@ target_include_directories(tests_crowd PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libcoin"
                           "${PROJECT_SOURCE_DIR}/include/libpoco"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
+                          "${PROJECT_SOURCE_DIR}/include/plog"
                           ${ENET_INCLUDE_DIRS}
                           )
 

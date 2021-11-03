@@ -25,6 +25,8 @@
 #include "crypto.hpp"
 #include "prev_hash.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 std::string merkle_tree::time_now()
@@ -170,13 +172,15 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
 
     if(!isDir)
     {
-        std::cout << "Error Response: " << c << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Error Response:", std::to_string(c.value())});
     }
     else
     {
         if (latest_block != "no blockchain present in folder")
         {
-            std::cout << "Directory not empty" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Directory not empty"});
             //PrevHash ph;
             //block_j["prev_hash"] = ph.calculate_hash_from_last_block(); // "prev_hash by chosen one"; // TODO: pull in prev_hash by chosen one !!!!!!
             block_s = block_j.dump();
@@ -197,7 +201,8 @@ std::string merkle_tree::save_block_to_file(nlohmann::json &block_j, std::string
         }
         else
         {
-            std::cout << "Is a directory, is empty" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Is a directory, is empty"});
 
             block_j["prev_hash"] =  get_genesis_prev_hash();
             block_s = block_j.dump();

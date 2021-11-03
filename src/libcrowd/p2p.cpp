@@ -17,13 +17,15 @@
 #include <future>
 #include <thread>
 
-
 #include "p2p_network.hpp"
+
+#include "print_or_log.hpp"
 
 using namespace Crowd;
 
 bool P2p::start_crowd(std::map<std::string, std::string> cred)
 {
+    Common::Print_or_log pl;
     if (cred["new_peer"] == "true")
     {
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
@@ -48,7 +50,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             to_sign_j["rsa_pub_key"] = cred["rsa_pub_key"];
             to_sign_j["email"] = cred["email"];
             std::string to_sign_s = to_sign_j.dump();
-            // std::cout << "to_sign_s: " << to_sign_s << std::endl;
+            // pl.handle_print_or_log({"to_sign_s:", to_sign_s});
             ECDSA<ECP, SHA256>::PrivateKey private_key;
             std::string signature;
             crypto.ecdsa_load_private_key_from_string(private_key);
@@ -56,9 +58,9 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             {
                 message_j["signature"] = crypto.base64_encode(signature);
 
-                // std::cout << "verification0p: " << std::endl;
-                // std::cout << "signature_bin: " << "X" << signature << "X" << std::endl;
-                // std::cout << "base64_signature: " << "X" << crypto.base64_encode(signature) << "X" << std::endl;
+                // pl.handle_print_or_log({"verification0p:"});
+                // pl.handle_print_or_log({"signature_bin:", signature});
+                // pl.handle_print_or_log({"base64_signature:", std::to_string(crypto.base64_encode(signature))});
             }
 
             // begin test
@@ -71,19 +73,19 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             // if (crypto.ecdsa_verify_message(public_key_ecdsa, to_sign_s, signature3))
             // {
-            //     std::cout << "verification1p: " << std::endl;
-            //     std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-            //     std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
-            //     std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
-            //     std::cout << "base64_signature: " << "X" << signature2 << "X" << std::endl;
+            //     pl.handle_print_or_log({"verification1p:"});
+            //     pl.handle_print_or_log({"ecdsa_p_key:", ecdsa_pub_key_s});
+            //     pl.handle_print_or_log({"to_sign_s:", to_sign_s});
+            //     pl.handle_print_or_log({"signature_bin:", std::to_string(signature3)});
+            //     pl.handle_print_or_log({"base64_signature:", std::to_string(signature2)});
             // }
             // else
             // {
-            //     std::cout << "verification2p: " << std::endl;
-            //     std::cout << "ecdsa_p_key: " << "X" << ecdsa_pub_key_s << "X" << std::endl;
-            //     std::cout << "to_sign_s: " << "X" << to_sign_s << "X" << std::endl;
-            //     std::cout << "signature_bin: " << "X" << signature3 << "X" << std::endl;
-            //     std::cout << "hex_signature: " << "X" << signature2 << "X" << std::endl;
+            //     pl.handle_print_or_log({"verification2p:"});
+            //     pl.handle_print_or_log({"ecdsa_p_key:", ecdsa_pub_key_s});
+            //     pl.handle_print_or_log({"to_sign_s:", to_sign_s});
+            //     pl.handle_print_or_log({"signature_bin:", std::to_string(signature3)});
+            //     pl.handle_print_or_log({"hex_signature:", std::to_string(signature2)});
             // }
 
             // end test
@@ -107,7 +109,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
             rocksdb_j["full_hash"] = full_hash;
             rocksdb_j["block_nr"] = proto.get_last_block_nr();
-            std::cout << "get last block number from the first block: " << rocksdb_j["block_nr"] << std::endl;
+            pl.handle_print_or_log({"get last block number from the first block: ", rocksdb_j["block_nr"]});
             rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
             rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
 
@@ -122,7 +124,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             }
             else if (pn.get_closed_client() == "close_same_conn")
             {
-                std::cout << "Connection was closed, probably no server reachable, maybe you are genesis" << std::endl;
+                pl.handle_print_or_log({"Connection was closed, probably no server reachable, maybe you are genesis"});
 
                 // you are the only peer (genesis) and can create a block
 
@@ -146,7 +148,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 exit_transactions_j.push_back(exit_tx_j);
                 std::string datetime = mt.time_now();
                 std::string root_hash_data = s_shptr->top();
-std::cout << "root_hash_data: " << root_hash_data << std::endl;
+pl.handle_print_or_log({"root_hash_data:", root_hash_data});
                 nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
                 std::string block_nr = proto.get_last_block_nr();
                 std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
@@ -184,7 +186,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 Rocksy* rocksy = new Rocksy("usersdb");
                 rocksy->Put(full_hash, rocksdb_s);
                 delete rocksy;
-                std::cout << "Rocksdb updated and server started" << std::endl;
+                pl.handle_print_or_log({"Rocksdb updated and server started"});
 
                 // Save the full_hash to file
                 FullHash fh;
@@ -199,14 +201,14 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
             }
             else if (pn.get_closed_client() == "close_this_conn_and_create")
             {
-                std::cout << "Connection closed by other server, start this server (p2p) and create" << std::endl;
+                pl.handle_print_or_log({"Connection closed by other server, start this server (p2p) and create"});
 
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
                 sync->get_sleep_and_create_block();
             }
             else if (pn.get_closed_client() == "close_this_conn")
             {
-                std::cout << "Connection closed by other server, start this server (p2p)" << std::endl;
+                pl.handle_print_or_log({"Connection closed by other server, start this server (p2p)"});
             }
             else if (pn.get_closed_client() == "new_co")
             {
@@ -216,7 +218,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                 p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
                 pn.p2p_client(ip_new_co_s, message);
 
-                std::cout << "The p2p_client did it's job and the new_co too" << std::endl;
+                pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
 
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
                 sync->get_sleep_and_create_block();
@@ -224,7 +226,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
             else
             {
                 // Is this else necessary, looks like a fallback ...
-                std::cout << "The p2p_client did it's job succesfully" << std::endl;
+                pl.handle_print_or_log({"The p2p_client did it's job succesfully"});
             }
             return true;
         }
@@ -232,7 +234,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
         {
             delete rocksy;
 
-            std::cout << "1 or more peers ..." << std::endl;
+            pl.handle_print_or_log({"1 or more peers ..."});
 
             // 1 or more peers ...
             // get ip of online peer in rocksdb
@@ -248,7 +250,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
     {
         // existing user
 
-        // std::cout << "Existing peer" << std::endl;
+        // pl.handle_print_or_log({"Existing peer"});
 
         // verify if the email address with the saved prev_hash gives the full_hash, otherwise return false
         // verify blockchain ...
@@ -301,7 +303,7 @@ std::cout << "root_hash_data: " << root_hash_data << std::endl;
                     message_j["signature"] = crypto.base64_encode(signature);
                 }
                 std::string message_s = message_j.dump();
-std::cout << "intro online message sent to " << ip_next_peer << std::endl;
+pl.handle_print_or_log({"intro online message sent to", ip_next_peer});
                 P2pNetwork pn;
                 if (pn.p2p_client(ip_next_peer, message_s) == 0)
                 {
@@ -325,7 +327,7 @@ std::cout << "intro online message sent to " << ip_next_peer << std::endl;
     else
     {
         // something wrong cred["new_peer"] not present or correct
-        std::cerr << "Wrong cred[\"new_peer\"]" << std::endl;
+        pl.handle_print_or_log({"Wrong cred[\"new_peer\"]"});
 
         return false;
     }
@@ -354,12 +356,14 @@ int P2p::ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr)
                      + (byte2 << 8)
                      +  byte3;
 
-            std::cout << "Here could big endian be introduced ..." << " " << pIpAddr << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Here could big endian be introduced ...", std::to_string(pIpAddr)});
             return 1;
         }
     }
 
-    std::cout << "Here could big endian be introduced ..." << " " << pIpAddr << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Here could big endian be introduced ...", std::to_string(pIpAddr)});
     return 0;
 }
 

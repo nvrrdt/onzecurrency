@@ -19,6 +19,7 @@ target_include_directories(common PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
                         "${PROJECT_SOURCE_DIR}/include/libpoco"
                         "${PROJECT_SOURCE_DIR}/build/cryptopp"
+                        "${PROJECT_SOURCE_DIR}/include/plog"
                           )
 
 ### install:
@@ -33,6 +34,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/crypto.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/tinyformat.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcommon/globals.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcommon/print_or_log.hpp"
                 )
 
 INSTALL(TARGETS common ARCHIVE DESTINATION lib/onze COMPONENT libraries)

@@ -1,5 +1,8 @@
 #include "synchronisation.hpp"
 
+#include "print_or_log.hpp"
+#include <boost/lexical_cast.hpp>
+
 using namespace Poco;
 
 bool Synchronisation::break_block_creation_loops_ = false;
@@ -20,8 +23,9 @@ void Synchronisation::get_sleep_and_create_block()
     // need to read the time in the block for full synchronisation
     // get_latest_block --> get datetime from block && get system time --> proceed when multiple of 10 or ???
 
-    std::cout << "intro_msg_vec.size() in Poco: " << intro_msg_vec_.get_intro_msg_vec().size() << std::endl;
-    std::cout << "transactions.size() in Coin: " << tx_.get_transactions().size() << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"intro_msg_vec.size() in Poco:", std::to_string(intro_msg_vec_.get_intro_msg_vec().size())});
+    pl.handle_print_or_log({"transactions.size() in Coin:", std::to_string(tx_.get_transactions().size())});
 
     //std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
 
@@ -45,6 +49,8 @@ void Synchronisation::get_sleep_and_create_block()
 void Synchronisation::get_sleep_until()
 {
     // wait x seconds (infinite for loop + break) until datetime + 10, 20, 30s ... in latest_block
+
+    Common::Print_or_log pl;
 
     set_break_block_creation_loops(false);
 
@@ -77,7 +83,7 @@ void Synchronisation::get_sleep_until()
         
         if (utc_tm.tm_sec % 20 == utc_tm_block.tm_sec % 20)  // 20 = every 20 seconds
         {
-            std::cout << "break: datetime block " << utc_tm_block.tm_year + 1900 << "/" << utc_tm_block.tm_mon + 1 << "/" << utc_tm_block.tm_mday << " " << utc_tm_block.tm_hour << ":" << utc_tm_block.tm_min << ":" << utc_tm_block.tm_sec << std::endl;
+            pl.handle_print_or_log({"break: datetime block ", std::to_string(utc_tm_block.tm_year + 1900), "/", std::to_string(utc_tm_block.tm_mon + 1), "/", std::to_string(utc_tm_block.tm_mday), " ", std::to_string(utc_tm_block.tm_hour), ":", std::to_string(utc_tm_block.tm_min), ":", std::to_string(utc_tm_block.tm_sec)});
 
             set_break_block_creation_loops(true);
 
@@ -96,17 +102,19 @@ std::string Synchronisation::get_genesis_datetime() // TODO make a static variab
     Crowd::ConfigDir cd;
     boost::filesystem::path p (cd.GetConfigDir() + "blockchain/crowd");
 
+    Common::Print_or_log pl;
+
     try
     {
         if (boost::filesystem::exists(p))    // does p actually exist?
         {
             if (boost::filesystem::is_regular_file(p))        // is p a regular file?
             {
-                std::cout << p << " size is " << boost::filesystem::file_size(p) << '\n';
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
             }
             else if (boost::filesystem::is_directory(p))      // is p a directory?
             {
-                std::cout << p << " is a directory containing:\n";
+                pl.handle_print_or_log({p.string(), "is a directory containing:"});
 
                 typedef std::vector<boost::filesystem::path> vec;             // store paths,
                 vec v;                                // so we can sort them later
@@ -131,17 +139,17 @@ std::string Synchronisation::get_genesis_datetime() // TODO make a static variab
             }
             else
             {
-                std::cout << p << " exists, but is neither a regular file nor a directory\n";
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
             }
         }
         else
         {
-            std::cout << p << " does not exist\n";
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
     catch (const boost::filesystem::filesystem_error& ex)
     {
-        std::cout << ex.what() << '\n';
+        pl.handle_print_or_log({ex.what()});
     }
 
     return latest_datetime;

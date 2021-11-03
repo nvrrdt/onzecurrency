@@ -22,6 +22,8 @@
 #include "block_matrix.hpp"
 #include "merkle_tree_c.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Common;
 using namespace Coin;
 using namespace Poco;
@@ -29,7 +31,8 @@ using namespace Poco;
 void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
 {
     //
-    std::cout << "buf_j server " << buf_j << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"buf_j server", buf_j});
 
     std::string req = buf_j["req"];
     std::map<std::string, int> req_conversion;
@@ -69,7 +72,8 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
 void P2pNetworkC::hello_tx(nlohmann::json buf_j)
 {
     //
-    std::cout << "Hello_tx:" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Hello_tx:"});
 
     std::string full_hash_req = buf_j["full_hash_req"];
     std::string to_full_hash = buf_j["tx_to"];
@@ -80,7 +84,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -100,8 +106,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "Hello_tx: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Hello_tx: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -115,8 +122,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         
         if (my_full_hash == full_hash_coordinator && my_full_hash != full_hash_req)
         {
-            std::cout << "Hello_tx: I'm the coordinator" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Hello_tx: I'm the coordinator"});
+            
             // Are funds sufficient? Create a second rocksdb here!
             Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
@@ -136,8 +144,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
 
             if (funds >= total_amount)
             {
-                std::cout << "funds are ok" << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"funds are ok"});
+                
                 // Inform chosen_ones here!
                 Protocol proto;
                 std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
@@ -189,8 +198,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                     
                     std::string message = message_j.dump();
 
-                    std::cout << "Preparation for intro_tx: " << peer_ip << std::endl;
-
+                    Common::Print_or_log pl;
+                    pl.handle_print_or_log({"Preparation for intro_tx:", std::to_string(peer_ip)});
+                    
                     std::string ip_from_peer;
                     P2p p2p;
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -211,17 +221,20 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
             }
             else
             {
-                std::cout << "Hello_tx: funds don't suffice" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Hello_tx: funds don't suffice"});
             }
         }
         else
         {
-            std::cout << "Hello_tx: I'm not the coordinator, try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Hello_tx: I'm not the coordinator, try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "Hello_tx: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Hello_tx: verification didn't succeed"});
     }
 
     delete crypto;
@@ -230,8 +243,9 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
 void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 {
     //
-    std::cout << "Intro_tx:" << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Intro_tx:"});
+    
     std::string full_hash_req = buf_j["full_hash_req"];
     std::string to_full_hash = buf_j["tx_to"];
     std::string amount = buf_j["amount"];
@@ -244,7 +258,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -265,8 +281,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "Intro_tx: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Intro_tx: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -282,8 +299,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 
         if (is_chosen_one && my_full_hash != full_hash_req)
         {
-            std::cout << "Intro_tx: I'm a chosen_one" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Intro_tx: I'm a chosen_one"});
+            
             // Are funds sufficient?
             Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
@@ -303,8 +321,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 
             if (funds >= total_amount)
             {
-                std::cout << "funds are ok" << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"funds are ok"});
+                
                 // Inform network below here!
                 Protocol proto;
                 std::map<int, std::string> parts;
@@ -376,8 +395,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                     
                     std::string message = message_j.dump();
 
-                    std::cout << "Preparation for new_tx: " << peer_ip << std::endl;
-
+                    Common::Print_or_log pl;
+                    pl.handle_print_or_log({"Preparation for new_tx:", std::to_string(peer_ip)});
+                    
                     std::string ip_from_peer;
                     P2p p2p;
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -398,17 +418,20 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
             }
             else
             {
-                std::cout << "Intro_tx: funds don't suffice" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Intro_tx: funds don't suffice"});
             }
         }
         else
         {
-            std::cout << "Intro_tx: I'm not chosen_one, maybe try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Intro_tx: I'm not chosen_one, maybe try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "Intro_tx: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Intro_tx: verification didn't succeed"});
     }
 
     delete crypto;
@@ -417,8 +440,9 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 void P2pNetworkC::new_tx(nlohmann::json buf_j)
 {
     //
-    std::cout << "New_tx:" << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"New_tx:"});
+    
     std::string full_hash_req = buf_j["full_hash_req"];
     std::string to_full_hash = buf_j["tx_to"];
     std::string amount = buf_j["amount"];
@@ -431,7 +455,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -452,8 +478,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "New_tx: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"New_tx: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -469,8 +496,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
 
         if (is_chosen_one && my_full_hash != full_hash_req)
         {
-            std::cout << "New_tx: I'm a secondary chosen_one" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"New_tx: I'm a secondary chosen_one"});
+            
             // Are funds sufficient?
             Rocksy* rocksy = new Rocksy("transactionsdbreadonly");
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
@@ -490,8 +518,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
 
             if (funds >= total_amount)
             {
-                std::cout << "funds are ok" << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"funds are ok"});
+                
                 // Inform network below here!
                 Protocol proto;
                 std::map<int, std::string> parts;
@@ -563,8 +592,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                     
                     std::string message = message_j.dump();
 
-                    std::cout << "Preparation for new_tx: " << peer_ip << std::endl;
-
+                    Common::Print_or_log pl;
+                    pl.handle_print_or_log({"Preparation for new_tx:", std::to_string(peer_ip)});
+                    
                     std::string ip_from_peer;
                     P2p p2p;
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -585,17 +615,20 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
             }
             else
             {
-                std::cout << "New_tx: funds don't suffice" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"New_tx: funds don't suffice"});
             }
         }
         else
         {
-            std::cout << "New_tx: I'm not a secondary chosen_one, maybe try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"New_tx: I'm not a secondary chosen_one, maybe try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "New_tx: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"New_tx: verification didn't succeed"});
     }
 
     delete crypto;
@@ -604,8 +637,9 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
 void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 {
     //
-    std::cout << "Hello_reward:" << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Hello_reward:"});
+    
     std::string full_hash_req = buf_j["full_hash_req"];
     std::string hash_of_block = buf_j["hash_of_block"];
     nlohmann::json chosen_ones_reward = buf_j["chosen_ones_reward"];
@@ -615,7 +649,9 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -635,8 +671,9 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "Hello_reward: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Hello_reward: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -648,8 +685,9 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
         
         if (my_full_hash == coordinator)
         {
-            std::cout << "Hello_reward: I'm the coordinator" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Hello_reward: I'm the coordinator"});
+            
             // Inform chosen_ones and add 1 onze to my fund
 
             Protocol proto;
@@ -700,8 +738,9 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
                 
                 std::string message = message_j.dump();
 
-                std::cout << "Preparation for intro_reward: " << peer_ip << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Preparation for intro_reward:"});
+                
                 std::string ip_from_peer;
                 P2p p2p;
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -738,12 +777,14 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "Hello_reward: I'm not the coordinator, try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Hello_reward: I'm not the coordinator, try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "Hello_reward: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Hello_reward: verification didn't succeed"});
     }
 
     delete crypto;
@@ -752,8 +793,9 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 {
     //
-    std::cout << "Intro_reward:" << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Intro_reward:"});
+    
     std::string hash_of_block = buf_j["hash_of_block"];
     nlohmann::json chosen_ones_reward = buf_j["chosen_ones_reward"];
     std::string signature = buf_j["signature"];
@@ -766,7 +808,9 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -786,8 +830,9 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "Intro_reward: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Intro_reward: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -799,7 +844,8 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
         
         if (is_chosen_one)
         {
-            std::cout << "Intro_reward: I'm a chosen_one" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Intro_reward: I'm a chosen_one"});
 
             // Inform network below here!
             Protocol proto;
@@ -870,8 +916,9 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
                 
                 std::string message = message_j.dump();
 
-                std::cout << "Preparation for new_reward: " << peer_ip << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Preparation for new_reward:", std::to_string(peer_ip)});
+                
                 std::string ip_from_peer;
                 P2p p2p;
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -909,12 +956,14 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "Intro_reward: I'm not chosen_one, maybe try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Intro_reward: I'm not chosen_one, maybe try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "Intro_reward: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Intro_reward: verification didn't succeed"});
     }
 
     delete crypto;
@@ -923,7 +972,8 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 void P2pNetworkC::new_reward(nlohmann::json buf_j)
 {
     //
-    std::cout << "New_reward:" << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"New_reward:"});
 
     std::string hash_of_block = buf_j["hash_of_block"];
     nlohmann::json chosen_ones_reward = buf_j["chosen_ones_reward"];
@@ -937,7 +987,9 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     if (contents_j == "")
     {
-        std::cout << "Requester not in database" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Requester not in database"});
+        
         return;
     }
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
@@ -957,8 +1009,9 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
     
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        std::cout << "New_reward: verified" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"New_reward: verified"});
+        
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file();
 
@@ -970,8 +1023,9 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         
         if (is_chosen_one)
         {
-            std::cout << "Intro_reward: I'm a secondary chosen_one" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Intro_reward: I'm a secondary chosen_one"});
+            
             // Inform network below here!
             Protocol proto;
             std::map<int, std::string> parts;
@@ -1041,8 +1095,9 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
                 
                 std::string message = message_j.dump();
 
-                std::cout << "Preparation for new_reward: " << peer_ip << std::endl;
-
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Preparation for new_reward:", std::to_string(peer_ip)});
+                
                 std::string ip_from_peer;
                 P2p p2p;
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
@@ -1080,12 +1135,14 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "New_reward: I'm not a secondary chosen_one, maybe try again in a few minutes" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"New_reward: I'm not a secondary chosen_one, maybe try again in a few minutes"});
         }
     }
     else
     {
-        std::cout << "New_reward: verification didn't succeed" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"New_reward: verification didn't succeed"});
     }
 
     delete crypto;
@@ -1108,8 +1165,9 @@ void P2pNetworkC::start_block_creation_thread()
         // wait 20 secs
         // then create block
 
-        std::cout << "Get_sleep_and_create_block_c" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Get_sleep_and_create_block_c"});
+        
         std::thread t(&P2pNetworkC::get_sleep_and_create_block_server_c, this);
         t.detach();
     }
@@ -1122,23 +1180,25 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     std::this_thread::sleep_for(std::chrono::seconds(10));
 
     Transactions tx;
-    std::cout << "transactions.size() in Coin: " << tx.get_transactions().size() << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"transactions.size() in Coin:", to_string(tx.get_transactions().size())});
+    
     BlockMatrixC *bmc = new BlockMatrixC();
     bmc->add_received_block_vector_to_received_block_matrix();
 
     PocoCoin poco;
     poco.create_and_send_block_c(); // chosen ones are being informed here
 
-    std::cout << "Block_c created server!!" << std::endl;
-
+    pl.handle_print_or_log({"Block_c created server!!"});
+    
     delete bmc;
 }
 
 void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 {
-    std::cout << "Intro_block_c: " << std::endl;
-
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Intro_block_c:"});
+    
     // Compare the hashes from the block of the coordinator with this block
     // p2p_client to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
     // Communicate hash to all
@@ -1151,7 +1211,9 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     BlockMatrixC *bmc = new BlockMatrixC();
     if (bmc->get_block_matrix().empty())
     {
-        std::cout << "Received block is in block_vector; 1" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Received block is in block_vector; 1"});
+        
         bmc->add_received_block_to_received_block_vector(recv_block_j);
     }
     else
@@ -1160,7 +1222,9 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         {
             if (*bmc->get_block_matrix().back().at(i) == recv_block_j)
             {
-                std::cout << "Received block is in block_vector; 2" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Received block is in block_vector; 2"});
+                
                 bmc->add_received_block_to_received_block_vector(recv_block_j);
                 break;
             }
@@ -1168,7 +1232,9 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
             if (i == bmc->get_block_matrix().back().size() - 1)
             {
                 // Don't accept this block
-                std::cout << "Received block not in block_vector" << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({"Received block not in block_vector"});
+                                
                 return;
             }
         }
@@ -1199,15 +1265,17 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
     if (full_hash_coord_from_coord == full_hash_coord_from_me)
     {
-        std::cout << "Coordinator is truthful c" << std::endl;
-
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Coordinator is truthful c"});
+        
         std::string prev_hash_coordinator = buf_j["prev_hash"];
         std::string prev_hash_in_block = buf_j["block"]["prev_hash"];
 
         if (prev_hash_coordinator == prev_hash_in_block && prev_hash_coordinator == prev_hash_me)
         {
-            std::cout << "Successful comparison of prev_hashes, now sharing hashes c" << std::endl;
-
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Successful comparison of prev_hashes, now sharing hashes c"});
+            
             // Put in rocksdb
             // for (auto &[key, value] : buf_j["rocksdb"].items()) // TODO not yet ready in poco_c
             // {
@@ -1221,7 +1289,8 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         }
         else
         {
-            std::cout << "Unsuccessful comparison of prev_hashes c" << std::endl;
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({"Unsuccessful comparison of prev_hashes c"});
         }
 
         // Inform coordinator of succesfullness of hash comparison
@@ -1240,7 +1309,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-        // std::cout << "My_full_hash already present in file: " << my_full_hash << std::endl;
+        // pl.handle_print_or_log({"My_full_hash already present in file:", my_full_hash});
 
         int j;
 
@@ -1283,7 +1352,8 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     }
     else
     {
-        std::cout << "Coordinator is not truthful c" << std::endl;
+        Common::Print_or_log pl;
+        pl.handle_print_or_log({"Coordinator is not truthful c"});
     }
 
     // Disconect from client
@@ -1295,11 +1365,13 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
 void P2pNetworkC::hash_comparison_c(nlohmann::json buf_j)
 {
     // compare the received hash
-    std::cout << "The hash comparison is (server): " <<  buf_j["hash_comp"] << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"The hash comparison is (server):", buf_j["hash_comp"]});
 }
 
 void P2pNetworkC::new_block_c(nlohmann::json buf_j)
 {
     // new_block --> TODO block and rocksdb should be saved
-    std::cout << "New_block_c: " << std::endl;
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"New_block_c:"});
 }

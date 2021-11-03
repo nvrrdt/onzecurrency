@@ -1,5 +1,7 @@
 #include "ip_peers.hpp"
 
+#include "print_or_log.hpp"
+
 using namespace Crowd;
 
 IpPeers::IpPeers()
@@ -29,7 +31,8 @@ IpPeers::IpPeers()
             std::string str;
             while(getline(ip_peers, str))
             {
-                std::cout << str << std::endl;
+                Common::Print_or_log pl;
+                pl.handle_print_or_log({str});
                 full_str += str;
             }
             ip_peers.close(); //close the file object.
