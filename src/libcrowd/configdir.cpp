@@ -54,3 +54,23 @@ int ConfigDir::CreateFileInConfigDir(std::string &filename, std::string &content
 
     return 0;
 }
+
+int ConfigDir::CreateDirInConfigDir(std::string directory)
+{
+    boost::filesystem::path path(configdir + directory);
+
+    if (!boost::filesystem::exists(path))
+    {
+        try
+        {
+            boost::filesystem::create_directories(path);
+        }
+        catch (boost::filesystem::filesystem_error &e)
+        {
+            Common::Print_or_log pl;
+            pl.handle_print_or_log({e.what()});
+        }
+    }
+
+    return 0;
+}

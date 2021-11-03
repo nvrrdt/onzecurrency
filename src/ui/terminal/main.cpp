@@ -10,6 +10,7 @@
 #include "p2p_network_c.hpp"
 
 #include "print_or_log.hpp"
+#include "configdir.hpp"
 
 extern int USE_LOG;
 
@@ -18,6 +19,8 @@ using namespace Coin;
 
 int main(int argc, char *argv[])
 {
+    ConfigDir cd;
+    cd.CreateDirInConfigDir("log");
     Common::Print_or_log pl;
     pl.init();
 

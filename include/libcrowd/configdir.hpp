@@ -23,6 +23,7 @@ namespace Crowd
         ConfigDir();
         std::string GetConfigDir();
         int CreateFileInConfigDir(std::string &filename, std::string &content);
+        int CreateDirInConfigDir(std::string directory);
     private:
         const char *homedir;
         std::string configdir;

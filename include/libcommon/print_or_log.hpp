@@ -7,6 +7,9 @@
 
 #include "globals.hpp"
 
+#include <boost/filesystem.hpp>
+#include <boost/system/error_code.hpp>
+
 namespace Common
 {
     class Print_or_log
@@ -14,7 +17,15 @@ namespace Common
     public:
         void init()
         {
-            plog::init(plog::debug, "log/loggi", 2000000, 3); // Initialize the logger
+            std::string path = "/onzecurrency/";
+            if (boost::filesystem::exists(path))
+            {
+                plog::init(plog::verbose, "/onzecurrency/.config/onzehub/log/loggi", 2000000, 3); // Initialize the logger
+            }
+            else
+            {
+                plog::init(plog::verbose, ".config/onzehub/log/loggi", 2000000, 3); // Initialize the logger
+            }
         }
 
         void handle_print_or_log(std::vector<std::string> message)
