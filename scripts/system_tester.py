@@ -15,6 +15,7 @@ import os
 import subprocess
 from pathlib import Path
 import queue, threading
+import time
 
 def main():
     # Cd to script directory
@@ -58,6 +59,14 @@ def main():
     threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay)) for _i in range(len(ips)) ]
     for thread in threads:
         thread.start()
+
+    # Wait until al servers have finished
+    total_test_time = ((len(ips) + 1) * block_creation_delay) + 10
+    time.sleep(total_test_time)
+
+    # Scp log files to main machine
+    for ip in ips:
+        subprocess.call('scp -r root@' + ip + ':~/onzecurrency/.config/onzehub/log ./log', shell=True)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
