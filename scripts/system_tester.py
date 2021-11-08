@@ -66,7 +66,11 @@ def main():
 
     # Scp log files to main machine
     for ip in ips:
-        subprocess.call('scp -r root@' + ip + ':~/onzecurrency/.config/onzehub/log ./log', shell=True)
+        subprocess.call('mkdir log && scp -r root@' + ip + ':~/onzecurrency/.config/onzehub/log ./log', shell=True)
+
+        # Add ip adress to beginning of log file
+        new_loggi = "{ip}_loggi".format(ip=ip)
+        os.rename('loggi', new_loggi)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()

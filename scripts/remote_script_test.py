@@ -40,8 +40,6 @@ def main():
         if 'onze-terminal' in proc.info['name']:
             proc.kill()
 
-    # future: Scp log files and last blocknumber to tester's main machine
-
 if __name__ == '__main__':
     try:
         main()

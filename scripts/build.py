@@ -3,7 +3,6 @@ import sys
 import os
 import subprocess
 from pathlib import Path
-import threading
 
 def main():
     # Cd to scripts/build.py directory
