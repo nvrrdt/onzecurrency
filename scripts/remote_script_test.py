@@ -4,6 +4,7 @@ import subprocess
 import argparse
 import time
 import psutil
+import pexpect
 
 def main():
     # Cd to scripts directory
@@ -25,11 +26,17 @@ def main():
     time.sleep(start_test_time)
     
     # Run command
-    command = 'dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
-              '&& apt-get -f install' \
-              '&& rm -rf /onzecurrency/.config' \
-              '&& echo er@er.c0 | onze-terminal'
-    subp = subprocess.Popen(command, shell=True)
+    subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
+                    '&& apt-get -f install' \
+                    '&& rm -rf /onzecurrency/.config', shell=True)
+    
+    command = 'onze-terminal'
+    child = pexpect.spawn(command, encoding='utf-8', timeout=None)
+    child.logfile = sys.stdout
+    child.setecho(False)
+    child.expect("Email adress: ")
+    child.send('er@er.c0\n')
+    child.read()
 
     # Let the onze-terminal process exist until al servers have finished
     total_test_time = (args.total_servers - args.order + 1) * args.block_creation_delay

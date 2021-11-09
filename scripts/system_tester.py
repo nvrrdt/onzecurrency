@@ -61,15 +61,21 @@ def main():
         thread.start()
 
     # Wait until al servers have finished
-    total_test_time = ((len(ips) + 1) * block_creation_delay) + 10
+    total_test_time = ((len(ips) + 1) * block_creation_delay)
     time.sleep(total_test_time)
+
+    # Cd to log directory
+    if not os.path.exists("../log"):
+        os.makedirs("../log")
+    os.chdir("../log")
 
     # Scp log files to main machine
     for ip in ips:
-        subprocess.call('mkdir log && scp -r root@' + ip + ':~/onzecurrency/.config/onzehub/log ./log', shell=True)
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log .. && pwd', shell=True)
 
         # Add ip adress to beginning of log file
-        new_loggi = "{ip}_loggi".format(ip=ip)
+        new_loggi = "{index}_{ip}_loggi".format(index=ips.index(ip), ip=ip)
+        os.listdir()
         os.rename('loggi', new_loggi)
 
 def worker(q, total_servers, block_creation_delay):
