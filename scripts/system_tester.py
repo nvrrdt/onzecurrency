@@ -69,19 +69,27 @@ def main():
         os.makedirs("../log")
     os.chdir("../log")
 
+    # Wait for all of them to finish
+    for x in threads:
+        x.join()
+
     # Scp log files to main machine
     for ip in ips:
-        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log .. && pwd', shell=True)
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
 
-        # Add ip adress to beginning of log file
+        # Add ip adress and index to beginning of log file
         new_loggi = "{index}_{ip}_loggi".format(index=ips.index(ip), ip=ip)
-        os.listdir()
         os.rename('loggi', new_loggi)
+
+        # Add ip adress and index to beginning of count file
+        new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
+        os.rename('blocks_count', new_blocks_count)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
     order = total_servers - q.qsize()
-    subprocess.call('ssh root@' + ip + ' python3 remote_script_test.py ' + str(order) + ' ' + str(total_servers) + ' ' + str(block_creation_delay), shell=True)
+    subprocess.call('ssh root@' + ip + ' python3 remote_script_test.py ' + str(order) + ' ' + str(total_servers) + ' ' + str(block_creation_delay) \
+                    + ' && exit', shell=True)
     return
 
 def project_path(sub_dir):

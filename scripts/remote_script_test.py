@@ -25,27 +25,35 @@ def main():
     start_test_time = (args.order - 1) * args.block_creation_delay
     time.sleep(start_test_time)
     
+    # Let the onze-terminal process exist until al servers have finished
+    total_test_time = (args.total_servers - args.order + 1) * args.block_creation_delay
+
     # Run command
     subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
                     '&& apt-get -f install' \
                     '&& rm -rf /onzecurrency/.config', shell=True)
     
     command = 'onze-terminal'
-    child = pexpect.spawn(command, encoding='utf-8', timeout=None)
+    child = pexpect.spawn(command, encoding='utf-8', timeout=total_test_time)
     child.logfile = sys.stdout
     child.setecho(False)
     child.expect("Email adress: ")
     child.send('er@er.c0\n')
-    child.read()
 
-    # Let the onze-terminal process exist until al servers have finished
-    total_test_time = (args.total_servers - args.order + 1) * args.block_creation_delay
     time.sleep(total_test_time)
 
     # Kill onze-terminal    
     for proc in psutil.process_iter(attrs=['pid', 'name']):
         if 'onze-terminal' in proc.info['name']:
             proc.kill()
+
+    # Create file that contains amount of blocks present in log folder
+    dir = '/onzecurrency/.config/onzehub/blockchain/crowd/'
+    list = os.listdir(dir) # dir is your directory path
+    blocks_count = len(list)
+    with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
+        file.write(str(blocks_count))
+    file.close()
 
 if __name__ == '__main__':
     try:
