@@ -11,13 +11,24 @@ Also poco is normally easier regulatable, while pseudonimity remains possible.
 #### build and test procedure
 - docker and docker-compose needs to be installed
 - sudo docker-compose run -p 1975:1975/tcp -p 1975:1975/udp onzecurrency bash
-- python3 ./scripts/build.py -rcd   # to install cryptopp and enet
+- python3 ./scripts/build.py -rcdl  # to install cryptopp, enet and the plog headers
 - python3 ./scripts/build.py -p     # to build and package the current state of onzecurrency
 - rm -rf ./config && onze-terminal  # for running onze-terminal once, see the test procedure below for a group of servers
 - python3 ./scripts/build.py -t     # there aren't many tests ...
 
 #### test procedure with 6 servers
 - foresee 6 servers (in the cloud)
+
+##### automatically
+
+- scripts/system_tester.py       # adjust amount of servers as wished, the wait until end of script
+- scripts/logs_analyzer.py -c    # get amount of blocks made by every server
+- scripts/logs_analyzer.py -a    # assemble (erge and sort and reverse) one log file of all the log files
+- scripts/logs_analyzer.py -s searchterm  # search in all the log files
+
+view the log files in the log folder with your preferred tool
+
+##### manually
 
 - in a first terminal: cd to onzecurrency folder; python3 ./scripts/build.py -s   
  = scp packaged deb file to servers, ip addresses should be adapted in ./scripts/build.py
@@ -36,6 +47,10 @@ Adding two or more servers within the block creation period results in adding tw
 
 #### only testing the program
 - rm -rf /onzecurrency/.config && onze-terminal
+
+or
+
+- onze-terminal
 
 ## some commands for easy retrieval:
 
