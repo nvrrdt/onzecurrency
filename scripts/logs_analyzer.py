@@ -76,7 +76,7 @@ def search(search_term):
 
 def show_blocks_count():
     folder_path = 'log'
-    for filename in glob.glob(os.path.join(folder_path, '*_blocks_count')):
+    for filename in sorted(glob.glob(os.path.join(folder_path, '*_blocks_count'))):
         with open(filename, 'r') as f:
             print(filename, f.read())
         f.close()
