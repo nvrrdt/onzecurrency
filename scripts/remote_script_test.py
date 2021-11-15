@@ -5,6 +5,7 @@ import argparse
 import time
 import psutil
 import pexpect
+import threading
 
 def main():
     # Cd to scripts directory
@@ -21,26 +22,27 @@ def main():
     # Read arguments from command line
     args = parser.parse_args()
 
+    # Install onze-terminal and so
+    thread = threading.Thread(target=worker)
+    thread.start()
+    time.sleep(6) # estimated time to install the software    
+
     # Start the command when synchronised with other servers
     start_test_time = (args.order - 1) * args.block_creation_delay
     time.sleep(start_test_time)
     
     # Let the onze-terminal process exist until al servers have finished
-    total_test_time = (args.total_servers - args.order + 1) * args.block_creation_delay
-
-    # Run command
-    subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
-                    '&& apt-get -f install' \
-                    '&& rm -rf /onzecurrency/.config', shell=True)
+    remaining_test_time = (args.total_servers - args.order + 1) * args.block_creation_delay
     
+    # Execute onze-terminal
     command = 'onze-terminal'
-    child = pexpect.spawn(command, encoding='utf-8', timeout=total_test_time)
+    child = pexpect.spawn(command, encoding='utf-8', timeout=remaining_test_time)
     child.logfile = sys.stdout
     child.setecho(False)
     child.expect("Email adress: ")
     child.send('er@er.c0\n')
 
-    time.sleep(total_test_time)
+    time.sleep(remaining_test_time)
 
     # Kill onze-terminal    
     for proc in psutil.process_iter(attrs=['pid', 'name']):
@@ -54,6 +56,11 @@ def main():
     with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
         file.write(str(blocks_count))
     file.close()
+
+def worker():
+    subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
+                    ' && apt-get -f install' \
+                    ' && rm -rf /onzecurrency/.config', shell=True)
 
 if __name__ == '__main__':
     try:
