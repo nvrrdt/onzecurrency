@@ -16,13 +16,16 @@ import subprocess
 from pathlib import Path
 import queue, threading
 import time
+import shutil
 
 def main():
     # Cd to script directory
     os.chdir(os.path.dirname(__file__))
 
+    shutil.rmtree('../log', ignore_errors=True)
+
     # Variables
-    ips = ["51.158.68.232", "51.15.226.67"] # , "51.15.248.67", "212.47.254.170", "212.47.234.94", "212.47.236.102"]
+    ips = ["51.158.68.232", "51.15.226.67", "51.15.248.67", "212.47.254.170", "212.47.234.94", "212.47.236.102"]
     block_creation_delay = 20 # seconds
     
     # Constant
