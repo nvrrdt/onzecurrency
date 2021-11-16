@@ -11,7 +11,7 @@
 # nohup and you can execute that script on the remote host
 
 import sys
-import os
+import os, glob
 import subprocess
 from pathlib import Path
 import queue, threading
@@ -76,8 +76,8 @@ def main():
     for x in threads:
         x.join()
 
-    # Scp log files to main machine
     for ip in ips:
+        # Scp log files to main machine
         subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
 
         # Add ip adress and index to beginning of log file
@@ -87,6 +87,14 @@ def main():
         # Add ip adress and index to beginning of count file
         new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
         os.rename('blocks_count', new_blocks_count)
+
+        # Scp blocks to main machine
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ ..', shell=True)
+
+        for file in glob.glob("block*"):
+            # Add ip adress and index to beginning of block/file
+            new_file = "{index}_{ip}_{file}".format(index=ips.index(ip), ip=ip, file=file)
+            os.rename(file, new_file)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
