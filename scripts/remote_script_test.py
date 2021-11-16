@@ -51,11 +51,12 @@ def main():
 
     # Create file that contains amount of blocks present in log folder
     dir = '/onzecurrency/.config/onzehub/blockchain/crowd/'
-    list = os.listdir(dir) # dir is your directory path
-    blocks_count = len(list)
-    with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
-        file.write(str(blocks_count))
-    file.close()
+    if os.path.exists(dir):
+        list = os.listdir(dir) # dir is your directory path
+        blocks_count = len(list)
+        with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
+            file.write(str(blocks_count))
+        file.close()
 
 def worker():
     subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \

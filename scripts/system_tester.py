@@ -85,16 +85,18 @@ def main():
         os.rename('loggi', new_loggi)
 
         # Add ip adress and index to beginning of count file
-        new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
-        os.rename('blocks_count', new_blocks_count)
+        if os.path.isfile('blocks_count'):
+            new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
+            os.rename('blocks_count', new_blocks_count)
 
         # Scp blocks to main machine
-        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ ..', shell=True)
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ .', shell=True)
 
-        for file in glob.glob("block*"):
+        for file in glob.glob("crowd/block*"):
             # Add ip adress and index to beginning of block/file
-            new_file = "{index}_{ip}_{file}".format(index=ips.index(ip), ip=ip, file=file)
-            os.rename(file, new_file)
+            f = file.split('/')[1]
+            new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
+            os.rename(file, new_f)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
