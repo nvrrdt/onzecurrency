@@ -115,6 +115,9 @@ void P2pNetwork::connect_to_nat(nlohmann::json buf_j)
 
 void P2pNetwork::intro_peer(nlohmann::json buf_j)
 {
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Intro_peer req recv"});
+
     // process buf_j["hash_of_req"] to find ip of the peer who should update you
     std::string co_from_req = buf_j["full_hash_co"];
     std::string email_of_req = buf_j["email_of_req"];
@@ -152,7 +155,6 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     
     if (auth.validateEmail(email_of_req) && crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
-        Common::Print_or_log pl;
         pl.handle_print_or_log({"Email validated and message verified"});
 
         /** The plan for the capstone of poco:
