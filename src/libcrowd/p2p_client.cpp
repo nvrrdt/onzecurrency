@@ -393,9 +393,11 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     int connected=0;
 
+    Common::Print_or_log pl;
+
     if (enet_initialize() != 0)
     {
-        printf("Could not initialize enet.\n");
+        pl.handle_print_or_log({"Could not initialize enet."});
         return 0;
     }
 
@@ -403,7 +405,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     if (client_ == NULL)
     {
-        printf("Could not create client.\n");
+        pl.handle_print_or_log({"Could not create client."});
         return 0;
     }
 
@@ -414,14 +416,13 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     if (peer_ == NULL)
     {
-        printf("Could not connect to server\n");
+        pl.handle_print_or_log({"Could not connect to server"});        
         return 0;
     }
 
     if (enet_host_service(client_, &event_, 1000) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
     {
-
-        printf("Connection to %s succeeded.\n", ip);
+        pl.handle_print_or_log({"Connection to", ip, "succeeded."});
         connected++;
 
         std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
@@ -444,7 +445,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         set_closed_client("closed_conn");
 
         enet_peer_reset(peer_);
-        printf("Could not connect to %s.\n", ip);
+        pl.handle_print_or_log({"Could not connect to", ip});
         return 0;
     }
 
@@ -461,7 +462,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
                     connected=0;
-                    printf("You have been disconnected.\n");
+                    pl.handle_print_or_log({"You have been disconnected."});
                     return 2;
             }
         }

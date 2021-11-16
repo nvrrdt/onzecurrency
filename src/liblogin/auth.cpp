@@ -51,13 +51,15 @@ std::map<std::string, std::string> Auth::authentication()
  */
 bool Auth::setNetwork(std::string &network)
 {
+    Common::Print_or_log pl;
+
     if (network == "Default")
     {
         return true;
     }
     else
     {
-        printf("Network must be 'Default'\n");
+        pl.handle_print_or_log({"Network must be 'Default'"});
         return false;
     }
 }
@@ -67,6 +69,8 @@ bool Auth::setNetwork(std::string &network)
  */
 std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
 {
+    Common::Print_or_log pl;
+
     Common::Crypto crypto;
     std::string hash_email = crypto.bech32_encode_sha256(email);
     PrevHash ph;
@@ -83,7 +87,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     if (private_key == "" && prev_hash == "" && full_hash == "")
     {
         // new user is created
-        printf("A new user will be created!\n");
+        pl.handle_print_or_log({"A new user will be created!"});
 
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
@@ -110,7 +114,7 @@ std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, s
     else if (database_response != "")
     {
         // user is existant:
-        printf("The user exists!\n");
+        pl.handle_print_or_log({"The user exists!"});
         cred["email"] = email;
         cred["email_hashed"] = hash_email;
         cred["prev_hash"] = prev_hash;

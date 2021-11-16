@@ -1493,9 +1493,11 @@ int P2pNetwork::p2p_server()
 {
     int  i;
 
+    Common::Print_or_log pl;
+
     if (enet_initialize() != 0)
     {
-        printf("Could not initialize enet.");
+        pl.handle_print_or_log({"Could not initialize enet."});
         return 0;
     }
 
@@ -1506,7 +1508,7 @@ int P2pNetwork::p2p_server()
 
     if (server_ == NULL)
     {
-        printf("Could not start server.\n");
+        pl.handle_print_or_log({"Could not start server."});
         return 0;
     }
     while (1)
@@ -1557,7 +1559,6 @@ int P2pNetwork::p2p_server()
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
-                    Common::Print_or_log pl;
                     pl.handle_print_or_log({"Peer has disconnected."});
                     sprintf(buffer_, "%s has disconnected.", (char*) event_.peer->data);
                     packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
@@ -1567,7 +1568,7 @@ int P2pNetwork::p2p_server()
                     break;
 
                 default:
-                    printf("Tick tock.\n");
+                    pl.handle_print_or_log({"Tick tock."});
                     break;
             }
 
