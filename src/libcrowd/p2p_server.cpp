@@ -115,8 +115,11 @@ void P2pNetwork::connect_to_nat(nlohmann::json buf_j)
 
 void P2pNetwork::intro_peer(nlohmann::json buf_j)
 {
+    P2p p2p;
+    std::string peer_ip_quad;
+    p2p.number_to_ip_string(event_.peer->address.host, peer_ip_quad);
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"Intro_peer req recv"});
+    pl.handle_print_or_log({"Intro_peer req recv", peer_ip_quad});
 
     // process buf_j["hash_of_req"] to find ip of the peer who should update you
     std::string co_from_req = buf_j["full_hash_co"];

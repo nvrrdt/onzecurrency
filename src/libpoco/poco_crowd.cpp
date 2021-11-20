@@ -491,6 +491,8 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+            pl.handle_print_or_log({"____000000_0_0"});
+
             if (key == 1) continue;
             //if (val == co_from_this_block) continue; // = coordinator
             //if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
@@ -501,19 +503,25 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];
 
-            delete rocksy;
+            //delete rocksy;
             
             std::string message = message_j.dump();
-
-            pl.handle_print_or_log({"Preparation for intro_final_block:", std::to_string(peer_ip)});
 
             std::string ip_from_peer;
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
+            pl.handle_print_or_log({"Preparation for intro_final_block:", ip_from_peer});
+            pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
+            delete rocksy; //
+
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
+
+            pl.handle_print_or_log({"____000000_0_2"});
         }
+
+        pl.handle_print_or_log({"____000000_0_3"});
 
         // Give the chosen_ones their reward:
         // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out

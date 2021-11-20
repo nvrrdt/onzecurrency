@@ -229,7 +229,7 @@ void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
 {
     // compare the received hash
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"The hash comparison is (client):", buf_j["hash_comp"]});
+    pl.handle_print_or_log({"The hash comparison is (client):", (buf_j["hash_comp"]).dump()});
 
     set_closed_client("close_this_conn");
 }
