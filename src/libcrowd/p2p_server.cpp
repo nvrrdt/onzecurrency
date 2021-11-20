@@ -179,19 +179,20 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         std::string hash_of_email_prev_hash_concatenated = hash_of_email + prel_first_prev_hash_req; // TODO should this anonymization not be numbers instead of strings?
         std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
 
-        pl.handle_print_or_log({"______: ", prel_first_prev_hash_req, email_of_req, prel_first_full_hash_req});
+        FullHash fh;
+        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+
+        pl.handle_print_or_log({"______: ", "fh =", prel_first_full_hash_req, "ph =", prel_first_prev_hash_req, email_of_req});
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string prel_first_coordinator_server = rocksy->FindChosenOne(prel_first_full_hash_req);
         delete rocksy;
-        
-        FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
-        
+
+        pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
+        pl.handle_print_or_log({"prel_first-coordinator: ", prel_first_coordinator_server});
+
         if (my_full_hash != "" && my_full_hash == prel_first_coordinator_server)
         {
-        pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
-
             Protocol proto;
             std::string my_latest_block = proto.get_last_block_nr();
             // pl.handle_print_or_log({"My latest block:", my_latest_block});
@@ -243,7 +244,8 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
             std::string key, val;
             for (int i = 1; i <= parts.size(); i++)
             {
-// pl.handle_print_or_log({"i: ", i, ", val: ", parts[i]});
+pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
+pl.handle_print_or_log({"______00_1_0: begin for"});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
                 
@@ -307,6 +309,8 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
                     
                     std::string message = message_j.dump();
                     p2p_client(peer_ip, message);
+
+pl.handle_print_or_log({"______00_1_1: end p2p_client"});
                 }
             }
 
@@ -458,7 +462,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
             {
                 if (i != chosen_ones.size() - 1)
                 {
-                    next_full_hash = chosen_ones[i];
+                    next_full_hash = chosen_ones[i+1];
                 }
                 else
                 {
@@ -663,11 +667,11 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
             
             std::string message = message_j.dump();
 
-            pl.handle_print_or_log({"Preparation for secondary new_prel_block: ", std::to_string(peer_ip)});
-
             std::string ip_from_peer;
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            pl.handle_print_or_log({"Preparation for secondary new_prel_block: ", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);

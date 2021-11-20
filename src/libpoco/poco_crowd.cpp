@@ -386,11 +386,11 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             
             std::string message = message_j.dump();
 
-            pl.handle_print_or_log({"Preparation for intro_prel_block:", std::to_string(peer_ip)});
-
             std::string ip_from_peer;
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
