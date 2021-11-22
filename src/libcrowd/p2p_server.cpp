@@ -132,7 +132,10 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     std::string req_latest_block = buf_j["latest_block"];
     enet_uint32 req_ip = buf_j["ip"];
 
-    if (req_ip == event_.peer->address.host)
+    // close the conn when you're genesis
+    Protocol proto;
+    std::string my_latest_block = proto.get_last_block_nr();
+    if (my_latest_block == "no blockchain present in folder")
     {
         // Disconect from client
         nlohmann::json msg_j;
@@ -193,8 +196,6 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
 
         if (my_full_hash != "" && my_full_hash == prel_first_coordinator_server)
         {
-            Protocol proto;
-            std::string my_latest_block = proto.get_last_block_nr();
             // pl.handle_print_or_log({"My latest block:", my_latest_block});
             // pl.handle_print_or_log({"Req latest block: ", req_latest_block});
 
@@ -331,11 +332,13 @@ pl.handle_print_or_log({"prel_first_coordinator_server:______ ", prel_first_coor
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
 pl.handle_print_or_log({"usersdb size:______ ", (rocksy->TotalAmountOfPeers()).str()});
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
+pl.handle_print_or_log({"______000111_0 does new_co works? ", (value_j["ip"]).dump()});
             enet_uint32 peer_ip = value_j["ip"];
             delete rocksy;
-
+pl.handle_print_or_log({"______000111_1 ", (value_j["ip"]).dump()});
             message_j["ip_co"] = peer_ip;
             set_resp_msg_server(message_j.dump());
+pl.handle_print_or_log({"______000111_2 "});
         }
         
         delete crypto;

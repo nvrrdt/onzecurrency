@@ -175,7 +175,7 @@ void P2pNetwork::new_co_client(nlohmann::json buf_j)
 {
     // send flag to start_crowd function
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"new_co:", buf_j["ip_co"]});
+    pl.handle_print_or_log({"new_co:", (buf_j["ip_co"]).dump()});
 
     uint32_t peer_ip = buf_j["ip_co"];
     set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
