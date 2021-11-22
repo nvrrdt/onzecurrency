@@ -526,11 +526,11 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
             
             std::string message = message_j.dump();
 
-            pl.handle_print_or_log({"Preparation for new_prel_block: ", std::to_string(peer_ip)});
-
             std::string ip_from_peer;
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
@@ -874,12 +874,11 @@ pl.handle_print_or_log({"___09"});
             
             std::string message = message_j.dump();
 
-            Common::Print_or_log pl;
-            pl.handle_print_or_log({"Preparation for final_new_block:", std::to_string(peer_ip)});
-
             std::string ip_from_peer;
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            pl.handle_print_or_log({"Preparation for final_new_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message);
@@ -1071,11 +1070,11 @@ pl.handle_print_or_log({"block:", recv_block_j.dump()});
         
         std::string message = message_j.dump();
 
-        pl.handle_print_or_log({"Preparation for new_final_block:", std::to_string(peer_ip)});
-
         std::string ip_from_peer;
         Crowd::P2p p2p;
         p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+        pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
         // p2p_client() to all chosen ones with intro_peer request
         pn.p2p_client(ip_from_peer, message);
@@ -1117,7 +1116,7 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
 {
     // compare the received hash
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"The hash comparison is (server): ",  buf_j["hash_comp"]});
+    pl.handle_print_or_log({"The hash comparison is (server): ",  (buf_j["hash_comp"]).dump()});
 
     // Disconect from client
     nlohmann::json m_j;
@@ -1128,7 +1127,7 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
 void P2pNetwork::intro_online(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"intro new peer online: ", buf_j["full_hash"]});
+    pl.handle_print_or_log({"intro new peer online: ", (buf_j["full_hash"]).dump()});
     
     nlohmann::json to_verify_j;
     to_verify_j["req"] = buf_j["req"];
@@ -1207,11 +1206,11 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];
             
-            pl.handle_print_or_log({"Preparation for new_online:", std::to_string(peer_ip)});
-
             std::string ip_from_peer;
             P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+            pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message_s);
@@ -1290,7 +1289,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 void P2pNetwork::new_online(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"new peer online:", buf_j["full_hash"], ", inform your bucket"});
+    pl.handle_print_or_log({"new peer online:", (buf_j["full_hash"]).dump(), ", inform your bucket"});
 
     Protocol proto;
     FullHash fh;
@@ -1365,11 +1364,11 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         
         std::string message_s = message_j.dump();
 
-        pl.handle_print_or_log({"Preparation for new_online: ", std::to_string(peer_ip)});
-
         std::string ip_from_peer;
         P2p p2p;
         p2p.number_to_ip_string(peer_ip, ip_from_peer);
+
+        pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
 
         // p2p_client() to all chosen ones with intro_peer request
         p2p_client(ip_from_peer, message_s);
