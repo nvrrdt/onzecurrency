@@ -174,10 +174,14 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
 void P2pNetwork::new_co_client(nlohmann::json buf_j)
 {
     // send flag to start_crowd function
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"new_co:", (buf_j["ip_co"]).dump()});
 
-    uint32_t peer_ip = buf_j["ip_co"];
+    P2p p2p;
+    enet_uint32 peer_ip = buf_j["ip_co"];
+    std::string peer_ip_quad;
+    p2p.number_to_ip_string(peer_ip, peer_ip_quad);
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_co:", peer_ip_quad});
+
     set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
     set_closed_client("new_co");
 }

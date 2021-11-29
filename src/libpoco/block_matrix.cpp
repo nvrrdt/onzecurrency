@@ -435,6 +435,11 @@ void BlockMatrix::save_final_block_to_file()
         nlohmann::json l_block_j = *get_block_matrix().at(i).at(0);
         std::string l_block_s = l_block_j.dump();
 
+pl.handle_print_or_log({"___0004_0", std::to_string(get_block_matrix().size())});
+pl.handle_print_or_log({"___0004_000", std::to_string(get_block_matrix().at(i).size())});
+if (i != get_block_matrix().size() - 1) pl.handle_print_or_log({"___0004_1", std::to_string(get_block_matrix().at(i+1).size())});
+pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)});
+
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
             // save block
@@ -482,6 +487,7 @@ void BlockMatrix::save_final_block_to_file()
                 // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
                 rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
                 rocksdb_j["full_hash"] = full_hash_req;
+pl.handle_print_or_log({"___00333_0 Is this full_hash in the loop of intro_peer's send_peer?", full_hash_req});
                 Crowd::Protocol proto;
                 rocksdb_j["block_nr"] = new_block_nr;
                 rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
@@ -511,6 +517,10 @@ void BlockMatrix::save_final_block_to_file()
             pc.send_your_full_hash(i+1, final_block_j, new_block_nr, list_of_new_users);
             // inform chosen ones for final block
             pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb, list_of_new_users);
+        }
+        else
+        {
+            pl.handle_print_or_log({"might be error: no new block added"});
         }
     }
 

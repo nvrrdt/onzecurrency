@@ -133,8 +133,8 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     enet_uint32 req_ip = buf_j["ip"];
 
     // close the conn when you're genesis
-    Protocol proto;
-    std::string my_latest_block = proto.get_last_block_nr();
+    Protocol* proto = new Protocol();
+    std::string my_latest_block = proto->get_last_block_nr();
     if (my_latest_block == "no blockchain present in folder")
     {
         // Disconect from client
@@ -201,13 +201,15 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
 
             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
+pl.handle_print_or_log({"____00222_0 Is this run?"});
                 // Send first block to peer to enable datetime synchonisation
-                nlohmann::json first_block_j = proto.get_block_at("0");
+                nlohmann::json first_block_j = proto->get_block_at("0");
 
                 nlohmann::json msg;
                 msg["req"] = "send_first_block";
                 msg["block"] = first_block_j;
                 set_resp_msg_server(msg.dump());
+pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             }
 
             // Disconect from client
@@ -219,7 +221,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
 
             // communicate intro_peers to chosen_one's with a new_peer req
 
-            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+            std::map<int, std::string> parts = proto->partition_in_buckets(my_full_hash, my_full_hash);
 
             nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
             message_j["req"] = "new_peer";
@@ -277,7 +279,7 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                     pl.handle_print_or_log({"Send new_peer req: Inform my underlying network as coordinator"});
 
                     std::string next_hash = parts[2];
-                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::map<int, std::string> parts_underlying = proto->partition_in_buckets(my_full_hash, next_hash);
                     std::string key2, val2;
                     Rocksy* rocksy = new Rocksy("usersdbreadonly");
                     for (int i = 1; i <= parts_underlying.size(); i++)
@@ -323,7 +325,7 @@ pl.handle_print_or_log({"______00_1_1: end p2p_client"});
         else
         {
             // There's another chosen_one, reply with the correct chosen_one
-            pl.handle_print_or_log({"Chosen_one is someone else!"});
+            pl.handle_print_or_log({"New_co: Chosen_one is someone else!"});
 
             nlohmann::json message_j;
             message_j["req"] = "new_co";
@@ -349,6 +351,7 @@ pl.handle_print_or_log({"______000111_2 "});
         pl.handle_print_or_log({"Email incorrect and/or message verification incorrect"});
     }
 
+    delete proto;
     
     // verify message, lookup peer in rocksdb and verify that you are the chose_one,
     // if not exists in rocksdb continue sending new_peer to all, if exist respond with an 'user_exists'

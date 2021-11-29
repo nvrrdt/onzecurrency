@@ -216,6 +216,12 @@ pl.handle_print_or_log({"root_hash_data:", root_hash_data});
                 P2p p2p;
                 std::string ip_new_co_s;
                 p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
+
+                message_j["ip"] = ip_new_co;
+                rocksdb_j["ip"] = ip_new_co;
+                message_j["rocksdb"] = rocksdb_j;
+                std::string message = message_j.dump();
+
                 pn.p2p_client(ip_new_co_s, message);
 
                 pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
