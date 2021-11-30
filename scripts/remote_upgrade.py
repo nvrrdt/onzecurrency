@@ -7,7 +7,7 @@ def main():
     #ips = ["51.15.248.67"]
 
     for ip in ips:
-        subprocess.call('ssh root@' + ip + ' "apt update && apt upgrade -y && reboot"', shell=True)
+        subprocess.call('ssh root@' + ip + ' "apt autoremove -y && apt update && apt upgrade -y && reboot"', shell=True)
 
 if __name__ == '__main__':
     try:
