@@ -32,7 +32,7 @@ def main():
     time.sleep(start_test_time)
     
     # Let the onze-terminal process exist until al servers have finished
-    remaining_test_time = ((args.total_servers - args.order + 1) * args.block_creation_delay) + 2
+    remaining_test_time = ((args.total_servers - args.order + 1) * args.block_creation_delay) + 2  # +2 is probably not necessary
     
     # Execute onze-terminal
     command = 'onze-terminal'
