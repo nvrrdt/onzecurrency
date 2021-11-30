@@ -278,7 +278,16 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                     // inform server's underlying network
                     pl.handle_print_or_log({"Send new_peer req: Inform my underlying network as coordinator"});
 
-                    std::string next_hash = parts[2];
+                    std::string next_hash;
+                    if (i != parts.size())
+                    {
+                        next_hash = parts[i+1];
+                    }
+                    else
+                    {
+                        next_hash = parts[1];
+                    }
+                    
                     std::map<int, std::string> parts_underlying = proto->partition_in_buckets(my_full_hash, next_hash);
                     std::string key2, val2;
                     Rocksy* rocksy = new Rocksy("usersdbreadonly");
@@ -303,18 +312,14 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                     }
                     delete rocksy;
                 }
-                else
-                {
-                    if (peer_ip == "") continue;
 
-                    // inform the other peer's in the same layer (as coordinator)
-                    pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
-                    
-                    std::string message = message_j.dump();
-                    p2p_client(peer_ip, message);
+                // inform the other peer's in the same layer (as coordinator)
+                pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
+                
+                std::string message = message_j.dump();
+                p2p_client(peer_ip, message);
 
 pl.handle_print_or_log({"______00_1_1: end p2p_client"});
-                }
             }
 
             // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
