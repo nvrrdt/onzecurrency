@@ -20,11 +20,11 @@ namespace Common
             std::string path = "/onzecurrency/";
             if (boost::filesystem::exists(path))
             {
-                plog::init(plog::verbose, "/onzecurrency/.config/onzehub/log/loggi", 2000000, 3); // Initialize the logger
+                plog::init(plog::verbose, "/onzecurrency/.config/onzehub/log/loggi", 3000000, 3); // Initialize the logger
             }
             else
             {
-                plog::init(plog::verbose, ".config/onzehub/log/loggi", 2000000, 3); // Initialize the logger
+                plog::init(plog::verbose, ".config/onzehub/log/loggi", 3000000, 3); // Initialize the logger
             }
         }
 
