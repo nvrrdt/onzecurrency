@@ -26,7 +26,7 @@ void P2pNetwork::handle_read_client()
     if ( !read_msg_.get_eom_flag())
     {
         std::string str_read_msg(read_msg_.body());
-        buf_client_ += str_read_msg;
+        buf_client_ += str_read_msg.substr(0, read_msg_.get_body_length());
     }
     else
     {
