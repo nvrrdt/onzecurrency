@@ -98,6 +98,8 @@ def main():
             new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
             os.rename(file, new_f)
 
+    subprocess.call('notify-send -t 2000 "Done"', shell=True)
+
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
     order = total_servers - q.qsize()
