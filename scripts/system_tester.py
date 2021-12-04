@@ -76,6 +76,9 @@ def main():
     for x in threads:
         x.join()
 
+    # Notify the user
+    subprocess.call('notify-send -t 2000 "Done"', shell=True)
+
     for ip in ips:
         # Scp log files to main machine
         subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
@@ -97,8 +100,6 @@ def main():
             f = file.split('/')[1]
             new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
             os.rename(file, new_f)
-
-    subprocess.call('notify-send -t 2000 "Done"', shell=True)
 
 def worker(q, total_servers, block_creation_delay):
     ip = q.get()
