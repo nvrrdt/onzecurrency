@@ -7,6 +7,8 @@ import psutil
 import pexpect
 import threading
 
+from datetime import datetime
+
 def main():
     # Cd to scripts directory
     #os.chdir(os.path.dirname(__file__))
@@ -32,7 +34,7 @@ def main():
     time.sleep(start_test_time)
     
     # Let the onze-terminal process exist until al servers have finished
-    remaining_test_time = ((args.total_servers - args.order + 1) * args.block_creation_delay) + 2  # +2 is probably not necessary
+    remaining_test_time = (((args.total_servers - args.order + 2) * args.block_creation_delay) + 3) if (args.order == 1) else (((args.total_servers - args.order + 2) * args.block_creation_delay) + 10 + 3)
     
     # Execute onze-terminal
     command = 'onze-terminal'
@@ -43,6 +45,8 @@ def main():
     child.send('er@er.c0\n')
 
     time.sleep(remaining_test_time)
+
+    print(args.order, ",",args.total_servers, ",", datetime.utcnow())
 
     # Kill onze-terminal    
     for proc in psutil.process_iter(attrs=['pid', 'name']):

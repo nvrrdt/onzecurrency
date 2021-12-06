@@ -63,10 +63,6 @@ def main():
     for thread in threads:
         thread.start()
 
-    # Wait until al servers have finished
-    total_test_time = ((len(ips) + 1) * block_creation_delay) + 2  # +2 is probably not necessary
-    time.sleep(total_test_time)
-
     # Cd to log directory
     if not os.path.exists("../log"):
         os.makedirs("../log")
