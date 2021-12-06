@@ -24,6 +24,9 @@ so e.g. a problem with the face recognition or fingerprint scanner has a huge im
 #### test procedure with 6 servers
 - foresee 6 servers (in the cloud)
 
+- (you can recall the last docker container with: docker start -a -i `docker ps -q -l`)
+- (there's a switch for choosing between automatic and manual testing in globals.hpp)
+
 ##### automatically
 
 - scripts/system_tester.py       # adjust amount of servers as wished, the wait until end of script
