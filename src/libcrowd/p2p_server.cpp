@@ -1483,6 +1483,17 @@ pl.handle_print_or_log({"__05_s"});
         iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
     }
 
+// // for debugging purposes:
+// auto block_matrix = bm.get_block_matrix();
+// for (int i = 0; i < block_matrix.size(); i++)
+// {
+//     for (int j = 0; j < block_matrix.at(i).size(); j++)
+//     {
+//         nlohmann::json content_j = *block_matrix.at(i).at(j);
+//         pl.handle_print_or_log({"___00block matrix entries", std::to_string(i), "update", std::to_string(j), "(oldest first)", content_j.dump()});
+//     }
+// }
+
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";

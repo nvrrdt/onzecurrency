@@ -231,47 +231,49 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
             {
                 if (*block_matrix.back().at(i) == *copy_sent_block_matrix.back().at(j))
                 {
-                    pl.handle_print_or_log({"sent block found"});
+                    pl.handle_print_or_log({"sent block found", std::to_string(i)});
 
                     pos_sent.push_back(i);
                     break;
                 }
             }
         }
-pl.handle_print_or_log({"_____0000"});
+
         // add received blocks to pos_recv
         std::vector<int16_t> pos_recv = {};
         for (int16_t i = 0; i < block_matrix.back().size(); i++)
         {
             for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
-//pl.handle_print_or_log({"_____0001", *block_matrix.back().at(i), "000000", *copy_received_block_matrix.back().at(j)});
+// pl.handle_print_or_log({"_____0001xbm", (*block_matrix.back().at(i)).dump()});
+// pl.handle_print_or_log({"_____0001xrbm", (*copy_received_block_matrix.back().at(j)).dump()});
                 if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
-                    pl.handle_print_or_log({"received block found"});
+                    pl.handle_print_or_log({"received block found", std::to_string(i)});
 
                     pos_recv.push_back(i);
                     break;
                 }
             }
         }
-pl.handle_print_or_log({"_____0002"});
+
         // remove sent and received blocks from pos_sent and pos_recv matrix
         for (int16_t i = pos.back().size() - 1; i >= 0; i--)
         {
-pl.handle_print_or_log({"_____0003"});
             if (!pos_sent.empty() && i == pos_sent.back())
             {
                 pos.back().erase(pos.back().begin() + pos_sent.back());
                 pos_sent.pop_back();
+// pl.handle_print_or_log({"___0000_0ps", std::to_string(i)});
             }
             else if (!pos_recv.empty() && i == pos_recv.back())
             {
                 pos.back().erase(pos.back().begin() + pos_recv.back());
                 pos_recv.pop_back();
+// pl.handle_print_or_log({"___0000_0pr", std::to_string(i)});
             }
         }
-pl.handle_print_or_log({"_____0004"});
+
         // erase the non-sent and non-received blocks from pos
         if (pos_length != pos.back().size())
         {
@@ -284,7 +286,7 @@ pl.handle_print_or_log({"_____0004"});
                 hashes_from_contents.back().erase(hashes_from_contents.back().begin() + pos.back().at(n));
             }
         }
-pl.handle_print_or_log({"_____0005"});
+
         clear_received_block_matrix();
         copy_received_block_matrix.clear();
         clear_sent_block_matrix();
@@ -356,13 +358,16 @@ pl.handle_print_or_log({"_____0005"});
         replace_calculated_hashes(calculated_hashes);
         replace_prev_hashes(hashes_from_contents);
 
+            // TODO: matrix.at(0) should be deleted whenever there is a new block
+            // so the i below should always start from 0 with j 0 and i 1 with no more than j 0
+            // it is effectively a rebase of this matrix
         // // for debugging purposes:
         // for (int i = 0; i < block_matrix.size(); i++)
         // {
         //     for (int j = 0; j < block_matrix.at(i).size(); j++)
         //     {
         //         nlohmann::json content_j = *block_matrix.at(i).at(j);
-        //         pl.handle_print_or_log({"block matrix entries", std::to_string(i), std::to_string(j), "(oldest first)"});
+        //         pl.handle_print_or_log({"block matrix entries", std::to_string(i), std::to_string(j), "(oldest first)", content_j.dump()});
         //     }
         // }
     }
@@ -438,7 +443,8 @@ void BlockMatrix::save_final_block_to_file()
 pl.handle_print_or_log({"___0004_0", std::to_string(get_block_matrix().size())});
 pl.handle_print_or_log({"___0004_000", std::to_string(get_block_matrix().at(i).size())});
 if (i != get_block_matrix().size() - 1) pl.handle_print_or_log({"___0004_1", std::to_string(get_block_matrix().at(i+1).size())});
-pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)});
+if (i < get_block_matrix().size() - 2) pl.handle_print_or_log({"___0004_11", std::to_string(get_block_matrix().at(i+1).size()), std::to_string(get_block_matrix().at(i+2).size())});
+pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s), "\n", l_block_s, "\n", latest_block_s});
 
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {

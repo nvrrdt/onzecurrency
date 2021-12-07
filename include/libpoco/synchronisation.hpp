@@ -25,8 +25,8 @@ namespace Poco
     public:
         ~Synchronisation()
         {
-            delete bm_;
-            delete bmc_;
+            delete bm_crowd_;
+            delete bm_coin_;
         }
         void get_sleep_and_create_block();
 
@@ -41,8 +41,10 @@ namespace Poco
         {
             break_block_creation_loops_ = break_loops;
         }
+        static std::string get_datetime_now();
     private:
         void get_sleep_until();
+        static void set_datetime_now(std::string datetime);
     private:
         IntroMsgVec intro_msg_vec_;
         IpHEmail ip_hemail_vec_;
@@ -50,9 +52,10 @@ namespace Poco
         PocoCrowd pococr_;
         PocoCoin pococo_;
         Transactions tx_;
-        BlockMatrix *bm_ = new Poco::BlockMatrix();
-        BlockMatrixC *bmc_ = new Poco::BlockMatrixC();
+        BlockMatrix *bm_crowd_ = new Poco::BlockMatrix();
+        BlockMatrixC *bm_coin_ = new Poco::BlockMatrixC();
 
         static bool break_block_creation_loops_;
+        static std::string datetime_;
     };
 }

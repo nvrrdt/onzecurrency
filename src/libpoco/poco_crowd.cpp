@@ -49,6 +49,7 @@ void PocoCrowd::create_and_send_block()
     std::string my_next_block_nr;
 
     uint16_t limit_count = 0;
+    std::string datetime = sync.get_datetime_now();
 
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
@@ -124,7 +125,6 @@ void PocoCrowd::create_and_send_block()
                 }
 
                 s_shptr_ = mt->calculate_root_hash(s_shptr_);
-                std::string datetime = mt->time_now();
                 std::string root_hash_data = s_shptr_->top();
                 block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
@@ -233,7 +233,6 @@ void PocoCrowd::create_and_send_block()
                     }
 
                     s_shptr_ = mt->calculate_root_hash(s_shptr_);
-                    std::string datetime = mt->time_now();
                     std::string root_hash_data = s_shptr_->top();
                     block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
@@ -579,6 +578,18 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
 
     nlohmann::json message_j;
 
+// BlockMatrix* bm = new BlockMatrix();
+
+// // for debugging purposes:
+// for (int i = 0; i < bm->get_block_matrix().size(); i++)
+// {
+//     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+//     {
+//         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+//         pl.handle_print_or_log({"___000block matrix entriessss1", std::to_string(i), std::to_string(j), "(oldest first)"});
+//     }
+// }
+
     if (co_from_this_block == my_full_hash)
     {
         // Send your_full_hash request to intro_peer's
@@ -619,6 +630,18 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
         //         }
         //     }
         // }
+
+// // for debugging purposes:
+// for (int i = 0; i < bm->get_block_matrix().size(); i++)
+// {
+//     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
+//     {
+//         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
+//         pl.handle_print_or_log({"___000block matrix entriessss2", std::to_string(i), std::to_string(j), "(oldest first)"});
+//     }
+// }
+
+// delete bm;
 
         pl.handle_print_or_log({"Your_full_hash's sent"});
     }

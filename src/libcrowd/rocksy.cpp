@@ -305,10 +305,11 @@ std::string Rocksy::FindPeerFromTillCount(std::string &key, uint256_t &count)
 
 void Rocksy::DatabaseDump()
 {
+    Common::Print_or_log pl;
+
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        Common::Print_or_log pl;
         pl.handle_print_or_log({"DatabaseDump:", it->key().ToString()});
     }
 }

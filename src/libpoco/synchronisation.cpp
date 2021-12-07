@@ -6,6 +6,7 @@
 using namespace Poco;
 
 bool Synchronisation::break_block_creation_loops_ = false;
+std::string Synchronisation::datetime_ = "";
 
 /**
  * synchronisation is necessary
@@ -33,7 +34,6 @@ void Synchronisation::get_sleep_and_create_block()
     std::thread t2(&Poco::PocoCrowd::create_and_send_block, pococr_);
 
     // and here too, but for coin then
-    bmc_->add_received_block_vector_to_received_block_matrix();
     // std::thread xxxxxxxxxxxx pococo_.create_and_send_block_c();     // preliminary commented out
 
     get_sleep_until();
@@ -84,6 +84,9 @@ void Synchronisation::get_sleep_until()
         if (utc_tm.tm_sec % 20 == utc_tm_block.tm_sec % 20)  // 20 = every 20 seconds
         {
             pl.handle_print_or_log({"break: datetime block ", std::to_string(utc_tm_block.tm_year + 1900), "/", std::to_string(utc_tm_block.tm_mon + 1), "/", std::to_string(utc_tm_block.tm_mday), " ", std::to_string(utc_tm_block.tm_hour), ":", std::to_string(utc_tm_block.tm_min), ":", std::to_string(utc_tm_block.tm_sec)});
+
+            std::string datetime = std::to_string(utc_tm_block.tm_year + 1900) + "/" + std::to_string(utc_tm_block.tm_mon + 1) + "/" + std::to_string(utc_tm_block.tm_mday) + " " + std::to_string(utc_tm_block.tm_hour) + ":" + std::to_string(utc_tm_block.tm_min) + ":" + std::to_string(utc_tm_block.tm_sec);
+            set_datetime_now(datetime);
 
             set_break_block_creation_loops(true);
 
@@ -153,4 +156,14 @@ std::string Synchronisation::get_genesis_datetime() // TODO make a static variab
     }
 
     return latest_datetime;
+}
+
+void Synchronisation::set_datetime_now(std::string datetime)
+{
+    datetime_ = datetime;
+}
+
+std::string Synchronisation::get_datetime_now()
+{
+    return datetime_;
 }
