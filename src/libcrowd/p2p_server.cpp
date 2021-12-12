@@ -469,6 +469,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
+pl.handle_print_or_log({"___003", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (i != chosen_ones.size() - 1)
@@ -481,7 +482,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
                 }
             }
         }
-
+pl.handle_print_or_log({"___004", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 
@@ -523,6 +524,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
         {
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -817,6 +819,7 @@ pl.handle_print_or_log({"___03"});
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
+pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (chosen_ones.size() > 1 && i < chosen_ones.size() - 1)
@@ -829,7 +832,7 @@ pl.handle_print_or_log({"___03"});
                 }
             }
         }
-pl.handle_print_or_log({"___04"});
+pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
@@ -871,6 +874,7 @@ pl.handle_print_or_log({"___08"});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
+            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 pl.handle_print_or_log({"___09"});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -886,7 +890,7 @@ pl.handle_print_or_log({"___09"});
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
-            pl.handle_print_or_log({"Preparation for final_new_block:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message);
