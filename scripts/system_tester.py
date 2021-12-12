@@ -17,6 +17,7 @@ from pathlib import Path
 import queue, threading
 import time
 import shutil
+import argparse
 
 def main():
     # Cd to script directory
@@ -31,27 +32,38 @@ def main():
     # Constant
     string = 'er@er.c0' # username
 
-    # Set unique username in each server's remote_script_test.py
-    for ip in ips:
+    # Initialize parser
+    parser = argparse.ArgumentParser()
+    
+    # Adding optional arguments
+    parser.add_argument("-s", "--scp-binaries", help = "Scp binaries and so", action="store_true")
+    
+    # Read arguments from command line
+    args = parser.parse_args()
+    
+    # Do not use ELIF, combining options doesn't work then
+    if args.scp_binaries:
+        # Set unique username in each server's remote_script_test.py
+        for ip in ips:
+            with open('remote_script_test.py', 'r') as file :
+                filedata = file.read()
+            filedata = filedata.replace(string, string[:7] + str(ips.index(ip)) + string[7 + 1:])
+            string = string[:7] + str(ips.index(ip)) + string[7 + 1:]
+            with open('remote_script_test.py', 'w') as file:
+                file.write(filedata)
+            file.close()
+
+            subprocess.call('cd ' + project_path("build") + \
+                ' && scp `find . -maxdepth 1 -type f -name *.deb` root@' + ip + ':~/' + \
+                ' && cd ' + project_path("scripts") + \
+                ' && scp remote_script_test.py root@' + ip + ':~/', shell=True)
+
         with open('remote_script_test.py', 'r') as file :
             filedata = file.read()
-        filedata = filedata.replace(string, string[:7] + str(ips.index(ip)) + string[7 + 1:])
-        string = string[:7] + str(ips.index(ip)) + string[7 + 1:]
+        filedata = filedata.replace(string, 'er@er.c0')
         with open('remote_script_test.py', 'w') as file:
             file.write(filedata)
         file.close()
-
-        subprocess.call('cd ' + project_path("build") + \
-            ' && scp `find . -maxdepth 1 -type f -name *.deb` root@' + ip + ':~/' + \
-            ' && cd ' + project_path("scripts") + \
-            ' && scp remote_script_test.py root@' + ip + ':~/', shell=True)
-
-    with open('remote_script_test.py', 'r') as file :
-        filedata = file.read()
-    filedata = filedata.replace(string, 'er@er.c0')
-    with open('remote_script_test.py', 'w') as file:
-        file.write(filedata)
-    file.close()
 
     # Queue to use in the threads
     q = queue.Queue()
