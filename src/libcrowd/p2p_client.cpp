@@ -235,7 +235,7 @@ void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"The hash comparison is (client):", (buf_j["hash_comp"]).dump()});
 
-    set_closed_client("close_this_conn");
+    set_closed_client("close_this_conn_and_create");
 }
 
 void P2pNetwork::close_same_conn_client(nlohmann::json buf_j)
