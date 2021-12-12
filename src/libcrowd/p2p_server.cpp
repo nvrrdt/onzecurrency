@@ -762,8 +762,12 @@ pl.handle_print_or_log({"block:", recv_block_s});
         m_j["req"] = "hash_comparison";
         m_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
         std::string msg_s = m_j.dump();
-
         set_resp_msg_server(msg_s);
+
+        // Disconect from client
+        m_j = {};
+        m_j["req"] = "close_this_conn";
+        set_resp_msg_server(m_j.dump());
 
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm where a probability is calculated
@@ -886,7 +890,7 @@ pl.handle_print_or_log({"___09"});
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
-            pl.handle_print_or_log({"Preparation for final_new_block:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message);
