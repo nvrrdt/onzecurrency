@@ -19,6 +19,19 @@
   + The dividing and merging blocks consists of: ...
 - There should be a confirmation when a transaction is waiting in a preliminary block, maybe the peer above the hash from the tx with payer and payee, is able to give an ok or nok.
 
+### 51% voting mechanism
+Process to finalize a project:
+- 1st voting: 501 voters pro of 1000 voters
+- 1 week of improving ideas
+- 2nd voting: 511 pro of 1000 (+51% relatively)
+- 1 week of improving ideas
+- 3rd voting: 517 pro of 1000 (+51% relatively)
+- 2 weeks of improving ideas
+- 4th voting: 526 pro of 1000 (+51% relatively)
+- 4 weeks of improving ideas
+- continue until you're able to execute the idea
+- the reverse is also possible (back to the drawing boards)
+
 ### On a side note:
 - futurewise: the os in the blockchain: couldn't installed programs or perhaps an entire operating system be hashed part by part in order to be compared with what peers have installed. The goal is to figure out if someone's system has been tampered with by someone else, a hacker perhaps. Configuration files remain an issue in this setup, how do you compare configuration files. Also software that isn't distributed or very scarce won't be comparable in this setup. The Compared Web - CW. To introduce entropy when hashing a whole computer a by consensus determined nonce-like number can create instantanious hashes of the whole system to be compared by peers, this to obstruct already fixed hashes made by a malicious peer.
 - responsability for what's being communicated, like a registered letter, should be trivial in the blockchain world. Only privacy remains an issue.
