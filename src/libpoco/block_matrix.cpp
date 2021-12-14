@@ -2,6 +2,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 #include <algorithm>
+#include <deque>
 
 #include "configdir.hpp"
 #include "p2p.hpp"
@@ -30,7 +31,7 @@ void BlockMatrix::add_block_vector_to_block_matrix()
     block_vector_.clear();
 }
 
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_block_matrix()
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_block_matrix()
 {
     return block_matrix_;
 }
@@ -56,7 +57,7 @@ void BlockMatrix::add_calculated_hash_vector_to_calculated_hash_matrix()
     calculated_hash_vector_.clear();
 }
 
-std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::get_calculated_hash_matrix()
+std::deque<std::deque<std::shared_ptr<std::string>>> BlockMatrix::get_calculated_hash_matrix()
 {
     return calculated_hash_matrix_;
 }
@@ -75,24 +76,24 @@ void BlockMatrix::add_prev_hash_vector_to_prev_hash_matrix()
     prev_hash_vector_.clear();
 }
 
-std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::get_prev_hash_matrix()
+std::deque<std::deque<std::shared_ptr<std::string>>> BlockMatrix::get_prev_hash_matrix()
 {
     return prev_hash_matrix_;
 }
 
-void BlockMatrix::replace_block_matrix(std::vector<std::vector<std::shared_ptr<nlohmann::json>>> block_matrix)
+void BlockMatrix::replace_block_matrix(std::deque<std::deque<std::shared_ptr<nlohmann::json>>> block_matrix)
 {
     block_matrix_.clear();
     block_matrix_ = block_matrix;
 }
 
-void BlockMatrix::replace_calculated_hashes(std::vector<std::vector<std::shared_ptr<std::string>>> calculated_hashes)
+void BlockMatrix::replace_calculated_hashes(std::deque<std::deque<std::shared_ptr<std::string>>> calculated_hashes)
 {
     calculated_hash_matrix_.clear();
     calculated_hash_matrix_ = calculated_hashes;
 }
 
-void BlockMatrix::replace_prev_hashes(std::vector<std::vector<std::shared_ptr<std::string>>> hashes_from_contents)
+void BlockMatrix::replace_prev_hashes(std::deque<std::deque<std::shared_ptr<std::string>>> hashes_from_contents)
 {
     prev_hash_matrix_.clear();
     prev_hash_matrix_ = hashes_from_contents;
@@ -127,7 +128,7 @@ void BlockMatrix::add_received_block_vector_to_received_block_matrix()
     received_block_vector_.clear();
 }
 
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_received_block_matrix()
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_received_block_matrix()
 {
     return received_block_matrix_;
 }
@@ -151,7 +152,7 @@ void BlockMatrix::add_sent_block_vector_to_sent_block_matrix()
     sent_block_vector_.clear();
 }
 
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_sent_block_matrix()
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::get_sent_block_matrix()
 {
     return sent_block_matrix_;
 }
@@ -203,7 +204,7 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
 //     for (int y = 0; y < block_matrix.at(x).size(); y++)
 //     {
 //         nlohmann::json content_j = *block_matrix.at(x).at(y);
-//         pl.handle_print_or_log({"this_block_matrix", std::to_string(x), std::to_string(y), "(oldest first)", content_j.dump()});
+//         pl.handle_print_or_log({"this_block_matrix 1:", std::to_string(x), std::to_string(y), "(oldest first)", content_j.dump()});
 //     }
 // }
 
@@ -330,18 +331,34 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
         //     }
         // }
 
+        // block_matrix.back needs to stay, block_matrix.size - 2 needs to be block_matrix.back / 10 approx. depending on sent and received blocks
+        // i = 2: 0 1 2 3 4 5 6 7 8 9 0 1 2
+        // i = 1: 0                   1
+        // i = 0: 0
+
+        bool register_first;
+
         for (int16_t i = block_matrix.size() - 1 - 1; i >= 0; i--)
         {
-            for (int16_t j = calculated_hashes.at(i).size() - 1; j >= 0; j--)
+            register_first = false;
+
+            for (int16_t j = 0; j < calculated_hashes.at(i).size(); j++)
             {
-                for (int16_t k = hashes_from_contents.at(i+1).size() - 1; k >= 0; k--)
+                for (int16_t k = 0; k < hashes_from_contents.at(i+1).size(); k++)
                 {
-                    if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k))
+                    // register first occurence, delete the others
+                    if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k) && register_first == false) 
                     {
+                        register_first = true;
+
                         pos.at(i).erase(pos.at(i).begin() + j);
+                        pl.handle_print_or_log({"Element found first", *calculated_hashes.at(i).at(j), *hashes_from_contents.at(i+1).at(k)});
+                        pl.handle_print_or_log({"i", std::to_string(i), "j", std::to_string(j), "k", std::to_string(k)});
+                    }
+                    else if (*calculated_hashes.at(i).at(j) == *hashes_from_contents.at(i+1).at(k) && register_first == true)
+                    {
                         pl.handle_print_or_log({"Element found", *calculated_hashes.at(i).at(j), *hashes_from_contents.at(i+1).at(k)});
                         pl.handle_print_or_log({"i", std::to_string(i), "j", std::to_string(j), "k", std::to_string(k)});
-                        break;
                     }
                 }
             }
@@ -352,7 +369,22 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
                 calculated_hashes.at(i).erase(calculated_hashes.at(i).begin() + pos.at(i).at(n));
                 hashes_from_contents.at(i).erase(hashes_from_contents.at(i).begin() + pos.at(i).at(n));
             }
+
+            if (!block_matrix.size() - 1 - 1 && block_matrix.at(i+1).size() <= 1 && block_matrix.at(i+2).size() == 1)
+            {
+                block_matrix.at(i).clear(); 
+                calculated_hashes.at(i).clear(); 
+                hashes_from_contents.at(i).clear(); 
+            }
+
+            block_matrix.at(i).shrink_to_fit();
+            calculated_hashes.at(i).shrink_to_fit();
+            hashes_from_contents.at(i).shrink_to_fit();
         }
+
+        block_matrix.shrink_to_fit();
+        calculated_hashes.shrink_to_fit();
+        hashes_from_contents.shrink_to_fit();
 
         replace_block_matrix(block_matrix);
         replace_calculated_hashes(calculated_hashes);
@@ -367,7 +399,7 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
         //     for (int j = 0; j < block_matrix.at(i).size(); j++)
         //     {
         //         nlohmann::json content_j = *block_matrix.at(i).at(j);
-        //         pl.handle_print_or_log({"block matrix entries", std::to_string(i), std::to_string(j), "(oldest first)", content_j.dump()});
+        //         pl.handle_print_or_log({"this_block_matrix 2:", std::to_string(i), std::to_string(j), "(oldest first)", content_j.dump()});
         //     }
         // }
     }
@@ -544,13 +576,13 @@ pl.handle_print_or_log({"___00333_0 Is this full_hash in the loop of intro_peer'
     }
 }
 
-std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_ = {};
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
-std::vector<std::shared_ptr<std::string>> BlockMatrix::calculated_hash_vector_ = {};
-std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::calculated_hash_matrix_ = {};
-std::vector<std::shared_ptr<std::string>> BlockMatrix::prev_hash_vector_ = {};
-std::vector<std::vector<std::shared_ptr<std::string>>> BlockMatrix::prev_hash_matrix_ = {};
-std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_ = {};
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};
-std::vector<std::shared_ptr<nlohmann::json>> BlockMatrix::sent_block_vector_ = {};
-std::vector<std::vector<std::shared_ptr<nlohmann::json>>> BlockMatrix::sent_block_matrix_ = {};
+std::deque<std::shared_ptr<nlohmann::json>> BlockMatrix::block_vector_ = {};
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::block_matrix_ = {};
+std::deque<std::shared_ptr<std::string>> BlockMatrix::calculated_hash_vector_ = {};
+std::deque<std::deque<std::shared_ptr<std::string>>> BlockMatrix::calculated_hash_matrix_ = {};
+std::deque<std::shared_ptr<std::string>> BlockMatrix::prev_hash_vector_ = {};
+std::deque<std::deque<std::shared_ptr<std::string>>> BlockMatrix::prev_hash_matrix_ = {};
+std::deque<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_ = {};
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};
+std::deque<std::shared_ptr<nlohmann::json>> BlockMatrix::sent_block_vector_ = {};
+std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::sent_block_matrix_ = {};

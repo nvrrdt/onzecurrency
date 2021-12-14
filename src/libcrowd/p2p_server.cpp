@@ -251,6 +251,7 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
 pl.handle_print_or_log({"______00_1_0: begin for"});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
+                if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
                 
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
@@ -485,14 +486,14 @@ pl.handle_print_or_log({"___003", "chosen_ones", chosen_ones[i]});
 pl.handle_print_or_log({"___004", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-
+pl.handle_print_or_log({"___005"});
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_prel_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["prev_hash"] = buf_j["prev_hash"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
-
+pl.handle_print_or_log({"___006"});
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -516,16 +517,17 @@ pl.handle_print_or_log({"___004", "\n", "mfh", my_full_hash, "\n", "nfh", next_f
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-
+pl.handle_print_or_log({"___007"});
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+pl.handle_print_or_log({"___008"});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-
+pl.handle_print_or_log({"___009"});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -545,6 +547,7 @@ pl.handle_print_or_log({"___004", "\n", "mfh", my_full_hash, "\n", "nfh", next_f
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+pl.handle_print_or_log({"___010"});
     }
     else
     {
@@ -669,6 +672,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
+            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1075,6 +1079,7 @@ pl.handle_print_or_log({"block:", recv_block_j.dump()});
         if (key == 1) continue;
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == full_hash_coord_from_coord) continue;
+        if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
         
         Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1217,6 +1222,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             if (key == 1) continue;
             if (val == full_hash) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
             
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1373,6 +1379,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         if (key == 1) continue;
         if (val == full_hash) continue;
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+        if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
         
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
