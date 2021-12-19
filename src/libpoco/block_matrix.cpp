@@ -507,7 +507,7 @@ pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)
 
             // actual saving to rocksdb
             nlohmann::json m_j, m_j_rocksdb;
-            std::vector<std::string> list_of_new_users;
+            std::vector<std::string> list_of_new_users = {};
             for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
             {
                 m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).at(j);

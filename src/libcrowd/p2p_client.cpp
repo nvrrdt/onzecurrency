@@ -223,6 +223,15 @@ void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
         delete rocksy;
     }
 
+Crowd::Protocol proto;
+std::map<int, std::string> partsx = proto.partition_in_buckets(full_hash, full_hash);
+int k;
+std::string v;
+for (auto &[k, v] : partsx)
+{
+    pl.handle_print_or_log({"___000112 your_full_hash client", std::to_string(k), v});
+}
+
     pl.handle_print_or_log({"Connection closed by other server, start this server"}); // TODO here starts duplicate code
 
     // Disconect from server

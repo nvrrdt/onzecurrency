@@ -223,11 +223,7 @@ uint256_t Rocksy::CountPeersFromTo(std::string &from, std::string &to)
             }
         }
     }
-    else if (from == to)
-    {
-        count = TotalAmountOfPeers();
-    }
-    else if (from > to)
+    else if (from >= to)
     {
         for (it->SeekToFirst(); it->Valid(); it->Next())
         {

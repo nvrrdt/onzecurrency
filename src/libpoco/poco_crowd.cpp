@@ -346,6 +346,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             if (sync.get_break_block_creation_loops()) break;
 
             if (v == "0" || v == "") break; // TODO the parts need to be refactored everywhere as it's an ugly hack
+pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             message_j["chosen_ones"].push_back(v);
         }
 
@@ -467,6 +468,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         for (auto &[k, v] : parts)
         {
             message_j["chosen_ones"].push_back(v);
+pl.handle_print_or_log({"___00660", std::to_string(k), v});
         }
 
         to_sign_j["latest_block_nr"] = new_block_nr;

@@ -523,11 +523,11 @@ pl.handle_print_or_log({"___007"});
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-pl.handle_print_or_log({"___008"});
+pl.handle_print_or_log({"___008 new chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-pl.handle_print_or_log({"___009"});
+pl.handle_print_or_log({"___009 new new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -754,8 +754,17 @@ pl.handle_print_or_log({"block:", recv_block_s});
             delete rocksy;
         }
 
-        Protocol protocol;
-        nlohmann::json saved_block_at_place_i = protocol.get_block_at(recv_latest_block_nr_s);
+Crowd::Protocol proto;
+std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k1;
+std::string v1;
+for (auto &[k1, v1] : partsx)
+{
+    pl.handle_print_or_log({"___000110 intro_final_block", std::to_string(k1), v1});
+}
+
+//Protocol proto;
+        nlohmann::json saved_block_at_place_i = proto.get_block_at(recv_latest_block_nr_s);
         std::string saved_block_at_place_i_s = saved_block_at_place_i.dump();
         std::string prev_hash_from_saved_block_at_place_i = crypto.bech32_encode_sha256(saved_block_at_place_i_s);
 
@@ -841,7 +850,6 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             }
         }
 pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
-        Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -878,12 +886,12 @@ pl.handle_print_or_log({"___07"});
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-pl.handle_print_or_log({"___08"});
+pl.handle_print_or_log({"___08 new chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-pl.handle_print_or_log({"___09"});
+pl.handle_print_or_log({"___09 new new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -958,15 +966,26 @@ pl.handle_print_or_log({"block:", recv_block_j.dump()});
         delete rocksy;
     }
 
-    FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+FullHash fh;
+std::string my_full_hash = fh.get_full_hash_from_file();
+Crowd::Protocol proto;
+std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k1;
+std::string v1;
+for (auto &[k1, v1] : partsx)
+{
+    pl.handle_print_or_log({"___000111 new_final_block", std::to_string(k1), v1});
+}
+
+// FullHash fh;
+// std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
     std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
 
-    Protocol protocol;
-    std::string prev_hash_from_saved_block_at_place_i = protocol.get_block_at(recv_latest_block_nr_s);
+//Protocol protocol;
+    std::string prev_hash_from_saved_block_at_place_i = proto.get_block_at(recv_latest_block_nr_s);
 
     bool comparison = prev_hash_me == prev_hash_from_saved_block_at_place_i;
     pl.handle_print_or_log({"New comparison is:", std::to_string(comparison)});
@@ -1040,7 +1059,6 @@ pl.handle_print_or_log({"block:", recv_block_j.dump()});
         }
     }
 
-    Crowd::Protocol proto;
     std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 
     nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -1438,6 +1456,18 @@ pl.handle_print_or_log({"__00_s v", value_s});
         rocksy->Put(key_s, value_s);
         delete rocksy;
     }
+
+FullHash fh;
+std::string my_full_hash = fh.get_full_hash_from_file();
+Crowd::Protocol proto;
+std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k;
+std::string v;
+for (auto &[k, v] : partsx)
+{
+    pl.handle_print_or_log({"___000112 update_you_server", std::to_string(k), v});
+}
+
 pl.handle_print_or_log({"__01_s"});
     // Update matrices
     nlohmann::json block_matrix_j = buf_j["bm"];
