@@ -645,7 +645,7 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
 
 // delete bm;
 
-        pl.handle_print_or_log({"Your_full_hash's sent"});
+        pl.handle_print_or_log({"Your_full_hash sent"});
     }
     else
     {
