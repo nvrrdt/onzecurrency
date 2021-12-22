@@ -327,6 +327,8 @@ pl.handle_print_or_log({"______00_1_1: end p2p_client"});
             intro_msg_vec_.add_to_intro_msg_vec(message_j);
 
             ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
+
+pl.handle_print_or_log({"______00_1_1: end intro_peer", std::to_string(intro_msg_vec_.get_intro_msg_vec().size())});
         }
         else
         {
@@ -1592,7 +1594,7 @@ void P2pNetwork::set_resp_msg_server(std::string msg, int channel_id)
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
         packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, 0);
-        enet_peer_send(event_.peer, 0, packet_);
+        enet_peer_send(event_.peer, channel_id, packet_);
         enet_host_flush(server_);
     }
 }
