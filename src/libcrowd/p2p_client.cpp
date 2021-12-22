@@ -425,41 +425,55 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
     enet_address_set_host(&address_, ip);
     address_.port = PORT;
 
-    peer_ = enet_host_connect(client_, &address_, 2, 0);
-
-    if (peer_ == NULL)
+    for (int i = 0; i < 10; i++)
     {
-        pl.handle_print_or_log({"Could not connect to server"});        
-        return 0;
-    }
+        peer_ = enet_host_connect(client_, &address_, 2, 0);
 
-    if (enet_host_service(client_, &event_, 1000) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
-    {
-        pl.handle_print_or_log({"Connection to", ip, "succeeded."});
-        connected++;
-
-        std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
-        for (int i = 0; i < splitted.size(); i++)
+        if (peer_ == NULL)
         {
-            char s[p2p_message::max_body_length];
-            strncpy(s, splitted[i].c_str(), sizeof(s));
-
-            p2p_message msg;
-            msg.body_length(std::strlen(s));
-            std::memcpy(msg.body(), s, msg.body_length());
-            i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
-
-            packet_ = enet_packet_create(msg.data(), strlen(msg.data())+1, ENET_PACKET_FLAG_RELIABLE);
-            enet_peer_send(peer_, 0, packet_);
+            pl.handle_print_or_log({"Could not connect to server"});
+            return 0;
         }
-    }
-    else
-    {
-        set_closed_client("closed_conn");
+    
+        if (enet_host_service(client_, &event_, 1000) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
+        {
+            pl.handle_print_or_log({"Connection to", ip, "succeeded."});
+            connected++;
 
-        enet_peer_reset(peer_);
-        pl.handle_print_or_log({"Could not connect to", ip});
-        return 0;
+            std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
+            for (int i = 0; i < splitted.size(); i++)
+            {
+                char s[p2p_message::max_body_length];
+                strncpy(s, splitted[i].c_str(), sizeof(s));
+
+                p2p_message msg;
+                msg.body_length(std::strlen(s));
+                std::memcpy(msg.body(), s, msg.body_length());
+                i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+                packet_ = enet_packet_create(msg.data(), strlen(msg.data())+1, ENET_PACKET_FLAG_RELIABLE);
+                enet_peer_send(peer_, 0, packet_);
+            }
+
+            break;
+        }
+        else if (i < 10)
+        {
+            // wait 0.1 second and retry
+            // if i == 10 --> return
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            enet_peer_reset(peer_);
+            pl.handle_print_or_log({"Trying again to connect to", ip});
+        }
+        else
+        {
+            set_closed_client("closed_conn");
+
+            enet_peer_reset(peer_);
+            pl.handle_print_or_log({"Could not connect to", ip});
+
+            return 0;
+        }
     }
 
     while (1)
