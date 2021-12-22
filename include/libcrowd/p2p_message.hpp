@@ -10,7 +10,7 @@ class p2p_message
 public:
     enum
     {
-        header_length = 5 // 4 for body length and 1 for eom_flag
+        header_length = 6 // 4 for body length, 1 for eom_flag and 1 for channel_id
     };
     enum
     {
@@ -71,6 +71,8 @@ public:
         body_l[3] = header[3];
         char eom_f[1 + 1] = "";
         eom_f[0] = header[4];
+        char ch_id[1 + 1] = "";
+        ch_id[0] = header[5];
 
         body_length_ = std::atoi(body_l);
         if (body_length_ > max_body_length)
@@ -81,6 +83,8 @@ public:
 
         eom_flag_ = std::atoi(eom_f);
 
+        channel_id_ = std::atoi(ch_id);
+
         return true;
     }
 
@@ -89,15 +93,20 @@ public:
         return eom_flag_ ? true : false;        
     }
 
+    int get_channel_id()
+    {
+        return channel_id_;
+    }
+
     int get_body_length()
     {
         return body_length_;
     }
 
-    void encode_header(int eom_flag)
+    void encode_header(int eom_flag, int channel_id)
     {
-        char header[header_length + 1] = "";
-        std::sprintf(header, "%04d%1d", static_cast<int>(body_length_), eom_flag);
+        char header[header_length + 1 + 1] = "";
+        std::sprintf(header, "%04d%1d%1d", static_cast<int>(body_length_), eom_flag, channel_id);
         std::memcpy(data_, header, header_length);
     }
 
@@ -105,6 +114,7 @@ private:
     char data_[header_length + max_body_length];
     std::size_t body_length_;
     bool eom_flag_;
+    int channel_id_;
 };
 
 #endif // P2P_MESSAGE_HPP

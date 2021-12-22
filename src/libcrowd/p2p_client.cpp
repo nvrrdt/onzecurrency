@@ -116,7 +116,7 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
             std::string peer_ip = buf_j["ip_to"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
-            p2p_client(peer_ip, message);
+            p2p_client(peer_ip, message, 2); // update, etc on channel 2
             p2p_server();
         }
         else
@@ -125,7 +125,7 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
             std::string peer_ip = buf_j["ip_from"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
-            p2p_client(peer_ip, message);
+            p2p_client(peer_ip, message, 2); // update, etc on channel 2
             p2p_server();
         }
     }
@@ -360,10 +360,10 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     msg["iah"] = contents_j;
     contents_j.clear();
 
-    set_resp_msg_client(msg.dump());
+    set_resp_msg_client(msg.dump(), read_msg_.get_channel_id());
 }
 
-void P2pNetwork::set_resp_msg_client(std::string msg)
+void P2pNetwork::set_resp_msg_client(std::string msg, int channel_id)
 {
     std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
     for (int i = 0; i < splitted.size(); i++)
@@ -373,7 +373,7 @@ void P2pNetwork::set_resp_msg_client(std::string msg)
 
         resp_msg_.body_length(std::strlen(s));
         std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
-        i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+        i == splitted.size() - 1 ? resp_msg_.encode_header(1, channel_id) : resp_msg_.encode_header(0, channel_id); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
         packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, ENET_PACKET_FLAG_RELIABLE);
@@ -400,7 +400,7 @@ std::vector<std::string> P2pNetwork::split(const std::string& str, int splitLeng
    return ret;
 }
 
-int P2pNetwork::p2p_client(std::string ip_s, std::string message)
+int P2pNetwork::p2p_client(std::string ip_s, std::string message, int channel_id)
 {
     const char *ip = ip_s.c_str();
 
@@ -414,7 +414,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
-    client_ = enet_host_create(NULL, 1, 2, 0, 0);
+    client_ = enet_host_create(NULL, 1, 3, 0, 0);
 
     if (client_ == NULL)
     {
@@ -425,9 +425,10 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
     enet_address_set_host(&address_, ip);
     address_.port = PORT;
 
+    // Try to connect 10 times
     for (int i = 0; i < 10; i++)
     {
-        peer_ = enet_host_connect(client_, &address_, 2, 0);
+        peer_ = enet_host_connect(client_, &address_, 3, 0);
 
         if (peer_ == NULL)
         {
@@ -449,10 +450,10 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                 p2p_message msg;
                 msg.body_length(std::strlen(s));
                 std::memcpy(msg.body(), s, msg.body_length());
-                i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+                i == splitted.size() - 1 ? msg.encode_header(1, channel_id) : msg.encode_header(0, channel_id); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
                 packet_ = enet_packet_create(msg.data(), strlen(msg.data())+1, ENET_PACKET_FLAG_RELIABLE);
-                enet_peer_send(peer_, 0, packet_);
+                enet_peer_send(peer_, channel_id, packet_);
             }
 
             break;

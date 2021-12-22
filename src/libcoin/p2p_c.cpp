@@ -83,7 +83,7 @@ void P2pNetworkC::start_coin()
 
             std::string message_s = message_j.dump();
 
-            p2p_client(ip_s, message_s);
+            p2p_client(ip_s, message_s, 2); // preliminary channel set to 2 for etc
         }
         else
         {

@@ -28,7 +28,7 @@ using namespace Common;
 using namespace Coin;
 using namespace Poco;
 
-void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
+void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j, int channel_id)
 {
     //
     Common::Print_or_log pl;
@@ -60,7 +60,7 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
                     break;
         case 25:    new_reward(buf_j);
                     break;
-        case 26:    intro_block_c(buf_j);
+        case 26:    intro_block_c(buf_j, channel_id);
                     break;
         case 27:    hash_comparison_c(buf_j);
                     break;
@@ -206,7 +206,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                     // p2p_client() to all chosen ones with intro_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
                 }
 
                 // Save the tx here in a static variable
@@ -403,7 +403,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                     // p2p_client() to all chosen ones with intro_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
                 }
 
                 // Save the tx here in a static variable
@@ -600,7 +600,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
                     p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                     // p2p_client() to all chosen ones with new_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
                 }
 
                 // Save the tx here in a static variable
@@ -746,7 +746,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
             }
 
             // Save the txs here in a static variable
@@ -924,7 +924,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
             }
 
             // Save the txs here in a static variable
@@ -1103,7 +1103,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
                 p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
             }
 
             // Save the txs here in a static variable
@@ -1194,7 +1194,7 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     delete bmc;
 }
 
-void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
+void P2pNetworkC::intro_block_c(nlohmann::json buf_j, int channel_id)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Intro_block_c:"});
@@ -1299,7 +1299,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         m_j["hash_comp"] = prev_hash_in_block == prev_hash_coordinator;
         std::string msg_s = m_j.dump();
 
-        P2pNetwork::set_resp_msg_server(msg_s);
+        P2pNetwork::set_resp_msg_server(msg_s, channel_id);
 
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm
@@ -1342,7 +1342,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
                 std::string msg_s = msg_j.dump();
 
-                p2p_client(peer_ip, msg_s);
+                p2p_client(peer_ip, msg_s, 2); // preliminary channel set to 2 for etc
             }
             else if (i == j)
             {
@@ -1359,7 +1359,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), channel_id);
 }
 
 void P2pNetworkC::hash_comparison_c(nlohmann::json buf_j)

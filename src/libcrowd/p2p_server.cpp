@@ -78,7 +78,7 @@ void P2pNetwork::handle_read_server()
             case 18:    update_you_server(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
-                        pnc.handle_read_server_c(buf_j);
+                        pnc.handle_read_server_c(buf_j, read_msg_.get_channel_id());
                         break;
         }
 
@@ -91,7 +91,7 @@ void P2pNetwork::register_for_nat_traversal(nlohmann::json buf_j)
     nlohmann::json resp_j;
     resp_j["register"] = "ack";
 
-    set_resp_msg_server(resp_j.dump());
+    set_resp_msg_server(resp_j.dump(), read_msg_.get_channel_id());
     
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Ack for registering client is confirmed"});
@@ -110,7 +110,7 @@ void P2pNetwork::connect_to_nat(nlohmann::json buf_j)
     resp_j["id_from"] = buf_j["id_from"];
     resp_j["ip_from"] = buf_j["ip_from"];
 
-    set_resp_msg_server(resp_j.dump()); 
+    set_resp_msg_server(resp_j.dump(), read_msg_.get_channel_id()); 
 }
 
 void P2pNetwork::intro_peer(nlohmann::json buf_j)
@@ -140,7 +140,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         // Disconect from client
         nlohmann::json msg_j;
         msg_j["req"] = "close_same_conn";
-        set_resp_msg_server(msg_j.dump());
+        set_resp_msg_server(msg_j.dump(), read_msg_.get_channel_id());
 
         return;
     }
@@ -208,14 +208,14 @@ pl.handle_print_or_log({"____00222_0 Is this run?"});
                 nlohmann::json msg;
                 msg["req"] = "send_first_block";
                 msg["block"] = first_block_j;
-                set_resp_msg_server(msg.dump());
+                set_resp_msg_server(msg.dump(), read_msg_.get_channel_id());
 pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             }
 
             // Disconect from client
             nlohmann::json msg_j;
             msg_j["req"] = "close_this_conn_and_create";
-            set_resp_msg_server(msg_j.dump());
+            set_resp_msg_server(msg_j.dump(), read_msg_.get_channel_id());
 
             pl.handle_print_or_log({"1 or more totalamountofpeers!"});
 
@@ -309,7 +309,7 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                         pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", peer_ip_underlying});
                         // message to non-connected peers
                         std::string message = message_j.dump();
-                        p2p_client(peer_ip_underlying, message);
+                        p2p_client(peer_ip_underlying, message, 2); // etc on channel 2
                     }
                     delete rocksy;
                 }
@@ -318,7 +318,7 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                 pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
                 
                 std::string message = message_j.dump();
-                p2p_client(peer_ip, message);
+                p2p_client(peer_ip, message, 2); // etc on channel 2
 
 pl.handle_print_or_log({"______00_1_1: end p2p_client"});
             }
@@ -345,7 +345,7 @@ pl.handle_print_or_log({"______000111_0 does new_co works? ", (value_j["ip"]).du
             delete rocksy;
 pl.handle_print_or_log({"______000111_1 ", (value_j["ip"]).dump()});
             message_j["ip_co"] = peer_ip;
-            set_resp_msg_server(message_j.dump());
+            set_resp_msg_server(message_j.dump(), read_msg_.get_channel_id());
 pl.handle_print_or_log({"______000111_2 "});
         }
         
@@ -405,7 +405,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 }
 
 void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
@@ -419,7 +419,7 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 
     // add received_blocks to received_block_vector
     nlohmann::json recv_block_j = buf_j["block"];
@@ -553,7 +553,7 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            pn.p2p_client(ip_from_peer, message, 0);  // prel on channel 0
         }
 pl.handle_print_or_log({"___10"});
     }
@@ -574,7 +574,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 
     // add received_blocks to received_block_vector
     nlohmann::json recv_block_j = buf_j["block"];
@@ -709,7 +709,7 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             pl.handle_print_or_log({"Preparation for secondary new_prel_block: ", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            pn.p2p_client(ip_from_peer, message, 0); // prel on channel 0
         }
     }
     else
@@ -795,7 +795,7 @@ for (auto &[k1, v1] : partsx)
         m_j["req"] = "hash_comparison";
         m_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
         std::string msg_s = m_j.dump();
-        set_resp_msg_server(msg_s);
+        set_resp_msg_server(msg_s, read_msg_.get_channel_id());
 
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm where a probability is calculated
@@ -837,7 +837,7 @@ pl.handle_print_or_log({"___02 peer_ip", peer_ip});
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
                 std::string msg_s = msg_j.dump();
 
-                p2p_client(peer_ip, msg_s);
+                p2p_client(peer_ip, msg_s, 1); // final on channel 1
             }
             else if (i == j)
             {
@@ -932,7 +932,7 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
-            p2p_client(ip_from_peer, message);
+            p2p_client(ip_from_peer, message, 1); // final on channel 1
         }
 pl.handle_print_or_log({"___10"});
     }
@@ -944,7 +944,7 @@ pl.handle_print_or_log({"___10"});
         // Disconect from client
         nlohmann::json m_j;
         m_j["req"] = "close_this_conn";
-        set_resp_msg_server(m_j.dump());
+        set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
     }
 }
 
@@ -1014,7 +1014,7 @@ for (auto &[k1, v1] : partsx)
     mm_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
     std::string msg_s = mm_j.dump();
 
-    set_resp_msg_server(msg_s);
+    set_resp_msg_server(msg_s, read_msg_.get_channel_id());
 
     // p2p_client() to all calculated other chosen_ones
     // this is in fact the start of the consensus algorithm where a probability is calculated
@@ -1052,7 +1052,7 @@ for (auto &[k1, v1] : partsx)
             msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
             std::string msg_s = msg_j.dump();
 
-            p2p_client(peer_ip, msg_s);
+            p2p_client(peer_ip, msg_s, 1); // final on channel 1
         }
         else if (i == j)
         {
@@ -1146,7 +1146,7 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
         // p2p_client() to all chosen ones with intro_peer request
-        pn.p2p_client(ip_from_peer, message);
+        pn.p2p_client(ip_from_peer, message, 1); // final on channel 1
     }
 }
 
@@ -1178,7 +1178,7 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     nlohmann::json m_j;
     m_j["req"] = "update_me";
     m_j["block_nr"] = my_latest_block;
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 }
 
 void P2pNetwork::hash_comparison(nlohmann::json buf_j)
@@ -1190,7 +1190,7 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 }
 
 void P2pNetwork::intro_online(nlohmann::json buf_j)
@@ -1284,7 +1284,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
-            p2p_client(ip_from_peer, message_s);
+            p2p_client(ip_from_peer, message_s, 2); // etc on channel 2
         }
 
         // update this rocksdb
@@ -1320,7 +1320,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
                 o << i;
                 msg["block_nr"] = o.str();
                 msg["block"] = block_j;
-                set_resp_msg_server(msg.dump());
+                set_resp_msg_server(msg.dump(), read_msg_.get_channel_id());
             }
 
             // Update rockdb's:
@@ -1338,7 +1338,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
                 std::string value = rocksy->Get(u);
                 msg["value"] = value;
 
-                set_resp_msg_server(msg.dump());
+                set_resp_msg_server(msg.dump(), read_msg_.get_channel_id());
             }
         }
 
@@ -1354,7 +1354,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json msg_j;
     msg_j["req"] = "close_this_conn";
-    set_resp_msg_server(msg_j.dump());
+    set_resp_msg_server(msg_j.dump(), read_msg_.get_channel_id());
 }
 
 void P2pNetwork::new_online(nlohmann::json buf_j)
@@ -1444,7 +1444,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
 
         // p2p_client() to all chosen ones with intro_peer request
-        p2p_client(ip_from_peer, message_s);
+        p2p_client(ip_from_peer, message_s, 2); // etc on channel 2
     }
 
     // update this rocksdb
@@ -1467,7 +1467,7 @@ void P2pNetwork::update_you_server(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+    set_resp_msg_server(m_j.dump(), read_msg_.get_channel_id());
 
     // Update blocks
     nlohmann::json blocks_j = buf_j["blocks"];
@@ -1578,7 +1578,7 @@ pl.handle_print_or_log({"__05_s"});
 // }
 }
 
-void P2pNetwork::set_resp_msg_server(std::string msg)
+void P2pNetwork::set_resp_msg_server(std::string msg, int channel_id)
 {
     std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
     for (int i = 0; i < splitted.size(); i++)
@@ -1588,7 +1588,7 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
 
         resp_msg_.body_length(std::strlen(s));
         std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
-        i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+        i == splitted.size() - 1 ? resp_msg_.encode_header(1, channel_id) : resp_msg_.encode_header(0, channel_id); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
         packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, 0);
@@ -1612,7 +1612,7 @@ int P2pNetwork::p2p_server()
     address_.host = ENET_HOST_ANY;
     address_.port = PORT;
 
-    server_ = enet_host_create(&address_, 210, 2, 0, 0);
+    server_ = enet_host_create(&address_, 210, 3, 0, 0);
 
     if (server_ == NULL)
     {
