@@ -485,6 +485,13 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
         }
 pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
         Crowd::Protocol proto;
+std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k11;
+std::string v11;
+for (auto& [k11, v11]: parts11)
+{
+    pl.handle_print_or_log({"___0400 the whole db", v11});
+}
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -520,7 +527,8 @@ pl.handle_print_or_log({"___06"});
 pl.handle_print_or_log({"___07"});
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
-        std::string key, val;
+        int key;
+        std::string val;
         for (auto &[key, val] : parts)
         {
 pl.handle_print_or_log({"___08 introprel chosen_ones", val});
@@ -632,6 +640,13 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
         }
 pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
         Crowd::Protocol proto;
+std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k11;
+std::string v11;
+for (auto& [k11, v11]: parts11)
+{
+    pl.handle_print_or_log({"___0400 the whole db", v11});
+}
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -667,7 +682,8 @@ pl.handle_print_or_log({"___05"});
 
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
-        std::string key, val;
+        int key;
+        std::string val;
         for (auto &[key, val] : parts)
         {
 pl.handle_print_or_log({"___08 newprel chosen_ones", val});
@@ -847,6 +863,15 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             }
         }
 pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
+
+std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k11;
+std::string v11;
+for (auto& [k11, v11]: parts11)
+{
+    pl.handle_print_or_log({"___0400 the whole db", v11});
+}
+
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
@@ -880,7 +905,8 @@ pl.handle_print_or_log({"___06"});
         }
         delete crypto;
 pl.handle_print_or_log({"___07"});
-        std::string key, val;
+        int key;
+        std::string val;
         for (auto &[key, val] : parts)
         {
 pl.handle_print_or_log({"___08 introblock chosen_ones", val});
@@ -1051,6 +1077,15 @@ for (auto &[k1, v1] : partsx)
         }
     }
 pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
+
+std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
+int k11;
+std::string v11;
+for (auto& [k11, v11]: parts11)
+{
+    pl.handle_print_or_log({"___0400 the whole db", v11});
+}
+
     std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
 pl.handle_print_or_log({"___05"});
 
@@ -1084,7 +1119,8 @@ pl.handle_print_or_log({"___05"});
     }
 
     Crowd::P2pNetwork pn;
-    std::string key, val;
+    int key;
+    std::string val;
     for (auto &[key, val] : parts)
     {
 pl.handle_print_or_log({"___08 newblock chosen_ones", val});
@@ -1228,7 +1264,8 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 
         Rocksy* rocksy = new Rocksy("usersdb");
 
-        std::string key, val;
+        int key;
+        std::string val;
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
@@ -1385,7 +1422,8 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
     Rocksy* rocksy = new Rocksy("usersdb");
     
-    std::string key, val;
+    int key;
+    std::string val;
     for (auto &[key, val] : parts)
     {
         if (key == 1) continue;
