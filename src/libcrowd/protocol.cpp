@@ -196,20 +196,20 @@ Common::Print_or_log pl;
 pl.handle_print_or_log({"___00770 count", count.str()});
 
     std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
-uint32_t k;
-uint256_t v;
-for (auto& [k, v]: chosen_ones_counter)
-{
-    pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(k), v.str()});
-}
+// uint32_t k;
+// uint256_t v;
+// for (auto& [k, v]: chosen_ones_counter)
+// {
+//     pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(k), v.str()});
+// }
 
     auto h = Protocol::get_calculated_hashes(my_hash, chosen_ones_counter);
-int key;
-std::string value;
-for (auto& [key, value]: h)
-{
-    pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(key), value});
-}
+// int key;
+// std::string value;
+// for (auto& [key, value]: h)
+// {
+//     pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(key), value});
+// }
     return h;
 }
 

@@ -617,6 +617,7 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
+pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (i != chosen_ones.size() - 1)
@@ -780,11 +781,6 @@ for (auto &[k1, v1] : partsx)
         std::string msg_s = m_j.dump();
         set_resp_msg_server(msg_s);
 
-        // Disconect from client
-        m_j = {};
-        m_j["req"] = "close_this_conn";
-        set_resp_msg_server(m_j.dump());
-
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm where a probability is calculated
         // you don't need full consensus in order to create a succesful block
@@ -936,11 +932,6 @@ void P2pNetwork::new_final_block(nlohmann::json buf_j)
     // Compare the hashes from the block of the coordinator with your saved blocks' hashes
     // communicate comparison to other chosen_ones --> needs to be calculated depending on this server's place in the chosen_ones list
     // Then inform your underlying network
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
 
     nlohmann::json recv_block_j = buf_j["block"];
     std::string recv_latest_block_nr_s = buf_j["latest_block_nr"];
@@ -1435,6 +1426,11 @@ void P2pNetwork::update_you_server(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (server)"});
 
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_server(m_j.dump());
+
     // Update blocks
     nlohmann::json blocks_j = buf_j["blocks"];
     for (auto& b: blocks_j.items())
@@ -1472,6 +1468,7 @@ for (auto &[k, v] : partsx)
 }
 
 pl.handle_print_or_log({"__01_s"});
+    
     // Update matrices
     nlohmann::json block_matrix_j = buf_j["bm"];
     nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
@@ -1541,11 +1538,6 @@ pl.handle_print_or_log({"__05_s"});
 //         pl.handle_print_or_log({"___00block matrix entries", std::to_string(i), "update", std::to_string(j), "(oldest first)", content_j.dump()});
 //     }
 // }
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
 }
 
 void P2pNetwork::set_resp_msg_server(std::string msg)
