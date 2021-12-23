@@ -414,7 +414,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
-    client_ = enet_host_create(NULL, 1, 2, 0, 0);
+    client_ = enet_host_create(NULL, 10, 2, 0, 0);
 
     if (client_ == NULL)
     {
