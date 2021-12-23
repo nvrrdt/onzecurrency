@@ -20,7 +20,7 @@ namespace Poco
     class PocoCrowd
     {
     public:
-        void create_and_send_block();
+        void create_prel_blocks();
         static nlohmann::json get_block_j();
         static void set_block_j(nlohmann::json block_j);
         static std::string get_hash_of_new_block();

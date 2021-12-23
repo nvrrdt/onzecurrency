@@ -21,7 +21,7 @@ namespace Poco
         {
             delete tx_;
         }
-        void create_and_send_block_c();
+        void create_prel_blocks_c();
         void evaluate_transactions();
     private:
         void inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json block_j, std::string full_hash_req);

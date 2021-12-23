@@ -156,7 +156,7 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
     {
         // Create block
         Poco::PocoCrowd poco;
-        poco.create_and_send_block();
+        poco.create_prel_blocks();
 
         intro_msg_vec_.reset_intro_msg_vec();
     }

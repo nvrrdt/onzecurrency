@@ -12,7 +12,7 @@
 using namespace Common;
 using namespace Poco;
 
-void PocoCrowd::create_and_send_block()
+void PocoCrowd::create_prel_blocks()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
     // 1) Evaluate NewPeers (in intro_msg_vec) (also take care of an analogy with double spend) (not implemented yet)
@@ -40,7 +40,7 @@ void PocoCrowd::create_and_send_block()
 
     // The second part of the capstone implementation of poco:
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"create_and_send_block"});
+    pl.handle_print_or_log({"create_prel_blocks"});
 
     BlockMatrix *bm = new BlockMatrix();
     Synchronisation sync;
@@ -289,6 +289,8 @@ void PocoCrowd::create_and_send_block()
     // start the sifting process and save a final block
     bm->sifting_function_for_both_block_matrices();
     bm->save_final_block_to_file();
+
+    // set_end_create_prel_blocks()
 
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)

@@ -1156,7 +1156,7 @@ void P2pNetworkC::start_block_creation_thread()
     {
         // Create block
         PocoCoin poco;
-        poco.create_and_send_block_c();
+        poco.create_prel_blocks_c();
 
         tx->reset_transactions();
     }
@@ -1187,7 +1187,7 @@ void P2pNetworkC::get_sleep_and_create_block_server_c()
     bmc->add_received_block_vector_to_received_block_matrix();
 
     PocoCoin poco;
-    poco.create_and_send_block_c(); // chosen ones are being informed here
+    poco.create_prel_blocks_c(); // chosen ones are being informed here
 
     pl.handle_print_or_log({"Block_c created server!!"});
     

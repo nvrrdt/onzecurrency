@@ -31,10 +31,10 @@ void Synchronisation::get_sleep_and_create_block()
     //std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
 
     // chosen ones are being informed here
-    std::thread t2(&Poco::PocoCrowd::create_and_send_block, pococr_);
+    std::thread t2(&Poco::PocoCrowd::create_prel_blocks, pococr_);
 
     // and here too, but for coin then
-    // std::thread xxxxxxxxxxxx pococo_.create_and_send_block_c();     // preliminary commented out
+    // std::thread xxxxxxxxxxxx pococo_.create_prel_blocks_c();     // preliminary commented out
 
     get_sleep_until();
 

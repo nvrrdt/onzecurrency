@@ -19,7 +19,7 @@
 using namespace Common;
 using namespace Poco;
 
-void PocoCoin::create_and_send_block_c()
+void PocoCoin::create_prel_blocks_c()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
     // 1) Evaluate Transactions (also double spend)
@@ -49,7 +49,7 @@ void PocoCoin::create_and_send_block_c()
 
     // The second part of the capstone implementation of poco:
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"create_and_send_block_c"});
+    pl.handle_print_or_log({"create_prel_blocks_c"});
 
     BlockMatrixC *bmc = new BlockMatrixC();
 
