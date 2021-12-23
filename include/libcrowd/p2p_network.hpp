@@ -36,7 +36,7 @@ namespace Crowd
     {
     public:
         int p2p_server();
-        int p2p_client(std::string ip_s, std::string message, int channel_id);
+        int p2p_client(std::string ip_s, std::string message);
         static std::string get_closed_client()
         {
             return closed_client_;
@@ -50,8 +50,8 @@ namespace Crowd
             quit_server_ = quit;
         }
     protected:
-        void set_resp_msg_server(std::string msg, int channel_id);
-        void set_resp_msg_client(std::string msg, int channel_id);
+        void set_resp_msg_server(std::string msg);
+        void set_resp_msg_client(std::string msg);
         void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);

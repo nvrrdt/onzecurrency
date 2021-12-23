@@ -393,7 +393,7 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message, 0); // prel on channel 0
+            pn.p2p_client(ip_from_peer, message);
         }
 
         // Should also fill the sent block vector
@@ -517,7 +517,7 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             delete rocksy; //
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message, 1); // final on channel 1
+            pn.p2p_client(ip_from_peer, message);
 
             pl.handle_print_or_log({"____000000_0_2"});
         }
@@ -616,7 +616,7 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
             
             pl.handle_print_or_log({"_______key:", std::to_string(i), "ip:", peer_ip, ", value:", std::to_string(ip_nr.first)});
             Crowd::P2pNetwork pn;
-            pn.p2p_client(peer_ip, msg_s, 2); // your_full_hash + update on channel 2
+            pn.p2p_client(peer_ip, msg_s);
         }
 
         // // for debugging purposes:
@@ -727,7 +727,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     pl.handle_print_or_log({"Hello_reward request sent"});
 
     Crowd::P2pNetwork pn;
-    pn.p2p_client(ip_s, message_s, 2); // preliminary channel set to 2 for etc
+    pn.p2p_client(ip_s, message_s);
 }
 
 std::string PocoCrowd::hash_of_block_ = "";

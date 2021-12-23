@@ -14,7 +14,7 @@ namespace Coin
     {
     public:
         void start_coin();
-        void handle_read_server_c(nlohmann::json buf_j, int channel_id);
+        void handle_read_server_c(nlohmann::json buf_j);
         void handle_read_client_c(nlohmann::json buf_j);
     private:
         void hello_tx(nlohmann::json buf_j);
@@ -27,7 +27,7 @@ namespace Coin
         bool validate_amount(std::string amount);
         void start_block_creation_thread();
         void get_sleep_and_create_block_server_c();
-        void intro_block_c(nlohmann::json buf_j, int channel_id);
+        void intro_block_c(nlohmann::json buf_j);
         void hash_comparison_c(nlohmann::json buf_j);
         void new_block_c(nlohmann::json buf_j);
     private:

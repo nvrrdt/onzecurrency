@@ -117,7 +117,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string message = message_j.dump();
 
             P2pNetwork pn;
-            pn.p2p_client(ip_mother_peer, message, 2); // etc on channel 2
+            pn.p2p_client(ip_mother_peer, message);
             if (pn.get_closed_client() == "closed_conn")
             {
                 // TODO must be implemented
@@ -222,7 +222,7 @@ pl.handle_print_or_log({"root_hash_data:", root_hash_data});
                 message_j["rocksdb"] = rocksdb_j;
                 std::string message = message_j.dump();
 
-                pn.p2p_client(ip_new_co_s, message, 2); // etc on channel 2
+                pn.p2p_client(ip_new_co_s, message);
 
                 pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
 
@@ -311,7 +311,7 @@ pl.handle_print_or_log({"root_hash_data:", root_hash_data});
                 std::string message_s = message_j.dump();
 pl.handle_print_or_log({"intro online message sent to", ip_next_peer});
                 P2pNetwork pn;
-                if (pn.p2p_client(ip_next_peer, message_s, 2) == 0) // etc on channel 2
+                if (pn.p2p_client(ip_next_peer, message_s) == 0)
                 {
                     my_full_hash = full_hash_peer;
                     continue;

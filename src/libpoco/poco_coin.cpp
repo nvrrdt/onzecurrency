@@ -353,7 +353,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message, 2); // preliminary channel set to 2 for etc
+            pn.p2p_client(ip_from_peer, message);
         }
 
         // Give the chosen_ones their reward:
