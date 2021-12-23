@@ -525,7 +525,7 @@ pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)
                 // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
                 rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
                 rocksdb_j["full_hash"] = full_hash_req;
-pl.handle_print_or_log({"___00333_0 Is this full_hash in the loop of intro_peer's send_peer?", full_hash_req});
+pl.handle_print_or_log({"___00333_0 full_hash?", full_hash_req});
                 Crowd::Protocol proto;
                 rocksdb_j["block_nr"] = new_block_nr;
                 rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
