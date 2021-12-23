@@ -81,7 +81,7 @@ void Synchronisation::get_sleep_until()
         std::time_t tt = std::chrono::system_clock::to_time_t(now);
         std::tm utc_tm = *gmtime(&tt);
         
-        if (utc_tm.tm_sec % 20 == utc_tm_block.tm_sec % 20)  // 20 = every 20 seconds
+        if (utc_tm.tm_sec == utc_tm_block.tm_sec)
         {
             pl.handle_print_or_log({"break: datetime block ", std::to_string(utc_tm_block.tm_year + 1900), "/", std::to_string(utc_tm_block.tm_mon + 1), "/", std::to_string(utc_tm_block.tm_mday), " ", std::to_string(utc_tm_block.tm_hour), ":", std::to_string(utc_tm_block.tm_min), ":", std::to_string(utc_tm_block.tm_sec)});
 

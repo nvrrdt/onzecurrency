@@ -27,7 +27,7 @@ def main():
 
     # Variables
     ips = ["51.158.68.232", "51.15.226.67", "51.15.248.67", "212.47.254.170", "212.47.234.94", "212.47.236.102"]
-    block_creation_delay = 20 # seconds
+    block_creation_delay = 60 # seconds
     
     # Constant
     string = 'er@er.c0' # username

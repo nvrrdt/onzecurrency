@@ -30,11 +30,11 @@ def main():
     time.sleep(6) # estimated time to install the software    
 
     # Start the command when synchronised with other servers
-    start_test_time = ((args.order - 1) * args.block_creation_delay) if (args.order == 1) else ((args.order - 1) * args.block_creation_delay) - 10
+    start_test_time = ((args.order - 1) * args.block_creation_delay) if (args.order == 1) else ((args.order - 1) * args.block_creation_delay) - 20
     time.sleep(start_test_time)
     
     # Let the onze-terminal process exist until al servers have finished
-    remaining_test_time = (((args.total_servers - args.order + 2) * args.block_creation_delay) + 3) if (args.order == 1) else (((args.total_servers - args.order + 2) * args.block_creation_delay) + 10 + 3)
+    remaining_test_time = (((args.total_servers - args.order + 2) * args.block_creation_delay) + 15) if (args.order == 1) else (((args.total_servers - args.order + 2) * args.block_creation_delay) + 20 + 15)
     
     # Execute onze-terminal
     command = 'onze-terminal'
