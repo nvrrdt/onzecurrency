@@ -377,7 +377,7 @@ void P2pNetwork::set_resp_msg_client(std::string msg, int channel_id)
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
         packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(peer_, channel_id, packet_);
+        enet_peer_send(peer_, 0, packet_);
     }
 }
 
