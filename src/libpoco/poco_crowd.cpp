@@ -51,6 +51,8 @@ void PocoCrowd::create_prel_blocks()
     uint16_t limit_count = 0;
     std::string datetime = sync.get_datetime_now();
 
+    bm->clear_new_users();
+
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
     std::vector<std::shared_ptr<nlohmann::json>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
@@ -410,7 +412,7 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 }
 
 
-void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j, std::vector<std::string> list_of_new_users)
+void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j)
 {
     Common::Print_or_log pl;
 
@@ -424,10 +426,11 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     bool is_part = false;
+    BlockMatrix bm;
     for (;;)
     {
         // it breaks when the new users (from a new block) are yet part of all the users
-        for (auto& element: list_of_new_users)
+        for (auto& element: bm.get_new_users())
         {
             if (co_from_this_block == element)
             {
@@ -537,7 +540,7 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
     }
 }
 
-void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr, std::vector<std::string> list_of_new_users)
+void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr)
 {
     // your_full_hash must only be sent when a block is final!!
 
@@ -556,10 +559,11 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
     bool is_part = false;
+    BlockMatrix bm;
     for (;;)
     {
         // it breaks when the new users (from a new block) are yet part of all the users
-        for (auto& element: list_of_new_users)
+        for (auto& element: bm.get_new_users())
         {
 pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block});
             if (co_from_this_block == element)

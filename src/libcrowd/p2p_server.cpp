@@ -244,15 +244,22 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
                 message_j["signature"] = crypto->base64_encode(signature);
             }
 
+            Poco::BlockMatrix bm;
             std::string key, val;
             for (int i = 1; i <= parts.size(); i++)
             {
 pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
-pl.handle_print_or_log({"______00_1_0: begin for"});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
-                if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
                 
+                for (auto& element: bm.get_new_users())
+                {
+                    if (val == element)
+                    {
+                        continue;
+                    }
+                }
+
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
@@ -298,6 +305,15 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
 // pl.handle_print_or_log({"i2: ", i, " val2: ", parts_underlying[i]});
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                         if (parts_underlying[i] == my_full_hash) continue;
+
+                        for (auto& element: bm.get_new_users())
+                        {
+                            if (val == element)
+                            {
+                                continue;
+                            }
+                        }
+
 // pl.handle_print_or_log({"i2: ", i, " parts_underlying: ", parts_underlying[i], ", my_full_hash: ", my_full_hash});
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
@@ -319,8 +335,6 @@ pl.handle_print_or_log({"______00_1_0: begin for"});
                 
                 std::string message = message_j.dump();
                 p2p_client(peer_ip, message);
-
-pl.handle_print_or_log({"______00_1_1: end p2p_client"});
             }
 
             // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request

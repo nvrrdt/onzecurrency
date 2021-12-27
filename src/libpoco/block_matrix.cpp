@@ -162,6 +162,21 @@ void BlockMatrix::clear_sent_block_matrix()
     sent_block_matrix_.clear();
 }
 
+void BlockMatrix::add_to_new_users(std::string full_hash_req)
+{
+    new_users_.push_back(full_hash_req);
+}
+
+std::vector<std::string> BlockMatrix::get_new_users()
+{
+    return new_users_;
+}
+
+void BlockMatrix::clear_new_users()
+{
+    new_users_.clear();
+}
+
 void BlockMatrix::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
@@ -507,7 +522,6 @@ pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)
 
             // actual saving to rocksdb
             nlohmann::json m_j, m_j_rocksdb;
-            std::vector<std::string> list_of_new_users = {};
             for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).size(); j++)
             {
                 m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i+1).at(0).at(j);
@@ -541,7 +555,7 @@ pl.handle_print_or_log({"___00333_0 full_hash?", full_hash_req});
                 std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
                 temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
 
-                list_of_new_users.push_back(full_hash_req);
+                add_to_new_users(full_hash_req);
             }
 
             m_j["rocksdb"] = m_j_rocksdb;
@@ -552,9 +566,9 @@ pl.handle_print_or_log({"___00333_0 full_hash?", full_hash_req});
             
             // Send their full_hash to the new users
             Poco::PocoCrowd pc;
-            pc.send_your_full_hash(i+1, final_block_j, new_block_nr, list_of_new_users);
+            pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
             // inform chosen ones for final block
-            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb, list_of_new_users);
+            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb);
         }
         else
         {
@@ -586,3 +600,5 @@ std::deque<std::shared_ptr<nlohmann::json>> BlockMatrix::received_block_vector_ 
 std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::received_block_matrix_ = {};
 std::deque<std::shared_ptr<nlohmann::json>> BlockMatrix::sent_block_vector_ = {};
 std::deque<std::deque<std::shared_ptr<nlohmann::json>>> BlockMatrix::sent_block_matrix_ = {};
+
+std::vector<std::string> BlockMatrix::new_users_ = {};

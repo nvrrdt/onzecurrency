@@ -41,6 +41,9 @@ namespace Poco
 
         static void sifting_function_for_both_block_matrices();
         static void save_final_block_to_file();
+
+        static std::vector<std::string> get_new_users();
+        static void clear_new_users();
     private:
         static std::deque<std::shared_ptr<nlohmann::json>> block_vector_;
         static std::deque<std::deque<std::shared_ptr<nlohmann::json>>> block_matrix_;
@@ -54,6 +57,9 @@ namespace Poco
         static std::deque<std::deque<std::shared_ptr<nlohmann::json>>> sent_block_matrix_;
     private:
         static IntroMsgsMat intro_msg_s_mat_;
+    private:
+        static void add_to_new_users(std::string full_hash_req);
+        static std::vector<std::string> new_users_;
     };
 
     class BlockMatrixC: BlockMatrix
