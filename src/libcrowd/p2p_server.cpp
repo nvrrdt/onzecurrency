@@ -1637,7 +1637,7 @@ int P2pNetwork::p2p_server()
     {
         if (get_quit_server_req() == true) break;
         
-        while (enet_host_service(server_, &event_, 1000) > 0)
+        while (enet_host_service(server_, &event_, 50) > 0)
         {
             if (get_quit_server_req() == true) break;
 

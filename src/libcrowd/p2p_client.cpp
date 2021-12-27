@@ -414,7 +414,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
-    client_ = enet_host_create(NULL, 10, 2, 0, 0);
+    client_ = enet_host_create(NULL, 105, 2, 0, 0);
 
     if (client_ == NULL)
     {
@@ -433,7 +433,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
-    if (enet_host_service(client_, &event_, 1000) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
+    if (enet_host_service(client_, &event_, 50) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
     {
         pl.handle_print_or_log({"Connection to", ip, "succeeded."});
         connected++;
@@ -464,7 +464,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     while (1)
     {
-        while (enet_host_service(client_, &event_, 1000) > 0)
+        while (enet_host_service(client_, &event_, 50) > 0)
         {
             switch (event_.type)
             {
