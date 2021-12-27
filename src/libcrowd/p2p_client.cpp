@@ -360,6 +360,19 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     msg["iah"] = contents_j;
     contents_j.clear();
 
+    // Update intro_msg_vec and ip_hemail_vec
+    msg["imv"];
+    for (auto& el: intro_msg_vec_.get_intro_msg_vec())
+    {
+        msg["imv"].push_back(*el);
+    }
+
+    msg["ihv"];
+    for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
+    {
+        msg["ihv"][(*el).first] = (*el).second;
+    }
+
     set_resp_msg_client(msg.dump());
 }
 

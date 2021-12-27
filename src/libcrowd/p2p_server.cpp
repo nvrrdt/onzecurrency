@@ -1580,6 +1580,21 @@ pl.handle_print_or_log({"__05_s"});
         iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
     }
 
+    // Update intro_msg_vec and ip_hemail_vec
+    nlohmann::json intro_msg_vec_j = buf_j["imv"];
+    nlohmann::json ip_hemail_vec_j = buf_j["ihv"];
+
+    for (auto& el: intro_msg_vec_j)
+    {
+        intro_msg_vec_.add_to_intro_msg_vec(el);
+    }
+
+    for (auto& [k, v]: ip_hemail_vec_j.items())
+    {
+        enet_uint32 key = stoi(k);
+        ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(key, v);
+    }
+
 // // for debugging purposes:
 // auto block_matrix = bm.get_block_matrix();
 // for (int i = 0; i < block_matrix.size(); i++)
