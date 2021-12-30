@@ -254,6 +254,7 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 
                 for (auto& element: bm.get_new_users())
                 {
+pl.handle_print_or_log({"___00 after i:", val, element});
                     if (val == element)
                     {
                         continue;
@@ -669,14 +670,14 @@ pl.handle_print_or_log({"___05"});
         message_j["block"] = buf_j["block"];
         message_j["prev_hash"] = buf_j["prev_hash"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
-
+pl.handle_print_or_log({"___06"});
         int k;
         std::string v;
         for (auto &[k, v] : parts)
         {
             message_j["chosen_ones"].push_back(v);
         }
-
+pl.handle_print_or_log({"___07"});
         to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
         to_sign_j["block"] = message_j["block"];
         to_sign_j["prev_hash"] = message_j["prev_hash"];
@@ -693,7 +694,7 @@ pl.handle_print_or_log({"___05"});
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-
+pl.handle_print_or_log({"___08"});
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
         int key;
@@ -725,6 +726,7 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+pl.handle_print_or_log({"___10 end of new_prel_block"});
     }
     else
     {
@@ -1620,7 +1622,7 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
         i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, 0);
+        packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, ENET_PACKET_FLAG_RELIABLE);
         enet_peer_send(event_.peer, 0, packet_);
         enet_host_flush(server_);
     }
@@ -1664,6 +1666,7 @@ int P2pNetwork::p2p_server()
                 case ENET_EVENT_TYPE_RECEIVE:
                     sprintf(read_msg_.data(), "%s", (char*) event_.packet->data);
                     do_read_header_server();
+                    enet_packet_destroy(event_.packet);
 
 
 

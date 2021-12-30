@@ -446,7 +446,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
-    if (enet_host_service(client_, &event_, 50) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
+    if (enet_host_service(client_, &event_, 10000) > 0 && event_.type == ENET_EVENT_TYPE_CONNECT)
     {
         pl.handle_print_or_log({"Connection to", ip, "succeeded."});
         connected++;
@@ -485,6 +485,7 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                     //puts( (char*) event_.packet->data);
                     sprintf(read_msg_.data(), "%s", (char*) event_.packet->data);
                     do_read_header_client();
+                    enet_packet_destroy(event_.packet);
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
                     connected=0;
@@ -503,5 +504,6 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         }
     }
 
+    enet_host_destroy(client_);
     enet_deinitialize();
 }

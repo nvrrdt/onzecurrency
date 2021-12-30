@@ -40,7 +40,7 @@ void PocoCrowd::create_prel_blocks()
 
     // The second part of the capstone implementation of poco:
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"create_prel_blocks"});
+    pl.handle_print_or_log({"Create prel_blocks"});
 
     BlockMatrix *bm = new BlockMatrix();
     Synchronisation sync;
@@ -291,8 +291,6 @@ void PocoCrowd::create_prel_blocks()
     // start the sifting process and save a final block
     bm->sifting_function_for_both_block_matrices();
     bm->save_final_block_to_file();
-
-    // set_end_create_prel_blocks()
 
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
