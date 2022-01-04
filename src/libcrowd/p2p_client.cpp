@@ -421,6 +421,30 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     Common::Print_or_log pl;
 
+    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
+    // Solution is to halt the slowest p2p_client, there's a reaction at connection at server side
+    bool go_for_it = false;
+    for (;;)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        for (int i = 0; i < get_connected_to_server().size(); i++)
+        {
+            if (ip_s == get_connected_to_server().at(i))
+            {
+                break;
+            }
+            
+            if (i == get_connected_to_server().size() - 1)
+            {
+                go_for_it = true;
+                break;
+            }
+        }
+
+        if (go_for_it || get_connected_to_server().empty()) break;
+    }
+
     if (enet_initialize() != 0)
     {
         pl.handle_print_or_log({"Could not initialize enet."});

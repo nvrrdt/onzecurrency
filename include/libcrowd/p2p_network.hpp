@@ -123,5 +123,25 @@ namespace Crowd
         static uint32_t ip_new_co_;
 
         static bool quit_server_;
+    private:
+        static void add_to_connected_to_server(std::string connected_peer)
+        {
+            connected_to_server_.push_back(connected_peer);
+        }
+
+        static void remove_from_connected_to_server(std::string connected_peer)
+        {
+            for (int i = 0; i < connected_to_server_.size(); i++)
+            {
+                if (connected_to_server_.at(i) == connected_peer) connected_to_server_.erase(connected_to_server_.begin() + i);
+            }
+        }
+
+        static std::vector<std::string> get_connected_to_server()
+        {
+            return connected_to_server_;
+        }
+
+        static std::vector<std::string> connected_to_server_;
     };
 }

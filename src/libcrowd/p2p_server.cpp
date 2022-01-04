@@ -7,6 +7,7 @@ using namespace Common;
 using namespace Crowd;
 
 bool P2pNetwork::quit_server_ = false;
+std::vector<std::string> P2pNetwork::connected_to_server_ = {};
 
 void P2pNetwork::do_read_header_server()
 {
@@ -1658,9 +1659,18 @@ int P2pNetwork::p2p_server()
         {
             if (get_quit_server_req() == true) break;
 
+            std::string connected_peer;
+            std::string connected_peer2;
+
             switch (event_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
+                    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
+                    // Solution is to halt the slowest p2p_client
+                    Crowd::P2p p2p;
+                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer);
+                    add_to_connected_to_server(connected_peer);
+
                     break;
 
                 case ENET_EVENT_TYPE_RECEIVE:
@@ -1699,6 +1709,11 @@ int P2pNetwork::p2p_server()
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
+                    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
+                    // Solution is to halt the slowest p2p_client
+                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer2);
+                    remove_from_connected_to_server(connected_peer2);
+
                     pl.handle_print_or_log({"Peer has disconnected."});
                     sprintf(buffer_, "%s has disconnected.", (char*) event_.peer->data);
                     packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
@@ -1720,3 +1735,4 @@ int P2pNetwork::p2p_server()
 
     return 1;
 }
+
