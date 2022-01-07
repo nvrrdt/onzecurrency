@@ -56,6 +56,6 @@ Process to finalize a project:
 - monitor (for crowd and the apps)
 - hair (an ipfs or swarm alternative)
 - rebasing or compacting the blockchain through shrinking current state to oldest state
-- password protected private keys in a blockchain with email verification?
+- password protected private keys in a blockchain?
 - ...
 
