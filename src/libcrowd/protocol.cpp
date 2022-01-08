@@ -196,12 +196,12 @@ Common::Print_or_log pl;
 pl.handle_print_or_log({"___00770 count", count.str()});
 
     std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
-// uint32_t k;
-// uint256_t v;
-// for (auto& [k, v]: chosen_ones_counter)
-// {
-//     pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(k), v.str()});
-// }
+uint32_t k;
+uint256_t v;
+for (auto& [k, v]: chosen_ones_counter)
+{
+    if (v != 0) pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(k),"val" , v.str()});
+}
 
     auto h = Protocol::get_calculated_hashes(my_hash, chosen_ones_counter);
 // int key;
@@ -226,16 +226,20 @@ std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash,
 
         if (val == 0) continue;
 
+        // the last counted hash should be approximately my_hash in partition_in_buckets(my_hash, my_hash)
+        // when chosen_ones_counter.size() is 2 you don't need to continue
+
         if (i == 1)
         {
             calculated_hashes[i] = my_hash;
             the_hash = rocksy->FindPeerFromTillCount(my_hash, val);
+
+            if (chosen_ones_counter.size() == 2) break;
         }
         else
         {
             calculated_hashes[i] = the_hash;
             the_hash = rocksy->FindPeerFromTillCount(the_hash, val);
-            // the last counted hash should be approximately my_hash and so doesn't need to be saved in the map
         }
     }
     delete rocksy;
