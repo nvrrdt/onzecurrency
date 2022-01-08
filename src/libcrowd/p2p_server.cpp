@@ -441,7 +441,6 @@ void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
     nlohmann::json recv_block_j = buf_j["block"];
     Poco::BlockMatrix *bm = new Poco::BlockMatrix();
     bm->add_received_block_to_received_block_vector(recv_block_j);
-    delete bm;
 
     // // for debugging purposes:
     // for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
@@ -551,6 +550,15 @@ pl.handle_print_or_log({"___08 introprel chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+
+            for (auto& element: bm->get_new_users())
+            {
+                if (val == element)
+                {
+                    continue;
+                }
+            }
+
 pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -571,6 +579,8 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+
+        delete bm;
 pl.handle_print_or_log({"___10"});
     }
     else
@@ -596,7 +606,6 @@ void P2pNetwork::new_prel_block(nlohmann::json buf_j)
     nlohmann::json recv_block_j = buf_j["block"];
     Poco::BlockMatrix *bm = new Poco::BlockMatrix();
     bm->add_received_block_to_received_block_vector(recv_block_j);
-    delete bm;
 
     // // for debugging purposes:
     // for (int i = 0; i < bm->get_received_block_matrix().size(); i++)
@@ -707,6 +716,15 @@ pl.handle_print_or_log({"___08 newprel chosen_ones", val});
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+
+            for (auto& element: bm->get_new_users())
+            {
+                if (val == element)
+                {
+                    continue;
+                }
+            }
+            
 pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -727,6 +745,8 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
         }
+
+        delete bm;
 pl.handle_print_or_log({"___10 end of new_prel_block"});
     }
     else
@@ -924,6 +944,7 @@ pl.handle_print_or_log({"___06"});
 pl.handle_print_or_log({"___07"});
         int key;
         std::string val;
+        Poco::BlockMatrix bm;
         for (auto &[key, val] : parts)
         {
 pl.handle_print_or_log({"___08 introblock chosen_ones", val});
@@ -931,6 +952,15 @@ pl.handle_print_or_log({"___08 introblock chosen_ones", val});
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+
+            for (auto& element: bm.get_new_users())
+            {
+                if (val == element)
+                {
+                    continue;
+                }
+            }
+
 pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1138,6 +1168,7 @@ pl.handle_print_or_log({"___05"});
     Crowd::P2pNetwork pn;
     int key;
     std::string val;
+    Poco::BlockMatrix bm;
     for (auto &[key, val] : parts)
     {
 pl.handle_print_or_log({"___08 newblock chosen_ones", val});
@@ -1145,6 +1176,15 @@ pl.handle_print_or_log({"___08 newblock chosen_ones", val});
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == full_hash_coord_from_coord) continue;
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+
+        for (auto& element: bm.get_new_users())
+        {
+            if (val == element)
+            {
+                continue;
+            }
+        }
+        
 pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1283,12 +1323,21 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 
         int key;
         std::string val;
+        Poco::BlockMatrix bm;
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
             if (val == full_hash) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+            
+            for (auto& element: bm.get_new_users())
+            {
+                if (val == element)
+                {
+                    continue;
+                }
+            }
             
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1441,6 +1490,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     
     int key;
     std::string val;
+    Poco::BlockMatrix bm;
     for (auto &[key, val] : parts)
     {
         if (key == 1) continue;
@@ -1448,6 +1498,14 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
         
+        for (auto& element: bm.get_new_users())
+        {
+            if (val == element)
+            {
+                continue;
+            }
+        }
+
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
         uint32_t peer_ip = value_j["ip"];
