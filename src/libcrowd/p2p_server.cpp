@@ -193,7 +193,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
         delete rocksy;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
-        pl.handle_print_or_log({"prel_first-coordinator: ", prel_first_coordinator_server});
+        pl.handle_print_or_log({"prel_first_coordinator: ", prel_first_coordinator_server});
 
         if (my_full_hash != "" && my_full_hash == prel_first_coordinator_server)
         {
@@ -1709,25 +1709,31 @@ int P2pNetwork::p2p_server()
         pl.handle_print_or_log({"Could not start server."});
         return 0;
     }
+
+    Crowd::P2p p2p;
+    std::string connected_peer;
+    std::string connected_peer2;
     while (1)
     {
         if (get_quit_server_req() == true) break;
         
-        while (enet_host_service(server_, &event_, 50) > 0)
+        while (enet_host_service(server_, &event_, 500) > 0)
         {
             if (get_quit_server_req() == true) break;
-
-            std::string connected_peer;
-            std::string connected_peer2;
 
             switch (event_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
                     // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
                     // Solution is to halt the slowest p2p_client
-                    Crowd::P2p p2p;
                     p2p.number_to_ip_string(event_.peer->address.host, connected_peer);
                     add_to_connected_to_server(connected_peer);
+
+pl.handle_print_or_log({"___0009876 connect in", connected_peer});
+for (auto& el: get_connected_to_server())
+{
+    pl.handle_print_or_log({"___0009876 connect all", el});
+}
 
                     break;
 
@@ -1736,34 +1742,6 @@ int P2pNetwork::p2p_server()
                     do_read_header_server();
                     enet_packet_destroy(event_.packet);
 
-
-
-                    // if (event_.peer->data == NULL)
-                    // {
-                    //     event_.peer->data = malloc(strlen((char*) event_.packet->data)+1);
-                    //     strcpy((char*) event_.peer->data, (char*) event_.packet->data);
-                    //     sprintf(buffer_, "%s has connected\n", (char*) event_.packet->data);
-                    //     packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
-                    //     enet_host_broadcast(server_, 1, packet_);
-                    //     enet_host_flush(server_);
-                    // }
-                    // else
-                    // {
-                    //     for (int i = 0; i < server_->peerCount; i++)
-                    //     {
-                    //         if (&server_->peers[i] != event_.peer)
-                    //         {
-                    //             sprintf(buffer_, "%s: %s", (char*) event_.peer->data, (char*) event_.packet->data);
-                    //             packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
-                    //             enet_peer_send(&server_->peers[i], 0, packet_);
-                    //             enet_host_flush(server_);
-                    //         }
-                    //         else
-                    //         {
-
-                    //         }
-                    //     }
-                    // }
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
@@ -1772,10 +1750,13 @@ int P2pNetwork::p2p_server()
                     p2p.number_to_ip_string(event_.peer->address.host, connected_peer2);
                     remove_from_connected_to_server(connected_peer2);
 
+pl.handle_print_or_log({"___0009877 connect out", connected_peer2});
+for (auto& el: get_connected_to_server())
+{
+    pl.handle_print_or_log({"___0009877 connect all", el});
+}
+
                     pl.handle_print_or_log({"Peer has disconnected."});
-                    sprintf(buffer_, "%s has disconnected.", (char*) event_.peer->data);
-                    packet_ = enet_packet_create(buffer_, strlen(buffer_)+1, 0);
-                    enet_host_broadcast(server_, 1, packet_);
                     free(event_.peer->data);
                     event_.peer->data = NULL;
                     break;

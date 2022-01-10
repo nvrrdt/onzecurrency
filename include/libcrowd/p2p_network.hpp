@@ -142,6 +142,28 @@ namespace Crowd
             return connected_to_server_;
         }
 
+        static void add_to_client_calls(std::string ip_s)
+        {
+            client_calls_.push_back(ip_s);
+        }
+
+        static void remove_from_client_calls(std::string ip_s)
+        {
+            for (int i = 0; i < client_calls_.size(); i++)
+            {
+                if (client_calls_.at(i) == ip_s) client_calls_.erase(client_calls_.begin() + i);
+            }
+        }
+
+        static std::vector<std::string> get_client_calls()
+        {
+            return client_calls_;
+        }
+
+        bool is_connected_to_server(std::string ip_s);
+        bool has_connected_client(std::string ip_s);
+
         static std::vector<std::string> connected_to_server_;
+        static std::vector<std::string> client_calls_;
     };
 }

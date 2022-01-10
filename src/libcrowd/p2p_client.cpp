@@ -7,6 +7,7 @@ using namespace Crowd;
 
 std::string P2pNetwork::closed_client_ = "";
 uint32_t P2pNetwork::ip_new_co_ = 0;
+std::vector<std::string> P2pNetwork::client_calls_;
 
 void P2pNetwork::do_read_header_client()
 {
@@ -314,7 +315,7 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
         rdb.push_back(usr);
     }
     delete rocksy;
-
+pl.handle_print_or_log({"Update_you 000"});
     msg["rocksdb"] = rdb;
 
     // Update matrices
@@ -332,7 +333,7 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     }
     msg["bm"] = contents_j;
     contents_j.clear();
-
+pl.handle_print_or_log({"Update_you 001"});
     for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
     {
         for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
@@ -345,7 +346,7 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     }
     msg["imm"] = contents_j;
     contents_j.clear();
-
+pl.handle_print_or_log({"Update_you 002"});
     for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
     {
         for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
@@ -359,21 +360,22 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     }
     msg["iah"] = contents_j;
     contents_j.clear();
-
+pl.handle_print_or_log({"Update_you 003"});
     // Update intro_msg_vec and ip_hemail_vec
     msg["imv"];
     for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     {
         msg["imv"].push_back(*el);
     }
-
+pl.handle_print_or_log({"Update_you 004"});
     msg["ihv"];
     for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
     {
         msg["ihv"][(*el).first] = (*el).second;
     }
-
+pl.handle_print_or_log({"Update_you 005"});
     set_resp_msg_client(msg.dump());
+pl.handle_print_or_log({"Update_you 006"});
 }
 
 void P2pNetwork::set_resp_msg_client(std::string msg)
@@ -421,29 +423,18 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     Common::Print_or_log pl;
 
-    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
-    // Solution is to halt the slowest p2p_client, there's a reaction at connection at server side
-    bool go_for_it = false;
     for (;;)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        for (int i = 0; i < get_connected_to_server().size(); i++)
+pl.handle_print_or_log({"__00654", "p2p_client pre"});
+        if (!is_connected_to_server(ip_s) && !has_connected_client(ip_s))
         {
-            if (ip_s == get_connected_to_server().at(i))
-            {
-                break;
-            }
-            
-            if (i == get_connected_to_server().size() - 1)
-            {
-                go_for_it = true;
-                break;
-            }
+pl.handle_print_or_log({"__00654", "p2p_client go_for_it"});
+            break;
         }
-
-        if (go_for_it || get_connected_to_server().empty()) break;
     }
+    add_to_client_calls(ip_s);
 
     if (enet_initialize() != 0)
     {
@@ -499,6 +490,8 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
         return 0;
     }
 
+    Crowd::P2p p2p;
+    std::string ip_client;
     while (1)
     {
         while (enet_host_service(client_, &event_, 50) > 0)
@@ -512,6 +505,9 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
                     enet_packet_destroy(event_.packet);
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
+                    p2p.number_to_ip_string(event_.peer->address.host, ip_client);
+                    remove_from_client_calls(ip_client);
+                    
                     connected=0;
                     pl.handle_print_or_log({"You have been disconnected."});
                     return 2;
@@ -530,4 +526,36 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     enet_host_destroy(client_);
     enet_deinitialize();
+
+    return 0;
+}
+
+// Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
+// Solution is to halt the slowest p2p_client, there's a reaction at connection at server side
+bool P2pNetwork::is_connected_to_server(std::string ip_s)
+{
+    for (int i = 0; i < get_connected_to_server().size(); i++)
+    {
+        if (ip_s == get_connected_to_server().at(i))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// sometimes there are two p2p_client() calls at the same time by two threads
+// ip_s in vector and at disconnect out of vector
+bool P2pNetwork::has_connected_client(std::string ip_s)
+{
+    for (int j = 0; j < get_client_calls().size(); j++)
+    {
+        if (ip_s == get_client_calls().at(j))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
