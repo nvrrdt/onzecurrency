@@ -15,7 +15,7 @@ tmux splitw -h -p 50
 
 tmux selectp -t 0    # go back to the first pane
 
-tmux send-keys -t 0 'ssh root@51.158.68.232' Enter
+tmux send-keys -t 0 'ssh root@212.47.231.236' Enter
 tmux send-keys -t 1 'ssh root@212.47.254.170' Enter
 tmux send-keys -t 2 'ssh root@51.15.226.67' Enter
 tmux send-keys -t 3 'ssh root@212.47.234.94' Enter
