@@ -345,6 +345,8 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         std::string v;
         for (auto &[k, v] : parts)
         {
+            if (sync.get_break_block_creation_loops()) break;
+
             if (v == "0" || v == "") break; // TODO the parts need to be refactored everywhere as it's an ugly hack
 pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             message_j["chosen_ones"].push_back(v);
@@ -371,6 +373,8 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
         std::string key, val;
         for (auto &[key, val] : parts)
         {
+            if (sync.get_break_block_creation_loops()) break;
+
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             
