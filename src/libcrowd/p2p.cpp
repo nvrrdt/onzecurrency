@@ -90,7 +90,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             // end test
 
-            std::string ip_mother_peer = "51.158.68.232"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
+            std::string ip_mother_peer = "212.47.231.236"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
             uint32_t ip_mother_peer_number;
             ip_string_to_number(ip_mother_peer.c_str(), ip_mother_peer_number);
 
@@ -117,123 +117,134 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string message = message_j.dump();
 
             P2pNetwork pn;
-            pn.p2p_client(ip_mother_peer, message);
-            if (pn.get_closed_client() == "closed_conn")
+            for (;;) // new_co must be able to run multiple times
             {
-                // TODO must be implemented
+                pn.p2p_client(ip_mother_peer, message);
+                if (pn.get_closed_client() == "closed_conn")
+                {
+                    // TODO must be implemented
+
+                    break;
+                }
+                else if (pn.get_closed_client() == "close_same_conn")
+                {
+                    pl.handle_print_or_log({"Connection was closed, probably no server reachable, maybe you are genesis"});
+
+                    // you are the only peer (genesis) and can create a block
+
+                    merkle_tree mt;
+                    std::string prev_hash = mt.get_genesis_prev_hash();
+                    std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
+                    std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
+
+                    to_block_j["full_hash"] = full_hash;
+                    to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
+                    to_block_j["rsa_pub_key"] = cred["rsa_pub_key"];
+
+                    std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
+                    s_shptr->push(to_block_j.dump());
+                    s_shptr = mt.calculate_root_hash(s_shptr);
+                    entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                    entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+                    entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+                    entry_transactions_j.push_back(entry_tx_j);
+                    exit_tx_j["full_hash"] = "";
+                    exit_transactions_j.push_back(exit_tx_j);
+                    std::string datetime = mt.time_now();
+                    std::string root_hash_data = s_shptr->top();
+    pl.handle_print_or_log({"root_hash_data:", root_hash_data});
+                    nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+                    std::string block_nr = proto.get_last_block_nr();
+                    std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
+
+                    message_j["full_hash"] = full_hash;
+                    message_j["prev_hash"] = prev_hash;
+                    message_j["rocksdb"]["full_hash"] = full_hash;
+                    message_j["rocksdb"]["prev_hash"] = prev_hash;
+
+                    // fill the matrices
+                    Poco::BlockMatrix bm;
+                    bm.add_block_to_block_vector(block_j);
+                    bm.add_block_vector_to_block_matrix();
+                    bm.add_calculated_hash_to_calculated_hash_vector(block_j);
+                    bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+                    bm.add_prev_hash_to_prev_hash_vector(block_j);
+                    bm.add_prev_hash_vector_to_prev_hash_matrix();
+                    Poco::IntroMsgsMat imm;
+                    imm.add_intro_msg_to_intro_msg_s_vec(message_j);
+                    imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+                    imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+                    Poco::IpHEmail ihe;
+                    ihe.add_ip_hemail_to_ip_hemail_vec(ip_mother_peer_number, hash_email); // TODO you have to reset this
+                    Poco::IpAllHashes iah;
+                    iah.add_ip_hemail_to_ip_all_hashes_vec(ihe.get_all_ip_hemail_vec().at(0));
+                    iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+                    iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+                    ihe.reset_ip_hemail_vec();
+
+                    rocksdb_j["prev_hash"] = prev_hash; // TODO might as well be block_j["prev_hash"] ?!?
+                    rocksdb_j["full_hash"] = full_hash;
+
+                    // Update rocksdb
+                    std::string rocksdb_s = rocksdb_j.dump();
+                    Rocksy* rocksy = new Rocksy("usersdb");
+                    rocksy->Put(full_hash, rocksdb_s);
+                    delete rocksy;
+                    pl.handle_print_or_log({"Rocksdb updated and server started"});
+
+                    // Save the full_hash to file
+                    FullHash fh;
+                    fh.save_full_hash_to_file(full_hash);
+
+                    // Save the prev_hash to file
+                    PrevHash ph;
+                    ph.save_my_prev_hash_to_file(prev_hash);
+
+                    break;
+                }
+                else if (pn.get_closed_client() == "close_this_conn_and_create")
+                {
+                    pl.handle_print_or_log({"Connection closed by other server, start this server (p2p) and create"});
+
+                    break;
+                }
+                else if (pn.get_closed_client() == "close_this_conn")
+                {
+                    pl.handle_print_or_log({"Connection closed by other server, start this server (p2p)"});
+
+                    break;
+                }
+                else if (pn.get_closed_client() == "new_co")
+                {
+                    uint32_t ip_new_co = pn.get_ip_new_co();
+                    P2p p2p;
+                    std::string ip_new_co_s;
+                    p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
+
+                    message_j["ip"] = ip_new_co;
+                    rocksdb_j["ip"] = ip_new_co;
+                    message_j["rocksdb"] = rocksdb_j;
+                    message = message_j.dump();
+
+                    ip_mother_peer = ip_new_co_s;
+
+                    pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
+                }
+                else
+                {
+                    // Is this else necessary, looks like a fallback ...
+                    pl.handle_print_or_log({"The p2p_client did it's job succesfully"});
+
+                    break;
+                }
             }
-            else if (pn.get_closed_client() == "close_same_conn")
+
+            if (pn.get_closed_client() != "close_this_conn")
             {
-                pl.handle_print_or_log({"Connection was closed, probably no server reachable, maybe you are genesis"});
-
-                // you are the only peer (genesis) and can create a block
-
-                merkle_tree mt;
-                std::string prev_hash = mt.get_genesis_prev_hash();
-                std::string email_prev_hash_app = hash_email + prev_hash; // TODO should this anonymization not be numbers instead of strings?
-                std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
-
-                to_block_j["full_hash"] = full_hash;
-                to_block_j["ecdsa_pub_key"] = cred["ecdsa_pub_key"];
-                to_block_j["rsa_pub_key"] = cred["rsa_pub_key"];
-
-                std::shared_ptr<std::stack<std::string>> s_shptr = make_shared<std::stack<std::string>>();
-                s_shptr->push(to_block_j.dump());
-                s_shptr = mt.calculate_root_hash(s_shptr);
-                entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                entry_transactions_j.push_back(entry_tx_j);
-                exit_tx_j["full_hash"] = "";
-                exit_transactions_j.push_back(exit_tx_j);
-                std::string datetime = mt.time_now();
-                std::string root_hash_data = s_shptr->top();
-pl.handle_print_or_log({"root_hash_data:", root_hash_data});
-                nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-                std::string block_nr = proto.get_last_block_nr();
-                std::string block_temp_s = mt.save_block_to_file(block_j, block_nr);
-
-                message_j["full_hash"] = full_hash;
-                message_j["prev_hash"] = prev_hash;
-                message_j["rocksdb"]["full_hash"] = full_hash;
-                message_j["rocksdb"]["prev_hash"] = prev_hash;
-
-                // fill the matrices
-                Poco::BlockMatrix bm;
-                bm.add_block_to_block_vector(block_j);
-                bm.add_block_vector_to_block_matrix();
-                bm.add_calculated_hash_to_calculated_hash_vector(block_j);
-                bm.add_calculated_hash_vector_to_calculated_hash_matrix();
-                bm.add_prev_hash_to_prev_hash_vector(block_j);
-                bm.add_prev_hash_vector_to_prev_hash_matrix();
-                Poco::IntroMsgsMat imm;
-                imm.add_intro_msg_to_intro_msg_s_vec(message_j);
-                imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
-                imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
-                Poco::IpHEmail ihe;
-                ihe.add_ip_hemail_to_ip_hemail_vec(ip_mother_peer_number, hash_email); // TODO you have to reset this
-                Poco::IpAllHashes iah;
-                iah.add_ip_hemail_to_ip_all_hashes_vec(ihe.get_all_ip_hemail_vec().at(0));
-                iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-                iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-                ihe.reset_ip_hemail_vec();
-
-                rocksdb_j["prev_hash"] = prev_hash; // TODO might as well be block_j["prev_hash"] ?!?
-                rocksdb_j["full_hash"] = full_hash;
-
-                // Update rocksdb
-                std::string rocksdb_s = rocksdb_j.dump();
-                Rocksy* rocksy = new Rocksy("usersdb");
-                rocksy->Put(full_hash, rocksdb_s);
-                delete rocksy;
-                pl.handle_print_or_log({"Rocksdb updated and server started"});
-
-                // Save the full_hash to file
-                FullHash fh;
-                fh.save_full_hash_to_file(full_hash);
-
-                // Save the prev_hash to file
-                PrevHash ph;
-                ph.save_my_prev_hash_to_file(prev_hash);
-
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
                 sync->get_sleep_and_create_block();
             }
-            else if (pn.get_closed_client() == "close_this_conn_and_create")
-            {
-                pl.handle_print_or_log({"Connection closed by other server, start this server (p2p) and create"});
-
-                Poco::Synchronisation* sync = new Poco::Synchronisation();
-                sync->get_sleep_and_create_block();
-            }
-            else if (pn.get_closed_client() == "close_this_conn")
-            {
-                pl.handle_print_or_log({"Connection closed by other server, start this server (p2p)"});
-            }
-            else if (pn.get_closed_client() == "new_co")
-            {
-                uint32_t ip_new_co = pn.get_ip_new_co();
-                P2p p2p;
-                std::string ip_new_co_s;
-                p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
-
-                message_j["ip"] = ip_new_co;
-                rocksdb_j["ip"] = ip_new_co;
-                message_j["rocksdb"] = rocksdb_j;
-                std::string message = message_j.dump();
-
-                pn.p2p_client(ip_new_co_s, message);
-
-                pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
-
-                Poco::Synchronisation* sync = new Poco::Synchronisation();
-                sync->get_sleep_and_create_block();
-            }
-            else
-            {
-                // Is this else necessary, looks like a fallback ...
-                pl.handle_print_or_log({"The p2p_client did it's job succesfully"});
-            }
+            
             return true;
         }
         else
