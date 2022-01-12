@@ -126,7 +126,25 @@ namespace Crowd
     private:
         static void add_to_connected_to_server(std::string connected_peer)
         {
-            connected_to_server_.push_back(connected_peer);
+            bool br = false;
+
+            for (;;)
+            {
+                for (int i = 0; i < connected_to_server_.size(); i++)
+                {
+                    if (connected_peer == connected_to_server_.at(i)) break;
+
+                    if (i == connected_to_server_.size() - 1)
+                    {
+                        connected_to_server_.push_back(connected_peer);
+                        br = true;
+                    }
+                }
+
+                if (br || connected_to_server_.empty()) break;
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
         }
 
         static void remove_from_connected_to_server(std::string connected_peer)

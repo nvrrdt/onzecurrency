@@ -1,3 +1,7 @@
+#include <future>       // std::async, std::future, std::launch
+#include <chrono>       // std::chrono::milliseconds
+#include <thread>
+
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
@@ -315,7 +319,7 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
         rdb.push_back(usr);
     }
     delete rocksy;
-pl.handle_print_or_log({"Update_you 000"});
+
     msg["rocksdb"] = rdb;
 
     // Update matrices
@@ -333,7 +337,7 @@ pl.handle_print_or_log({"Update_you 000"});
     }
     msg["bm"] = contents_j;
     contents_j.clear();
-pl.handle_print_or_log({"Update_you 001"});
+
     for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
     {
         for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
@@ -346,7 +350,7 @@ pl.handle_print_or_log({"Update_you 001"});
     }
     msg["imm"] = contents_j;
     contents_j.clear();
-pl.handle_print_or_log({"Update_you 002"});
+
     for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
     {
         for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
@@ -360,22 +364,21 @@ pl.handle_print_or_log({"Update_you 002"});
     }
     msg["iah"] = contents_j;
     contents_j.clear();
-pl.handle_print_or_log({"Update_you 003"});
+
     // Update intro_msg_vec and ip_hemail_vec
     msg["imv"];
     for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     {
         msg["imv"].push_back(*el);
     }
-pl.handle_print_or_log({"Update_you 004"});
+
     msg["ihv"];
     for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
     {
-        msg["ihv"][(*el).first] = (*el).second;
+        msg["ihv"][std::to_string((*el).first)] = (*el).second;
     }
-pl.handle_print_or_log({"Update_you 005"});
+
     set_resp_msg_client(msg.dump());
-pl.handle_print_or_log({"Update_you 006"});
 }
 
 void P2pNetwork::set_resp_msg_client(std::string msg)
@@ -425,14 +428,17 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     for (;;)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-pl.handle_print_or_log({"__00654", "p2p_client pre"});
-        if (!is_connected_to_server(ip_s) && !has_connected_client(ip_s))
+        std::future<bool> cts = std::async(std::launch::async, &P2pNetwork::is_connected_to_server, this, ip_s);
+        std::future<bool> cc = std::async(std::launch::async, &P2pNetwork::has_connected_client, this, ip_s);
+        bool b_cts = cts.get(), b_cc = cc.get();
+pl.handle_print_or_log({"__00654", "p2p_client pre", std::to_string(b_cts), std::to_string(b_cc)});
+        if (!b_cts && !b_cc)
         {
 pl.handle_print_or_log({"__00654", "p2p_client go_for_it"});
             break;
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     add_to_client_calls(ip_s);
 
@@ -487,6 +493,9 @@ pl.handle_print_or_log({"__00654", "p2p_client go_for_it"});
 
         enet_peer_reset(peer_);
         pl.handle_print_or_log({"Could not connect to", ip});
+
+        remove_from_client_calls(ip_s);
+
         return 0;
     }
 
@@ -505,11 +514,9 @@ pl.handle_print_or_log({"__00654", "p2p_client go_for_it"});
                     enet_packet_destroy(event_.packet);
                     break;
                 case ENET_EVENT_TYPE_DISCONNECT:
-                    p2p.number_to_ip_string(event_.peer->address.host, ip_client);
-                    remove_from_client_calls(ip_client);
-                    
                     connected=0;
-                    pl.handle_print_or_log({"You have been disconnected."});
+                    pl.handle_print_or_log({"You have been disconnected.", ip_client});
+
                     return 2;
             }
         }
@@ -521,6 +528,8 @@ pl.handle_print_or_log({"__00654", "p2p_client go_for_it"});
         {
             connected=0;
             enet_peer_disconnect(peer_, 0);
+
+            remove_from_client_calls(ip_s);
         }
     }
 
@@ -538,6 +547,8 @@ bool P2pNetwork::is_connected_to_server(std::string ip_s)
     {
         if (ip_s == get_connected_to_server().at(i))
         {
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
             return true;
         }
     }

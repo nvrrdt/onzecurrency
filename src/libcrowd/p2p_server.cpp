@@ -1747,10 +1747,9 @@ for (auto& el: get_connected_to_server())
                 case ENET_EVENT_TYPE_DISCONNECT:
                     // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
                     // Solution is to halt the slowest p2p_client
-                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer2);
-                    remove_from_connected_to_server(connected_peer2);
+                    remove_from_connected_to_server(connected_peer);
 
-pl.handle_print_or_log({"___0009877 connect out", connected_peer2});
+pl.handle_print_or_log({"___0009877 connect out", connected_peer});
 for (auto& el: get_connected_to_server())
 {
     pl.handle_print_or_log({"___0009877 connect all", el});
