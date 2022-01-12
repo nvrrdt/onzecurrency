@@ -41,7 +41,7 @@ void Synchronisation::get_sleep_and_create_block()
     //t1.join();
     t2.join();
 
-    
+    set_break_block_creation_loops(false);
 
     get_sleep_and_create_block();
 }
@@ -51,8 +51,6 @@ void Synchronisation::get_sleep_until()
     // wait x seconds (infinite for loop + break) until datetime + 10, 20, 30s ... in latest_block
 
     Common::Print_or_log pl;
-
-    set_break_block_creation_loops(false);
 
     // get datetime from latest block
     std::string datetime = get_genesis_datetime();
