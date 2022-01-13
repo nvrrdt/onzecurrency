@@ -428,8 +428,8 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
     for (;;)
     {
-        std::future<bool> cts = std::async(std::launch::async, &P2pNetwork::is_connected_to_server, this, ip_s);
-        std::future<bool> cc = std::async(std::launch::async, &P2pNetwork::has_connected_client, this, ip_s);
+        std::future<bool> cts = std::async(std::launch::deferred, &P2pNetwork::is_connected_to_server, this, ip_s);
+        std::future<bool> cc = std::async(std::launch::deferred, &P2pNetwork::has_connected_client, this, ip_s);
         bool b_cts = cts.get(), b_cc = cc.get();
 pl.handle_print_or_log({"__00654", "p2p_client pre", std::to_string(b_cts), std::to_string(b_cc)});
         if (!b_cts && !b_cc)
