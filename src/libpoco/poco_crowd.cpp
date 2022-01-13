@@ -61,6 +61,7 @@ void PocoCrowd::create_prel_blocks()
 
     if (copy_intro_msg_vec.empty()) return;
 
+    // Start of the loops
     for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
     {
         pl.handle_print_or_log({"Crowd: 1st for loop with block matrix", std::to_string(i)});
