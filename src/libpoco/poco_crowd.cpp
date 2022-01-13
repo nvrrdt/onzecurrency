@@ -61,22 +61,27 @@ void PocoCrowd::create_prel_blocks()
 
     if (copy_intro_msg_vec.empty()) return;
 
-    if (bm->get_block_matrix().empty()) // TODO I think get_block_matrix is never empty
+    for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
     {
-        pl.handle_print_or_log({"Crowd: No block_matrix: you're probably bootstrapping coin"});
+        pl.handle_print_or_log({"Crowd: 1st for loop with block matrix", std::to_string(i)});
 
-        for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of new_peers in the blocks
+        if (sync.get_break_block_creation_loops()) break;
+
+        /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
+        // in the future there will be a lot of finetuning work on this function
+        // preliminarly this is ok
+
+        for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
-            // TODO limit the reach of this loop otherwise the previous loop isn't usable
-
-            pl.handle_print_or_log({"Crowd: 2nd for loop", std::to_string(j)});
+            pl.handle_print_or_log({"Crowd: 2nd for loop with block matrix", std::to_string(j)});
 
             if (sync.get_break_block_creation_loops()) break;
 
-            for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included new_peers
-            {
+            // TODO limit the reach of this loop otherwise the previous loop isn't usable
 
-                pl.handle_print_or_log({"Crowd: 3rd for loop", std::to_string(counter)});
+            for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
+            {
+                pl.handle_print_or_log({"Crowd: 3rd for loop with block matrix", std::to_string(counter)});
 
                 if (sync.get_break_block_creation_loops()) break;
 
@@ -86,22 +91,19 @@ void PocoCrowd::create_prel_blocks()
                 nlohmann::json to_block_j;
                 std::string fh_s;
                 std::string prel_full_hash_req;
+                std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
 
-                std::string prel_prev_hash_req = mt->get_genesis_prev_hash();
-                block_j_["prev_hash"] = prel_prev_hash_req;
-                block_j_["cnt"] = counter;
-
-                for (int l = 0; l < j; l++) // Add the new_peers till the i-th new_peer to the block
+                for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
-                    pl.handle_print_or_log({"Crowd: 4th for loop", std::to_string(l)});
-
+                    pl.handle_print_or_log({"Crowd: 4th for loop with block matrix", std::to_string(l)});
+                    
                     imv_j = *copy_intro_msg_vec.at(l);
 
                     // link an ip to a user
                     std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
                     ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
-                    // create prel full_hash
+                    // create prel full hash
                     Common::Crypto crypto;
                     std::string hash_of_email = imv_j["hash_of_email"];
                     std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
@@ -129,6 +131,10 @@ void PocoCrowd::create_prel_blocks()
                 s_shptr_ = mt->calculate_root_hash(s_shptr_);
                 std::string root_hash_data = s_shptr_->top();
                 block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+
+
+                block_j_["prev_hash"] = prel_prev_hash_req;
+                block_j_["cnt"] = counter;
 
                 Crowd::Protocol proto;
                 std::string my_last_block_nr = proto.get_last_block_nr();
@@ -163,119 +169,7 @@ void PocoCrowd::create_prel_blocks()
             }
         }
     }
-    else
-    {
-        pl.handle_print_or_log({"Crowd: Normal execution for block creation ..."});
 
-        for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
-        {
-            pl.handle_print_or_log({"Crowd: 1st for loop with block matrix", std::to_string(i)});
-
-            if (sync.get_break_block_creation_loops()) break;
-
-            /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
-            // in the future there will be a lot of finetuning work on this function
-            // preliminarly this is ok
-
-            for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
-            {
-                pl.handle_print_or_log({"Crowd: 2nd for loop with block matrix", std::to_string(j)});
-
-                if (sync.get_break_block_creation_loops()) break;
-
-                // TODO limit the reach of this loop otherwise the previous loop isn't usable
-
-                for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
-                {
-                    pl.handle_print_or_log({"Crowd: 3rd for loop with block matrix", std::to_string(counter)});
-
-                    if (sync.get_break_block_creation_loops()) break;
-
-                    Crowd::merkle_tree *mt = new Crowd::merkle_tree();
-
-                    nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
-                    nlohmann::json to_block_j;
-                    std::string fh_s;
-                    std::string prel_full_hash_req;
-                    std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
-
-                    for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
-                    {
-                        pl.handle_print_or_log({"Crowd: 4th for loop with block matrix", std::to_string(l)});
-                        
-                        imv_j = *copy_intro_msg_vec.at(l);
-
-                        // link an ip to a user
-                        std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
-                        ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
-
-                        // create prel full hash
-                        Common::Crypto crypto;
-                        std::string hash_of_email = imv_j["hash_of_email"];
-                        std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
-                        prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
-
-                        // update rocksdb
-                        imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
-                        imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
-                        intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
-
-                        // create block
-                        to_block_j["full_hash"] = prel_full_hash_req;
-                        to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
-                        to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
-                        s_shptr_->push(to_block_j.dump());
-
-                        entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                        entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-                        entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                        entry_transactions_j.push_back(entry_tx_j);
-                        exit_tx_j["full_hash"] = "";
-                        exit_transactions_j.push_back(exit_tx_j);
-                    }
-
-                    s_shptr_ = mt->calculate_root_hash(s_shptr_);
-                    std::string root_hash_data = s_shptr_->top();
-                    block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
-
-
-                    block_j_["prev_hash"] = prel_prev_hash_req;
-                    block_j_["cnt"] = counter;
-
-                    Crowd::Protocol proto;
-                    std::string my_last_block_nr = proto.get_last_block_nr();
-
-                    uint64_t value;
-                    std::istringstream iss(my_last_block_nr);
-                    iss >> value;
-                    value++;
-                    std::ostringstream oss;
-                    oss << value;
-                    my_next_block_nr = oss.str();
-
-                    // send hash of this block with the block contents to the co's, forget save_block_to_file
-                    // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
-
-                    // send intro_block to co's
-                    inform_chosen_ones_prel_block(my_next_block_nr, block_j_);
-
-                    // Add blocks to vector<vector<block_j_>>
-                    bm->add_block_to_block_vector(block_j_);
-                    bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
-                    bm->add_prev_hash_to_prev_hash_vector(block_j_);
-
-                    // Update rocksdb and prepare your_full_hash
-                    intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
-                    ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-
-                    delete mt;
-
-                    limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
-                    if (limit_count == 100) sync.set_break_block_creation_loops(true);
-                }
-            }
-        }
-    }
     // clear these vectors
     copy_ip_hemail_vec.clear();
     copy_intro_msg_vec.clear();
