@@ -55,11 +55,11 @@ namespace Crowd
         void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
     private:
         std::vector<std::string> split(const std::string& str, int splitLength);
-        void do_read_header_server();
-        void do_read_body_server();
+        void do_read_header_server(p2p_message read_msg_server);
+        void do_read_body_server(p2p_message read_msg_server);
         void do_read_header_client();
         void do_read_body_client();
-        void handle_read_server();
+        void handle_read_server(p2p_message read_msg_server);
         void handle_read_client();
         static void set_closed_client(std::string closed)
         {
@@ -112,8 +112,8 @@ namespace Crowd
         ENetPeer  *peer_;
         ENetPacket  *packet_;
 
-        p2p_message read_msg_;
-        p2p_message resp_msg_;
+        p2p_message read_msg_client_;
+        p2p_message resp_msg_client_;
         std::string buf_client_;
         std::string buf_server_;
         Poco::IntroMsgVec intro_msg_vec_;
@@ -141,7 +141,13 @@ namespace Crowd
                     }
                 }
 
-                if (br || connected_to_server_.empty()) break;
+                if (br) break;
+
+                if (connected_to_server_.empty())
+                {
+                    connected_to_server_.push_back(connected_peer);
+                    break;
+                }
 
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }

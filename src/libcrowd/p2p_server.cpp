@@ -9,29 +9,31 @@ using namespace Crowd;
 bool P2pNetwork::quit_server_ = false;
 std::vector<std::string> P2pNetwork::connected_to_server_ = {};
 
-void P2pNetwork::do_read_header_server()
+void P2pNetwork::do_read_header_server(p2p_message read_msg_server)
 {
-    if (read_msg_.decode_header() == true)
+    if (read_msg_server.decode_header() == true)
     {
-        do_read_body_server();
+        do_read_body_server(read_msg_server);
     }
 }
 
-void P2pNetwork::do_read_body_server()
+void P2pNetwork::do_read_body_server(p2p_message read_msg_server)
 {
-    handle_read_server();
+    handle_read_server(read_msg_server);
 }
 
-void P2pNetwork::handle_read_server()
+void P2pNetwork::handle_read_server(p2p_message read_msg_server)
 {
-    if ( !read_msg_.get_eom_flag()) {
-        std::string str_read_msg(read_msg_.body());
-        buf_server_ += str_read_msg.substr(0, read_msg_.get_body_length());
-        
+    Common::Print_or_log pl;
+    if ( !read_msg_server.get_eom_flag()) {
+        std::string str_read_msg(read_msg_server.body());
+        buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
+        pl.handle_print_or_log({"___0000444 buf"});
     } else {
+        pl.handle_print_or_log({"___0000444 eom"});
         // process json message
-        std::string str_read_msg(read_msg_.body());
-        buf_server_ += str_read_msg.substr(0, read_msg_.get_body_length());
+        std::string str_read_msg(read_msg_server.body());
+        buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
         nlohmann::json buf_j = nlohmann::json::parse(buf_server_);
 
         std::string req = buf_j["req"];
@@ -1676,12 +1678,13 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
         char s[p2p_message::max_body_length];
         strncpy(s, splitted[i].c_str(), sizeof(s));
 
-        resp_msg_.body_length(std::strlen(s));
-        std::memcpy(resp_msg_.body(), s, resp_msg_.body_length());
-        i == splitted.size() - 1 ? resp_msg_.encode_header(1) : resp_msg_.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+        p2p_message resp_msg_server;
+        resp_msg_server.body_length(std::strlen(s));
+        std::memcpy(resp_msg_server.body(), s, resp_msg_server.body_length());
+        i == splitted.size() - 1 ? resp_msg_server.encode_header(1) : resp_msg_server.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_ = enet_packet_create(resp_msg_.data(), strlen(resp_msg_.data())+1, ENET_PACKET_FLAG_RELIABLE);
+        packet_ = enet_packet_create(resp_msg_server.data(), strlen(resp_msg_server.data())+1, ENET_PACKET_FLAG_RELIABLE);
         enet_peer_send(event_.peer, 0, packet_);
         enet_host_flush(server_);
     }
@@ -1712,15 +1715,17 @@ int P2pNetwork::p2p_server()
 
     Crowd::P2p p2p;
     std::string connected_peer;
-    std::string connected_peer2;
-    while (1)
+    p2p_message read_msg_server;
+    while (true)
     {
         if (get_quit_server_req() == true) break;
-        
-        while (enet_host_service(server_, &event_, 500) > 0)
+
+        int er = enet_host_service(server_, &event_, 0);
+        while (er > 0)
         {
             if (get_quit_server_req() == true) break;
 
+            // process event
             switch (event_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
@@ -1738,8 +1743,9 @@ for (auto& el: get_connected_to_server())
                     break;
 
                 case ENET_EVENT_TYPE_RECEIVE:
-                    sprintf(read_msg_.data(), "%s", (char*) event_.packet->data);
-                    do_read_header_server();
+pl.handle_print_or_log({"___0009878 receive"});
+                    sprintf(read_msg_server.data(), "%s", (char*) event_.packet->data);
+                    do_read_header_server(read_msg_server);
                     enet_packet_destroy(event_.packet);
 
                     break;
@@ -1747,6 +1753,7 @@ for (auto& el: get_connected_to_server())
                 case ENET_EVENT_TYPE_DISCONNECT:
                     // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
                     // Solution is to halt the slowest p2p_client
+                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer);
                     remove_from_connected_to_server(connected_peer);
 
 pl.handle_print_or_log({"___0009877 connect out", connected_peer});
@@ -1765,6 +1772,7 @@ for (auto& el: get_connected_to_server())
                     break;
             }
 
+            er = enet_host_check_events(server_, &event_);
         }
     }
 
