@@ -37,6 +37,7 @@ namespace Crowd
     public:
         int p2p_server();
         int p2p_client(std::string ip_s, std::string message);
+        int p2p_client_impl(std::string ip_s, std::string message);
         static std::string get_closed_client()
         {
             return closed_client_;
@@ -57,10 +58,10 @@ namespace Crowd
         std::vector<std::string> split(const std::string& str, int splitLength);
         void do_read_header_server(p2p_message read_msg_server);
         void do_read_body_server(p2p_message read_msg_server);
-        void do_read_header_client();
-        void do_read_body_client();
+        void do_read_header_client(p2p_message read_msg_client);
+        void do_read_body_client(p2p_message read_msg_client);
         void handle_read_server(p2p_message read_msg_server);
-        void handle_read_client();
+        void handle_read_client(p2p_message read_msg_client);
         static void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
@@ -107,13 +108,14 @@ namespace Crowd
         char buffer_[p2p_message::max_body_length];
 
         ENetHost  *client_;
-        ENetAddress  address_;
-        ENetEvent  event_;
-        ENetPeer  *peer_;
-        ENetPacket  *packet_;
+        ENetAddress  address_client_;
+        ENetAddress  address_server_;
+        ENetEvent  event_client_;
+        ENetEvent  event_server_;
+        ENetPeer  *peer_client_;
+        ENetPacket  *packet_client_;
+        ENetPacket  *packet_server_;
 
-        p2p_message read_msg_client_;
-        p2p_message resp_msg_client_;
         std::string buf_client_;
         std::string buf_server_;
         Poco::IntroMsgVec intro_msg_vec_;

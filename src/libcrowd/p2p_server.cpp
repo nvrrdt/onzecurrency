@@ -28,13 +28,13 @@ void P2pNetwork::handle_read_server(p2p_message read_msg_server)
     if ( !read_msg_server.get_eom_flag()) {
         std::string str_read_msg(read_msg_server.body());
         buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
-        pl.handle_print_or_log({"___0000444 buf"});
+pl.handle_print_or_log({"___0000444 buf", str_read_msg});
     } else {
-        pl.handle_print_or_log({"___0000444 eom"});
         // process json message
         std::string str_read_msg(read_msg_server.body());
         buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
         nlohmann::json buf_j = nlohmann::json::parse(buf_server_);
+pl.handle_print_or_log({"___0000444 eom", str_read_msg});
 
         std::string req = buf_j["req"];
         std::map<std::string, int> req_conversion;
@@ -120,7 +120,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
 {
     P2p p2p;
     std::string peer_ip_quad;
-    p2p.number_to_ip_string(event_.peer->address.host, peer_ip_quad);
+    p2p.number_to_ip_string(event_server_.peer->address.host, peer_ip_quad);
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Intro_peer req recv", peer_ip_quad});
 
@@ -233,7 +233,7 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             message_j["full_hash_co"] = my_full_hash;
             message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
             message_j["rsa_pub_key"] = rsa_pub_key;
-            message_j["ip"] = event_.peer->address.host;
+            message_j["ip"] = event_server_.peer->address.host;
 
             to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
             to_sign_j["rsa_pub_key"] = rsa_pub_key;
@@ -248,7 +248,6 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             }
 
             Poco::BlockMatrix bm;
-            std::string key, val;
             for (int i = 1; i <= parts.size(); i++)
             {
 pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
@@ -257,8 +256,8 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 
                 for (auto& element: bm.get_new_users())
                 {
-pl.handle_print_or_log({"___00 after i:", val, element});
-                    if (val == element)
+pl.handle_print_or_log({"___00 after i:", parts[i], element});
+                    if (parts[i] == element)
                     {
                         continue;
                     }
@@ -806,9 +805,9 @@ pl.handle_print_or_log({"block:", recv_block_s});
             std::string key_s = val_j["full_hash"];
             std::string value_s = val_j.dump();
 
-            Rocksy* rocksy = new Rocksy("usersdb");
-            rocksy->Put(key_s, value_s);
-            delete rocksy;
+            Rocksy* rocksy2 = new Rocksy("usersdb");
+            rocksy2->Put(key_s, value_s);
+            delete rocksy2;
         }
 
 Crowd::Protocol proto;
@@ -860,10 +859,10 @@ pl.handle_print_or_log({"___000_"});
 
                 std::string c_one = chosen_ones[i];
 pl.handle_print_or_log({"___00 c_one", c_one});
-                Rocksy* rocksy = new Rocksy("usersdbreadonly");
-                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
+                Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
+                nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(c_one));
 //pl.handle_print_or_log({"___01 value_j", value_j.dump()});
-                delete rocksy;
+                delete rocksy3;
 
                 enet_uint32 ip = value_j["ip"];
                 std::string peer_ip;
@@ -964,13 +963,13 @@ pl.handle_print_or_log({"___08 introblock chosen_ones", val});
             }
 
 pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
-            Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+            Crowd::Rocksy* rocksy4 = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(val));
             uint32_t peer_ip = value_j["ip"];
 
-            delete rocksy;
+            delete rocksy4;
             
             std::string message = message_j.dump();
 
@@ -1087,9 +1086,9 @@ for (auto &[k1, v1] : partsx)
             if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
             std::string c_one = chosen_ones[i];
-            Rocksy* rocksy = new Rocksy("usersdbreadonly");
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
-            delete rocksy;
+            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(c_one));
+            delete rocksy2;
 
             enet_uint32 ip = value_j["ip"];
             std::string peer_ip;
@@ -1188,13 +1187,13 @@ pl.handle_print_or_log({"___08 newblock chosen_ones", val});
         }
         
 pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
-        Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+        Crowd::Rocksy* rocksy3 = new Crowd::Rocksy("usersdbreadonly");
 
         // lookup in rocksdb
-        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+        nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val));
         uint32_t peer_ip = value_j["ip"];
 
-        delete rocksy;
+        delete rocksy3;
         
         std::string message = message_j.dump();
 
@@ -1673,19 +1672,19 @@ pl.handle_print_or_log({"__05_s"});
 void P2pNetwork::set_resp_msg_server(std::string msg)
 {
     std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+    p2p_message resp_msg_server;
     for (int i = 0; i < splitted.size(); i++)
     {
         char s[p2p_message::max_body_length];
         strncpy(s, splitted[i].c_str(), sizeof(s));
 
-        p2p_message resp_msg_server;
         resp_msg_server.body_length(std::strlen(s));
         std::memcpy(resp_msg_server.body(), s, resp_msg_server.body_length());
         i == splitted.size() - 1 ? resp_msg_server.encode_header(1) : resp_msg_server.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
         // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_ = enet_packet_create(resp_msg_server.data(), strlen(resp_msg_server.data())+1, ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(event_.peer, 0, packet_);
+        packet_server_ = enet_packet_create(resp_msg_server.data(), strlen(resp_msg_server.data())+1, ENET_PACKET_FLAG_RELIABLE);
+        enet_peer_send(event_server_.peer, 0, packet_server_);
         enet_host_flush(server_);
     }
 }
@@ -1702,10 +1701,10 @@ int P2pNetwork::p2p_server()
         return 0;
     }
 
-    address_.host = ENET_HOST_ANY;
-    address_.port = PORT;
+    address_server_.host = ENET_HOST_ANY;
+    address_server_.port = PORT;
 
-    server_ = enet_host_create(&address_, 210, 2, 0, 0);
+    server_ = enet_host_create(&address_server_, 210, 2, 0, 0);
 
     if (server_ == NULL)
     {
@@ -1720,18 +1719,18 @@ int P2pNetwork::p2p_server()
     {
         if (get_quit_server_req() == true) break;
 
-        int er = enet_host_service(server_, &event_, 0);
+        int er = enet_host_service(server_, &event_server_, 50);
         while (er > 0)
         {
             if (get_quit_server_req() == true) break;
 
             // process event
-            switch (event_.type)
+            switch (event_server_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
                     // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
                     // Solution is to halt the slowest p2p_client
-                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer);
+                    p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
                     add_to_connected_to_server(connected_peer);
 
 pl.handle_print_or_log({"___0009876 connect in", connected_peer});
@@ -1744,16 +1743,16 @@ for (auto& el: get_connected_to_server())
 
                 case ENET_EVENT_TYPE_RECEIVE:
 pl.handle_print_or_log({"___0009878 receive"});
-                    sprintf(read_msg_server.data(), "%s", (char*) event_.packet->data);
+                    sprintf(read_msg_server.data(), "%s", (char*) event_server_.packet->data);
                     do_read_header_server(read_msg_server);
-                    enet_packet_destroy(event_.packet);
+                    enet_packet_destroy(event_server_.packet);
 
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
                     // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
                     // Solution is to halt the slowest p2p_client
-                    p2p.number_to_ip_string(event_.peer->address.host, connected_peer);
+                    p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
                     remove_from_connected_to_server(connected_peer);
 
 pl.handle_print_or_log({"___0009877 connect out", connected_peer});
@@ -1763,8 +1762,8 @@ for (auto& el: get_connected_to_server())
 }
 
                     pl.handle_print_or_log({"Peer has disconnected."});
-                    free(event_.peer->data);
-                    event_.peer->data = NULL;
+                    free(event_server_.peer->data);
+                    event_server_.peer->data = NULL;
                     break;
 
                 default:
@@ -1772,7 +1771,7 @@ for (auto& el: get_connected_to_server())
                     break;
             }
 
-            er = enet_host_check_events(server_, &event_);
+            er = enet_host_check_events(server_, &event_server_);
         }
     }
 
