@@ -272,7 +272,7 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            
+
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -288,6 +288,14 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
+
+            for (;;)
+            {
+                if (pn.is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
@@ -318,29 +326,6 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
-    bool is_part = false;
-    BlockMatrix bm;
-    for (;;)
-    {
-        // it breaks when the new users (from a new block) are yet part of all the users
-        for (auto& element: bm.get_new_users())
-        {
-            if (co_from_this_block == element)
-            {
-                is_part = true;
-            }
-        }
-
-        if (is_part)
-        {
-            co_from_this_block = rocksy->FindNextPeer(co_from_this_block);
-            is_part = false;
-        }
-        else
-        {
-            break;
-        }
-    }
     delete rocksy;
 
     nlohmann::json message_j;
@@ -395,7 +380,7 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             if (key == 1) continue;
             //if (val == co_from_this_block) continue; // = coordinator
             //if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            
+
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -413,6 +398,14 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             pl.handle_print_or_log({"Preparation for intro_final_block:", ip_from_peer});
             pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
             delete rocksy; //
+
+            for (;;)
+            {
+                if (pn.is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);

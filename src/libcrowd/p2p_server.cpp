@@ -254,14 +254,14 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
                 
-                for (auto& element: bm.get_new_users())
-                {
-pl.handle_print_or_log({"___00 after i:", parts[i], element});
-                    if (parts[i] == element)
-                    {
-                        continue;
-                    }
-                }
+//                 for (auto& element: bm.get_new_users())
+//                 {
+// pl.handle_print_or_log({"___00 after i:", parts[i], element});
+//                     if (parts[i] == element)
+//                     {
+//                         continue;
+//                     }
+//                 }
 
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
@@ -309,13 +309,13 @@ pl.handle_print_or_log({"___00 after i:", parts[i], element});
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                         if (parts_underlying[i] == my_full_hash) continue;
 
-                        for (auto& element: bm.get_new_users())
-                        {
-                            if (val == element)
-                            {
-                                continue;
-                            }
-                        }
+                        // for (auto& element: bm.get_new_users())
+                        // {
+                        //     if (val == element)
+                        //     {
+                        //         continue;
+                        //     }
+                        // }
 
 // pl.handle_print_or_log({"i2: ", i, " parts_underlying: ", parts_underlying[i], ", my_full_hash: ", my_full_hash});
                         // lookup in rocksdb
@@ -326,6 +326,15 @@ pl.handle_print_or_log({"___00 after i:", parts[i], element});
                         p2p.number_to_ip_string(ip, peer_ip_underlying);
 
                         pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", peer_ip_underlying});
+
+                        for (;;)
+                        {
+                            if (is_connected_to_server(peer_ip_underlying) == false)
+                            {
+                                break;
+                            }
+                        }
+
                         // message to non-connected peers
                         std::string message = message_j.dump();
                         p2p_client(peer_ip_underlying, message);
@@ -336,6 +345,14 @@ pl.handle_print_or_log({"___00 after i:", parts[i], element});
                 // inform the other peer's in the same layer (as coordinator)
                 pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
                 
+                for (;;)
+                {
+                    if (is_connected_to_server(peer_ip) == false)
+                    {
+                        break;
+                    }
+                }
+
                 std::string message = message_j.dump();
                 p2p_client(peer_ip, message);
             }
@@ -552,13 +569,13 @@ pl.handle_print_or_log({"___08 introprel chosen_ones", val});
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-            for (auto& element: bm->get_new_users())
-            {
-                if (val == element)
-                {
-                    continue;
-                }
-            }
+            // for (auto& element: bm->get_new_users())
+            // {
+            //     if (val == element)
+            //     {
+            //         continue;
+            //     }
+            // }
 
 pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
@@ -576,6 +593,14 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
+
+            for (;;)
+            {
+                if (pn.is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
@@ -718,13 +743,13 @@ pl.handle_print_or_log({"___08 newprel chosen_ones", val});
             if (val == full_hash_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-            for (auto& element: bm->get_new_users())
-            {
-                if (val == element)
-                {
-                    continue;
-                }
-            }
+            // for (auto& element: bm->get_new_users())
+            // {
+            //     if (val == element)
+            //     {
+            //         continue;
+            //     }
+            // }
             
 pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
@@ -742,6 +767,14 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             pl.handle_print_or_log({"Preparation for secondary new_prel_block: ", ip_from_peer});
+
+            for (;;)
+            {
+                if (pn.is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(ip_from_peer, message);
@@ -954,13 +987,13 @@ pl.handle_print_or_log({"___08 introblock chosen_ones", val});
             if (val == full_hash_coord_from_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-            for (auto& element: bm.get_new_users())
-            {
-                if (val == element)
-                {
-                    continue;
-                }
-            }
+            // for (auto& element: bm.get_new_users())
+            // {
+            //     if (val == element)
+            //     {
+            //         continue;
+            //     }
+            // }
 
 pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             Crowd::Rocksy* rocksy4 = new Crowd::Rocksy("usersdbreadonly");
@@ -978,6 +1011,14 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
+
+            for (;;)
+            {
+                if (is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message);
@@ -1178,13 +1219,13 @@ pl.handle_print_or_log({"___08 newblock chosen_ones", val});
         if (val == full_hash_coord_from_coord) continue;
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-        for (auto& element: bm.get_new_users())
-        {
-            if (val == element)
-            {
-                continue;
-            }
-        }
+        // for (auto& element: bm.get_new_users())
+        // {
+        //     if (val == element)
+        //     {
+        //         continue;
+        //     }
+        // }
         
 pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         Crowd::Rocksy* rocksy3 = new Crowd::Rocksy("usersdbreadonly");
@@ -1202,6 +1243,14 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
         pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
+
+        for (;;)
+        {
+            if (pn.is_connected_to_server(ip_from_peer) == false)
+            {
+                break;
+            }
+        }
 
         // p2p_client() to all chosen ones with intro_peer request
         pn.p2p_client(ip_from_peer, message);
@@ -1332,13 +1381,13 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
             
-            for (auto& element: bm.get_new_users())
-            {
-                if (val == element)
-                {
-                    continue;
-                }
-            }
+            // for (auto& element: bm.get_new_users())
+            // {
+            //     if (val == element)
+            //     {
+            //         continue;
+            //     }
+            // }
             
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1349,6 +1398,14 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
             pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
+
+            for (;;)
+            {
+                if (is_connected_to_server(ip_from_peer) == false)
+                {
+                    break;
+                }
+            }
 
             // p2p_client() to all chosen ones with intro_peer request
             p2p_client(ip_from_peer, message_s);
@@ -1499,13 +1556,13 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
         
-        for (auto& element: bm.get_new_users())
-        {
-            if (val == element)
-            {
-                continue;
-            }
-        }
+        // for (auto& element: bm.get_new_users())
+        // {
+        //     if (val == element)
+        //     {
+        //         continue;
+        //     }
+        // }
 
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1518,6 +1575,14 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
         pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
+
+        for (;;)
+        {
+            if (is_connected_to_server(ip_from_peer) == false)
+            {
+                break;
+            }
+        }
 
         // p2p_client() to all chosen ones with intro_peer request
         p2p_client(ip_from_peer, message_s);
@@ -1719,8 +1784,9 @@ int P2pNetwork::p2p_server()
     {
         if (get_quit_server_req() == true) break;
 
-        int er = enet_host_service(server_, &event_server_, 50);
+        int er = enet_host_service(server_, &event_server_, 1000);
         while (er > 0)
+        //while (enet_host_service(server_, &event_server_, 50) > 0)
         {
             if (get_quit_server_req() == true) break;
 
@@ -1728,21 +1794,19 @@ int P2pNetwork::p2p_server()
             switch (event_server_.type)
             {
                 case ENET_EVENT_TYPE_CONNECT:
-                    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
-                    // Solution is to halt the slowest p2p_client
                     p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
                     add_to_connected_to_server(connected_peer);
+                    pl.handle_print_or_log({"Incoming peer.", connected_peer});
 
-pl.handle_print_or_log({"___0009876 connect in", connected_peer});
 for (auto& el: get_connected_to_server())
 {
-    pl.handle_print_or_log({"___0009876 connect all", el});
+    pl.handle_print_or_log({"___0009876 peers all", el});
 }
 
                     break;
 
                 case ENET_EVENT_TYPE_RECEIVE:
-pl.handle_print_or_log({"___0009878 receive"});
+pl.handle_print_or_log({"___0009876 receive"});
                     sprintf(read_msg_server.data(), "%s", (char*) event_server_.packet->data);
                     do_read_header_server(read_msg_server);
                     enet_packet_destroy(event_server_.packet);
@@ -1750,20 +1814,18 @@ pl.handle_print_or_log({"___0009878 receive"});
                     break;
 
                 case ENET_EVENT_TYPE_DISCONNECT:
-                    // Sometimes the server stops when 2 peers are simultaneously trying to conenect to each other
-                    // Solution is to halt the slowest p2p_client
                     p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
                     remove_from_connected_to_server(connected_peer);
+                    pl.handle_print_or_log({"Peer has disconnected.", connected_peer});
 
-pl.handle_print_or_log({"___0009877 connect out", connected_peer});
 for (auto& el: get_connected_to_server())
 {
-    pl.handle_print_or_log({"___0009877 connect all", el});
+    pl.handle_print_or_log({"___0009877 peers all", el});
 }
 
-                    pl.handle_print_or_log({"Peer has disconnected."});
                     free(event_server_.peer->data);
                     event_server_.peer->data = NULL;
+
                     break;
 
                 default:
@@ -1773,6 +1835,8 @@ for (auto& el: get_connected_to_server())
 
             er = enet_host_check_events(server_, &event_server_);
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
     enet_host_destroy(server_);

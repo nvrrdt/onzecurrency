@@ -244,7 +244,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 Poco::Synchronisation* sync = new Poco::Synchronisation();
                 sync->get_sleep_and_create_block();
             }
-            
+
             return true;
         }
         else

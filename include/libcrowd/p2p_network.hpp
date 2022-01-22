@@ -26,6 +26,7 @@
 #include "all_hashes_mat.hpp"
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
+#include "print_or_log.hpp"
 
 // This is the port for the p2p_server and p2p_client
 #define PORT (1975)
@@ -50,6 +51,28 @@ namespace Crowd
         {
             quit_server_ = quit;
         }
+        static bool is_connected_to_server(std::string ip_s)
+        {
+            for (int i = 0; i < connected_to_server_.size(); i++)
+            {
+Common::Print_or_log pl;
+pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)});
+                if (ip_s == connected_to_server_.at(i))
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+
+                    return true;
+                }
+
+                if (i = connected_to_server_.size() - 1) return false;
+            }
+
+            return false;
+        }
+        // static void set_start_crowd(bool is_start_crowd)
+        // {
+        //     is_start_crowd_ = is_start_crowd;
+        // }
     protected:
         void set_resp_msg_server(std::string msg);
         void set_resp_msg_client(std::string msg);
@@ -128,31 +151,7 @@ namespace Crowd
     private:
         static void add_to_connected_to_server(std::string connected_peer)
         {
-            bool br = false;
-
-            for (;;)
-            {
-                for (int i = 0; i < connected_to_server_.size(); i++)
-                {
-                    if (connected_peer == connected_to_server_.at(i)) break;
-
-                    if (i == connected_to_server_.size() - 1)
-                    {
-                        connected_to_server_.push_back(connected_peer);
-                        br = true;
-                    }
-                }
-
-                if (br) break;
-
-                if (connected_to_server_.empty())
-                {
-                    connected_to_server_.push_back(connected_peer);
-                    break;
-                }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
+            connected_to_server_.push_back(connected_peer);
         }
 
         static void remove_from_connected_to_server(std::string connected_peer)
@@ -186,10 +185,9 @@ namespace Crowd
             return client_calls_;
         }
 
-        bool is_connected_to_server(std::string ip_s);
-        bool has_connected_client(std::string ip_s);
-
         static std::vector<std::string> connected_to_server_;
         static std::vector<std::string> client_calls_;
+
+        static std::mutex mtx_;
     };
 }
