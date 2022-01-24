@@ -69,10 +69,15 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
 
             return false;
         }
-        // static void set_start_crowd(bool is_start_crowd)
-        // {
-        //     is_start_crowd_ = is_start_crowd;
-        // }
+
+        static void add_to_p2p_clients_from_other_thread(std::string ip, std::string message)
+        {
+            std::pair<std::string, std::string> p;
+            p.first = ip;
+            p.second = message;
+
+            p2p_clients_from_other_thread_.push_back(p);
+        }
     protected:
         void set_resp_msg_server(std::string msg);
         void set_resp_msg_client(std::string msg);
@@ -185,8 +190,21 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
             return client_calls_;
         }
 
+        static void do_p2p_clients_from_other_thread()
+        {
+            P2pNetwork pn;
+
+            for (auto& el: p2p_clients_from_other_thread_)
+            {
+                pn.p2p_client(el.first, el.second);
+            }
+
+            p2p_clients_from_other_thread_.clear();
+        }
+
         static std::vector<std::string> connected_to_server_;
         static std::vector<std::string> client_calls_;
+        static std::vector<std::pair<std::string, std::string>> p2p_clients_from_other_thread_;
 
         static std::mutex mtx_;
     };

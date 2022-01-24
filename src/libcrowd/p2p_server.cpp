@@ -8,6 +8,7 @@ using namespace Crowd;
 
 bool P2pNetwork::quit_server_ = false;
 std::vector<std::string> P2pNetwork::connected_to_server_ = {};
+std::vector<std::pair<std::string, std::string>> P2pNetwork::p2p_clients_from_other_thread_ = {};
 
 void P2pNetwork::do_read_header_server(p2p_message read_msg_server)
 {
@@ -1784,7 +1785,7 @@ int P2pNetwork::p2p_server()
     {
         if (get_quit_server_req() == true) break;
 
-        int er = enet_host_service(server_, &event_server_, 1000);
+        int er = enet_host_service(server_, &event_server_, 50);
         while (er > 0)
         //while (enet_host_service(server_, &event_server_, 50) > 0)
         {
@@ -1833,10 +1834,11 @@ for (auto& el: get_connected_to_server())
                     break;
             }
 
+            // in another the p2p_client calls stall when testing
+            do_p2p_clients_from_other_thread();
+
             er = enet_host_check_events(server_, &event_server_);
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
     enet_host_destroy(server_);

@@ -298,7 +298,7 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             }
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
         }
 
         // Should also fill the sent block vector
@@ -408,7 +408,7 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             }
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
 
             pl.handle_print_or_log({"____000000_0_2"});
         }
