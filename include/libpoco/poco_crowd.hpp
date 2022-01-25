@@ -28,6 +28,11 @@ namespace Poco
         void reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_j);
         void inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j);
         void send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr);
+
+        static std::vector<std::string> get_new_users_ip()
+        {
+            return new_users_ip_;
+        }
     private:
         void inform_chosen_ones_prel_block(std::string my_next_block, nlohmann::json block_j);
     private:
@@ -38,5 +43,28 @@ namespace Poco
         IntroMsgsMat intro_msg_s_mat_;
         IpHEmail ip_hemail_vec_;
         IpAllHashes ip_all_hashes_;
+
+        static void add_to_new_users_ip(std::string ip)
+        {
+            for (int i = 0; i < new_users_ip_.size(); i++)
+            {
+                if (new_users_ip_[i] == ip)
+                {
+                    break;
+                }
+                
+                if (i == new_users_ip_.size() - 1)
+                {
+                    new_users_ip_.push_back(ip);
+                }
+            }
+        }
+
+        static void clear_new_users_ip()
+        {
+            new_users_ip_.clear();
+        }
+
+        static std::vector<std::string> new_users_ip_;
     };
 }

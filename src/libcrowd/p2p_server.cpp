@@ -254,15 +254,6 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
 pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
-                
-//                 for (auto& element: bm.get_new_users())
-//                 {
-// pl.handle_print_or_log({"___00 after i:", parts[i], element});
-//                     if (parts[i] == element)
-//                     {
-//                         continue;
-//                     }
-//                 }
 
                 Rocksy* rocksy = new Rocksy("usersdbreadonly");
 
@@ -310,14 +301,6 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                         if (parts_underlying[i] == my_full_hash) continue;
 
-                        // for (auto& element: bm.get_new_users())
-                        // {
-                        //     if (val == element)
-                        //     {
-                        //         continue;
-                        //     }
-                        // }
-
 // pl.handle_print_or_log({"i2: ", i, " parts_underlying: ", parts_underlying[i], ", my_full_hash: ", my_full_hash});
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
@@ -328,17 +311,26 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
 
                         pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", peer_ip_underlying});
 
+                        Poco::PocoCrowd pc;
+                        for (auto& el: pc.get_new_users_ip())
+                        {
+                            if (el == peer_ip_underlying)
+                            {
+                                continue;
+                            }
+                        }
+
                         for (;;)
                         {
                             if (is_connected_to_server(peer_ip_underlying) == false)
                             {
+                                // message to non-connected peers
+                                std::string message = message_j.dump();
+                                p2p_client(peer_ip_underlying, message);
+                                
                                 break;
                             }
                         }
-
-                        // message to non-connected peers
-                        std::string message = message_j.dump();
-                        p2p_client(peer_ip_underlying, message);
                     }
                     delete rocksy;
                 }
@@ -346,16 +338,25 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 // inform the other peer's in the same layer (as coordinator)
                 pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
                 
+                Poco::PocoCrowd pc;
+                for (auto& el: pc.get_new_users_ip())
+                {
+                    if (el == peer_ip)
+                    {
+                        continue;
+                    }
+                }
+                
                 for (;;)
                 {
                     if (is_connected_to_server(peer_ip) == false)
                     {
+                        std::string message = message_j.dump();
+                        p2p_client(peer_ip, message);
+
                         break;
                     }
                 }
-
-                std::string message = message_j.dump();
-                p2p_client(peer_ip, message);
             }
 
             // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
@@ -570,14 +571,6 @@ pl.handle_print_or_log({"___08 introprel chosen_ones", val});
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-            // for (auto& element: bm->get_new_users())
-            // {
-            //     if (val == element)
-            //     {
-            //         continue;
-            //     }
-            // }
-
 pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -595,16 +588,25 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
 
             pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
 
+            Poco::PocoCrowd pc;
+            for (auto& el: pc.get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
+
             for (;;)
             {
                 if (pn.is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    pn.p2p_client(ip_from_peer, message);
+
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
         }
 
         delete bm;
@@ -743,14 +745,6 @@ pl.handle_print_or_log({"___08 newprel chosen_ones", val});
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-
-            // for (auto& element: bm->get_new_users())
-            // {
-            //     if (val == element)
-            //     {
-            //         continue;
-            //     }
-            // }
             
 pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
@@ -767,18 +761,27 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             Crowd::P2p p2p;
             p2p.number_to_ip_string(peer_ip, ip_from_peer);
 
-            pl.handle_print_or_log({"Preparation for secondary new_prel_block: ", ip_from_peer});
+            pl.handle_print_or_log({"Prepaation for secondary new_prel_block: ", ip_from_peer});
+
+            Poco::PocoCrowd pc;
+            for (auto& el: pc.get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
 
             for (;;)
             {
                 if (pn.is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    pn.p2p_client(ip_from_peer, message);
+                    
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
         }
 
         delete bm;
@@ -988,14 +991,6 @@ pl.handle_print_or_log({"___08 introblock chosen_ones", val});
             if (val == full_hash_coord_from_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-            // for (auto& element: bm.get_new_users())
-            // {
-            //     if (val == element)
-            //     {
-            //         continue;
-            //     }
-            // }
-
 pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             Crowd::Rocksy* rocksy4 = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1013,16 +1008,25 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
 
             pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
+            Poco::PocoCrowd pc;
+            for (auto& el: pc.get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
+
             for (;;)
             {
                 if (is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    p2p_client(ip_from_peer, message);
+
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            p2p_client(ip_from_peer, message);
         }
 pl.handle_print_or_log({"___10"});
     }
@@ -1220,14 +1224,6 @@ pl.handle_print_or_log({"___08 newblock chosen_ones", val});
         if (val == full_hash_coord_from_coord) continue;
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-        // for (auto& element: bm.get_new_users())
-        // {
-        //     if (val == element)
-        //     {
-        //         continue;
-        //     }
-        // }
-        
 pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         Crowd::Rocksy* rocksy3 = new Crowd::Rocksy("usersdbreadonly");
 
@@ -1245,16 +1241,25 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
 
         pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
+        Poco::PocoCrowd pc;
+        for (auto& el: pc.get_new_users_ip())
+        {
+            if (el == ip_from_peer)
+            {
+                continue;
+            }
+        }
+
         for (;;)
         {
             if (pn.is_connected_to_server(ip_from_peer) == false)
             {
+                // p2p_client() to all chosen ones with intro_peer request
+                pn.p2p_client(ip_from_peer, message);
+
                 break;
             }
         }
-
-        // p2p_client() to all chosen ones with intro_peer request
-        pn.p2p_client(ip_from_peer, message);
     }
 }
 
@@ -1381,15 +1386,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             if (val == full_hash) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-            
-            // for (auto& element: bm.get_new_users())
-            // {
-            //     if (val == element)
-            //     {
-            //         continue;
-            //     }
-            // }
-            
+
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             uint32_t peer_ip = value_j["ip"];
@@ -1400,16 +1397,25 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 
             pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
 
+            Poco::PocoCrowd pc;
+            for (auto& el: pc.get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
+
             for (;;)
             {
                 if (is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    p2p_client(ip_from_peer, message_s);
+                    
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            p2p_client(ip_from_peer, message_s);
         }
 
         // update this rocksdb
@@ -1556,14 +1562,6 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         if (val == full_hash) continue;
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-        
-        // for (auto& element: bm.get_new_users())
-        // {
-        //     if (val == element)
-        //     {
-        //         continue;
-        //     }
-        // }
 
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
@@ -1577,16 +1575,25 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
         pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
 
+        Poco::PocoCrowd pc;
+        for (auto& el: pc.get_new_users_ip())
+        {
+            if (el == ip_from_peer)
+            {
+                continue;
+            }
+        }
+
         for (;;)
         {
             if (is_connected_to_server(ip_from_peer) == false)
             {
+                // p2p_client() to all chosen ones with intro_peer request
+                p2p_client(ip_from_peer, message_s);
+                
                 break;
             }
         }
-
-        // p2p_client() to all chosen ones with intro_peer request
-        p2p_client(ip_from_peer, message_s);
     }
 
     // update this rocksdb

@@ -12,6 +12,8 @@
 using namespace Common;
 using namespace Poco;
 
+std::vector<std::string> Poco::PocoCrowd::new_users_ip_ = {};
+
 void PocoCrowd::create_prel_blocks()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
@@ -52,6 +54,7 @@ void PocoCrowd::create_prel_blocks()
     std::string datetime = sync.get_datetime_now();
 
     bm->clear_new_users();
+    clear_new_users_ip();
 
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
@@ -94,6 +97,9 @@ void PocoCrowd::create_prel_blocks()
                 std::string prel_full_hash_req;
                 std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
 
+                Crowd::P2p p2p;
+                std::string ip_quad;
+
                 for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
                 {
                     pl.handle_print_or_log({"Crowd: 4th for loop with block matrix", std::to_string(l)});
@@ -127,6 +133,11 @@ void PocoCrowd::create_prel_blocks()
                     entry_transactions_j.push_back(entry_tx_j);
                     exit_tx_j["full_hash"] = "";
                     exit_transactions_j.push_back(exit_tx_j);
+
+                    // Sometimes new_prel_block() is received before your_full_hash is received
+                    // and then it doesn't work
+                    p2p.number_to_ip_string((*ip_hemail).first, ip_quad);
+                    add_to_new_users_ip(ip_quad);
                 }
 
                 s_shptr_ = mt->calculate_root_hash(s_shptr_);
@@ -289,16 +300,24 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 
             pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
 
+            for (auto& el: get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
+
             for (;;)
             {
                 if (pn.is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
+
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
         }
 
         // Should also fill the sent block vector
@@ -399,16 +418,24 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
             delete rocksy; //
 
+            for (auto& el: get_new_users_ip())
+            {
+                if (el == ip_from_peer)
+                {
+                    continue;
+                }
+            }
+
             for (;;)
             {
                 if (pn.is_connected_to_server(ip_from_peer) == false)
                 {
+                    // p2p_client() to all chosen ones with intro_peer request
+                    pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
+                    
                     break;
                 }
             }
-
-            // p2p_client() to all chosen ones with intro_peer request
-            pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
 
             pl.handle_print_or_log({"____000000_0_2"});
         }
