@@ -300,13 +300,16 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 
             pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
 
+            bool cont = false;
             for (auto& el: get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {
@@ -418,13 +421,16 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
             delete rocksy; //
 
+            bool cont = false;
             for (auto& el: get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {

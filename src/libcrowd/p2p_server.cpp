@@ -312,13 +312,16 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                         pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", peer_ip_underlying});
 
                         Poco::PocoCrowd pc;
+                        bool cont = false;
                         for (auto& el: pc.get_new_users_ip())
                         {
                             if (el == peer_ip_underlying)
                             {
-                                continue;
+                                cont = true;
+                                break;
                             }
                         }
+                        if (cont) continue;
 
                         for (;;)
                         {
@@ -339,13 +342,16 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
                 
                 Poco::PocoCrowd pc;
+                bool cont = false;
                 for (auto& el: pc.get_new_users_ip())
                 {
                     if (el == peer_ip)
                     {
-                        continue;
+                        cont = true;
+                        break;
                     }
                 }
+                if (cont) continue;
                 
                 for (;;)
                 {
@@ -589,13 +595,16 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
 
             Poco::PocoCrowd pc;
+            bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {
@@ -764,13 +773,16 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             pl.handle_print_or_log({"Prepaation for secondary new_prel_block: ", ip_from_peer});
 
             Poco::PocoCrowd pc;
+            bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {
@@ -1009,13 +1021,16 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
             Poco::PocoCrowd pc;
+            bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {
@@ -1242,13 +1257,16 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
 
         Poco::PocoCrowd pc;
+        bool cont = false;
         for (auto& el: pc.get_new_users_ip())
         {
             if (el == ip_from_peer)
             {
-                continue;
+                cont = true;
+                break;
             }
         }
+        if (cont) continue;
 
         for (;;)
         {
@@ -1398,13 +1416,16 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
             pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
 
             Poco::PocoCrowd pc;
+            bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
                 if (el == ip_from_peer)
                 {
-                    continue;
+                    cont = true;
+                    break;
                 }
             }
+            if (cont) continue;
 
             for (;;)
             {
@@ -1576,13 +1597,16 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
 
         Poco::PocoCrowd pc;
+        bool cont = false;
         for (auto& el: pc.get_new_users_ip())
         {
             if (el == ip_from_peer)
             {
-                continue;
+                cont = true;
+                break;
             }
         }
+        if (cont) continue;
 
         for (;;)
         {
@@ -1841,11 +1865,11 @@ for (auto& el: get_connected_to_server())
                     break;
             }
 
-            // in another the p2p_client calls stall when testing
-            do_p2p_clients_from_other_thread();
-
             er = enet_host_check_events(server_, &event_server_);
         }
+
+        // in another the p2p_client calls stall when testing
+        do_p2p_clients_from_other_thread();
     }
 
     enet_host_destroy(server_);
