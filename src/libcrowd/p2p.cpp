@@ -91,13 +91,11 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             // end test
 
             std::string ip_mother_peer = "212.47.231.236"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
-            uint32_t ip_mother_peer_number;
-            ip_string_to_number(ip_mother_peer.c_str(), ip_mother_peer_number);
 
-            message_j["ip"] = ip_mother_peer_number;
+            message_j["ip"] = ip_mother_peer;
 
             rocksdb_j["version"] = "O.1";
-            rocksdb_j["ip"] = ip_mother_peer_number;
+            rocksdb_j["ip"] = ip_mother_peer;
             rocksdb_j["online"] = true;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
@@ -175,7 +173,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                     imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
                     imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
                     Poco::IpHEmail ihe;
-                    ihe.add_ip_hemail_to_ip_hemail_vec(ip_mother_peer_number, hash_email); // TODO you have to reset this
+                    ihe.add_ip_hemail_to_ip_hemail_vec(ip_mother_peer, hash_email); // TODO you have to reset this
                     Poco::IpAllHashes iah;
                     iah.add_ip_hemail_to_ip_all_hashes_vec(ihe.get_all_ip_hemail_vec().at(0));
                     iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
@@ -216,17 +214,14 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 }
                 else if (pn.get_closed_client() == "new_co")
                 {
-                    uint32_t ip_new_co = pn.get_ip_new_co();
-                    P2p p2p;
-                    std::string ip_new_co_s;
-                    p2p.number_to_ip_string(ip_new_co, ip_new_co_s);
+                    std::string ip_new_co = pn.get_ip_new_co();
 
                     message_j["ip"] = ip_new_co;
                     rocksdb_j["ip"] = ip_new_co;
                     message_j["rocksdb"] = rocksdb_j;
                     message = message_j.dump();
 
-                    ip_mother_peer = ip_new_co_s;
+                    ip_mother_peer = ip_new_co;
 
                     pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
                 }
@@ -289,10 +284,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 std::string full_hash_peer = rocksy->FindNextPeer(my_full_hash);
                 nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_peer));
                 
-                uint32_t ip = contents_j["ip"];
-                std::string ip_next_peer;
-                P2p p2p;
-                p2p.number_to_ip_string(ip, ip_next_peer);
+                std::string ip = contents_j["ip"];
 
                 nlohmann::json message_j, to_sign_j;
                 message_j["req"] = "intro_online";
@@ -320,9 +312,9 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                     message_j["signature"] = crypto.base64_encode(signature);
                 }
                 std::string message_s = message_j.dump();
-pl.handle_print_or_log({"intro online message sent to", ip_next_peer});
+pl.handle_print_or_log({"intro online message sent to", ip});
                 P2pNetwork pn;
-                if (pn.p2p_client(ip_next_peer, message_s) == 0)
+                if (pn.p2p_client(ip, message_s) == 0)
                 {
                     my_full_hash = full_hash_peer;
                     continue;

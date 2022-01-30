@@ -55,10 +55,7 @@ void P2pNetworkC::start_coin()
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_coordinator));
             delete rocksy;
             
-            uint32_t ip = contents_j["ip"];
-            std::string ip_s;
-            P2p p2p;
-            p2p.number_to_ip_string(ip, ip_s);
+            std::string ip = contents_j["ip"];
             
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "hello_tx";
@@ -83,7 +80,8 @@ void P2pNetworkC::start_coin()
 
             std::string message_s = message_j.dump();
 
-            p2p_client(ip_s, message_s);
+            P2pNetwork pn;
+            pn.p2p_client(ip, message_s);
         }
         else
         {

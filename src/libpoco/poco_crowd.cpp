@@ -57,7 +57,7 @@ void PocoCrowd::create_prel_blocks()
     clear_new_users_ip();
 
     // create copies of these vectors and reset the original
-    std::vector<std::shared_ptr<std::pair<enet_uint32, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
+    std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
     std::vector<std::shared_ptr<nlohmann::json>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_vec_.reset_intro_msg_vec();
@@ -107,7 +107,7 @@ void PocoCrowd::create_prel_blocks()
                     imv_j = *copy_intro_msg_vec.at(l);
 
                     // link an ip to a user
-                    std::shared_ptr<std::pair<enet_uint32, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
+                    std::shared_ptr<std::pair<std::string, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
                     ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                     // create prel full hash
@@ -136,8 +136,7 @@ void PocoCrowd::create_prel_blocks()
 
                     // Sometimes new_prel_block() is received before your_full_hash is received
                     // and then it doesn't work
-                    p2p.number_to_ip_string((*ip_hemail).first, ip_quad);
-                    add_to_new_users_ip(ip_quad);
+                    add_to_new_users_ip((*ip_hemail).first);
                 }
 
                 s_shptr_ = mt->calculate_root_hash(s_shptr_);
@@ -288,22 +287,18 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             delete rocksy;
             
             std::string message = message_j.dump();
 
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Preparation for intro_prel_block:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for intro_prel_block:", peer_ip});
 
             bool cont = false;
             for (auto& el: get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -313,10 +308,10 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
 
             for (;;)
             {
-                if (pn.is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
 
                     break;
                 }
@@ -407,24 +402,20 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             //delete rocksy;
             
             std::string message = message_j.dump();
 
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Preparation for intro_final_block:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for intro_final_block:", peer_ip});
             pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
             delete rocksy; //
 
             bool cont = false;
             for (auto& el: get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -434,10 +425,10 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
 
             for (;;)
             {
-                if (pn.is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.add_to_p2p_clients_from_other_thread(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
                     
                     break;
                 }
@@ -534,14 +525,11 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
 
             std::string msg_s = msg_j.dump();
 
-            std::string peer_ip;
-            Crowd::P2p p2p;
-            std::pair<enet_uint32, std::string> ip_nr = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
-            p2p.number_to_ip_string(ip_nr.first, peer_ip);
+            std::pair<std::string, std::string> ip_quad = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
             
-            pl.handle_print_or_log({"_______key:", std::to_string(i), "ip:", peer_ip, ", value:", std::to_string(ip_nr.first)});
+            pl.handle_print_or_log({"_______key:", std::to_string(i), ", ip:", ip_quad.first});
             Crowd::P2pNetwork pn;
-            pn.p2p_client(peer_ip, msg_s);
+            pn.p2p_client(ip_quad.first, msg_s);
         }
 
         // // for debugging purposes:
@@ -622,11 +610,8 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     delete rocksy;
     
-    uint32_t ip = contents_j["ip"];
-    std::string ip_s;
-    Crowd::P2p p2p;
-    p2p.number_to_ip_string(ip, ip_s);
-
+    std::string ip = contents_j["ip"];
+    
     nlohmann::json message_j, to_sign_j;
     message_j["req"] = "hello_reward";
     message_j["full_hash_req"] = co_from_this_block;
@@ -652,7 +637,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     pl.handle_print_or_log({"Hello_reward request sent"});
 
     Crowd::P2pNetwork pn;
-    pn.p2p_client(ip_s, message_s);
+    pn.p2p_client(ip, message_s);
 }
 
 std::string PocoCrowd::hash_of_block_ = "";

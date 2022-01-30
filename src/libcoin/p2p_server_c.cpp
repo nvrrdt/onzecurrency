@@ -192,21 +192,17 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                    uint32_t peer_ip = value_j["ip"];
+                    std::string peer_ip = value_j["ip"];
 
                     delete rocksy;
                     
                     std::string message = message_j.dump();
 
                     Common::Print_or_log pl;
-                    pl.handle_print_or_log({"Preparation for intro_tx:", std::to_string(peer_ip)});
+                    pl.handle_print_or_log({"Preparation for intro_tx:", peer_ip});
                     
-                    std::string ip_from_peer;
-                    P2p p2p;
-                    p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
                     // p2p_client() to all chosen ones with intro_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
                 }
 
                 // Save the tx here in a static variable
@@ -389,21 +385,17 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                    uint32_t peer_ip = value_j["ip"];
+                    std::string peer_ip = value_j["ip"];
 
                     delete rocksy;
                     
                     std::string message = message_j.dump();
 
                     Common::Print_or_log pl;
-                    pl.handle_print_or_log({"Preparation for new_tx:", std::to_string(peer_ip)});
+                    pl.handle_print_or_log({"Preparation for new_tx:", peer_ip});
                     
-                    std::string ip_from_peer;
-                    P2p p2p;
-                    p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
                     // p2p_client() to all chosen ones with intro_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
                 }
 
                 // Save the tx here in a static variable
@@ -586,21 +578,17 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
 
                     // lookup in rocksdb
                     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                    uint32_t peer_ip = value_j["ip"];
+                    std::string peer_ip = value_j["ip"];
 
                     delete rocksy;
                     
                     std::string message = message_j.dump();
 
                     Common::Print_or_log pl;
-                    pl.handle_print_or_log({"Preparation for new_tx:", std::to_string(peer_ip)});
+                    pl.handle_print_or_log({"Preparation for new_tx:", peer_ip});
                     
-                    std::string ip_from_peer;
-                    P2p p2p;
-                    p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
                     // p2p_client() to all chosen ones with new_tx request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
                 }
 
                 // Save the tx here in a static variable
@@ -732,21 +720,17 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                uint32_t peer_ip = value_j["ip"];
+                std::string peer_ip = value_j["ip"];
 
                 delete rocksy;
                 
                 std::string message = message_j.dump();
 
                 Common::Print_or_log pl;
-                pl.handle_print_or_log({"Preparation for intro_reward:"});
+                pl.handle_print_or_log({"Preparation for intro_reward:", peer_ip});
                 
-                std::string ip_from_peer;
-                P2p p2p;
-                p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(peer_ip, message);
             }
 
             // Save the txs here in a static variable
@@ -910,21 +894,17 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                uint32_t peer_ip = value_j["ip"];
+                std::string peer_ip = value_j["ip"];
 
                 delete rocksy;
                 
                 std::string message = message_j.dump();
 
                 Common::Print_or_log pl;
-                pl.handle_print_or_log({"Preparation for new_reward:", std::to_string(peer_ip)});
+                pl.handle_print_or_log({"Preparation for new_reward:", peer_ip});
                 
-                std::string ip_from_peer;
-                P2p p2p;
-                p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(peer_ip, message);
             }
 
             // Save the txs here in a static variable
@@ -1089,21 +1069,17 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
 
                 // lookup in rocksdb
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                uint32_t peer_ip = value_j["ip"];
+                std::string peer_ip = value_j["ip"];
 
                 delete rocksy;
                 
                 std::string message = message_j.dump();
 
                 Common::Print_or_log pl;
-                pl.handle_print_or_log({"Preparation for new_reward:", std::to_string(peer_ip)});
-                
-                std::string ip_from_peer;
-                P2p p2p;
-                p2p.number_to_ip_string(peer_ip, ip_from_peer);
+                pl.handle_print_or_log({"Preparation for new_reward:", peer_ip});
 
                 // p2p_client() to all chosen ones with intro_reward request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(peer_ip, message);
             }
 
             // Save the txs here in a static variable
@@ -1298,9 +1274,9 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         m_j["req"] = "hash_comparison_c";
         m_j["hash_comp"] = prev_hash_in_block == prev_hash_coordinator;
         std::string msg_s = m_j.dump();
-
-        P2pNetwork::set_resp_msg_server(msg_s);
-
+//TODO
+//P2pNetwork::set_resp_msg_server(msg_s);
+//
         // p2p_client() to all calculated other chosen_ones
         // this is in fact the start of the consensus algorithm
         // you don't need full consensus in order to create a succesful block
@@ -1332,17 +1308,15 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(c_one));
                 delete rocksy;
 
-                enet_uint32 ip = value_j["ip"];
-                std::string peer_ip;
-                P2p p2p;
-                p2p.number_to_ip_string(ip, peer_ip);
-
+                std::string ip = value_j["ip"];
+                
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison_c";
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_coordinator;
                 std::string msg_s = msg_j.dump();
 
-                p2p_client(peer_ip, msg_s);
+                P2pNetwork pn;
+                pn.p2p_client(ip, msg_s);
             }
             else if (i == j)
             {
@@ -1359,7 +1333,9 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
-    set_resp_msg_server(m_j.dump());
+//TODO
+//set_resp_msg_server(m_j.dump());
+//
 }
 
 void P2pNetworkC::hash_comparison_c(nlohmann::json buf_j)

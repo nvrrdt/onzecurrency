@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <enet/enet.h>
 
 #include <iostream>
 #include <sstream>
@@ -11,6 +10,7 @@
 #include <thread>
 #include <stack>
 #include <memory>
+#include <deque>
 
 #include "p2p_message.hpp"
 #include "json.hpp"
@@ -29,7 +29,7 @@
 #include "print_or_log.hpp"
 
 // This is the port for the p2p_server and p2p_client
-#define PORT (1975)
+#define PORT ("1975")
 
 namespace Crowd
 {
@@ -38,15 +38,28 @@ namespace Crowd
     public:
         int p2p_server();
         int p2p_client(std::string ip_s, std::string message);
+        std::vector<std::string> split(const std::string& str, int splitLength);
+
         int p2p_client_impl(std::string ip_s, std::string message);
+
+        static void set_closed_client(std::string closed)
+        {
+            closed_client_ = closed;
+        }
+        static void set_ip_new_co(std::string ip)
+        {
+            ip_new_co_ = ip;
+        }
+
         static std::string get_closed_client()
         {
             return closed_client_;
         }
-        static uint32_t get_ip_new_co()
+        static std::string get_ip_new_co()
         {
             return ip_new_co_;
         }
+        
         static void set_quit_server_req(bool quit)
         {
             quit_server_ = quit;
@@ -78,79 +91,14 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
 
             p2p_clients_from_other_thread_.push_back(p);
         }
-    protected:
-        void set_resp_msg_server(std::string msg);
-        void set_resp_msg_client(std::string msg);
-        void set_resp_your_hash_server(enet_uint32 participant, std::string msg);
     private:
-        std::vector<std::string> split(const std::string& str, int splitLength);
-        void do_read_header_server(p2p_message read_msg_server);
-        void do_read_body_server(p2p_message read_msg_server);
-        void do_read_header_client(p2p_message read_msg_client);
-        void do_read_body_client(p2p_message read_msg_client);
-        void handle_read_server(p2p_message read_msg_server);
-        void handle_read_client(p2p_message read_msg_client);
-        static void set_closed_client(std::string closed)
-        {
-            closed_client_ = closed;
-        }
-        static void set_ip_new_co(uint32_t ip)
-        {
-            ip_new_co_ = ip;
-        }
-
-        void register_for_nat_traversal(nlohmann::json buf_j);
-        void connect_to_nat(nlohmann::json buf_j);
-        void intro_peer(nlohmann::json buf_j);
-        void new_peer(nlohmann::json buf_j);
-        void intro_prel_block(nlohmann::json buf_j);
-        void new_prel_block(nlohmann::json buf_j);
-        void intro_final_block(nlohmann::json buf_j);
-        void new_final_block(nlohmann::json buf_j);
-        void your_full_hash(nlohmann::json buf_j);
-        void hash_comparison(nlohmann::json buf_j);
-        void intro_online(nlohmann::json buf_j);
-        void new_online(nlohmann::json buf_j);
-        void update_you_server(nlohmann::json buf_j);
-
-        void register_for_nat_traversal_client(nlohmann::json buf_j);
-        void connect_to_nat_client(nlohmann::json buf_j);
-        void connect_true_client(nlohmann::json buf_j);
-        void new_peer_client(nlohmann::json buf_j);
-        void new_co_client(nlohmann::json buf_j);
-        void your_full_hash_client(nlohmann::json buf_j);
-        void hash_comparison_client(nlohmann::json buf_j);
-        void close_same_conn_client(nlohmann::json buf_j);
-        void close_this_conn_client(nlohmann::json buf_j);
-        void close_this_conn_and_create_client(nlohmann::json buf_j);
-        void send_first_block_received_client(nlohmann::json buf_j);
-        void update_me_client(nlohmann::json buf_j);
-
         static bool get_quit_server_req()
         {
             return quit_server_;
         }
-    protected:
-        ENetHost   *server_;
     private:
-        char buffer_[p2p_message::max_body_length];
-
-        ENetHost  *client_;
-        ENetAddress  address_client_;
-        ENetAddress  address_server_;
-        ENetEvent  event_client_;
-        ENetEvent  event_server_;
-        ENetPeer  *peer_client_;
-        ENetPacket  *packet_client_;
-        ENetPacket  *packet_server_;
-
-        std::string buf_client_;
-        std::string buf_server_;
-        Poco::IntroMsgVec intro_msg_vec_;
-        Poco::IpHEmail ip_hemail_vec_;
-
         static std::string closed_client_;
-        static uint32_t ip_new_co_;
+        static std::string ip_new_co_;
 
         static bool quit_server_;
     private:
@@ -205,7 +153,93 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
         static std::vector<std::string> connected_to_server_;
         static std::vector<std::string> client_calls_;
         static std::vector<std::pair<std::string, std::string>> p2p_clients_from_other_thread_;
+    };
 
-        static std::mutex mtx_;
+    typedef std::deque<p2p_message> p2p_message_queue;
+    class P2pClient
+    {
+    public:
+        P2pClient(boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
+        void write(const p2p_message &msg);
+        void close();
+    private:
+        void do_connect(const tcp::resolver::results_type &endpoints);
+        void do_read_header();
+        void do_read_body();
+        void do_write();
+
+        void handle_read_client(p2p_message read_msg_client);
+
+        void register_for_nat_traversal_client(nlohmann::json buf_j);
+        void connect_to_nat_client(nlohmann::json buf_j);
+        void connect_true_client(nlohmann::json buf_j);
+        void new_peer_client(nlohmann::json buf_j);
+        void new_co_client(nlohmann::json buf_j);
+        void your_full_hash_client(nlohmann::json buf_j);
+        void hash_comparison_client(nlohmann::json buf_j);
+        void close_same_conn_client(nlohmann::json buf_j);
+        void close_this_conn_client(nlohmann::json buf_j);
+        void close_this_conn_and_create_client(nlohmann::json buf_j);
+        void send_first_block_received_client(nlohmann::json buf_j);
+        void update_me_client(nlohmann::json buf_j);
+
+        void set_resp_msg_client(std::string msg);
+    private:
+        boost::asio::io_context &io_context_;
+        tcp::socket socket_;
+        p2p_message read_msg_;
+        p2p_message_queue write_msgs_;
+
+        std::string buf_client_;
+        Poco::IntroMsgVec intro_msg_vec_;
+        Poco::IpHEmail ip_hemail_vec_;
+    };
+
+    class P2pServer
+    {
+    public:
+        P2pServer(boost::asio::io_context &io_context, const tcp::endpoint &endpoint);
+    private:
+        void do_accept();
+    private:
+        tcp::acceptor acceptor_;
+    };
+
+    class P2pSession : public std::enable_shared_from_this<P2pSession>
+    {
+    public:
+        P2pSession(tcp::socket socket);
+        void start();
+        void deliver(const p2p_message &msg);
+    private:
+        void do_read_header();
+        void do_read_body();
+        void do_write();
+
+        void handle_read_server(p2p_message read_msg_server);
+
+        void register_for_nat_traversal(nlohmann::json buf_j);
+        void connect_to_nat(nlohmann::json buf_j);
+        void intro_peer(nlohmann::json buf_j);
+        void new_peer(nlohmann::json buf_j);
+        void intro_prel_block(nlohmann::json buf_j);
+        void new_prel_block(nlohmann::json buf_j);
+        void intro_final_block(nlohmann::json buf_j);
+        void new_final_block(nlohmann::json buf_j);
+        void your_full_hash(nlohmann::json buf_j);
+        void hash_comparison(nlohmann::json buf_j);
+        void intro_online(nlohmann::json buf_j);
+        void new_online(nlohmann::json buf_j);
+        void update_you_server(nlohmann::json buf_j);
+
+        void set_resp_msg_server(std::string msg);
+    private:
+        tcp::socket socket_;
+        p2p_message read_msg_;
+        p2p_message_queue write_msgs_;
+
+        std::string buf_server_;
+        Poco::IntroMsgVec intro_msg_vec_;
+        Poco::IpHEmail ip_hemail_vec_;
     };
 }

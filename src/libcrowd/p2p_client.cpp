@@ -1,33 +1,21 @@
-#include <future>       // std::async, std::future, std::launch
-#include <chrono>       // std::chrono::milliseconds
-#include <thread>
-#include <mutex>
-
 #include "p2p_network.hpp"
 #include "p2p_network_c.hpp"
 
 #include "print_or_log.hpp"
 
+#include <cstdlib>
+#include <iostream>
+#include <thread>
+#include <boost/asio.hpp>
+#include "p2p_message.hpp"
+
+using boost::asio::ip::tcp;
 using namespace Crowd;
 
 std::string P2pNetwork::closed_client_ = "";
-uint32_t P2pNetwork::ip_new_co_ = 0;
-std::mutex P2pNetwork::mtx_ = {};
+std::string P2pNetwork::ip_new_co_ = 0;
 
-void P2pNetwork::do_read_header_client(p2p_message read_msg_client)
-{
-    if (read_msg_client.decode_header() == true)
-    {
-        do_read_body_client(read_msg_client);
-    }
-}
-
-void P2pNetwork::do_read_body_client(p2p_message read_msg_client)
-{
-    handle_read_client(read_msg_client);
-}
-
-void P2pNetwork::handle_read_client(p2p_message read_msg_client)
+void P2pClient::handle_read_client(p2p_message read_msg_client)
 {
     if ( !read_msg_client.get_eom_flag())
     {
@@ -91,7 +79,7 @@ void P2pNetwork::handle_read_client(p2p_message read_msg_client)
     }
 }
 
-void P2pNetwork::register_for_nat_traversal_client(nlohmann::json buf_j)
+void P2pClient::register_for_nat_traversal_client(nlohmann::json buf_j)
 {
     if (buf_j["register"] == "ack") // something wrong here when implementing the switch
     {
@@ -102,7 +90,7 @@ void P2pNetwork::register_for_nat_traversal_client(nlohmann::json buf_j)
     }
 }
 
-void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
+void P2pClient::connect_to_nat_client(nlohmann::json buf_j)
 {
     if (buf_j["connect"] == "ok")
     {
@@ -114,6 +102,7 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
 
         // Establishing NAT Traversal
         // TODO: needs to be tested that there is really a connection between the two peers
+        P2pNetwork pn;
         if (buf_j["id_from"] == "nvrrdt_from") // TODO: change nvrrdt to my_id/my_hash/my_ip
         {
 
@@ -122,8 +111,8 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
             std::string peer_ip = buf_j["ip_to"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
-            p2p_client(peer_ip, message);
-            p2p_server();
+            pn.p2p_client(peer_ip, message);
+            pn.p2p_server();
         }
         else
         {
@@ -131,13 +120,13 @@ void P2pNetwork::connect_to_nat_client(nlohmann::json buf_j)
             std::string peer_ip = buf_j["ip_from"];
             std::string message = message_j.dump();
             std::string pub_key = "pub_key";
-            p2p_client(peer_ip, message);
-            p2p_server();
+            pn.p2p_client(peer_ip, message);
+            pn.p2p_server();
         }
     }
 }
 
-void P2pNetwork::connect_true_client(nlohmann::json buf_j)
+void P2pClient::connect_true_client(nlohmann::json buf_j)
 {
     if (buf_j["connect"] == "true") // something wrong here when implementing the switch
     {
@@ -146,7 +135,7 @@ void P2pNetwork::connect_true_client(nlohmann::json buf_j)
     }
 }
 
-void P2pNetwork::new_peer_client(nlohmann::json buf_j)
+void P2pClient::new_peer_client(nlohmann::json buf_j)
 {
     // TODO there are 2 new_peer functions that need to be the same, so put them in one function somewhere
 
@@ -177,24 +166,23 @@ void P2pNetwork::new_peer_client(nlohmann::json buf_j)
     }
 }
 
-void P2pNetwork::new_co_client(nlohmann::json buf_j)
+void P2pClient::new_co_client(nlohmann::json buf_j)
 {
     // send flag to start_crowd function
 
     P2p p2p;
-    enet_uint32 peer_ip = buf_j["ip_co"];
-    std::string peer_ip_quad;
-    p2p.number_to_ip_string(peer_ip, peer_ip_quad);
+    std::string peer_ip = buf_j["ip_co"];
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"new_co:", peer_ip_quad});
+    pl.handle_print_or_log({"new_co:", peer_ip});
 
-    enet_peer_disconnect(peer_client_, 0);
+    close();
 
-    set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
-    set_closed_client("new_co");
+    P2pNetwork pn;
+    pn.set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
+    pn.set_closed_client("new_co");
 }
 
-void P2pNetwork::your_full_hash_client(nlohmann::json buf_j)
+void P2pClient::your_full_hash_client(nlohmann::json buf_j)
 {
     // my full hash
     std::string full_hash = buf_j["full_hash"];
@@ -243,51 +231,56 @@ for (auto &[k, v] : partsx)
     pl.handle_print_or_log({"Connection closed by other server, start this server"}); // TODO here starts duplicate code
 
     // Disconect from server
-    enet_peer_disconnect(peer_client_, 0);
-    set_closed_client("close_this_conn");
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn");
 }
 
-void P2pNetwork::hash_comparison_client(nlohmann::json buf_j)
+void P2pClient::hash_comparison_client(nlohmann::json buf_j)
 {
     // compare the received hash
     Common::Print_or_log pl;
     pl.handle_print_or_log({"The hash comparison is (client):", (buf_j["hash_comp"]).dump()});
 
-    enet_peer_disconnect(peer_client_, 0);
-    set_closed_client("close_this_conn_and_create");
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn_and_create");
 }
 
-void P2pNetwork::close_same_conn_client(nlohmann::json buf_j)
+void P2pClient::close_same_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Connection closed by other server, start this server (same client)"});
 
-    enet_peer_disconnect(peer_client_, 0);
-    set_closed_client("close_same_conn");
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_same_conn");
 }
 
-void P2pNetwork::close_this_conn_client(nlohmann::json buf_j)
+void P2pClient::close_this_conn_client(nlohmann::json buf_j)
 {
     // you may close this connection
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Connection closed by other server, start this server (client)"});
 
-    enet_peer_disconnect(peer_client_, 0);
-    set_closed_client("close_this_conn");
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn");
 }
 
-void P2pNetwork::close_this_conn_and_create_client(nlohmann::json buf_j)
+void P2pClient::close_this_conn_and_create_client(nlohmann::json buf_j)
 {
     // you may close this connection
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Connection closed by other server, start this server (client) and create"});
 
-    enet_peer_disconnect(peer_client_, 0);
-    set_closed_client("close_this_conn_and_create");
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn_and_create");
 }
 
-void P2pNetwork::send_first_block_received_client(nlohmann::json buf_j)
+void P2pClient::send_first_block_received_client(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Received first block (client)"});
@@ -299,7 +292,7 @@ void P2pNetwork::send_first_block_received_client(nlohmann::json buf_j)
     mt.save_block_to_file(first_block_j, block_nr);
 }
 
-void P2pNetwork::update_me_client(nlohmann::json buf_j)
+void P2pClient::update_me_client(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_you: send all blocks, rocksdb and matrices to server (client)"});
@@ -383,15 +376,16 @@ void P2pNetwork::update_me_client(nlohmann::json buf_j)
     msg["ihv"];
     for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
     {
-        msg["ihv"][std::to_string((*el).first)] = (*el).second;
+        msg["ihv"][(*el).first] = (*el).second;
     }
 
     set_resp_msg_client(msg.dump());
 }
 
-void P2pNetwork::set_resp_msg_client(std::string msg)
+void P2pClient::set_resp_msg_client(std::string msg)
 {
-    std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+    P2pNetwork pn;
+    std::vector<std::string> splitted = pn.split(msg, p2p_message::max_body_length);
     p2p_message resp_msg_client;
     for (int i = 0; i < splitted.size(); i++)
     {
@@ -402,9 +396,7 @@ void P2pNetwork::set_resp_msg_client(std::string msg)
         std::memcpy(resp_msg_client.body(), s, resp_msg_client.body_length());
         i == splitted.size() - 1 ? resp_msg_client.encode_header(1) : resp_msg_client.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
-        // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_client_ = enet_packet_create(resp_msg_client.data(), strlen(resp_msg_client.data())+1, ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(peer_client_, 0, packet_client_);
+        write(resp_msg_client);
     }
 }
 
@@ -427,109 +419,140 @@ std::vector<std::string> P2pNetwork::split(const std::string& str, int splitLeng
    return ret;
 }
 
-int P2pNetwork::p2p_client(std::string ip_s, std::string message)
+P2pClient::P2pClient(boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints)
+    : io_context_(io_context), socket_(io_context)
 {
-    auto future = std::async(&P2pNetwork::p2p_client_impl, this, ip_s, message);
-    return future.get();
+    do_connect(endpoints);
 }
 
-int P2pNetwork::p2p_client_impl(std::string ip_s, std::string message)
+void P2pClient::write(const p2p_message &msg)
 {
-    mtx_.lock();
+    boost::asio::post(io_context_,
+                        [this, msg]()
+                        {
+                            bool write_in_progress = !write_msgs_.empty();
+                            write_msgs_.push_back(msg);
+                            if (!write_in_progress)
+                            {
+                                do_write();
+                            }
+                        });
+}
 
-    const char *ip = ip_s.c_str();
+void P2pClient::close()
+{
+    boost::asio::post(io_context_, [this]()
+                        { socket_.close(); });
+}
 
-    int connected=0;
+void P2pClient::do_connect(const tcp::resolver::results_type &endpoints)
+{
+    boost::asio::async_connect(socket_, endpoints,
+                                [this](boost::system::error_code ec, tcp::endpoint)
+                                {
+                                    if (!ec)
+                                    {
+                                        do_read_header();
+                                    }
+                                });
+}
 
-    Common::Print_or_log pl;
+void P2pClient::do_read_header()
+{
+    boost::asio::async_read(socket_,
+                            boost::asio::buffer(read_msg_.data(), p2p_message::header_length),
+                            [this](boost::system::error_code ec, std::size_t /*length*/)
+                            {
+                                if (!ec && read_msg_.decode_header())
+                                {
+                                    do_read_body();
+                                }
+                                else
+                                {
+                                    socket_.close();
+                                }
+                            });
+}
 
-    for (;;)
+void P2pClient::do_read_body()
+{
+    boost::asio::async_read(socket_,
+                            boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+                            [this](boost::system::error_code ec, std::size_t /*length*/)
+                            {
+                                if (!ec)
+                                {
+                                    std::cout.write(read_msg_.body(), read_msg_.body_length());
+                                    std::cout << "\n";
+                                    handle_read_client(read_msg_);
+                                    do_read_header();
+                                }
+                                else
+                                {
+                                    socket_.close();
+                                }
+                            });
+}
+
+void P2pClient::do_write()
+{
+    boost::asio::async_write(socket_,
+                                boost::asio::buffer(write_msgs_.front().data(),
+                                                    write_msgs_.front().length()),
+                                [this](boost::system::error_code ec, std::size_t /*length*/)
+                                {
+                                    if (!ec)
+                                    {
+                                        write_msgs_.pop_front();
+                                        if (!write_msgs_.empty())
+                                        {
+                                            do_write();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        socket_.close();
+                                    }
+                                });
+}
+
+
+
+int P2pNetwork::p2p_client(std::string ip_s, std::string message)
+{
+    try
     {
-        if (enet_initialize() != 0)
+        boost::asio::io_context io_context;
+
+        tcp::resolver resolver(io_context);
+        auto endpoints = resolver.resolve(ip_s, PORT);
+        P2pClient c(io_context, endpoints);
+
+        std::thread t([&io_context]()
+                      { io_context.run(); });
+
+        P2pNetwork pn;
+        std::vector<std::string> splitted = pn.split(message, p2p_message::max_body_length);
+        p2p_message resp_msg;
+        for (int i = 0; i < splitted.size(); i++)
         {
-            pl.handle_print_or_log({"Could not initialize enet."});
-            return 1;
+            char s[p2p_message::max_body_length];
+            strncpy(s, splitted[i].c_str(), sizeof(s));
+
+            resp_msg.body_length(std::strlen(s));
+            std::memcpy(resp_msg.body(), s, resp_msg.body_length());
+            i == splitted.size() - 1 ? resp_msg.encode_header(1) : resp_msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
+
+            c.write(resp_msg);
         }
 
-        client_ = enet_host_create(NULL, 105, 2, 0, 0);
-
-        if (client_ == NULL)
-        {
-            pl.handle_print_or_log({"Could not create client."});
-            return 1;
-        }
-
-        enet_address_set_host(&address_client_, ip);
-        address_client_.port = PORT;
-
-        peer_client_ = enet_host_connect(client_, &address_client_, 2, 0);
-
-        if (peer_client_ == NULL)
-        {
-            pl.handle_print_or_log({"Could not connect to server"});        
-            return 1;
-        }
-
-        if (enet_host_service(client_, &event_client_, 500) > 0 && event_client_.type == ENET_EVENT_TYPE_CONNECT)
-        {
-            pl.handle_print_or_log({"Connection to", ip, "succeeded."});
-            connected++;
-
-            std::vector<std::string> splitted = split(message, p2p_message::max_body_length);
-            p2p_message msg;
-            for (int i = 0; i < splitted.size(); i++)
-            {
-                char s[p2p_message::max_body_length];
-                strncpy(s, splitted[i].c_str(), sizeof(s));
-
-                msg.body_length(std::strlen(s));
-                std::memcpy(msg.body(), s, msg.body_length());
-                i == splitted.size() - 1 ? msg.encode_header(1) : msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
-
-                packet_client_ = enet_packet_create(msg.data(), strlen(msg.data())+1, ENET_PACKET_FLAG_RELIABLE);
-                enet_peer_send(peer_client_, 0, packet_client_);
-            }
-
-            break;
-        }
-        
-        enet_peer_reset(peer_client_);
-        enet_host_destroy(client_);
-        enet_deinitialize();
-        pl.handle_print_or_log({"Could not connect to", ip});
+        c.close();
+        t.join();
     }
-
-    Crowd::P2p p2p;
-    std::string ip_client;
-    p2p_message read_msg_client;
-    while (1)
+    catch (std::exception &e)
     {
-        while (enet_host_service(client_, &event_client_, 500) > 0)
-        {
-            switch (event_client_.type)
-            {
-                case ENET_EVENT_TYPE_RECEIVE:
-                    //puts( (char*) event_client_.packet->data);
-                    sprintf(read_msg_client.data(), "%s", (char*) event_client_.packet->data);
-                    do_read_header_client(read_msg_client);
-                    enet_packet_destroy(event_client_.packet);
-                    break;
-                case ENET_EVENT_TYPE_DISCONNECT:
-                    connected=0;
-                    p2p.number_to_ip_string(event_client_.peer->address.host, ip_client);
-                    pl.handle_print_or_log({"You have been disconnected.", ip_client});
-
-                    break;
-            }
-        }
-
-        if (connected == 0) break;
+        std::cerr << "Exception client: " << e.what() << "\n";
     }
-
-    enet_host_destroy(client_);
-    enet_deinitialize();
-
-    mtx_.unlock();
 
     return 0;
 }

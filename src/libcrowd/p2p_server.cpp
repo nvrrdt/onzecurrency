@@ -3,6 +3,18 @@
 
 #include "print_or_log.hpp"
 
+#include <cstdlib>
+#include <deque>
+#include <iostream>
+#include <list>
+#include <memory>
+#include <set>
+#include <utility>
+#include <boost/asio.hpp>
+#include "p2p_message.hpp"
+
+using boost::asio::ip::tcp;
+
 using namespace Common;
 using namespace Crowd;
 
@@ -10,20 +22,7 @@ bool P2pNetwork::quit_server_ = false;
 std::vector<std::string> P2pNetwork::connected_to_server_ = {};
 std::vector<std::pair<std::string, std::string>> P2pNetwork::p2p_clients_from_other_thread_ = {};
 
-void P2pNetwork::do_read_header_server(p2p_message read_msg_server)
-{
-    if (read_msg_server.decode_header() == true)
-    {
-        do_read_body_server(read_msg_server);
-    }
-}
-
-void P2pNetwork::do_read_body_server(p2p_message read_msg_server)
-{
-    handle_read_server(read_msg_server);
-}
-
-void P2pNetwork::handle_read_server(p2p_message read_msg_server)
+void P2pSession::handle_read_server(p2p_message read_msg_server)
 {
     Common::Print_or_log pl;
     if ( !read_msg_server.get_eom_flag()) {
@@ -90,7 +89,7 @@ pl.handle_print_or_log({"___0000444 eom", str_read_msg});
     }
 }
 
-void P2pNetwork::register_for_nat_traversal(nlohmann::json buf_j)
+void P2pSession::register_for_nat_traversal(nlohmann::json buf_j)
 {
     nlohmann::json resp_j;
     resp_j["register"] = "ack";
@@ -101,7 +100,7 @@ void P2pNetwork::register_for_nat_traversal(nlohmann::json buf_j)
     pl.handle_print_or_log({"Ack for registering client is confirmed"});
 }
 
-void P2pNetwork::connect_to_nat(nlohmann::json buf_j)
+void P2pSession::connect_to_nat(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"connection request for a peer behind a nat"});
@@ -117,13 +116,10 @@ void P2pNetwork::connect_to_nat(nlohmann::json buf_j)
     set_resp_msg_server(resp_j.dump()); 
 }
 
-void P2pNetwork::intro_peer(nlohmann::json buf_j)
+void P2pSession::intro_peer(nlohmann::json buf_j)
 {
-    P2p p2p;
-    std::string peer_ip_quad;
-    p2p.number_to_ip_string(event_server_.peer->address.host, peer_ip_quad);
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"Intro_peer req recv", peer_ip_quad});
+    pl.handle_print_or_log({"Intro_peer req recv", socket_.remote_endpoint().address().to_string()});
 
     // process buf_j["hash_of_req"] to find ip of the peer who should update you
     std::string co_from_req = buf_j["full_hash_co"];
@@ -134,7 +130,7 @@ void P2pNetwork::intro_peer(nlohmann::json buf_j)
     std::string rsa_pub_key = buf_j["rsa_pub_key"];
     std::string signature = buf_j["signature"];
     std::string req_latest_block = buf_j["latest_block"];
-    enet_uint32 req_ip = buf_j["ip"];
+    std::string req_ip = buf_j["ip"];
 
     // close the conn when you're genesis
     Protocol* proto = new Protocol();
@@ -234,7 +230,7 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             message_j["full_hash_co"] = my_full_hash;
             message_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
             message_j["rsa_pub_key"] = rsa_pub_key;
-            message_j["ip"] = event_server_.peer->address.host;
+            message_j["ip"] = socket_.remote_endpoint().address().to_string();
 
             to_sign_j["ecdsa_pub_key"] = ecdsa_pub_key_s;
             to_sign_j["rsa_pub_key"] = rsa_pub_key;
@@ -260,13 +256,7 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 // lookup in rocksdb
                 std::string val = parts[i];
                 nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-                enet_uint32 ip = value_j["ip"];
-                std::string peer_ip;
-                P2p p2p;
-                p2p.number_to_ip_string(ip, peer_ip);
-
-                std::string req_ip_quad;
-                p2p.number_to_ip_string(req_ip, req_ip_quad);
+                std::string ip = value_j["ip"];
 
                 delete rocksy;
 
@@ -275,8 +265,9 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 // --> if more then t.client to same layer co
                 // in bucket --> poco --> coord connects to all co --> co connect to other co --> communicate final_hash --> register amount of ok's and nok's
 
+                P2pNetwork pn;
                 // inform the underlying network
-                if (req_ip_quad == peer_ip) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                if (req_ip == ip) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
                 {
                     // inform server's underlying network
                     pl.handle_print_or_log({"Send new_peer req: Inform my underlying network as coordinator"});
@@ -305,17 +296,15 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
-                        enet_uint32 ip = value_j["ip"];
-                        std::string peer_ip_underlying;
-                        p2p.number_to_ip_string(ip, peer_ip_underlying);
+                        std::string ip_underlying = value_j["ip"];
 
-                        pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", peer_ip_underlying});
+                        pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", ip_underlying});
 
                         Poco::PocoCrowd pc;
                         bool cont = false;
                         for (auto& el: pc.get_new_users_ip())
                         {
-                            if (el == peer_ip_underlying)
+                            if (el == ip_underlying)
                             {
                                 cont = true;
                                 break;
@@ -325,11 +314,11 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
 
                         for (;;)
                         {
-                            if (is_connected_to_server(peer_ip_underlying) == false)
+                            if (pn.is_connected_to_server(ip_underlying) == false)
                             {
                                 // message to non-connected peers
                                 std::string message = message_j.dump();
-                                p2p_client(peer_ip_underlying, message);
+                                pn.p2p_client(ip_underlying, message);
                                 
                                 break;
                             }
@@ -339,13 +328,13 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 }
 
                 // inform the other peer's in the same layer (as coordinator)
-                pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", peer_ip});
+                pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", ip});
                 
                 Poco::PocoCrowd pc;
                 bool cont = false;
                 for (auto& el: pc.get_new_users_ip())
                 {
-                    if (el == peer_ip)
+                    if (el == ip)
                     {
                         cont = true;
                         break;
@@ -355,10 +344,10 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 
                 for (;;)
                 {
-                    if (is_connected_to_server(peer_ip) == false)
+                    if (pn.is_connected_to_server(ip) == false)
                     {
                         std::string message = message_j.dump();
-                        p2p_client(peer_ip, message);
+                        pn.p2p_client(ip, message);
 
                         break;
                     }
@@ -383,7 +372,7 @@ pl.handle_print_or_log({"prel_first_coordinator_server:______ ", prel_first_coor
 pl.handle_print_or_log({"usersdb size:______ ", (rocksy->TotalAmountOfPeers()).str()});
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
 pl.handle_print_or_log({"______000111_0 does new_co works? ", (value_j["ip"]).dump()});
-            enet_uint32 peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
             delete rocksy;
 pl.handle_print_or_log({"______000111_1 ", (value_j["ip"]).dump()});
             message_j["ip_co"] = peer_ip;
@@ -433,7 +422,7 @@ pl.handle_print_or_log({"______000111_2 "});
     // }
 }
 
-void P2pNetwork::new_peer(nlohmann::json buf_j)
+void P2pSession::new_peer(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"New_peer req recv:"});
@@ -450,7 +439,7 @@ void P2pNetwork::new_peer(nlohmann::json buf_j)
     set_resp_msg_server(m_j.dump());
 }
 
-void P2pNetwork::intro_prel_block(nlohmann::json buf_j)
+void P2pSession::intro_prel_block(nlohmann::json buf_j)
 {
     // intro_prel_block
     Common::Print_or_log pl;
@@ -582,23 +571,19 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             delete rocksy;
             
             std::string message = message_j.dump();
 
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Preparation for new_prel_block: ", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for new_prel_block: ", peer_ip});
 
             Poco::PocoCrowd pc;
             bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -608,10 +593,10 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
 
             for (;;)
             {
-                if (pn.is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
 
                     break;
                 }
@@ -627,7 +612,7 @@ pl.handle_print_or_log({"___10"});
     }
 }
 
-void P2pNetwork::new_prel_block(nlohmann::json buf_j)
+void P2pSession::new_prel_block(nlohmann::json buf_j)
 {
     // new_prel_block --> TODO block should be saved
     Common::Print_or_log pl;
@@ -760,23 +745,19 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             delete rocksy;
             
             std::string message = message_j.dump();
 
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Prepaation for secondary new_prel_block: ", ip_from_peer});
+            pl.handle_print_or_log({"Prepaation for secondary new_prel_block: ", peer_ip});
 
             Poco::PocoCrowd pc;
             bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -786,10 +767,10 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
 
             for (;;)
             {
-                if (pn.is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
                     
                     break;
                 }
@@ -805,7 +786,7 @@ pl.handle_print_or_log({"___10 end of new_prel_block"});
     }
 }
 
-void P2pNetwork::intro_final_block(nlohmann::json buf_j)
+void P2pSession::intro_final_block(nlohmann::json buf_j)
 {
     // intro_final_block
     Common::Print_or_log pl;
@@ -899,6 +880,7 @@ for (auto &[k1, v1] : partsx)
             }
         }
 
+        P2pNetwork pn;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
             if (i < j)
@@ -913,18 +895,15 @@ pl.handle_print_or_log({"___00 c_one", c_one});
 //pl.handle_print_or_log({"___01 value_j", value_j.dump()});
                 delete rocksy3;
 
-                enet_uint32 ip = value_j["ip"];
-                std::string peer_ip;
-                P2p p2p;
-                p2p.number_to_ip_string(ip, peer_ip);
+                std::string ip = value_j["ip"];
 pl.handle_print_or_log({"___02"});
-pl.handle_print_or_log({"___02 peer_ip", peer_ip});
+pl.handle_print_or_log({"___02 peer_ip", ip});
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison";
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
                 std::string msg_s = msg_j.dump();
 
-                p2p_client(peer_ip, msg_s);
+                pn.p2p_client(ip, msg_s);
             }
             else if (i == j)
             {
@@ -1008,23 +987,19 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             delete rocksy4;
             
             std::string message = message_j.dump();
 
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for new_final_block:", peer_ip});
 
             Poco::PocoCrowd pc;
             bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -1034,10 +1009,10 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
 
             for (;;)
             {
-                if (is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    p2p_client(ip_from_peer, message);
+                    pn.p2p_client(peer_ip, message);
 
                     break;
                 }
@@ -1057,7 +1032,7 @@ pl.handle_print_or_log({"___10"});
     }
 }
 
-void P2pNetwork::new_final_block(nlohmann::json buf_j)
+void P2pSession::new_final_block(nlohmann::json buf_j)
 {
     // new_final_block
     Common::Print_or_log pl;
@@ -1140,6 +1115,7 @@ for (auto &[k1, v1] : partsx)
         }
     }
 
+    P2pNetwork pn;
     for (int i = 0; i < chosen_ones.size(); i++)
     {
         if (i < j)
@@ -1151,17 +1127,14 @@ for (auto &[k1, v1] : partsx)
             nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(c_one));
             delete rocksy2;
 
-            enet_uint32 ip = value_j["ip"];
-            std::string peer_ip;
-            P2p p2p;
-            p2p.number_to_ip_string(ip, peer_ip);
+            std::string ip = value_j["ip"];
 
             nlohmann::json msg_j;
             msg_j["req"] = "hash_comparison";
             msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
             std::string msg_s = msg_j.dump();
 
-            p2p_client(peer_ip, msg_s);
+            pn.p2p_client(ip, msg_s);
         }
         else if (i == j)
         {
@@ -1227,7 +1200,6 @@ pl.handle_print_or_log({"___05"});
         message_j["signature"] = crypto.base64_encode(signature);
     }
 
-    Crowd::P2pNetwork pn;
     int key;
     std::string val;
     Poco::BlockMatrix bm;
@@ -1244,23 +1216,19 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
 
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val));
-        uint32_t peer_ip = value_j["ip"];
+        std::string peer_ip = value_j["ip"];
 
         delete rocksy3;
         
         std::string message = message_j.dump();
 
-        std::string ip_from_peer;
-        Crowd::P2p p2p;
-        p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-        pl.handle_print_or_log({"Preparation for new_final_block:", ip_from_peer});
+        pl.handle_print_or_log({"Preparation for new_final_block:", peer_ip});
 
         Poco::PocoCrowd pc;
         bool cont = false;
         for (auto& el: pc.get_new_users_ip())
         {
-            if (el == ip_from_peer)
+            if (el == peer_ip)
             {
                 cont = true;
                 break;
@@ -1270,10 +1238,10 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
 
         for (;;)
         {
-            if (pn.is_connected_to_server(ip_from_peer) == false)
+            if (pn.is_connected_to_server(peer_ip) == false)
             {
                 // p2p_client() to all chosen ones with intro_peer request
-                pn.p2p_client(ip_from_peer, message);
+                pn.p2p_client(peer_ip, message);
 
                 break;
             }
@@ -1281,7 +1249,7 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
     }
 }
 
-void P2pNetwork::your_full_hash(nlohmann::json buf_j)
+void P2pSession::your_full_hash(nlohmann::json buf_j)
 {
     // my full hash
     std::string full_hash = buf_j["full_hash"];
@@ -1312,7 +1280,7 @@ void P2pNetwork::your_full_hash(nlohmann::json buf_j)
     set_resp_msg_server(m_j.dump());
 }
 
-void P2pNetwork::hash_comparison(nlohmann::json buf_j)
+void P2pSession::hash_comparison(nlohmann::json buf_j)
 {
     // compare the received hash
     Common::Print_or_log pl;
@@ -1324,7 +1292,7 @@ void P2pNetwork::hash_comparison(nlohmann::json buf_j)
     set_resp_msg_server(m_j.dump());
 }
 
-void P2pNetwork::intro_online(nlohmann::json buf_j)
+void P2pSession::intro_online(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"intro new peer online: ", (buf_j["full_hash"]).dump()});
@@ -1398,6 +1366,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
         int key;
         std::string val;
         Poco::BlockMatrix bm;
+        P2pNetwork pn;
         for (auto &[key, val] : parts)
         {
             if (key == 1) continue;
@@ -1407,19 +1376,15 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
             
-            std::string ip_from_peer;
-            P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-            pl.handle_print_or_log({"Preparation for new_online:", ip_from_peer});
+            pl.handle_print_or_log({"Preparation for new_online:", peer_ip});
 
             Poco::PocoCrowd pc;
             bool cont = false;
             for (auto& el: pc.get_new_users_ip())
             {
-                if (el == ip_from_peer)
+                if (el == peer_ip)
                 {
                     cont = true;
                     break;
@@ -1429,10 +1394,10 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
 
             for (;;)
             {
-                if (is_connected_to_server(ip_from_peer) == false)
+                if (pn.is_connected_to_server(peer_ip) == false)
                 {
                     // p2p_client() to all chosen ones with intro_peer request
-                    p2p_client(ip_from_peer, message_s);
+                    pn.p2p_client(peer_ip, message_s);
                     
                     break;
                 }
@@ -1509,7 +1474,7 @@ void P2pNetwork::intro_online(nlohmann::json buf_j)
     set_resp_msg_server(msg_j.dump());
 }
 
-void P2pNetwork::new_online(nlohmann::json buf_j)
+void P2pSession::new_online(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"new peer online:", (buf_j["full_hash"]).dump(), ", inform your bucket"});
@@ -1577,6 +1542,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     int key;
     std::string val;
     Poco::BlockMatrix bm;
+    P2pNetwork pn;
     for (auto &[key, val] : parts)
     {
         if (key == 1) continue;
@@ -1586,21 +1552,17 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
         // lookup in rocksdb
         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-        uint32_t peer_ip = value_j["ip"];
+        std::string peer_ip = value_j["ip"];
         
         std::string message_s = message_j.dump();
 
-        std::string ip_from_peer;
-        P2p p2p;
-        p2p.number_to_ip_string(peer_ip, ip_from_peer);
-
-        pl.handle_print_or_log({"Preparation for new_online: ", ip_from_peer});
+        pl.handle_print_or_log({"Preparation for new_online: ", peer_ip});
 
         Poco::PocoCrowd pc;
         bool cont = false;
         for (auto& el: pc.get_new_users_ip())
         {
-            if (el == ip_from_peer)
+            if (el == peer_ip)
             {
                 cont = true;
                 break;
@@ -1610,10 +1572,10 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
 
         for (;;)
         {
-            if (is_connected_to_server(ip_from_peer) == false)
+            if (pn.is_connected_to_server(peer_ip) == false)
             {
                 // p2p_client() to all chosen ones with intro_peer request
-                p2p_client(ip_from_peer, message_s);
+                pn.p2p_client(peer_ip, message_s);
                 
                 break;
             }
@@ -1632,7 +1594,7 @@ void P2pNetwork::new_online(nlohmann::json buf_j)
     delete rocksy;
 }
 
-void P2pNetwork::update_you_server(nlohmann::json buf_j)
+void P2pSession::update_you_server(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (server)"});
@@ -1728,8 +1690,8 @@ pl.handle_print_or_log({"__05_s"});
         {
             for (auto& [k3, v3] : v2.items())
             {
-                std::pair<enet_uint32, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
-                std::shared_ptr<std::pair<enet_uint32, std::string>> ptr(new std::pair<enet_uint32, std::string> (myPair));
+                std::pair<std::string, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<std::string, std::string>> ptr(new std::pair<std::string, std::string> (myPair));
                 iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
             }
 
@@ -1750,8 +1712,7 @@ pl.handle_print_or_log({"__05_s"});
 
     for (auto& [k, v]: ip_hemail_vec_j.items())
     {
-        enet_uint32 key = stoi(k);
-        ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(key, v);
+        ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     }
 
 // // for debugging purposes:
@@ -1766,9 +1727,10 @@ pl.handle_print_or_log({"__05_s"});
 // }
 }
 
-void P2pNetwork::set_resp_msg_server(std::string msg)
+void P2pSession::set_resp_msg_server(std::string msg)
 {
-    std::vector<std::string> splitted = split(msg, p2p_message::max_body_length);
+    P2pNetwork pn;
+    std::vector<std::string> splitted = pn.split(msg, p2p_message::max_body_length);
     p2p_message resp_msg_server;
     for (int i = 0; i < splitted.size(); i++)
     {
@@ -1779,102 +1741,127 @@ void P2pNetwork::set_resp_msg_server(std::string msg)
         std::memcpy(resp_msg_server.body(), s, resp_msg_server.body_length());
         i == splitted.size() - 1 ? resp_msg_server.encode_header(1) : resp_msg_server.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
 
-        // sprintf(buffer_, "%s", (char*) resp_j.dump());
-        packet_server_ = enet_packet_create(resp_msg_server.data(), strlen(resp_msg_server.data())+1, ENET_PACKET_FLAG_RELIABLE);
-        enet_peer_send(event_server_.peer, 0, packet_server_);
-        enet_host_flush(server_);
+        deliver(resp_msg_server);
     }
 }
+
+//----------------------------------------------------------------------
+
+P2pSession::P2pSession(tcp::socket socket) : socket_(std::move(socket))
+{
+}
+
+void P2pSession::start()
+{
+    do_read_header();
+}
+
+void P2pSession::deliver(const p2p_message &msg)
+{
+    bool write_in_progress = !write_msgs_.empty();
+    write_msgs_.push_back(msg);
+    if (!write_in_progress)
+    {
+        do_write();
+    }
+}
+
+void P2pSession::do_read_header()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_,
+                            boost::asio::buffer(read_msg_.data(), p2p_message::header_length),
+                            [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                            {
+                                if (!ec && read_msg_.decode_header())
+                                {
+                                    do_read_body();
+                                }
+                                else
+                                {
+                                }
+                            });
+}
+
+void P2pSession::do_read_body()
+{
+    auto self(shared_from_this());
+    boost::asio::async_read(socket_,
+                            boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
+                            [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                            {
+                                if (!ec)
+                                {
+                                    handle_read_server(read_msg_);
+                                    do_read_header();
+                                }
+                                else
+                                {
+                                }
+                            });
+}
+
+void P2pSession::do_write()
+{
+    auto self(shared_from_this());
+    boost::asio::async_write(socket_,
+                                boost::asio::buffer(write_msgs_.front().data(),
+                                                    write_msgs_.front().length()),
+                                [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                                {
+                                    if (!ec)
+                                    {
+                                        write_msgs_.pop_front();
+                                        if (!write_msgs_.empty())
+                                        {
+                                            do_write();
+                                        }
+                                    }
+                                    else
+                                    {
+                                    }
+                                });
+}
+
+//----------------------------------------------------------------------
+
+P2pServer::P2pServer(boost::asio::io_context &io_context, const tcp::endpoint &endpoint)
+    : acceptor_(io_context, endpoint)
+{
+    do_accept();
+}
+
+void P2pServer::do_accept()
+{
+    acceptor_.async_accept(
+        [this](boost::system::error_code ec, tcp::socket socket)
+        {
+            if (!ec)
+            {
+                std::make_shared<P2pSession>(std::move(socket))->start();
+            }
+
+            do_accept();
+        });
+}
+
+//----------------------------------------------------------------------
 
 int P2pNetwork::p2p_server()
 {
-    int  i;
-
-    Common::Print_or_log pl;
-
-    if (enet_initialize() != 0)
+    try
     {
-        pl.handle_print_or_log({"Could not initialize enet."});
-        return 0;
+        boost::asio::io_context io_context;
+
+        tcp::endpoint endpoint(tcp::v4(), std::atoi(PORT));
+        P2pServer server(io_context, endpoint);
+
+        io_context.run();
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "Exception server: " << e.what() << "\n";
     }
 
-    address_server_.host = ENET_HOST_ANY;
-    address_server_.port = PORT;
-
-    server_ = enet_host_create(&address_server_, 210, 2, 0, 0);
-
-    if (server_ == NULL)
-    {
-        pl.handle_print_or_log({"Could not start server."});
-        return 0;
-    }
-
-    Crowd::P2p p2p;
-    std::string connected_peer;
-    p2p_message read_msg_server;
-    while (true)
-    {
-        if (get_quit_server_req() == true) break;
-
-        int er = enet_host_service(server_, &event_server_, 50);
-        while (er > 0)
-        //while (enet_host_service(server_, &event_server_, 50) > 0)
-        {
-            if (get_quit_server_req() == true) break;
-
-            // process event
-            switch (event_server_.type)
-            {
-                case ENET_EVENT_TYPE_CONNECT:
-                    p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
-                    add_to_connected_to_server(connected_peer);
-                    pl.handle_print_or_log({"Incoming peer.", connected_peer});
-
-for (auto& el: get_connected_to_server())
-{
-    pl.handle_print_or_log({"___0009876 peers all", el});
+    return 0;
 }
-
-                    break;
-
-                case ENET_EVENT_TYPE_RECEIVE:
-pl.handle_print_or_log({"___0009876 receive"});
-                    sprintf(read_msg_server.data(), "%s", (char*) event_server_.packet->data);
-                    do_read_header_server(read_msg_server);
-                    enet_packet_destroy(event_server_.packet);
-
-                    break;
-
-                case ENET_EVENT_TYPE_DISCONNECT:
-                    p2p.number_to_ip_string(event_server_.peer->address.host, connected_peer);
-                    remove_from_connected_to_server(connected_peer);
-                    pl.handle_print_or_log({"Peer has disconnected.", connected_peer});
-
-for (auto& el: get_connected_to_server())
-{
-    pl.handle_print_or_log({"___0009877 peers all", el});
-}
-
-                    free(event_server_.peer->data);
-                    event_server_.peer->data = NULL;
-
-                    break;
-
-                default:
-                    pl.handle_print_or_log({"Tick tock."});
-                    break;
-            }
-
-            er = enet_host_check_events(server_, &event_server_);
-        }
-
-        // in another the p2p_client calls stall when testing
-        do_p2p_clients_from_other_thread();
-    }
-
-    enet_host_destroy(server_);
-    enet_deinitialize();
-
-    return 1;
-}
-

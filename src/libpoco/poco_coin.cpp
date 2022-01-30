@@ -340,20 +340,16 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
 
             // lookup in rocksdb
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-            uint32_t peer_ip = value_j["ip"];
+            std::string peer_ip = value_j["ip"];
 
             delete rocksy;
             
             std::string message = message_j.dump();
 
-            pl.handle_print_or_log({"Preparation for intro_block coin:", std::to_string(peer_ip)});
-
-            std::string ip_from_peer;
-            Crowd::P2p p2p;
-            p2p.number_to_ip_string(peer_ip, ip_from_peer);
+            pl.handle_print_or_log({"Preparation for intro_block coin:", peer_ip});
 
             // p2p_client() to all chosen ones with intro_peer request
-            pn.p2p_client(ip_from_peer, message);
+            pn.p2p_client(peer_ip, message);
         }
 
         // Give the chosen_ones their reward:
