@@ -13,7 +13,7 @@ using boost::asio::ip::tcp;
 using namespace Crowd;
 
 std::string P2pNetwork::closed_client_ = "";
-std::string P2pNetwork::ip_new_co_ = 0;
+std::string P2pNetwork::ip_new_co_ = "";
 
 void P2pClient::handle_read_client(p2p_message read_msg_client)
 {
