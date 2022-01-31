@@ -520,6 +520,8 @@ void P2pClient::do_write()
 
 int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 {
+    Common::Print_or_log pl;
+
     try
     {
         boost::asio::io_context io_context;
@@ -533,12 +535,12 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
 
         P2pNetwork pn;
         std::vector<std::string> splitted = pn.split(message, p2p_message::max_body_length);
-        p2p_message resp_msg;
         for (int i = 0; i < splitted.size(); i++)
         {
-            char s[p2p_message::max_body_length];
+            char s[p2p_message::max_body_length + 1];
             strncpy(s, splitted[i].c_str(), sizeof(s));
 
+            p2p_message resp_msg;
             resp_msg.body_length(std::strlen(s));
             std::memcpy(resp_msg.body(), s, resp_msg.body_length());
             i == splitted.size() - 1 ? resp_msg.encode_header(1) : resp_msg.encode_header(0); // 1 indicates end of message eom, TODO perhaps a set_eom_flag(true) instead of an int
@@ -546,7 +548,6 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
             c.write(resp_msg);
         }
 
-        c.close();
         t.join();
     }
     catch (std::exception &e)
