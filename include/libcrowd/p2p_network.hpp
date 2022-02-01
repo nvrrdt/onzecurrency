@@ -64,24 +64,6 @@ namespace Crowd
         {
             quit_server_ = quit;
         }
-        static bool is_connected_to_server(std::string ip_s)
-        {
-            for (int i = 0; i < connected_to_server_.size(); i++)
-            {
-Common::Print_or_log pl;
-pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)});
-                if (ip_s == connected_to_server_.at(i))
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-                    return true;
-                }
-
-                if (i = connected_to_server_.size() - 1) return false;
-            }
-
-            return false;
-        }
 
         static void add_to_p2p_clients_from_other_thread(std::string ip, std::string message)
         {
@@ -102,24 +84,6 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
 
         static bool quit_server_;
     private:
-        static void add_to_connected_to_server(std::string connected_peer)
-        {
-            connected_to_server_.push_back(connected_peer);
-        }
-
-        static void remove_from_connected_to_server(std::string connected_peer)
-        {
-            for (int i = 0; i < connected_to_server_.size(); i++)
-            {
-                if (connected_to_server_.at(i) == connected_peer) connected_to_server_.erase(connected_to_server_.begin() + i);
-            }
-        }
-
-        static std::vector<std::string> get_connected_to_server()
-        {
-            return connected_to_server_;
-        }
-
         static void add_to_client_calls(std::string ip_s)
         {
             client_calls_.push_back(ip_s);
@@ -150,7 +114,6 @@ pl.handle_print_or_log({"____0001234", ip_s, " ss ", connected_to_server_.at(i)}
             p2p_clients_from_other_thread_.clear();
         }
 
-        static std::vector<std::string> connected_to_server_;
         static std::vector<std::string> client_calls_;
         static std::vector<std::pair<std::string, std::string>> p2p_clients_from_other_thread_;
     };

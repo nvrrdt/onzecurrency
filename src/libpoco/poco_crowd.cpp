@@ -306,16 +306,8 @@ pl.handle_print_or_log({"__003", "chosen_ones sent", v});
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
-
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message);
         }
 
         // Should also fill the sent block vector
@@ -423,16 +415,8 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
-                    
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message);
 
             pl.handle_print_or_log({"____000000_0_2"});
         }

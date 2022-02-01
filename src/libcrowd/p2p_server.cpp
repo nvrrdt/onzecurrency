@@ -19,7 +19,6 @@ using namespace Common;
 using namespace Crowd;
 
 bool P2pNetwork::quit_server_ = false;
-std::vector<std::string> P2pNetwork::connected_to_server_ = {};
 std::vector<std::pair<std::string, std::string>> P2pNetwork::p2p_clients_from_other_thread_ = {};
 
 void P2pSession::handle_read_server(p2p_message read_msg_server)
@@ -312,17 +311,9 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                         }
                         if (cont) continue;
 
-                        for (;;)
-                        {
-                            if (pn.is_connected_to_server(ip_underlying) == false)
-                            {
-                                // message to non-connected peers
-                                std::string message = message_j.dump();
-                                pn.p2p_client(ip_underlying, message);
-                                
-                                break;
-                            }
-                        }
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        pn.p2p_client(ip_underlying, message);
                     }
                     delete rocksy;
                 }
@@ -341,17 +332,9 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                     }
                 }
                 if (cont) continue;
-                
-                for (;;)
-                {
-                    if (pn.is_connected_to_server(ip) == false)
-                    {
-                        std::string message = message_j.dump();
-                        pn.p2p_client(ip, message);
 
-                        break;
-                    }
-                }
+                std::string message = message_j.dump();
+                pn.p2p_client(ip, message);
             }
 
             // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
@@ -591,16 +574,9 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
 
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with new_peer request
+            pn.p2p_client(peer_ip, message);
         }
 
         delete bm;
@@ -765,16 +741,8 @@ pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
-                    
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message);
         }
 
         delete bm;
@@ -1007,16 +975,8 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message);
-
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message);
         }
 pl.handle_print_or_log({"___10"});
     }
@@ -1236,16 +1196,8 @@ pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         }
         if (cont) continue;
 
-        for (;;)
-        {
-            if (pn.is_connected_to_server(peer_ip) == false)
-            {
-                // p2p_client() to all chosen ones with intro_peer request
-                pn.p2p_client(peer_ip, message);
-
-                break;
-            }
-        }
+        // p2p_client() to all chosen ones with intro_peer request
+        pn.p2p_client(peer_ip, message);
     }
 }
 
@@ -1392,16 +1344,8 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             }
             if (cont) continue;
 
-            for (;;)
-            {
-                if (pn.is_connected_to_server(peer_ip) == false)
-                {
-                    // p2p_client() to all chosen ones with intro_peer request
-                    pn.p2p_client(peer_ip, message_s);
-                    
-                    break;
-                }
-            }
+            // p2p_client() to all chosen ones with intro_peer request
+            pn.p2p_client(peer_ip, message_s);
         }
 
         // update this rocksdb
@@ -1570,16 +1514,8 @@ void P2pSession::new_online(nlohmann::json buf_j)
         }
         if (cont) continue;
 
-        for (;;)
-        {
-            if (pn.is_connected_to_server(peer_ip) == false)
-            {
-                // p2p_client() to all chosen ones with intro_peer request
-                pn.p2p_client(peer_ip, message_s);
-                
-                break;
-            }
-        }
+        // p2p_client() to all chosen ones with intro_peer request
+        pn.p2p_client(peer_ip, message_s);
     }
 
     // update this rocksdb
