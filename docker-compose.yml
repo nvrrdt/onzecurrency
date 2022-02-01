@@ -4,3 +4,7 @@ services:
     build: .
     volumes:
       - .:/onzecurrency
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=${DISPLAY}
+    network_mode: host

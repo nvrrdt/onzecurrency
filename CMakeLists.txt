@@ -6,7 +6,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM gtkmm-3.0)
+
 add_subdirectory(src/ui/terminal)
+add_subdirectory(src/ui/desktop)
 add_subdirectory(src/libpoco)
 add_subdirectory(src/libcoin)
 add_subdirectory(src/libcommon)
