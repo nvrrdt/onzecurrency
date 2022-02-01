@@ -19,7 +19,6 @@ using namespace Common;
 using namespace Crowd;
 
 bool P2pNetwork::quit_server_ = false;
-std::vector<std::pair<std::string, std::string>> P2pNetwork::p2p_clients_from_other_thread_ = {};
 
 void P2pSession::handle_read_server(p2p_message read_msg_server)
 {

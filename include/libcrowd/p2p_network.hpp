@@ -40,8 +40,6 @@ namespace Crowd
         int p2p_client(std::string ip_s, std::string message);
         std::vector<std::string> split(const std::string& str, int splitLength);
 
-        int p2p_client_impl(std::string ip_s, std::string message);
-
         static void set_closed_client(std::string closed)
         {
             closed_client_ = closed;
@@ -64,15 +62,6 @@ namespace Crowd
         {
             quit_server_ = quit;
         }
-
-        static void add_to_p2p_clients_from_other_thread(std::string ip, std::string message)
-        {
-            std::pair<std::string, std::string> p;
-            p.first = ip;
-            p.second = message;
-
-            p2p_clients_from_other_thread_.push_back(p);
-        }
     private:
         static bool get_quit_server_req()
         {
@@ -83,39 +72,6 @@ namespace Crowd
         static std::string ip_new_co_;
 
         static bool quit_server_;
-    private:
-        static void add_to_client_calls(std::string ip_s)
-        {
-            client_calls_.push_back(ip_s);
-        }
-
-        static void remove_from_client_calls(std::string ip_s)
-        {
-            for (int i = 0; i < client_calls_.size(); i++)
-            {
-                if (client_calls_.at(i) == ip_s) client_calls_.erase(client_calls_.begin() + i);
-            }
-        }
-
-        static std::vector<std::string> get_client_calls()
-        {
-            return client_calls_;
-        }
-
-        static void do_p2p_clients_from_other_thread()
-        {
-            P2pNetwork pn;
-
-            for (auto& el: p2p_clients_from_other_thread_)
-            {
-                pn.p2p_client(el.first, el.second);
-            }
-
-            p2p_clients_from_other_thread_.clear();
-        }
-
-        static std::vector<std::string> client_calls_;
-        static std::vector<std::pair<std::string, std::string>> p2p_clients_from_other_thread_;
     };
 
     typedef std::deque<p2p_message> p2p_message_queue;
