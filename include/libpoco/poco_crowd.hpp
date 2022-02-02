@@ -58,6 +58,8 @@ namespace Poco
                     new_users_ip_.push_back(ip);
                 }
             }
+
+            if (new_users_ip_.empty()) new_users_ip_.push_back(ip);
         }
 
         static void clear_new_users_ip()
