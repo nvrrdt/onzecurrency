@@ -48,7 +48,7 @@ view the log files in the log folder with your preferred tool
 - rm -rf /onzecurrency/.config && onze-terminal # do in each terminal  
 
    Continuation: fill in an email address in the first server (a first/genesis is created then, do an 'ls /onzecurrency/.config/onzehub/blockchain/crowd after the test procedure), then fill in an email address in the second server. Wait 20 seconds (the block creation period) and let then run until '--------5:' appears. Then fill in an email address in the third server, wait 20 seconds, let it run, then fill the email address in the fourth server and let it run. At the fourth server the second server will get its full_hash (== user_id) and a second block will be created (do an ls!). '--------5:' denotes the end of the minig and sifting process. If you then fill in an email address for the fifth server, then the third server will receive its full_hash and a third block will be created.  
-This process of adding more servers should be able to continue limitlessly, unfortunately the software isn't yet as stable as should be for this endeavour.  
+This process of adding more servers should be able to continue limitlessly.
 Adding two or more servers within the block creation period results in adding two new users as an entry in the concerning block.
 #### doing a new test procedure on the server
 - dpkg -i ./onzecurrency-0.1.1-Linux.deb && apt-get -f install && rm -rf /onzecurrency/.config && onze-terminal  
