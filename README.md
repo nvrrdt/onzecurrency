@@ -34,7 +34,7 @@ so e.g. a problem with the face recognition or fingerprint scanner has a huge im
 - scripts/logs_analyzer.py -a    # assemble (erge and sort and reverse) one log file of all the log files
 - scripts/logs_analyzer.py -s searchterm  # search in all the log files
 
-view the log files in the log folder with your preferred tool
+view the log files in the log folder (in /onzecurrency/...) with your preferred tool
 
 ##### manually
 
