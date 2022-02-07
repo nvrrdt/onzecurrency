@@ -1,14 +1,11 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-
 namespace UI
 {
-    class main
+    class Bridge
     {
     public:
-
+        int do_bridge();
     private:
     };
 }

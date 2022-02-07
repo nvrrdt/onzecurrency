@@ -3,6 +3,8 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 
 find_package(Threads)
 
+link_directories(${GTKMM_LIBRARY_DIRS})
+
 add_library(crowd SHARED
                      configdir.cpp
                      block.cpp
@@ -19,7 +21,9 @@ add_library(crowd SHARED
 )
 
 target_include_directories(crowd PUBLIC
+                        ${GTKMM_INCLUDE_DIRS}
                         "${PROJECT_SOURCE_DIR}/include/ui/terminal"
+                        "${PROJECT_SOURCE_DIR}/include/ui/desktop"
                         "${PROJECT_SOURCE_DIR}/include/libcommon"
                         "${PROJECT_SOURCE_DIR}/include/liblogin"
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"

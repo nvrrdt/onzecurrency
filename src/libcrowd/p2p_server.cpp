@@ -13,12 +13,15 @@
 #include <boost/asio.hpp>
 #include "p2p_message.hpp"
 
+#include "desktop.hpp"
+
 using boost::asio::ip::tcp;
 
 using namespace Common;
 using namespace Crowd;
 
 bool P2pNetwork::quit_server_ = false;
+bool UI::Normal::goto_normal_mode_ = false;
 
 void P2pSession::handle_read_server(p2p_message read_msg_server)
 {
@@ -1403,6 +1406,10 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         }
 
         delete rocksy;
+
+        // Signal the gui, go from Setup to Crowd there
+        UI::Normal n;
+        n.set_goto_normal_mode(true);
     }
     else
     {
@@ -1660,6 +1667,10 @@ pl.handle_print_or_log({"__05_s"});
 //         pl.handle_print_or_log({"___00block matrix entries", std::to_string(i), "update", std::to_string(j), "(oldest first)", content_j.dump()});
 //     }
 // }
+
+    // Signal the gui, go from Setup to Crowd there
+    UI::Normal n;
+    n.set_goto_normal_mode(true);
 }
 
 void P2pSession::set_resp_msg_server(std::string msg)
