@@ -24,8 +24,16 @@ int main(int argc, char *argv[])
     Common::Print_or_log pl;
     pl.init();
 
+    // The TUI
+    std::string network = "Default", email = "", password = "";
+    // std::cout << "Network [Default]: ";
+    // std::getline(std::cin, network);
+    // std::cin >> network;
+    std::cout << "Email adress: ";
+    std::cin >> email;
+
     Auth a;
-    std::map<std::string, std::string> cred = a.authentication();
+    std::map<std::string, std::string> cred = a.authentication(network, email);
 
     if (cred["error"] == "true")
     {

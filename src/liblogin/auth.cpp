@@ -17,21 +17,11 @@
 
 using namespace Crowd;
 
-std::map<std::string, std::string> Auth::authentication()
+std::map<std::string, std::string> Auth::authentication(std::string network, std::string email)
 {
-    std::string network = "Default", email = "", password = "";
-
-    // std::cout << "Network [Default]: ";
-    // std::getline(std::cin, network);
-    // std::cin >> network;
-    std::cout << "Email adress: ";
-    std::cin >> email;
-    // std::cout << "Password: ";
-    // std::cin >> password;
-
-    // if (network == "") network = "Default";
-
-    std::map<std::string, std::string> cred = Auth::verifyCredentials(email, password);
+    if (network == "") network = "Default";
+    
+    std::map<std::string, std::string> cred = Auth::verifyCredentials(email);
 
     if (Auth::validateEmail(email) == true && Auth::setNetwork(network) == true && cred["error"] == "false")
     {
@@ -67,7 +57,7 @@ bool Auth::setNetwork(std::string &network)
 /**
  * verifyCredentials:
  */
-std::map<std::string, std::string> Auth::verifyCredentials(std::string &email, std::string &password)
+std::map<std::string, std::string> Auth::verifyCredentials(std::string &email)
 {
     Common::Print_or_log pl;
 

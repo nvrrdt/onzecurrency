@@ -1,5 +1,14 @@
 #include "desktop.hpp"
 
+#include "auth.hpp"
+#include "p2p.hpp"
+#include "json.hpp"
+#include "p2p_network.hpp"
+#include "p2p_network_c.hpp"
+
+#include "print_or_log.hpp"
+#include "configdir.hpp"
+
 using namespace UI;
 
 Form::Form()
@@ -11,6 +20,8 @@ Form::Form()
     tabControlSetup.set_show_tabs(false);
     fixed.add(tabControlSetup);
     fixed.move(tabControlSetup, 0, 0);
+
+    page_setup1_create();
 
     tabPageSetup1.show();
     tabPageSetup2.show();
@@ -43,4 +54,83 @@ Form::Form()
     set_title("onze-desktop");
     resize(800, 600);
     show_all();
+}
+
+void Form::page_setup1_create()
+{
+    tabPageSetup1.add(fixedTabPageCreate);
+
+    fixedTabPageCreate.add(grid_setup1);
+    fixedTabPageCreate.move(grid_setup1, 250, 250);
+
+    label_network.set_text("Network:");
+    label_network.set_width_chars(9);
+    label_email.set_text("Email:");
+    label_email.set_width_chars(9);
+
+    grid_setup1.attach(label_network, 0, 0, 1, 1);
+    grid_setup1.attach(entry_network, 1, 0, 1, 1);
+    grid_setup1.attach(label_email, 0, 1, 1, 1);
+    grid_setup1.attach(entry_email, 1, 1, 1, 1);
+
+    entry_network.set_max_length(80);
+    network_s = entry_network.get_text();
+    entry_email.set_max_length(80);
+    email_s = entry_email.get_text();
+
+    button_create.add_label("Create user");
+
+    fixedTabPageCreate.add(button_create);
+    fixedTabPageCreate.move(button_create, 400, 330);
+
+    button_create.signal_clicked().connect( sigc::mem_fun(*this,
+              &Form::on_button_create_clicked) );
+}
+
+void Form::on_button_create_clicked()
+{
+    Common::Print_or_log pl;
+    pl.init();
+
+    Crowd::Auth a;
+    auto cred = a.authentication(network_s, email_s);
+
+    if (cred["error"] == "true")
+    {
+        pl.handle_print_or_log({"Error with authenticating"});
+                
+        return;
+    } else {
+        // Create log directory
+        ConfigDir cd;
+        cd.CreateDirInConfigDir("log");
+
+        // start crowd
+        std::packaged_task<void()> task1([cred] {
+            P2p p;
+            p.start_crowd(cred);
+        });
+        // Run task on new thread.
+        std::thread t1(std::move(task1));
+
+        // start coin
+        std::packaged_task<void()> task2([cred] {
+            // P2pNetworkC pnc;
+            // pnc.start_coin();
+        });
+        // Run task on new thread.
+        std::thread t2(std::move(task2));
+
+        // start server
+        std::packaged_task<void()> task3([] {
+            P2pNetwork pn;
+            pn.p2p_server();
+        });
+        // Run task on new thread.
+        std::thread t3(std::move(task3));
+
+        t1.join();
+        t2.join();
+        t3.join();
+    }
 }

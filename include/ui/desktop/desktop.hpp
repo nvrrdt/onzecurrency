@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <gtkmm.h>
 
 using namespace Glib;
@@ -13,6 +14,10 @@ namespace UI
     public:
         Form();
     private:
+        void page_setup1_create();
+        void on_button_create_clicked();
+    private:
+        // Form
         Fixed fixed;
         ScrolledWindow scrolledWindow;
         Notebook tabControlSetup;
@@ -24,6 +29,17 @@ namespace UI
         Frame tabPageNormal1;
         Frame tabPageNormal2;
         Fixed fixedTabPageNormal;
+
+        // page_setup1_create
+        Fixed fixedTabPageCreate;
+        Grid grid_setup1;
+        Label label_network;
+        Label label_email;
+        Entry entry_network;
+        Entry entry_email;
+        Button button_create;
+        std::string network_s;
+        std::string email_s;
     };
 
     class Normal

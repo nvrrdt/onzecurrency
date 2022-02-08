@@ -11,8 +11,7 @@ find_package(CryptoPP REQUIRED PATHS "${PROJECT_SOURCE_DIR}/build/cryptopp")
 link_directories(${GTKMM_LIBRARY_DIRS})
 
 add_executable(onze-desktop main.cpp
-                        desktop.cpp
-                        bridge.cpp)
+                        desktop.cpp)
 
 target_include_directories(onze-desktop PUBLIC
                           ${GTKMM_INCLUDE_DIRS}

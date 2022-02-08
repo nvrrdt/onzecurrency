@@ -116,15 +116,11 @@
 // };
 
 #include "desktop.hpp"
-#include "bridge.hpp"
 
 using namespace UI;
 
 int main(int argc, char *argv[])
 {
-    Bridge bridge;
-    bridge.do_bridge();
-    
     RefPtr<Application> application = Application::create(argc, argv);
     Form form;
 
