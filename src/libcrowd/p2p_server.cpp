@@ -182,7 +182,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
         std::string prel_first_full_hash_req =  crypto->bech32_encode_sha256(hash_of_email_prev_hash_concatenated);
 
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+        std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
         pl.handle_print_or_log({"______: ", "fh =", prel_first_full_hash_req, "ph =", prel_first_prev_hash_req, email_of_req});
 
@@ -453,7 +453,7 @@ void P2pSession::intro_prel_block(nlohmann::json buf_j)
     std::string full_hash_coord = buf_j["full_hash_coord"];
 
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     nlohmann::json message_j;
 
@@ -608,7 +608,7 @@ void P2pSession::new_prel_block(nlohmann::json buf_j)
     std::string full_hash_coord = buf_j["full_hash_coord"];
 
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     nlohmann::json message_j;
 
@@ -741,7 +741,7 @@ void P2pSession::intro_final_block(nlohmann::json buf_j)
     nlohmann::json rocksdb_j = buf_j["rocksdb"];
 
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
@@ -965,7 +965,7 @@ void P2pSession::new_final_block(nlohmann::json buf_j)
     }
     
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
@@ -1125,7 +1125,7 @@ void P2pSession::your_full_hash(nlohmann::json buf_j)
 
     // save full_hash
     FullHash fh;
-    fh.save_full_hash_to_file(full_hash);
+    fh.save_full_hash(full_hash);
 
     // save prev_hash
     PrevHash ph;
@@ -1188,7 +1188,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         // inform the network of new online presence
         Protocol proto;
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
@@ -1340,7 +1340,7 @@ void P2pSession::new_online(nlohmann::json buf_j)
 
     Protocol proto;
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file();
+    std::string my_full_hash = fh.get_full_hash();
     std::map<int, std::string> parts;
 
     for (int i = 0; i < buf_j["chosen_ones"].size(); i++)

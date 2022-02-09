@@ -45,7 +45,7 @@ void P2pNetworkC::start_coin()
             
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
             FullHash fh;
-            std::string my_full_hash = fh.get_full_hash_from_file();
+            std::string my_full_hash = fh.get_full_hash();
             PrevHash ph;
             std::string hash_latest_block = ph.calculate_hash_from_last_block();
             std::string prel_coordinator = my_full_hash + hash_latest_block;

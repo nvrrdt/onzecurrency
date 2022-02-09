@@ -251,7 +251,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
     pl.handle_print_or_log({"inform_chosen_ones_c"});
 
     Crowd::FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();

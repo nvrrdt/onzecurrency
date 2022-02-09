@@ -40,6 +40,7 @@ namespace UI
         Button button_create;
         std::string network_s;
         std::string email_s;
+        bool input_setup1_create_ok = false;
     };
 
     class Normal

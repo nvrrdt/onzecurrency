@@ -9,6 +9,8 @@
 #include "print_or_log.hpp"
 #include "configdir.hpp"
 
+#include "full_hash.hpp"
+
 using namespace UI;
 
 Form::Form()
@@ -33,10 +35,21 @@ Form::Form()
     tabControlSetup.insert_page(tabPageSetup3, "Normal", 2);
     tabControlSetup.insert_page(tabPageSetup4, "Exit", 3);
 
+    FullHash fh;
     Normal n;
-    if (n.get_goto_normal_mode())
+    std::string my_full_hash = fh.get_full_hash();
+    if (my_full_hash == "" && !input_setup1_create_ok)
     {
-        tabControlSetup.set_current_page(2);
+        tabControlSetup.set_current_page(0);
+    }
+    else
+    {
+        tabControlSetup.set_current_page(1);
+
+        if (n.get_goto_normal_mode())
+        {
+            tabControlSetup.set_current_page(2);
+        }
     }
 
     tabPageSetup2.add(fixedTabPageNormal);
@@ -101,6 +114,8 @@ void Form::on_button_create_clicked()
                 
         return;
     } else {
+        input_setup1_create_ok = true;
+
         // Create log directory
         ConfigDir cd;
         cd.CreateDirInConfigDir("log");

@@ -194,7 +194,7 @@ void P2pClient::your_full_hash_client(nlohmann::json buf_j)
 
     // save full_hash
     FullHash fh;
-    fh.save_full_hash_to_file(full_hash);
+    fh.save_full_hash(full_hash);
 
     // save prev_hash
     PrevHash ph;

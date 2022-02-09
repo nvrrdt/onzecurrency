@@ -60,7 +60,7 @@ bool Verification::compare_email_with_saved_full_hash(std::string & email_addres
     std::string full_hash_calc = crypto.bech32_encode_sha256(email_prev_hash_app);
 
     FullHash fh;
-    std::string full_hash_from_file =  fh.get_full_hash_from_file();
+    std::string full_hash_from_file =  fh.get_full_hash();
 // pl.handle_print_or_log({"prev calc: " << prev_hash});
 // pl.handle_print_or_log({"full calc:", full_hash_calc, ", full file:", full_hash_from_file});
     if (full_hash_calc == full_hash_from_file)

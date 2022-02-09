@@ -110,7 +110,7 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         pl.handle_print_or_log({"Hello_tx: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         PrevHash ph;
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
@@ -281,7 +281,7 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         pl.handle_print_or_log({"Intro_tx: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         PrevHash ph;
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
@@ -474,7 +474,7 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
         pl.handle_print_or_log({"New_tx: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         PrevHash ph;
         std::string hash_latest_block = ph.calculate_hash_from_last_block();
@@ -663,7 +663,7 @@ void P2pNetworkC::hello_reward(nlohmann::json buf_j)
         pl.handle_print_or_log({"Hello_reward: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string chosen_ones_s = chosen_ones_reward.dump();
@@ -818,7 +818,7 @@ void P2pNetworkC::intro_reward(nlohmann::json buf_j)
         pl.handle_print_or_log({"Intro_reward: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         bool is_chosen_one = false;
         for (int i = 0; i < chosen_ones.size(); i++)
@@ -993,7 +993,7 @@ void P2pNetworkC::new_reward(nlohmann::json buf_j)
         pl.handle_print_or_log({"New_reward: verified"});
         
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file();
+        std::string my_full_hash = fh.get_full_hash();
 
         bool is_chosen_one = false;
         for (int i = 0; i < chosen_ones.size(); i++)
@@ -1237,7 +1237,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
     delete rocksy;
 
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file();
+    std::string my_full_hash = fh.get_full_hash();
 
     if (full_hash_coord_from_coord == full_hash_coord_from_me)
     {
@@ -1284,7 +1284,7 @@ void P2pNetworkC::intro_block_c(nlohmann::json buf_j)
         nlohmann::json chosen_ones = buf_j["chosen_ones"];
 
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+        std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
         // pl.handle_print_or_log({"My_full_hash already present in file:", my_full_hash});
 
         int j;

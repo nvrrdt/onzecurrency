@@ -9,8 +9,9 @@ namespace Crowd
     class FullHash
     {
     public:
-        void save_full_hash_to_file(std::string &full_hash);
-        std::string get_full_hash_from_file();
+        static void save_full_hash(std::string &full_hash);
+        static std::string get_full_hash();
     private:
+        static std::string full_hash_;
     };
 }

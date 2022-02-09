@@ -215,7 +215,7 @@ pl.handle_print_or_log({"--------5:"});
 void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j)
 {
     Crowd::FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
     Common::Print_or_log pl;
     // pl.handle_print_or_log({"My_full_hash already present in file:__ ", my_full_hash});
 
@@ -327,7 +327,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     Common::Print_or_log pl;
 
     Crowd::FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     Crypto* crypto = new Crypto();
     std::string block_s = final_block_j.dump();
@@ -433,7 +433,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
 // pl.handle_print_or_log({"intro_msg_s", std::to_string(intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(place_in_mat).at(0).size())});
 
     Crowd::FullHash fh;
-    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
     Crypto* crypto = new Crypto();
     std::string block_s = final_block_j.dump();

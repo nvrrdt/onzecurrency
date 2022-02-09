@@ -23,6 +23,8 @@
 
 using namespace Crowd;
 
+std::string FullHash::full_hash_ = "";
+
 bool P2p::start_crowd(std::map<std::string, std::string> cred)
 {
     Common::Print_or_log pl;
@@ -192,7 +194,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
                     // Save the full_hash to file
                     FullHash fh;
-                    fh.save_full_hash_to_file(full_hash);
+                    fh.save_full_hash(full_hash);
 
                     // Save the prev_hash to file
                     PrevHash ph;
@@ -277,7 +279,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
             FullHash fh;
-            std::string my_full_hash = fh.get_full_hash_from_file();
+            std::string my_full_hash = fh.get_full_hash();
 
             for (int i = 0; i < 100; i++)
             {
