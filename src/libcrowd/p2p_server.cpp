@@ -29,13 +29,11 @@ void P2pSession::handle_read_server(p2p_message read_msg_server)
     if ( !read_msg_server.get_eom_flag()) {
         std::string str_read_msg(read_msg_server.body());
         buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
-pl.handle_print_or_log({"___0000444 buf", str_read_msg});
     } else {
         // process json message
         std::string str_read_msg(read_msg_server.body());
         buf_server_ += str_read_msg.substr(0, read_msg_server.get_body_length());
         nlohmann::json buf_j = nlohmann::json::parse(buf_server_);
-pl.handle_print_or_log({"___0000444 eom", str_read_msg});
 
         std::string req = buf_j["req"];
         std::map<std::string, int> req_conversion;
@@ -202,7 +200,6 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
 
             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
-pl.handle_print_or_log({"____00222_0 Is this run?"});
                 // Send first block to peer to enable datetime synchonisation
                 nlohmann::json first_block_j = proto->get_block_at("0");
 
@@ -210,7 +207,6 @@ pl.handle_print_or_log({"____00222_0 Is this run?"});
                 msg["req"] = "send_first_block";
                 msg["block"] = first_block_j;
                 set_resp_msg_server(msg.dump());
-pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             }
 
             // Disconect from client
@@ -248,7 +244,6 @@ pl.handle_print_or_log({"____00222_2 Is this run?", msg.dump()});
             Poco::BlockMatrix bm;
             for (int i = 1; i <= parts.size(); i++)
             {
-pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
 
@@ -288,12 +283,9 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
                     Rocksy* rocksy = new Rocksy("usersdbreadonly");
                     for (int i = 1; i <= parts_underlying.size(); i++)
                     {
-// pl.handle_print_or_log({"___i2: ", i,", parts_underlying: ", parts_underlying[i], ", my_full_hash: ", my_full_hash});
-// pl.handle_print_or_log({"i2: ", i, " val2: ", parts_underlying[i]});
                         if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                         if (parts_underlying[i] == my_full_hash) continue;
 
-// pl.handle_print_or_log({"i2: ", i, " parts_underlying: ", parts_underlying[i], ", my_full_hash: ", my_full_hash});
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
                         nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
@@ -351,18 +343,14 @@ pl.handle_print_or_log({"i: ", std::to_string(i), ", val: ", parts[i]});
 
             nlohmann::json message_j;
             message_j["req"] = "new_co";
-pl.handle_print_or_log({"prel_first_coordinator_server:______ ", prel_first_coordinator_server});
 
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
-pl.handle_print_or_log({"usersdb size:______ ", (rocksy->TotalAmountOfPeers()).str()});
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
-pl.handle_print_or_log({"______000111_0 does new_co works? ", (value_j["ip"]).dump()});
             std::string peer_ip = value_j["ip"];
             delete rocksy;
-pl.handle_print_or_log({"______000111_1 ", (value_j["ip"]).dump()});
+
             message_j["ip_co"] = peer_ip;
             set_resp_msg_server(message_j.dump());
-pl.handle_print_or_log({"______000111_2 "});
         }
         
         delete crypto;
@@ -485,7 +473,6 @@ void P2pSession::intro_prel_block(nlohmann::json buf_j)
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
-pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (i != chosen_ones.size() - 1)
@@ -498,24 +485,17 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
                 }
             }
         }
-pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
-        Crowd::Protocol proto;
-std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k11;
-std::string v11;
-for (auto& [k11, v11]: parts11)
-{
-    pl.handle_print_or_log({"___0400 the whole db", v11});
-}
+
+        Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-pl.handle_print_or_log({"___05"});
+
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_prel_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["prev_hash"] = buf_j["prev_hash"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
-pl.handle_print_or_log({"___06"});
+
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -539,19 +519,17 @@ pl.handle_print_or_log({"___06"});
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-pl.handle_print_or_log({"___07"});
+
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
         int key;
         std::string val;
         for (auto &[key, val] : parts)
         {
-pl.handle_print_or_log({"___08 introprel chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -582,7 +560,6 @@ pl.handle_print_or_log({"___09 introprel new chosen_ones", val});
         }
 
         delete bm;
-pl.handle_print_or_log({"___10"});
     }
     else
     {
@@ -651,7 +628,6 @@ void P2pSession::new_prel_block(nlohmann::json buf_j)
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
-pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (i != chosen_ones.size() - 1)
@@ -664,31 +640,24 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
                 }
             }
         }
-pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
-        Crowd::Protocol proto;
-std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k11;
-std::string v11;
-for (auto& [k11, v11]: parts11)
-{
-    pl.handle_print_or_log({"___0400 the whole db", v11});
-}
+
+        Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-pl.handle_print_or_log({"___05"});
+
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_prel_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["prev_hash"] = buf_j["prev_hash"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
-pl.handle_print_or_log({"___06"});
+
         int k;
         std::string v;
         for (auto &[k, v] : parts)
         {
             message_j["chosen_ones"].push_back(v);
         }
-pl.handle_print_or_log({"___07"});
+
         to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
         to_sign_j["block"] = message_j["block"];
         to_sign_j["prev_hash"] = message_j["prev_hash"];
@@ -705,20 +674,18 @@ pl.handle_print_or_log({"___07"});
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-pl.handle_print_or_log({"___08"});
+
         Crowd::P2pNetwork pn;
         Poco::Synchronisation sync;
         int key;
         std::string val;
         for (auto &[key, val] : parts)
         {
-pl.handle_print_or_log({"___08 newprel chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
             
-pl.handle_print_or_log({"___09 newprel new chosen_ones", val});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -781,18 +748,13 @@ void P2pSession::intro_final_block(nlohmann::json buf_j)
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
     Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
-    
-pl.handle_print_or_log({"________0000000 me", full_hash_coord_from_me,"coord", full_hash_coord_from_coord});
-pl.handle_print_or_log({"________0000001 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
+
     delete rocksy;
 
 
     if (full_hash_coord_from_me == full_hash_coord_from_coord)
     {
         pl.handle_print_or_log({"Coordinator is truthful"});
-
-pl.handle_print_or_log({"block_nr:", recv_latest_block_nr_s});
-pl.handle_print_or_log({"block:", recv_block_s});
 
         // Save block
         merkle_tree mt;
@@ -810,16 +772,7 @@ pl.handle_print_or_log({"block:", recv_block_s});
             delete rocksy2;
         }
 
-Crowd::Protocol proto;
-std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k1;
-std::string v1;
-for (auto &[k1, v1] : partsx)
-{
-    pl.handle_print_or_log({"___000110 intro_final_block", std::to_string(k1), v1});
-}
-
-//Protocol proto;
+        Protocol proto;
         nlohmann::json saved_block_at_place_i = proto.get_block_at(recv_latest_block_nr_s);
         std::string saved_block_at_place_i_s = saved_block_at_place_i.dump();
         std::string prev_hash_from_saved_block_at_place_i = crypto.bech32_encode_sha256(saved_block_at_place_i_s);
@@ -855,19 +808,16 @@ for (auto &[k1, v1] : partsx)
         {
             if (i < j)
             {
-pl.handle_print_or_log({"___000_"});
                 if (chosen_ones[i] == buf_j["full_hash_coord"]) continue;
 
                 std::string c_one = chosen_ones[i];
-pl.handle_print_or_log({"___00 c_one", c_one});
+
                 Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
                 nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(c_one));
-//pl.handle_print_or_log({"___01 value_j", value_j.dump()});
                 delete rocksy3;
 
                 std::string ip = value_j["ip"];
-pl.handle_print_or_log({"___02"});
-pl.handle_print_or_log({"___02 peer_ip", ip});
+
                 nlohmann::json msg_j;
                 msg_j["req"] = "hash_comparison";
                 msg_j["hash_comp"] = prev_hash_me == prev_hash_from_saved_block_at_place_i;
@@ -880,12 +830,11 @@ pl.handle_print_or_log({"___02 peer_ip", ip});
                 continue;
             }
         }
-pl.handle_print_or_log({"___03"});
+
         // inform your underlying ones from this block
         std::string next_full_hash;
         for (int i = 0; i < chosen_ones.size(); i++)
         {
-pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
             if (chosen_ones[i] == my_full_hash)
             {
                 if (chosen_ones.size() > 1 && i < chosen_ones.size() - 1)
@@ -898,25 +847,16 @@ pl.handle_print_or_log({"___03", "chosen_ones", chosen_ones[i]});
                 }
             }
         }
-pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
-
-std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k11;
-std::string v11;
-for (auto& [k11, v11]: parts11)
-{
-    pl.handle_print_or_log({"___0400 the whole db", v11});
-}
 
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-pl.handle_print_or_log({"___05"});
+
         nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "new_final_block";
         message_j["latest_block_nr"] = buf_j["latest_block_nr"];
         message_j["block"] = buf_j["block"];
         message_j["full_hash_coord"] = buf_j["full_hash_coord"];
         message_j["rocksdb"] = buf_j["rocksdb"];
-pl.handle_print_or_log({"___06"});
+
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -940,19 +880,17 @@ pl.handle_print_or_log({"___06"});
             message_j["signature"] = crypto->base64_encode(signature);
         }
         delete crypto;
-pl.handle_print_or_log({"___07"});
+
         int key;
         std::string val;
         Poco::BlockMatrix bm;
         for (auto &[key, val] : parts)
         {
-pl.handle_print_or_log({"___08 introblock chosen_ones", val});
             if (key == 1) continue;
             if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
             if (val == full_hash_coord_from_coord) continue;
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             Crowd::Rocksy* rocksy4 = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -980,7 +918,6 @@ pl.handle_print_or_log({"___09 introblock new chosen_ones", val});
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(peer_ip, message);
         }
-pl.handle_print_or_log({"___10"});
     }
     else
     {
@@ -1011,9 +948,6 @@ void P2pSession::new_final_block(nlohmann::json buf_j)
     nlohmann::json chosen_ones = buf_j["chosen_ones"];
     nlohmann::json rocksdb_j = buf_j["rocksdb"];
 
-pl.handle_print_or_log({"block_nr:", recv_latest_block_nr_s});
-pl.handle_print_or_log({"block:", recv_block_j.dump()});
-
     // Save block
     merkle_tree mt;
     mt.save_block_to_file(recv_block_j,recv_latest_block_nr_s);
@@ -1029,26 +963,15 @@ pl.handle_print_or_log({"block:", recv_block_j.dump()});
         rocksy->Put(key_s, value_s);
         delete rocksy;
     }
-
-FullHash fh;
-std::string my_full_hash = fh.get_full_hash_from_file();
-Crowd::Protocol proto;
-std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k1;
-std::string v1;
-for (auto &[k1, v1] : partsx)
-{
-    pl.handle_print_or_log({"___000111 new_final_block", std::to_string(k1), v1});
-}
-
-// FullHash fh;
-// std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
+    
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash_from_file(); // TODO this is a file lookup and thus takes time --> static var should be
 
     std::string recv_block_s = recv_block_j.dump();
     Common::Crypto crypto;
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
 
-//Protocol protocol;
+    Protocol proto;
     std::string prev_hash_from_saved_block_at_place_i = proto.get_block_at(recv_latest_block_nr_s);
 
     bool comparison = prev_hash_me == prev_hash_from_saved_block_at_place_i;
@@ -1120,18 +1043,8 @@ for (auto &[k1, v1] : partsx)
             }
         }
     }
-pl.handle_print_or_log({"___04", "\n", "mfh", my_full_hash, "\n", "nfh", next_full_hash});
-
-std::map<int, std::string> parts11 = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k11;
-std::string v11;
-for (auto& [k11, v11]: parts11)
-{
-    pl.handle_print_or_log({"___0400 the whole db", v11});
-}
 
     std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-pl.handle_print_or_log({"___05"});
 
     nlohmann::json message_j, to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
     message_j["req"] = "new_final_block";
@@ -1167,13 +1080,11 @@ pl.handle_print_or_log({"___05"});
     Poco::BlockMatrix bm;
     for (auto &[key, val] : parts)
     {
-pl.handle_print_or_log({"___08 newblock chosen_ones", val});
         if (key == 1) continue;
         if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
         if (val == full_hash_coord_from_coord) continue;
         if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
-pl.handle_print_or_log({"___09 newblock new chosen_ones", val});
         Crowd::Rocksy* rocksy3 = new Crowd::Rocksy("usersdbreadonly");
 
         // lookup in rocksdb
@@ -1222,8 +1133,6 @@ void P2pSession::your_full_hash(nlohmann::json buf_j)
     
     nlohmann::json block_j = buf_j["block"];
     std::string req_latest_block_nr = buf_j["block_nr"];
-// pl.handle_print_or_log({"block_nr:", req_latest_block_nr});
-// pl.handle_print_or_log({"block:", block_j.dump()});
 
     // Update my blocks, rocksdb and matrices
     Protocol proto;
@@ -1556,34 +1465,20 @@ void P2pSession::update_you_server(nlohmann::json buf_j)
         merkle_tree mt;
         mt.save_block_to_file(block_j, block_nr);
     }
-pl.handle_print_or_log({"__00_s"});
+
     // Update rocksdb
     nlohmann::json rdb_j = buf_j["rocksdb"];
-pl.handle_print_or_log({"__00_s", rdb_j.dump()});
+
     for (auto& element : rdb_j)
     {
         std::string key_s = element["full_hash"];
         std::string value_s = element.dump();
-pl.handle_print_or_log({"__00_s k", key_s});
-pl.handle_print_or_log({"__00_s v", value_s});
+
         Rocksy* rocksy = new Rocksy("usersdb");
         rocksy->Put(key_s, value_s);
         delete rocksy;
     }
 
-FullHash fh;
-std::string my_full_hash = fh.get_full_hash_from_file();
-Crowd::Protocol proto;
-std::map<int, std::string> partsx = proto.partition_in_buckets(my_full_hash, my_full_hash);
-int k;
-std::string v;
-for (auto &[k, v] : partsx)
-{
-    pl.handle_print_or_log({"___000112 update_you_server", std::to_string(k), v});
-}
-
-pl.handle_print_or_log({"__01_s"});
-    
     // Update matrices
     nlohmann::json block_matrix_j = buf_j["bm"];
     nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
@@ -1592,11 +1487,11 @@ pl.handle_print_or_log({"__01_s"});
     Poco::BlockMatrix bm;
     Poco::IntroMsgsMat imm;
     Poco::IpAllHashes iah;
-pl.handle_print_or_log({"__02_s"});
+
     bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
     bm.get_calculated_hash_matrix().clear();
     bm.get_prev_hash_matrix().clear();
-pl.handle_print_or_log({"__03_s"});
+
     for (auto& [k1, v1] : block_matrix_j.items())
     {
         for (auto& [k2, v2] : v1.items())
@@ -1610,7 +1505,7 @@ pl.handle_print_or_log({"__03_s"});
         bm.add_calculated_hash_vector_to_calculated_hash_matrix();
         bm.add_prev_hash_vector_to_prev_hash_matrix();
     }
-pl.handle_print_or_log({"__04_s"});
+
     for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
     {
         for (auto& [k2, v2] : v1.items())
@@ -1625,7 +1520,7 @@ pl.handle_print_or_log({"__04_s"});
 
         imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     }
-pl.handle_print_or_log({"__05_s"});
+
     for (auto& [k1, v1] : ip_all_hashes_j.items())
     {
         for (auto& [k2, v2] : v1.items())
@@ -1656,17 +1551,6 @@ pl.handle_print_or_log({"__05_s"});
     {
         ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     }
-
-// // for debugging purposes:
-// auto block_matrix = bm.get_block_matrix();
-// for (int i = 0; i < block_matrix.size(); i++)
-// {
-//     for (int j = 0; j < block_matrix.at(i).size(); j++)
-//     {
-//         nlohmann::json content_j = *block_matrix.at(i).at(j);
-//         pl.handle_print_or_log({"___00block matrix entries", std::to_string(i), "update", std::to_string(j), "(oldest first)", content_j.dump()});
-//     }
-// }
 
     // Signal the gui, go from Setup to Crowd there
     UI::Normal n;

@@ -192,24 +192,10 @@ std::map<int, std::string> Protocol::partition_in_buckets(std::string &my_hash, 
     Rocksy *rocksy = new Rocksy("usersdbreadonly");
     uint256_t count = rocksy->CountPeersFromTo(my_hash, next_hash);
     delete rocksy;
-Common::Print_or_log pl;
-pl.handle_print_or_log({"___00770 count", count.str()});
 
     std::map<uint32_t, uint256_t> chosen_ones_counter = Protocol::layers_management(count);
-uint32_t k;
-uint256_t v;
-for (auto& [k, v]: chosen_ones_counter)
-{
-    if (v != 0) pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(k),"val" , v.str()});
-}
-
     auto h = Protocol::get_calculated_hashes(my_hash, chosen_ones_counter);
-// int key;
-// std::string value;
-// for (auto& [key, value]: h)
-// {
-//     pl.handle_print_or_log({"___00771 chosen_ones_counter", std::to_string(key), value});
-// }
+
     return h;
 }
 

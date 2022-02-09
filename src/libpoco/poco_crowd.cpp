@@ -253,7 +253,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
             if (sync.get_break_block_creation_loops()) break;
 
             if (v == "0" || v == "") break; // TODO the parts need to be refactored everywhere as it's an ugly hack
-pl.handle_print_or_log({"__003", "chosen_ones sent", v});
+
             message_j["chosen_ones"].push_back(v);
         }
 
@@ -360,7 +360,6 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         for (auto &[k, v] : parts)
         {
             message_j["chosen_ones"].push_back(v);
-pl.handle_print_or_log({"___00660", std::to_string(k), v});
         }
 
         to_sign_j["latest_block_nr"] = new_block_nr;
@@ -384,8 +383,6 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            pl.handle_print_or_log({"____000000_0_0"});
-
             if (key == 1) continue;
             //if (val == co_from_this_block) continue; // = coordinator
             //if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
@@ -396,13 +393,9 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
             std::string peer_ip = value_j["ip"];
 
-            //delete rocksy;
+            delete rocksy;
             
             std::string message = message_j.dump();
-
-            pl.handle_print_or_log({"Preparation for intro_final_block:", peer_ip});
-            pl.handle_print_or_log({"____000000_0_1 total amount of peers", (rocksy->TotalAmountOfPeers()).str()});
-            delete rocksy; //
 
             bool cont = false;
             for (auto& el: get_new_users_ip())
@@ -417,11 +410,7 @@ pl.handle_print_or_log({"___00660", std::to_string(k), v});
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(peer_ip, message);
-
-            pl.handle_print_or_log({"____000000_0_2"});
         }
-
-        pl.handle_print_or_log({"____000000_0_3"});
 
         // Give the chosen_ones their reward:
         // nlohmann::json chosen_ones_reward = message_j["chosen_ones"];        // preliminary commented out
@@ -459,7 +448,6 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
         // it breaks when the new users (from a new block) are yet part of all the users
         for (auto& element: bm.get_new_users())
         {
-pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block});
             if (co_from_this_block == element)
             {
                 is_part = true;
@@ -479,18 +467,6 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
     delete rocksy;
 
     nlohmann::json message_j;
-
-// BlockMatrix* bm = new BlockMatrix();
-
-// // for debugging purposes:
-// for (int i = 0; i < bm->get_block_matrix().size(); i++)
-// {
-//     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
-//     {
-//         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
-//         pl.handle_print_or_log({"___000block matrix entriessss1", std::to_string(i), std::to_string(j), "(oldest first)"});
-//     }
-// }
 
     if (co_from_this_block == my_full_hash)
     {
@@ -529,18 +505,6 @@ pl.handle_print_or_log({"__________00000 element:", element, co_from_this_block}
         //         }
         //     }
         // }
-
-// // for debugging purposes:
-// for (int i = 0; i < bm->get_block_matrix().size(); i++)
-// {
-//     for (int j = 0; j < bm->get_block_matrix().at(i).size(); j++)
-//     {
-//         nlohmann::json content_j = *bm->get_block_matrix().at(i).at(j);
-//         pl.handle_print_or_log({"___000block matrix entriessss2", std::to_string(i), std::to_string(j), "(oldest first)"});
-//     }
-// }
-
-// delete bm;
 
         pl.handle_print_or_log({"Your_full_hash sent"});
     }

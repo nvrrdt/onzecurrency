@@ -261,8 +261,6 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
         {
             for (int16_t j = 0; j < copy_received_block_matrix.back().size(); j++)
             {
-// pl.handle_print_or_log({"_____0001xbm", (*block_matrix.back().at(i)).dump()});
-// pl.handle_print_or_log({"_____0001xrbm", (*copy_received_block_matrix.back().at(j)).dump()});
                 if (*block_matrix.back().at(i) == *copy_received_block_matrix.back().at(j))
                 {
                     pl.handle_print_or_log({"received block found", std::to_string(i)});
@@ -280,13 +278,11 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
             {
                 pos.back().erase(pos.back().begin() + pos_sent.back());
                 pos_sent.pop_back();
-// pl.handle_print_or_log({"___0000_0ps", std::to_string(i)});
             }
             else if (!pos_recv.empty() && i == pos_recv.back())
             {
                 pos.back().erase(pos.back().begin() + pos_recv.back());
                 pos_recv.pop_back();
-// pl.handle_print_or_log({"___0000_0pr", std::to_string(i)});
             }
         }
 
@@ -487,12 +483,6 @@ void BlockMatrix::save_final_block_to_file()
         nlohmann::json l_block_j = *get_block_matrix().at(i).at(0);
         std::string l_block_s = l_block_j.dump();
 
-pl.handle_print_or_log({"___0004_0", std::to_string(get_block_matrix().size())});
-pl.handle_print_or_log({"___0004_000", std::to_string(get_block_matrix().at(i).size())});
-if (i != get_block_matrix().size() - 1) pl.handle_print_or_log({"___0004_1", std::to_string(get_block_matrix().at(i+1).size())});
-if (i < get_block_matrix().size() - 2) pl.handle_print_or_log({"___0004_11", std::to_string(get_block_matrix().at(i+1).size()), std::to_string(get_block_matrix().at(i+2).size())});
-pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s), "\n", l_block_s, "\n", latest_block_s});
-
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
             // save block
@@ -539,7 +529,6 @@ pl.handle_print_or_log({"___0004_2", std::to_string(l_block_s == latest_block_s)
                 // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
                 rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
                 rocksdb_j["full_hash"] = full_hash_req;
-pl.handle_print_or_log({"___00333_0 full_hash?", full_hash_req});
                 Crowd::Protocol proto;
                 rocksdb_j["block_nr"] = new_block_nr;
                 rocksdb_j["ecdsa_pub_key"] = m_j["ecdsa_pub_key"];
