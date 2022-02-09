@@ -172,6 +172,13 @@ void Form::page_setup3_normal()
 void Form::page_normal1_crowd()
 {
     tabPageNormal1.add(fixedPageCrowd);
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash();
+    label_exit.set_text("Your user id is ", my_full_hash);
+
+    fixedPageExit.add(label_exit);
+    fixedPageExit.move(label_exit, 250, 250);
 }
 
 void Form::page_normal2_coin()
