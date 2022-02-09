@@ -62,10 +62,10 @@ Form::Form()
 
 void Form::page_setup1_create()
 {
-    tabPageSetup1.add(fixedTabPageCreate);
+    tabPageSetup1.add(fixedGridPageCreate);
 
-    fixedTabPageCreate.add(grid_setup1);
-    fixedTabPageCreate.move(grid_setup1, 250, 250);
+    fixedGridPageCreate.add(grid_setup1);
+    fixedGridPageCreate.move(grid_setup1, 250, 250);
 
     label_network.set_text("Network:");
     label_network.set_width_chars(9);
@@ -84,8 +84,8 @@ void Form::page_setup1_create()
 
     button_create.add_label("Create user");
 
-    fixedTabPageCreate.add(button_create);
-    fixedTabPageCreate.move(button_create, 400, 330);
+    fixedGridPageCreate.add(button_create);
+    fixedGridPageCreate.move(button_create, 400, 330);
 
     button_create.signal_clicked().connect( sigc::mem_fun(*this,
               &Form::on_button_create_clicked) );
@@ -143,12 +143,12 @@ void Form::on_button_create_clicked()
 
 void Form::page_setup2_update()
 {
-    tabPageSetup2.add(fixedTabPageUpdate);
+    tabPageSetup2.add(fixedPageUpdate);
 
     label_update.set_text("Processing update ... Please wait!");
 
-    fixedTabPageUpdate.add(label_update);
-    fixedTabPageUpdate.move(label_update, 250, 250);
+    fixedPageUpdate.add(label_update);
+    fixedPageUpdate.move(label_update, 250, 250);
 }
 
 void Form::page_setup3_normal()
@@ -171,18 +171,20 @@ void Form::page_setup3_normal()
 
 void Form::page_normal1_crowd()
 {
+    tabPageNormal1.add(fixedPageCrowd);
 }
 
 void Form::page_normal2_coin()
 {
+    tabPageNormal2.add(fixedPageCoin);
 }
 
 void Form::page_setup4_exit()
 {
-    tabPageSetup4.add(fixedTabPageExit);
+    tabPageSetup4.add(fixedPageExit);
 
     label_exit.set_text("Preparing clean exit ... Please wait!");
 
-    fixedTabPageExit.add(label_exit);
-    fixedTabPageExit.move(label_exit, 250, 250);
+    fixedPageExit.add(label_exit);
+    fixedPageExit.move(label_exit, 250, 250);
 }

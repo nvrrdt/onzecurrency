@@ -32,7 +32,7 @@ namespace UI
         Frame tabPageSetup4;
         
         // page_setup1_create
-        Fixed fixedTabPageCreate;
+        Fixed fixedGridPageCreate;
         Grid grid_setup1;
         Label label_network;
         Label label_email;
@@ -44,7 +44,7 @@ namespace UI
         bool input_setup1_create_ok = false;
 
         // page_setup2_update
-        Fixed fixedTabPageUpdate;
+        Fixed fixedPageUpdate;
         Label label_update;
 
         // page_setup3_normal
@@ -54,11 +54,13 @@ namespace UI
         Frame tabPageNormal2;
 
         // page_normal1_crowd
+        Fixed fixedPageCrowd;
 
         // page_normal2_coin
+        Fixed fixedPageCoin;
 
         // page_setup4_exit
-        Fixed fixedTabPageExit;
+        Fixed fixedPageExit;
         Label label_exit;
     };
 
