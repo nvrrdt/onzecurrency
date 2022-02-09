@@ -24,6 +24,9 @@ Form::Form()
     fixed.move(tabControlSetup, 0, 0);
 
     page_setup1_create();
+    page_setup2_update();
+    page_setup3_normal();
+    page_setup4_exit();
 
     tabPageSetup1.show();
     tabPageSetup2.show();
@@ -51,18 +54,6 @@ Form::Form()
             tabControlSetup.set_current_page(2);
         }
     }
-
-    tabPageSetup2.add(fixedTabPageNormal);
-
-    tabControlNormal.set_size_request(780, 580);
-    fixedTabPageNormal.add(tabControlNormal);
-    fixedTabPageNormal.move(tabControlNormal, 10, 10);
-
-    tabPageNormal1.show();
-    tabPageNormal2.show();
-
-    tabControlNormal.insert_page(tabPageNormal1, "Crowd", 0);
-    tabControlNormal.insert_page(tabPageNormal2, "Coin", 1);
 
     set_title("onze-desktop");
     resize(800, 600);
@@ -148,4 +139,50 @@ void Form::on_button_create_clicked()
         t2.join();
         t3.join();
     }
+}
+
+void Form::page_setup2_update()
+{
+    tabPageSetup2.add(fixedTabPageUpdate);
+
+    label_update.set_text("Processing update ... Please wait!");
+
+    fixedTabPageUpdate.add(label_update);
+    fixedTabPageUpdate.move(label_update, 250, 250);
+}
+
+void Form::page_setup3_normal()
+{
+    tabPageSetup3.add(fixedTabPageNormal);
+
+    tabControlNormal.set_size_request(780, 580);
+    fixedTabPageNormal.add(tabControlNormal);
+    fixedTabPageNormal.move(tabControlNormal, 10, 10);
+
+    page_normal1_crowd();
+    page_normal2_coin();
+
+    tabPageNormal1.show();
+    tabPageNormal2.show();
+
+    tabControlNormal.insert_page(tabPageNormal1, "Crowd", 0);
+    tabControlNormal.insert_page(tabPageNormal2, "Coin", 1);
+}
+
+void Form::page_normal1_crowd()
+{
+}
+
+void Form::page_normal2_coin()
+{
+}
+
+void Form::page_setup4_exit()
+{
+    tabPageSetup4.add(fixedTabPageExit);
+
+    label_exit.set_text("Preparing clean exit ... Please wait!");
+
+    fixedTabPageExit.add(label_exit);
+    fixedTabPageExit.move(label_exit, 250, 250);
 }

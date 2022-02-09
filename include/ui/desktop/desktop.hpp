@@ -16,6 +16,11 @@ namespace UI
     private:
         void page_setup1_create();
         void on_button_create_clicked();
+        void page_setup2_update();
+        void page_setup3_normal();
+        void page_normal1_crowd();
+        void page_normal2_coin();
+        void page_setup4_exit();
     private:
         // Form
         Fixed fixed;
@@ -25,11 +30,7 @@ namespace UI
         Frame tabPageSetup2;
         Frame tabPageSetup3;
         Frame tabPageSetup4;
-        Notebook tabControlNormal;
-        Frame tabPageNormal1;
-        Frame tabPageNormal2;
-        Fixed fixedTabPageNormal;
-
+        
         // page_setup1_create
         Fixed fixedTabPageCreate;
         Grid grid_setup1;
@@ -41,6 +42,24 @@ namespace UI
         std::string network_s;
         std::string email_s;
         bool input_setup1_create_ok = false;
+
+        // page_setup2_update
+        Fixed fixedTabPageUpdate;
+        Label label_update;
+
+        // page_setup3_normal
+        Fixed fixedTabPageNormal;
+        Notebook tabControlNormal;
+        Frame tabPageNormal1;
+        Frame tabPageNormal2;
+
+        // page_normal1_crowd
+
+        // page_normal2_coin
+
+        // page_setup4_exit
+        Fixed fixedTabPageExit;
+        Label label_exit;
     };
 
     class Normal
