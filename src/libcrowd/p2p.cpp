@@ -23,8 +23,6 @@
 
 using namespace Crowd;
 
-std::string FullHash::full_hash_ = "";
-
 bool P2p::start_crowd(std::map<std::string, std::string> cred)
 {
     Common::Print_or_log pl;
@@ -264,8 +262,6 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
     {
         // existing user
 
-        // pl.handle_print_or_log({"Existing peer"});
-
         // verify if the email address with the saved prev_hash gives the full_hash, otherwise return false
         // verify blockchain ...
         // p2p_client with {"full_hash": "xxxx", "online": "true", "latest_block_nr": "xxx"} to 'try' FindNextPeer() and update blockchain and rocksy
@@ -276,6 +272,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
         if (verification.compare_email_with_saved_full_hash(email_address) && verification.verify_all_blocks())
         {
             //ok, continue
+            pl.handle_print_or_log({"Existing peer ok"});
 
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
             FullHash fh;
@@ -316,13 +313,16 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 std::string message_s = message_j.dump();
 pl.handle_print_or_log({"intro online message sent to", ip});
                 P2pNetwork pn;
-                if (pn.p2p_client(ip, message_s) == 0)
+                if (pn.p2p_client(ip, message_s) == 1) // 1 if p2p_client didn't succeed
                 {
                     my_full_hash = full_hash_peer;
                     continue;
                 }
                 else
                 {
+                    Poco::Synchronisation* sync = new Poco::Synchronisation();
+                    sync->get_sleep_and_create_block();
+
                     break;
                 }
             }
@@ -332,6 +332,8 @@ pl.handle_print_or_log({"intro online message sent to", ip});
         else
         {
             //not ok
+            pl.handle_print_or_log({"Existing peer ok"});
+
             return false;
         }
     }

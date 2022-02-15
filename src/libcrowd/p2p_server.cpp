@@ -1168,11 +1168,10 @@ void P2pSession::intro_online(nlohmann::json buf_j)
     to_verify_j["server"] = buf_j["server"];
     to_verify_j["fullnode"] = buf_j["fullnode"];
 
-    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+    Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
     std::string full_hash = buf_j["full_hash"];
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash));
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
-    delete rocksy;
 
     Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
@@ -1224,8 +1223,6 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         }
         std::string message_s = message_j.dump();
 
-        Rocksy* rocksy = new Rocksy("usersdb");
-
         int key;
         std::string val;
         Poco::BlockMatrix bm;
@@ -1238,7 +1235,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
             // lookup in rocksdb
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+            nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val));
             std::string peer_ip = value_j["ip"];
             
             pl.handle_print_or_log({"Preparation for new_online:", peer_ip});
@@ -1260,61 +1257,100 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         }
 
         // update this rocksdb
-        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(full_hash));
+        Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+        nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
         value_j["online"] = true;
         value_j["ip"] = buf_j["ip"];
         value_j["server"] = buf_j["server"];
         value_j["fullnode"] = buf_j["fullnode"];
         std::string value_s = value_j.dump();
-        rocksy->Put(full_hash, value_s);
+        rocksy2->Put(full_hash, value_s);
+        delete rocksy2,
 
-        // update new user's blockchain and rocksdb
-        std::string my_latest_block = proto.get_last_block_nr();
+        // update new user's blockchain, rocksdb and matrices
+        pl.handle_print_or_log({"Update_you: send all blocks, rocksdb and matrices to server (client)"});
+
         std::string req_latest_block = buf_j["latest_block_nr"];
-        
-        if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
+
+        nlohmann::json msg;
+        msg["req"] = "update_you";
+
+        // Update blockchain
+        msg["blocks"] = proto.get_blocks_from(req_latest_block);
+
+        nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                            // maybe even a stack is better ...
+        // Update rocksdb
+        nlohmann::json rdb;
+        for (auto& user : list_of_users_j)
         {
-            // TODO: upload blockchain to the requester starting from latest block
-            // Update blockchain: send latest block to peer
-            nlohmann::json list_of_blocks_j = proto.get_blocks_from(req_latest_block);
-            //pl.handle_print_or_log({"list_of_blocks_s:", list_of_blocks_j.dump()});
-            uint64_t value;
-            std::istringstream iss(my_latest_block);
-            iss >> value;
-
-            for (uint64_t i = 0; i <= value; i++)
-            {
-                nlohmann::json block_j = list_of_blocks_j[i]["block"];
-                //pl.handle_print_or_log({"block_j:", block_j.dump()});
-                nlohmann::json msg;
-                msg["req"] = "update_your_blocks";
-                std::ostringstream o;
-                o << i;
-                msg["block_nr"] = o.str();
-                msg["block"] = block_j;
-                set_resp_msg_server(msg.dump());
-            }
-
-            // Update rockdb's:
-            // How to? Starting from the blocks? Lookup all users in the blocks starting from a block
-            // , then lookup those user_id's in rocksdb and send
-            nlohmann::json list_of_users_j = nlohmann::json::parse(proto.get_all_users_from(req_latest_block)); // TODO: there are double parse/dumps everywhere
-                                                                                                                // maybe even a stack is better ...
-            for (auto& user : list_of_users_j) // TODO better make a map of all keys with its values and send that once
-            {
-                nlohmann::json msg;
-                msg["req"] = "update_your_rocksdb";
-                msg["key"] = user;
-
-                std::string u = user;
-                std::string value = rocksy->Get(u);
-                msg["value"] = value;
-
-                set_resp_msg_server(msg.dump());
-            }
+            nlohmann::json usr;
+            std::string u = user;
+            nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(u));
+            usr = {u: value_j};
+            rdb.push_back(usr);
         }
 
-        delete rocksy;
+        msg["rocksdb"] = rdb;
+
+        // Update matrices
+        Poco::IntroMsgsMat imm;
+        Poco::IpAllHashes iah;
+        nlohmann::json contents_j;
+
+        for (int i = 0; i < bm.get_block_matrix().size(); i++)
+        {
+            for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+            {
+                contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
+            }
+        }
+        msg["bm"] = contents_j;
+        contents_j.clear();
+
+        for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
+        {
+            for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
+            {
+                for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
+                {
+                    contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
+                }
+            }
+        }
+        msg["imm"] = contents_j;
+        contents_j.clear();
+
+        for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+        {
+            for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+            {
+                for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+                {
+                    contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
+                    contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
+                }
+            }
+        }
+        msg["iah"] = contents_j;
+        contents_j.clear();
+
+        // Update intro_msg_vec and ip_hemail_vec
+        msg["imv"];
+        for (auto& el: intro_msg_vec_.get_intro_msg_vec())
+        {
+            msg["imv"].push_back(*el);
+        }
+
+        msg["ihv"];
+        for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
+        {
+            msg["ihv"][(*el).first] = (*el).second;
+        }
+
+        set_resp_msg_server(msg.dump());
+
+        delete rocksy1;
 
         // Signal the gui, go from Setup to Crowd there
         UI::Normal n;

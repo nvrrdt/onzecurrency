@@ -27,7 +27,7 @@ def main():
     # Install onze-terminal and so
     thread = threading.Thread(target=worker)
     thread.start()
-    time.sleep(6) # estimated time to install the software    
+    time.sleep(10) # estimated time to install the software, then start onze-terminal simultaneously over cloud servers
 
     # Start the command when synchronised with other servers
     start_test_time = ((args.order - 1) * args.block_creation_delay) if (args.order == 1) else ((args.order - 1) * args.block_creation_delay) - 20
@@ -36,7 +36,7 @@ def main():
     # Let the onze-terminal process exist until al servers have finished
     remaining_test_time = (((args.total_servers - args.order + 2) * args.block_creation_delay) + 15) if (args.order == 1) else (((args.total_servers - args.order + 2) * args.block_creation_delay) + 20 + 15)
     
-    # Execute onze-terminal
+    # Execute onze-terminal --> start with intro_peer
     command = 'onze-terminal'
     child = pexpect.spawn(command, encoding='utf-8', timeout=remaining_test_time)
     child.logfile = sys.stdout
@@ -62,10 +62,20 @@ def main():
             file.write(str(blocks_count))
         file.close()
 
+    #TODO intro_online testing --> gracious stopping and starting of onze-terminal in the network must be implemented
+    # # Execute onze-terminal --> start with intro_online
+    # subprocess.call('onze-terminal', shell=True)
+    # time.sleep(20)
+
+    # # Kill onze-terminal    
+    # for proc in psutil.process_iter(attrs=['pid', 'name']):
+    #     if 'onze-terminal' in proc.info['name']:
+    #         proc.kill()
+
 def worker():
-    subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
-                    ' && apt-get -f install' \
-                    ' && rm -rf /onzecurrency/.config', shell=True)
+    subprocess.call(' rm -rf /onzecurrency/.config' \
+                    ' && dpkg -i ./onzecurrency-0.1.1-Linux.deb' \
+                    ' && apt-get -f install', shell=True)
 
 if __name__ == '__main__':
     try:

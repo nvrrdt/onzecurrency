@@ -17,9 +17,25 @@
 
 using namespace Crowd;
 
-std::map<std::string, std::string> Auth::authentication(std::string network, std::string email)
+std::string FullHash::full_hash_ = "";
+
+std::map<std::string, std::string> Auth::authentication(std::string gui)
 {
-    if (network == "") network = "Default";
+    std::string network = "Default", email = "", password = "";
+
+    FullHash fh;
+    if (gui == "terminal" && fh.get_full_hash() == "")
+    {
+        // std::cout << "Network [Default]: ";
+        // std::getline(std::cin, network);
+        // std::cin >> network;
+        std::cout << "Email adress: ";
+        std::cin >> email;
+    }
+    else if (gui == "desktop" && fh.get_full_hash() == "")
+    {
+        // TODO
+    }
     
     std::map<std::string, std::string> cred = Auth::verifyCredentials(email);
 

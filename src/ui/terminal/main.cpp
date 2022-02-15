@@ -24,23 +24,17 @@ int main(int argc, char *argv[])
     Common::Print_or_log pl;
     pl.init();
 
-    // The TUI
-    std::string network = "Default", email = "", password = "";
-    // std::cout << "Network [Default]: ";
-    // std::getline(std::cin, network);
-    // std::cin >> network;
-    std::cout << "Email adress: ";
-    std::cin >> email;
-
     Auth a;
-    std::map<std::string, std::string> cred = a.authentication(network, email);
+    std::map<std::string, std::string> cred = a.authentication("terminal");
 
     if (cred["error"] == "true")
     {
         pl.handle_print_or_log({"Error with authenticating"});
                 
         return 1;
-    } else {
+    }
+    else
+    {
         // start crowd
         std::packaged_task<void()> task1([cred] {
             P2p p;

@@ -544,6 +544,8 @@ int P2pNetwork::p2p_client(std::string ip_s, std::string message)
     catch (std::exception &e)
     {
         std::cerr << "Exception client: " << e.what() << "\n";
+
+        return 1;
     }
 
     return 0;

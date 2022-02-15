@@ -15,46 +15,52 @@ using namespace UI;
 
 Form::Form()
 {
-    add(scrolledWindow);
-    scrolledWindow.add(fixed);
+    add(box);
 
     tabControlSetup.set_size_request(800, 600);
     tabControlSetup.set_show_tabs(false);
-    fixed.add(tabControlSetup);
-    fixed.move(tabControlSetup, 0, 0);
+    box.pack_start(tabControlSetup, Gtk::PACK_SHRINK);
 
     page_setup1_create();
     page_setup2_update();
     page_setup3_normal();
-    page_setup4_exit();
+    //page_setup4_exit();
 
     tabPageSetup1.show();
     tabPageSetup2.show();
     tabPageSetup3.show();
-    tabPageSetup4.show();
+    //tabPageSetup4.show();
+
+    label_exit.set_text("Preparing clean exit ... Please wait!");
+    box_exit.pack_start(label_exit);
+    box_exit.show();
 
     tabControlSetup.insert_page(tabPageSetup1, "Create", 0);
     tabControlSetup.insert_page(tabPageSetup2, "Update", 1);
     tabControlSetup.insert_page(tabPageSetup3, "Normal", 2);
-    tabControlSetup.insert_page(tabPageSetup4, "Exit", 3);
+    tabControlSetup.insert_page(box_exit, "Exit", 3);
 
-    FullHash fh;
-    Normal n;
-    std::string my_full_hash = fh.get_full_hash();
-    if (my_full_hash == "" && !input_setup1_create_ok)
-    {
-        tabControlSetup.set_current_page(0);
-    }
-    else
-    {
-        tabControlSetup.set_current_page(1);
+    tabControlSetup.set_current_page(0);
 
-        if (n.get_goto_normal_mode())
-        {
-            tabControlSetup.set_current_page(2);
-        }
-    }
+    signal_delete_event().connect(sigc::mem_fun(*this, &Form::is_deleted));
 
+    // FullHash fh;
+    // Normal n;
+    // std::string my_full_hash = fh.get_full_hash();
+    // if (my_full_hash.empty() && !input_setup1_create_ok)
+    // {
+    //     tabControlSetup.set_current_page(0);
+    // }
+    // else if (!my_full_hash.empty())
+    // {
+    //     tabControlSetup.set_current_page(1);
+
+    //     if (n.get_goto_normal_mode())
+    //     {
+    //         tabControlSetup.set_current_page(2);
+    //     }
+    // }
+    
     set_title("onze-desktop");
     resize(800, 600);
     show_all();
@@ -97,7 +103,7 @@ void Form::on_button_create_clicked()
     pl.init();
 
     Crowd::Auth a;
-    auto cred = a.authentication(network_s, email_s);
+    auto cred = a.authentication("desktop");
 
     if (cred["error"] == "true")
     {
@@ -173,12 +179,14 @@ void Form::page_normal1_crowd()
 {
     tabPageNormal1.add(fixedPageCrowd);
 
+    fixedPageCrowd.add(grid_normal1);
+    fixedPageCrowd.move(grid_normal1, 250, 250);
+
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash();
-    label_exit.set_text("Your user id is ", my_full_hash);
+    label_crowd.set_text("Your user id is " + my_full_hash);
 
-    fixedPageExit.add(label_exit);
-    fixedPageExit.move(label_exit, 250, 250);
+    grid_normal1.add(label_crowd);
 }
 
 void Form::page_normal2_coin()
@@ -186,12 +194,44 @@ void Form::page_normal2_coin()
     tabPageNormal2.add(fixedPageCoin);
 }
 
+// bool Form::on_delete_event(GdkEventAny *any_event)
+// {
+//     page_setup4_exit();
+//     auto x = tabControlSetup.get_nth_page(3);
+//     x->show_all();
+//     tabControlSetup.set_current_page(3);
+//     std::cout << "er " << tabControlSetup.get_current_page() << std::endl;
+
+//     // MessageDialog dialog(*this, "Preparing clean exit ... Please wait!", true, MESSAGE_OTHER, BUTTONS_CLOSE, true);
+//     // dialog.set_modal();
+//     // dialog.set_position(WindowPosition::WIN_POS_CENTER);
+//     // dialog.run();
+
+//     std::this_thread::sleep_for(2000ms);
+//     return Window::on_delete_event(any_event);
+
+//     // if (dialog.run() == RESPONSE_YES)
+//     //     return Window::on_delete_event(any_event);
+//     // return true;
+
+//     // page_setup4_exit();
+
+//     // return Window::on_delete_event(any_event);
+// }
+
 void Form::page_setup4_exit()
 {
-    tabPageSetup4.add(fixedPageExit);
-
     label_exit.set_text("Preparing clean exit ... Please wait!");
 
-    fixedPageExit.add(label_exit);
-    fixedPageExit.move(label_exit, 250, 250);
+    box_exit.add(label_exit);
+}
+
+bool Form::is_deleted(GdkEventAny *any_event)
+{
+    tabControlSetup.set_current_page(3);
+    std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
+
+    // Wait until intro_offline or new_offline is received
+    std::this_thread::sleep_for(2000ms);
+    return Window::on_delete_event(any_event);
 }
