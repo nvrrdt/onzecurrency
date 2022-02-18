@@ -48,10 +48,22 @@ def main():
 
     print(args.order, ",",args.total_servers, ",", datetime.utcnow())
 
-    # Kill onze-terminal    
-    for proc in psutil.process_iter(attrs=['pid', 'name']):
-        if 'onze-terminal' in proc.info['name']:
-            proc.kill()
+    # Test2 is killing (and restarting) each onze-terminal with 10 seconds in between to see if network is being informed in both cases
+    start_test2_time = (args.order - 1) * 10
+    time.sleep(start_test2_time)
+    child.sendcontrol('c') # ctrl-c
+
+    # Restarting the onze-terminals after 5 seconds
+    time.sleep(5)
+    child = pexpect.spawn(command, encoding='utf-8', timeout=5)
+    child.logfile = sys.stdout
+    child.setecho(False)
+    remaining_test2_time = (args.total_servers - args.order) * 10
+    time.sleep(remaining_test2_time)
+
+    # And killing
+    child.sendcontrol('c') # ctrl-c
+    time.sleep(5)
 
     # Create file that contains amount of blocks present in log folder
     dir = '/onzecurrency/.config/onzehub/blockchain/crowd/'
@@ -61,16 +73,6 @@ def main():
         with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
             file.write(str(blocks_count))
         file.close()
-
-    #TODO intro_online testing --> gracious stopping and starting of onze-terminal in the network must be implemented
-    # # Execute onze-terminal --> start with intro_online
-    # subprocess.call('onze-terminal', shell=True)
-    # time.sleep(20)
-
-    # # Kill onze-terminal    
-    # for proc in psutil.process_iter(attrs=['pid', 'name']):
-    #     if 'onze-terminal' in proc.info['name']:
-    #         proc.kill()
 
 def worker():
     subprocess.call(' rm -rf /onzecurrency/.config' \
