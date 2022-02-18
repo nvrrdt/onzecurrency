@@ -149,6 +149,8 @@ namespace Crowd
         void hash_comparison(nlohmann::json buf_j);
         void intro_online(nlohmann::json buf_j);
         void new_online(nlohmann::json buf_j);
+        void intro_offline(nlohmann::json buf_j);
+        void new_offline(nlohmann::json buf_j);
         void update_you_server(nlohmann::json buf_j);
 
         void set_resp_msg_server(std::string msg);

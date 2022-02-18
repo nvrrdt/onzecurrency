@@ -44,6 +44,7 @@ namespace Crowd
         }
         int ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr);
         int number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string);
+        static void signal_callback_handler(int signum); // handle ctrl-c
     };
     
     class Upnp

@@ -12,6 +12,8 @@
 #include "print_or_log.hpp"
 #include "configdir.hpp"
 
+#include <signal.h>
+
 extern int USE_LOG;
 
 using namespace Crowd;
@@ -35,6 +37,9 @@ int main(int argc, char *argv[])
     }
     else
     {
+        // handle ctrl-c
+        signal(SIGINT, P2p::signal_callback_handler);
+
         // start crowd
         std::packaged_task<void()> task1([cred] {
             P2p p;
