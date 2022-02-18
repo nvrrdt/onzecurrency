@@ -42,7 +42,7 @@ Form::Form()
 
     tabControlSetup.set_current_page(0);
 
-    signal_delete_event().connect(sigc::mem_fun(*this, &Form::is_deleted));
+    //signal_delete_event().connect(sigc::mem_fun(*this, &Form::is_deleted));
 
     // FullHash fh;
     // Normal n;
@@ -194,30 +194,27 @@ void Form::page_normal2_coin()
     tabPageNormal2.add(fixedPageCoin);
 }
 
-// bool Form::on_delete_event(GdkEventAny *any_event)
-// {
-//     page_setup4_exit();
-//     auto x = tabControlSetup.get_nth_page(3);
-//     x->show_all();
-//     tabControlSetup.set_current_page(3);
-//     std::cout << "er " << tabControlSetup.get_current_page() << std::endl;
+bool Form::on_delete_event(GdkEventAny *any_event)
+{
+    tabControlSetup.set_current_page(3);
+    std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
 
-//     // MessageDialog dialog(*this, "Preparing clean exit ... Please wait!", true, MESSAGE_OTHER, BUTTONS_CLOSE, true);
-//     // dialog.set_modal();
-//     // dialog.set_position(WindowPosition::WIN_POS_CENTER);
-//     // dialog.run();
+    if (d_event.empty()) d_event.push_back(any_event);
 
-//     std::this_thread::sleep_for(2000ms);
-//     return Window::on_delete_event(any_event);
+    // Wait until intro_offline or new_offline is received
+    sigc::slot<bool()> my_slot = sigc::bind(sigc::mem_fun(*this, &Form::on_timeout), d_event);
+    auto conn = Glib::signal_timeout().connect(my_slot, 2000);
 
-//     // if (dialog.run() == RESPONSE_YES)
-//     //     return Window::on_delete_event(any_event);
-//     // return true;
-
-//     // page_setup4_exit();
-
-//     // return Window::on_delete_event(any_event);
-// }
+    if (conn.empty())
+    {
+        
+        return Window::on_delete_event(any_event);
+    }
+    else
+    {
+        return true;
+    }
+}
 
 void Form::page_setup4_exit()
 {
@@ -226,12 +223,27 @@ void Form::page_setup4_exit()
     box_exit.add(label_exit);
 }
 
-bool Form::is_deleted(GdkEventAny *any_event)
-{
-    tabControlSetup.set_current_page(3);
-    std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
+// bool Form::is_deleted(GdkEventAny *any_event)
+// {
+//     tabControlSetup.set_current_page(3);
+//     std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
 
-    // Wait until intro_offline or new_offline is received
-    std::this_thread::sleep_for(2000ms);
-    return Window::on_delete_event(any_event);
+//     // Wait until intro_offline or new_offline is received
+//     sigc::slot<bool()> my_slot = sigc::bind(sigc::mem_fun(*this, &Form::on_timeout), any_event);
+//     auto conn = Glib::signal_timeout().connect(my_slot, 2000);
+
+//     if (!conn.operator bool())
+//     {
+//         return Window::on_delete_event(any_event);
+//     }
+//     else
+//     {
+//         return true;
+//     }
+// }
+
+bool Form::on_timeout(std::vector<GdkEventAny*> d_event)
+{
+    std::cout << "test" << std::endl;
+    return false;
 }
