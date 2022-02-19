@@ -1513,6 +1513,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
     std::string signature = buf_j["signature"];
     std::string signature_bin = crypto->base64_decode(signature);
     
+    std::string my_full_hash;
     if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
     {
         pl.handle_print_or_log({"verified new offline user"});
@@ -1520,7 +1521,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
         // inform the network of new offline
         Protocol proto;
         FullHash fh;
-        std::string my_full_hash = fh.get_full_hash();
+        my_full_hash = fh.get_full_hash();
 
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
@@ -1605,7 +1606,9 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
     msg_j["req"] = "close_this_conn";
     set_resp_msg_server(msg_j.dump());
 
-    // TODO implement here a ctrl-c exit(signum) for when the requestor receives an intro_offline message --> then the circle is round
+    // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
+    // Graciously terminating the program
+    if (my_full_hash == full_hash) exit(2);
 }
 
 void P2pSession::new_offline(nlohmann::json buf_j)
@@ -1715,7 +1718,9 @@ void P2pSession::new_offline(nlohmann::json buf_j)
     msg_j["req"] = "close_this_conn";
     set_resp_msg_server(msg_j.dump());
 
-    // TODO implement here a ctrl-c exit(signum) for when the requestor receives an new_offline message --> then the circle is round
+    // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
+    // Graciously terminating the program
+    if (my_full_hash == full_hash) exit(2);
 }
 
 void P2pSession::update_you_server(nlohmann::json buf_j)

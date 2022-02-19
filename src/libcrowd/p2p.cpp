@@ -478,7 +478,9 @@ void P2p::signal_callback_handler(int signum)
         delete rocksy;
 
         // Terminate program
-        // TODO --> should be a function in p2p_server that terminates the program when a intro_ or new_offline message is received
-        exit(signum);
+        Std::cout << "Preparing clean exit ... Please wait!" << std::endl;
+        // exit(2) /* ctrl-c */ in p2p_server's intro_offline and new_offline
+        // this exiting peer will receive such a request
+        // if received the program is being terminated graciously
     }
 }
