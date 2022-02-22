@@ -20,10 +20,7 @@ namespace UI
         void page_setup3_normal();
         void page_normal1_crowd();
         void page_normal2_coin();
-        void page_setup4_exit();
         bool on_delete_event(GdkEventAny *any_event) override;
-        bool is_deleted(GdkEventAny *any_event);
-        bool on_timeout(std::vector<GdkEventAny*> d_event);
     private:
         // Form
         Box box;
@@ -33,7 +30,8 @@ namespace UI
         Frame tabPageSetup1;
         Frame tabPageSetup2;
         Frame tabPageSetup3;
-        Frame tabPageSetup4;
+        Box box_exit;
+        Label label_exit;
         
         // page_setup1_create
         Fixed fixedGridPageCreate;
@@ -65,13 +63,11 @@ namespace UI
         // page_normal2_coin
         Fixed fixedPageCoin;
 
-        // page_setup4_exit
-        Fixed fixedPageExit;
-        Box box_exit;
-        Label label_exit;
-
         // on_delete_event
-        std::vector<GdkEventAny*> d_event;
+        // This flag indicates if a first call to the "delete-event" signal
+        // has been done. On a second call to this event, this should be
+        // set to "true" to alter the handler's behaviour.
+        bool flag = false;
     };
 
     class Normal

@@ -12,6 +12,7 @@
 #include "full_hash.hpp"
 
 using namespace UI;
+using namespace std::chrono_literals;
 
 Form::Form()
 {
@@ -24,12 +25,10 @@ Form::Form()
     page_setup1_create();
     page_setup2_update();
     page_setup3_normal();
-    //page_setup4_exit();
 
     tabPageSetup1.show();
     tabPageSetup2.show();
     tabPageSetup3.show();
-    //tabPageSetup4.show();
 
     label_exit.set_text("Preparing clean exit ... Please wait!");
     box_exit.pack_start(label_exit);
@@ -40,26 +39,22 @@ Form::Form()
     tabControlSetup.insert_page(tabPageSetup3, "Normal", 2);
     tabControlSetup.insert_page(box_exit, "Exit", 3);
 
-    tabControlSetup.set_current_page(0);
+    FullHash fh;
+    Normal n;
+    std::string my_full_hash = fh.get_full_hash();
+    if (my_full_hash.empty() && !input_setup1_create_ok)
+    {
+        tabControlSetup.set_current_page(0);
+    }
+    else if (!my_full_hash.empty())
+    {
+        tabControlSetup.set_current_page(1);
 
-    //signal_delete_event().connect(sigc::mem_fun(*this, &Form::is_deleted));
-
-    // FullHash fh;
-    // Normal n;
-    // std::string my_full_hash = fh.get_full_hash();
-    // if (my_full_hash.empty() && !input_setup1_create_ok)
-    // {
-    //     tabControlSetup.set_current_page(0);
-    // }
-    // else if (!my_full_hash.empty())
-    // {
-    //     tabControlSetup.set_current_page(1);
-
-    //     if (n.get_goto_normal_mode())
-    //     {
-    //         tabControlSetup.set_current_page(2);
-    //     }
-    // }
+        if (n.get_goto_normal_mode())
+        {
+            tabControlSetup.set_current_page(2);
+        }
+    }
     
     set_title("onze-desktop");
     resize(800, 600);
@@ -196,54 +191,37 @@ void Form::page_normal2_coin()
 
 bool Form::on_delete_event(GdkEventAny *any_event)
 {
-    tabControlSetup.set_current_page(3);
-    std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
-
-    if (d_event.empty()) d_event.push_back(any_event);
-
-    // Wait until intro_offline or new_offline is received
-    sigc::slot<bool()> my_slot = sigc::bind(sigc::mem_fun(*this, &Form::on_timeout), d_event);
-    auto conn = Glib::signal_timeout().connect(my_slot, 2000);
-
-    if (conn.empty())
+    if(!flag)
     {
-        
-        return Window::on_delete_event(any_event);
+        // First time in. We change the notebook page:
+        tabControlSetup.set_current_page(3);
+        std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
+
+        // If we block right away and don't return from
+        // this handler, the GUI will freeze. Hence, we set
+        // a timer to "close" the window in 10ms. Not that
+        // closing the window will call once more this handler...
+        Glib::signal_timeout().connect(
+            [this]()
+            {
+                close();
+                return false; // Disconnect after on call...
+            },
+            10
+        );
+
+        // So we change the flag value, to alter its behavior on the
+        // next pass.
+        flag = true;
+
+        return true; // Fully handled for now... leaving the handler.
+                    // This will allow the main loop to be run and the
+                    // window to uptate.
     }
-    else
-    {
-        return true;
-    }
-}
 
-void Form::page_setup4_exit()
-{
-    label_exit.set_text("Preparing clean exit ... Please wait!");
+    // On the second run, we do the work:
+    std::this_thread::sleep_for(1900ms);
 
-    box_exit.add(label_exit);
-}
-
-// bool Form::is_deleted(GdkEventAny *any_event)
-// {
-//     tabControlSetup.set_current_page(3);
-//     std::cout << "current_page " << tabControlSetup.get_current_page() << std::endl;
-
-//     // Wait until intro_offline or new_offline is received
-//     sigc::slot<bool()> my_slot = sigc::bind(sigc::mem_fun(*this, &Form::on_timeout), any_event);
-//     auto conn = Glib::signal_timeout().connect(my_slot, 2000);
-
-//     if (!conn.operator bool())
-//     {
-//         return Window::on_delete_event(any_event);
-//     }
-//     else
-//     {
-//         return true;
-//     }
-// }
-
-bool Form::on_timeout(std::vector<GdkEventAny*> d_event)
-{
-    std::cout << "test" << std::endl;
-    return false;
+    // And we close the window (for real this time):
+    return Window::on_delete_event(any_event);
 }
