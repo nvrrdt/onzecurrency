@@ -44,6 +44,7 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
         req_conversion["send_first_block"] =    16;
         req_conversion["update_me"] =           17;
         req_conversion["new_co_offline"] =      18;
+        req_conversion["new_co_online"] =      19;
 
         switch (req_conversion[req])
         {
@@ -72,6 +73,8 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
             case 17:    update_me_client(buf_j);
                         break;
             case 18:    new_co_offline_client(buf_j);
+                        break;
+            case 19:    new_co_online_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -379,6 +382,7 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
 void P2pClient::new_co_offline_client(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_co_offline"});
 
     PrevHash ph;
     std::string next_prev_hash = ph.calculate_hash_from_last_block();
@@ -388,7 +392,7 @@ void P2pClient::new_co_offline_client(nlohmann::json buf_j)
     std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
 
     FullHash fh;
-    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash();
 
     Rocksy* rocksy = new Rocksy("usersdbreadonly");
     std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
@@ -408,7 +412,7 @@ void P2pClient::new_co_offline_client(nlohmann::json buf_j)
 
         nlohmann::json message_j, to_sign_j;
         message_j["req"] = "intro_offline";
-        message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
+        message_j["full_hash"] = my_full_hash;
         
         to_sign_j["req"] = message_j["req"];
         to_sign_j["full_hash"] = message_j["full_hash"];
@@ -433,6 +437,51 @@ pl.handle_print_or_log({"intro offline message sent to", ip});
 
         // TODO send new intro_online req when a new block is sifted
     }
+
+    delete rocksy;
+}
+
+void P2pClient::new_co_online_client(nlohmann::json buf_j)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_co_online"});
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash();
+
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+    std::string coordinator_from_peer = buf_j["full_hash_co"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_peer));
+    
+    std::string ip = buf_j["ip_co"];
+
+    nlohmann::json message_j, to_sign_j;
+    message_j["req"] = "intro_online";
+    message_j["full_hash"] = my_full_hash;
+    Protocol protocol;
+    message_j["latest_block_nr"] = protocol.get_last_block_nr();
+    message_j["server"] = true;
+    message_j["fullnode"] = true;
+    
+    to_sign_j["req"] = message_j["req"];
+    to_sign_j["full_hash"] = message_j["full_hash"];
+    to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+    to_sign_j["server"] = message_j["server"];
+    to_sign_j["fullnode"] = message_j["fullnode"];
+    std::string to_sign_s = to_sign_j.dump();
+
+    Common::Crypto crypto;
+    ECDSA<ECP, SHA256>::PrivateKey private_key;
+    std::string signature;
+    crypto.ecdsa_load_private_key_from_string(private_key);
+    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+    {
+        message_j["signature"] = crypto.base64_encode(signature);
+    }
+    std::string message_s = message_j.dump();
+pl.handle_print_or_log({"intro online message sent to", ip});
+    P2pNetwork pn;
+    pn.p2p_client(ip, message_s);
 
     delete rocksy;
 }
