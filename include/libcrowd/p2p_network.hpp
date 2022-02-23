@@ -101,6 +101,7 @@ namespace Crowd
         void close_this_conn_and_create_client(nlohmann::json buf_j);
         void send_first_block_received_client(nlohmann::json buf_j);
         void update_me_client(nlohmann::json buf_j);
+        void new_co_offline_client(nlohmann::json buf_j);
 
         void set_resp_msg_client(std::string msg);
     private:

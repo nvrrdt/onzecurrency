@@ -43,6 +43,7 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
         req_conversion["close_this_conn_and_create"] =      15;
         req_conversion["send_first_block"] =    16;
         req_conversion["update_me"] =           17;
+        req_conversion["new_co_offline"] =      18;
 
         switch (req_conversion[req])
         {
@@ -69,6 +70,8 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
             case 16:    send_first_block_received_client(buf_j);
                         break;
             case 17:    update_me_client(buf_j);
+                        break;
+            case 18:    new_co_offline_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j);
@@ -371,6 +374,67 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     }
 
     set_resp_msg_client(msg.dump());
+}
+
+void P2pClient::new_co_offline_client(nlohmann::json buf_j)
+{
+    Common::Print_or_log pl;
+
+    PrevHash ph;
+    std::string next_prev_hash = ph.calculate_hash_from_last_block();
+
+    std::string msg_and_nph = buf_j.dump() + next_prev_hash;
+    Common::Crypto crypto;
+    std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
+
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+    std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+
+    std::string coordinator_from_peer = buf_j["full_hash_co"];
+
+    pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
+    pl.handle_print_or_log({"coordinator_from_hash: ", coordinator_from_hash});
+
+    if (coordinator_from_hash == coordinator_from_peer)
+    {
+        pl.handle_print_or_log({"Both coordinators are equal"});
+
+        nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
+        
+        std::string ip = contents_j["ip"];
+
+        nlohmann::json message_j, to_sign_j;
+        message_j["req"] = "intro_offline";
+        message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
+        
+        to_sign_j["req"] = message_j["req"];
+        to_sign_j["full_hash"] = message_j["full_hash"];
+        std::string to_sign_s = to_sign_j.dump();
+
+        Common::Crypto crypto;
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        crypto.ecdsa_load_private_key_from_string(private_key);
+        if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+        {
+            message_j["signature"] = crypto.base64_encode(signature);
+        }
+        std::string message_s = message_j.dump();
+pl.handle_print_or_log({"intro offline message sent to", ip});
+        P2pNetwork pn;
+        pn.p2p_client(ip, message_s);
+    }
+    else
+    {
+        pl.handle_print_or_log({"Both coordinators are not equal: retry when there's a new block sifted"});
+
+        // TODO send new intro_online req when a new block is sifted
+    }
+
+    delete rocksy;
 }
 
 void P2pClient::set_resp_msg_client(std::string msg)

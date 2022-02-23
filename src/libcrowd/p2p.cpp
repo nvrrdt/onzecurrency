@@ -434,51 +434,47 @@ void P2p::signal_callback_handler(int signum)
     {
         pl.handle_print_or_log({"Existing peer ok"});
 
-        Rocksy* rocksy = new Rocksy("usersdbreadonly");
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash();
 
-        for (int i = 0; i < 100; i++)
+        nlohmann::json message_j, to_sign_j;
+        message_j["req"] = "intro_offline";
+        message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
+        
+        to_sign_j["req"] = message_j["req"];
+        to_sign_j["full_hash"] = message_j["full_hash"];
+        std::string to_sign_s = to_sign_j.dump();
+
+        Common::Crypto crypto;
+        ECDSA<ECP, SHA256>::PrivateKey private_key;
+        std::string signature;
+        crypto.ecdsa_load_private_key_from_string(private_key);
+        if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
         {
-            std::string full_hash_peer = rocksy->FindNextPeer(my_full_hash);
-            nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_peer));
-            
-            std::string ip = contents_j["ip"];
-
-            nlohmann::json message_j, to_sign_j;
-            message_j["req"] = "intro_offline";
-            message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
-            
-            to_sign_j["req"] = message_j["req"];
-            to_sign_j["full_hash"] = message_j["full_hash"];
-            std::string to_sign_s = to_sign_j.dump();
-
-            Common::Crypto crypto;
-            ECDSA<ECP, SHA256>::PrivateKey private_key;
-            std::string signature;
-            crypto.ecdsa_load_private_key_from_string(private_key);
-            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
-            {
-                message_j["signature"] = crypto.base64_encode(signature);
-            }
-            std::string message_s = message_j.dump();
-        pl.handle_print_or_log({"intro offline message sent to", ip});
-            P2pNetwork pn;
-            if (pn.p2p_client(ip, message_s) == 1) // 1 if p2p_client didn't succeed
-            {
-                my_full_hash = full_hash_peer;
-                continue;
-            }
-            else
-            {
-                break;
-            }
+            message_j["signature"] = crypto.base64_encode(signature);
         }
+        std::string message_s = message_j.dump();
 
-        delete rocksy;
+        PrevHash ph;
+        std::string next_prev_hash = ph.calculate_hash_from_last_block();
+
+        std::string msg_and_nph = message_s + next_prev_hash;
+        std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
+
+        Rocksy* rocksy = new Rocksy("usersdbreadonly");
+        std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+
+        nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
+        
+        std::string ip = contents_j["ip"];
+
+pl.handle_print_or_log({"intro offline message sent to", ip});
+        P2pNetwork pn;
+        pn.p2p_client(ip, message_s);
 
         // Terminate program
-        Std::cout << "Preparing clean exit ... Please wait!" << std::endl;
+        std::cout << "Preparing clean exit ... Please wait!" << std::endl;
+        pl.handle_print_or_log({"Preparing clean exit ... Please wait!"});
         // exit(2) /* ctrl-c */ in p2p_server's intro_offline and new_offline
         // this exiting peer will receive such a request
         // if received the program is being terminated graciously

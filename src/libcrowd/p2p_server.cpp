@@ -1495,8 +1495,215 @@ void P2pSession::new_online(nlohmann::json buf_j)
 void P2pSession::intro_offline(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"intro new peer offline: ", (buf_j["full_hash"]).dump()});
+    pl.handle_print_or_log({"intro peer offline: ", (buf_j["full_hash"]).dump()});
     
+    nlohmann::json to_verify_j;
+    to_verify_j["req"] = buf_j["req"];
+    to_verify_j["full_hash"] = buf_j["full_hash"];
+
+    Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
+    std::string full_hash = buf_j["full_hash"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
+    std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+
+    Crypto* crypto = new Crypto();
+    std::string to_verify_s = to_verify_j.dump();
+    ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+    crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+    std::string signature = buf_j["signature"];
+    std::string signature_bin = crypto->base64_decode(signature);
+    
+    std::string my_full_hash;
+    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
+    {
+        pl.handle_print_or_log({"verified intro offline user"});
+
+        PrevHash ph;
+        std::string next_prev_hash = ph.calculate_hash_from_last_block();
+
+        std::string msg_and_nph = buf_j.dump() + next_prev_hash;
+        std::string hash_msg_and_nph =  crypto->bech32_encode_sha256(msg_and_nph);
+
+        FullHash fh;
+        my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
+
+        Rocksy* rocksy = new Rocksy("usersdbreadonly");
+        std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+        delete rocksy;
+
+        pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
+        pl.handle_print_or_log({"coordinator_from_hash: ", coordinator_from_hash});
+
+        if (my_full_hash == coordinator_from_hash)
+        {
+            pl.handle_print_or_log({"I'm the intro offline coordinator"});
+
+            // inform the network of new offline
+            Protocol proto;
+
+            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+            nlohmann::json message_j, to_sign_j;
+            message_j["req"] = "new_offline";
+            message_j["full_hash"] = full_hash;
+
+            int k;
+            std::string v;
+            for (auto &[k, v] : parts)
+            {
+                message_j["chosen_ones"].push_back(v);
+            }
+
+            to_sign_j["req"] = message_j["req"];
+            to_sign_j["full_hash"] = full_hash;
+            to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+            std::string to_sign_s = to_sign_j.dump();
+
+            Common::Crypto crypto;
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base64_encode(signature);
+            }
+            std::string message_s = message_j.dump();
+
+            int key;
+            std::string val;
+            Poco::BlockMatrix bm;
+            P2pNetwork pn;
+            for (int i = 1; i <= parts.size(); i++)
+            {
+                if (i == 1) continue;
+
+                // lookup in rocksdb
+                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                std::string peer_ip = value_j["ip"];
+
+                // inform the underlying network
+                if (parts[i] == my_full_hash) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                {
+                    // inform server's underlying network
+                    pl.handle_print_or_log({"Send intro_offline req: Inform my underlying network as coordinator"});
+
+                    std::string next_hash;
+                    if (i != parts.size())
+                    {
+                        next_hash = parts[i+1];
+                    }
+                    else
+                    {
+                        next_hash = parts[1];
+                    }
+                    
+                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::string key2, val2;
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+                    for (int i = 1; i <= parts_underlying.size(); i++)
+                    {
+                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                        if (parts_underlying[i] == my_full_hash) continue;
+
+                        // lookup in rocksdb
+                        std::string val2 = parts_underlying[i];
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
+                        std::string ip_underlying = value_j["ip"];
+
+                        pl.handle_print_or_log({"Send intro_offline req: Non-connected underlying peers - client: ", ip_underlying});
+
+                        Poco::PocoCrowd pc;
+                        bool cont = false;
+                        for (auto& el: pc.get_new_users_ip())
+                        {
+                            if (el == ip_underlying)
+                            {
+                                cont = true;
+                                break;
+                            }
+                        }
+                        if (cont) continue;
+
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        pn.p2p_client(ip_underlying, message);
+                    }
+                    delete rocksy;
+                }
+                
+                pl.handle_print_or_log({"Preparation for new_offline:", peer_ip});
+
+                Poco::PocoCrowd pc;
+                bool cont = false;
+                for (auto& el: pc.get_new_users_ip())
+                {
+                    if (el == peer_ip)
+                    {
+                        cont = true;
+                        break;
+                    }
+                }
+                if (cont) continue;
+
+                // p2p_client() to all chosen ones
+                pn.p2p_client(peer_ip, message_s);
+            }
+
+            // update this rocksdb
+            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            value_j["online"] = "false";
+            std::string value_s = value_j.dump();
+            rocksy2->Put(full_hash, value_s);
+            delete rocksy2,
+
+            delete rocksy1;
+        }
+        else
+        {
+            pl.handle_print_or_log({"I'm not the intro offline coordinator"});
+
+            // There's another coordinator, send to real coordinator
+
+            nlohmann::json message_j;
+            message_j["req"] = "new_co_offline";
+
+            Rocksy* rocksy = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
+            std::string peer_ip = value_j["ip"];
+            delete rocksy;
+
+            message_j["full_hash_co"] = coordinator_from_hash;
+            message_j["ip_co"] = peer_ip;
+            set_resp_msg_server(message_j.dump());
+        }
+    }
+    else
+    {
+        pl.handle_print_or_log({"verification intro offline user not correct"});
+    }
+
+    delete crypto;
+
+    // Disconect from client
+    nlohmann::json msg_j;
+    msg_j["req"] = "close_this_conn";
+    set_resp_msg_server(msg_j.dump());
+pl.handle_print_or_log({"__0001 okok", my_full_hash, full_hash});
+    // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
+    // Graciously terminating the program
+    if (my_full_hash == full_hash)
+    {
+        pl.handle_print_or_log({"exit intro offline has run"});
+        exit(2);
+    }
+}
+
+void P2pSession::new_offline(nlohmann::json buf_j)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new peer offline:", (buf_j["full_hash"]).dump(), ", inform your bucket"});
+
     nlohmann::json to_verify_j;
     to_verify_j["req"] = buf_j["req"];
     to_verify_j["full_hash"] = buf_j["full_hash"];
@@ -1518,81 +1725,161 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
     {
         pl.handle_print_or_log({"verified new offline user"});
 
-        // inform the network of new offline
-        Protocol proto;
         FullHash fh;
-        my_full_hash = fh.get_full_hash();
+        my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
 
-        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
-
-        nlohmann::json message_j, to_sign_j;
-        message_j["req"] = "new_offline";
-        message_j["full_hash"] = full_hash;
-
-        int k;
-        std::string v;
-        for (auto &[k, v] : parts)
+        nlohmann::json chosen_ones = buf_j["chosen_ones"];
+        bool is_chosen_one  = false;
+        for (auto& el: chosen_ones.items())
         {
-            message_j["chosen_ones"].push_back(v);
+            if (el.value() == my_full_hash) is_chosen_one = true;
         }
 
-        to_sign_j["req"] = message_j["req"];
-        to_sign_j["full_hash"] = full_hash;
-        to_sign_j["chosen_ones"] = message_j["chosen_ones"];
-        std::string to_sign_s = to_sign_j.dump();
-
-        Common::Crypto crypto;
-        ECDSA<ECP, SHA256>::PrivateKey private_key;
-        std::string signature;
-        crypto.ecdsa_load_private_key_from_string(private_key);
-        if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+        if (is_chosen_one) // full_hash_coord should be one of the chosen_ones
         {
-            message_j["signature"] = crypto.base64_encode(signature);
-        }
-        std::string message_s = message_j.dump();
+            pl.handle_print_or_log({"I'm the new offline coordinator"});
 
-        int key;
-        std::string val;
-        Poco::BlockMatrix bm;
-        P2pNetwork pn;
-        for (auto &[key, val] : parts)
-        {
-            if (key == 1) continue;
-            if (val == full_hash) continue;
-            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+            // inform the network of new offline
 
-            // lookup in rocksdb
-            nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val));
-            std::string peer_ip = value_j["ip"];
-            
-            pl.handle_print_or_log({"Preparation for new_offline:", peer_ip});
-
-            Poco::PocoCrowd pc;
-            bool cont = false;
-            for (auto& el: pc.get_new_users_ip())
+            std::string next_full_hash;
+            for (int i = 0; i < chosen_ones.size(); i++)
             {
-                if (el == peer_ip)
+                if (chosen_ones[i] == my_full_hash)
                 {
-                    cont = true;
-                    break;
+                    if (i != chosen_ones.size() - 1)
+                    {
+                        next_full_hash = chosen_ones[i+1];
+                    }
+                    else
+                    {
+                        next_full_hash = chosen_ones[0];
+                    }
                 }
             }
-            if (cont) continue;
 
-            // p2p_client() to all chosen ones
-            pn.p2p_client(peer_ip, message_s);
+            Protocol proto;
+            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+            nlohmann::json message_j, to_sign_j;
+            message_j["req"] = "new_offline";
+            message_j["full_hash"] = full_hash;
+
+            int k;
+            std::string v;
+            for (auto &[k, v] : parts)
+            {
+                message_j["chosen_ones"].push_back(v);
+            }
+
+            to_sign_j["req"] = message_j["req"];
+            to_sign_j["full_hash"] = full_hash;
+            to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+            std::string to_sign_s = to_sign_j.dump();
+
+            Common::Crypto crypto;
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base64_encode(signature);
+            }
+            std::string message_s = message_j.dump();
+
+            int key;
+            std::string val;
+            Poco::BlockMatrix bm;
+            P2pNetwork pn;
+            for (int i = 1; i <= parts.size(); i++)
+            {
+                if (i == 1) continue;
+
+                // lookup in rocksdb
+                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                std::string peer_ip = value_j["ip"];
+
+                // inform the underlying network
+                if (parts[i] == my_full_hash) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                {
+                    // inform server's underlying network
+                    pl.handle_print_or_log({"Send new_offline req: Inform my underlying network as coordinator"});
+
+                    std::string next_hash;
+                    if (i != parts.size())
+                    {
+                        next_hash = parts[i+1];
+                    }
+                    else
+                    {
+                        next_hash = parts[1];
+                    }
+                    
+                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::string key2, val2;
+                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+                    for (int i = 1; i <= parts_underlying.size(); i++)
+                    {
+                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                        if (parts_underlying[i] == my_full_hash) continue;
+
+                        // lookup in rocksdb
+                        std::string val2 = parts_underlying[i];
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
+                        std::string ip_underlying = value_j["ip"];
+
+                        pl.handle_print_or_log({"Send new_offline req: Non-connected underlying peers - client: ", ip_underlying});
+
+                        Poco::PocoCrowd pc;
+                        bool cont = false;
+                        for (auto& el: pc.get_new_users_ip())
+                        {
+                            if (el == ip_underlying)
+                            {
+                                cont = true;
+                                break;
+                            }
+                        }
+                        if (cont) continue;
+
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        pn.p2p_client(ip_underlying, message);
+                    }
+                    delete rocksy;
+                }
+                
+                pl.handle_print_or_log({"Preparation for new_offline:", peer_ip});
+
+                Poco::PocoCrowd pc;
+                bool cont = false;
+                for (auto& el: pc.get_new_users_ip())
+                {
+                    if (el == peer_ip)
+                    {
+                        cont = true;
+                        break;
+                    }
+                }
+                if (cont) continue;
+
+                // p2p_client() to all chosen ones
+                pn.p2p_client(peer_ip, message_s);
+            }
+
+            // update this rocksdb
+            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            value_j["online"] = "false";
+            std::string value_s = value_j.dump();
+            rocksy2->Put(full_hash, value_s);
+            delete rocksy2,
+
+            delete rocksy1;
         }
-
-        // update this rocksdb
-        Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
-        nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
-        value_j["online"] = false;
-        std::string value_s = value_j.dump();
-        rocksy2->Put(full_hash, value_s);
-        delete rocksy2,
-
-        delete rocksy1;
+        else
+        {
+            pl.handle_print_or_log({"I'm not the new offline coordinator"});
+        }
     }
     else
     {
@@ -1605,122 +1892,14 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
     nlohmann::json msg_j;
     msg_j["req"] = "close_this_conn";
     set_resp_msg_server(msg_j.dump());
-
-    // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
+pl.handle_print_or_log({"__0001 okok", my_full_hash, full_hash});
+    // Ctrl-c for when the requestor receives an new_offline message --> then the circle is round
     // Graciously terminating the program
-    if (my_full_hash == full_hash) exit(2);
-}
-
-void P2pSession::new_offline(nlohmann::json buf_j)
-{
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"new peer offline:", (buf_j["full_hash"]).dump(), ", inform your bucket"});
-
-    Protocol proto;
-    FullHash fh;
-    std::string my_full_hash = fh.get_full_hash();
-    std::map<int, std::string> parts;
-
-    for (int i = 0; i < buf_j["chosen_ones"].size(); i++)
+    if (my_full_hash == full_hash)
     {
-        if (buf_j["chosen_ones"][i] == my_full_hash && i != buf_j["chosen_ones"].size() - 1)
-        {
-            std::string next_full_hash = buf_j["chosen_ones"][i+1];
-            parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-            break;
-        }
-        else if (buf_j["chosen_ones"][i] == my_full_hash && i == buf_j["chosen_ones"].size() - 1)
-        {
-            std::string next_full_hash = buf_j["chosen_ones"][0];
-            parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
-            break;
-        }
-        else
-        {
-            continue;
-        }
+        pl.handle_print_or_log({"exit new offline has run"});
+        exit(2);
     }
-
-    nlohmann::json message_j, to_sign_j;
-    message_j["req"] = "new_offline";
-    message_j["full_hash"] = buf_j["full_hash"];
-
-    int k;
-    std::string v;
-    for (auto &[k, v] : parts)
-    {
-        message_j["chosen_ones"].push_back(v);
-    }
-
-    to_sign_j["req"] = message_j["req"];
-    to_sign_j["full_hash"] = buf_j["full_hash"];
-    to_sign_j["chosen_ones"] = message_j["chosen_ones"];
-    std::string to_sign_s = to_sign_j.dump();
-
-    Common::Crypto crypto;
-    ECDSA<ECP, SHA256>::PrivateKey private_key;
-    std::string signature;
-    crypto.ecdsa_load_private_key_from_string(private_key);
-    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
-    {
-        message_j["signature"] = crypto.base64_encode(signature);
-    }
-
-    std::string full_hash = buf_j["full_hash"];
-
-    Rocksy* rocksy = new Rocksy("usersdb");
-    
-    int key;
-    std::string val;
-    Poco::BlockMatrix bm;
-    P2pNetwork pn;
-    for (auto &[key, val] : parts)
-    {
-        if (key == 1) continue;
-        if (val == full_hash) continue;
-        if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-        if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
-
-        // lookup in rocksdb
-        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
-        std::string peer_ip = value_j["ip"];
-        
-        std::string message_s = message_j.dump();
-
-        pl.handle_print_or_log({"Preparation for new_offline: ", peer_ip});
-
-        Poco::PocoCrowd pc;
-        bool cont = false;
-        for (auto& el: pc.get_new_users_ip())
-        {
-            if (el == peer_ip)
-            {
-                cont = true;
-                break;
-            }
-        }
-        if (cont) continue;
-
-        // p2p_client() to all chosen ones with intro_peer request
-        pn.p2p_client(peer_ip, message_s);
-    }
-
-    // update this rocksdb
-    nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(full_hash));
-    value_j["online"] = false;
-    std::string value_s = value_j.dump();
-    rocksy->Put(full_hash, value_s);
-
-    delete rocksy;
-
-    // Disconect from client
-    nlohmann::json msg_j;
-    msg_j["req"] = "close_this_conn";
-    set_resp_msg_server(msg_j.dump());
-
-    // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
-    // Graciously terminating the program
-    if (my_full_hash == full_hash) exit(2);
 }
 
 void P2pSession::update_you_server(nlohmann::json buf_j)
