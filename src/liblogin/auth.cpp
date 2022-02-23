@@ -43,6 +43,10 @@ std::map<std::string, std::string> Auth::authentication(std::string gui)
     {
         return cred;
     }
+    else if (email == "" && fh.get_full_hash() != "" && Auth::setNetwork(network) == true && cred["error"] == "false")
+    {
+        return cred;
+    }
     else
     {
         cred.clear();
