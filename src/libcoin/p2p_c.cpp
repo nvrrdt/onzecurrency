@@ -3,7 +3,7 @@
 #include "p2p_network_c.hpp"
 
 #include "full_hash.hpp"
-#include "prev_hash.hpp"
+#include "prev_hash_c.hpp"
 #include "rocksy.hpp"
 #include "crypto.hpp"
 #include "verification_c.hpp"
@@ -54,8 +54,8 @@ void P2pNetworkC::start_coin()
             pl.handle_print_or_log({"Send hello_tx"});
             
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
-            PrevHash ph;
-            std::string hash_latest_block = ph.calculate_hash_from_last_block();
+            PrevHashC phc;
+            std::string hash_latest_block = phc.calculate_hash_from_last_block_c();
             std::string prel_coordinator = my_full_hash + hash_latest_block;
 
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
