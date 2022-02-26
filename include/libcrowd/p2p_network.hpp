@@ -57,21 +57,9 @@ namespace Crowd
         {
             return ip_new_co_;
         }
-        
-        static void set_quit_server_req(bool quit)
-        {
-            quit_server_ = quit;
-        }
-    private:
-        static bool get_quit_server_req()
-        {
-            return quit_server_;
-        }
     private:
         static std::string closed_client_;
         static std::string ip_new_co_;
-
-        static bool quit_server_;
     };
 
     typedef std::deque<p2p_message> p2p_message_queue;

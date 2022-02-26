@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "p2p_network_c.hpp"
 
 #include "full_hash.hpp"
@@ -17,21 +19,29 @@ void P2pNetworkC::start_coin()
     VerificationC verification;
     verification.verify_all_blocks();
 
+    // verify if full_hash exists, otherwise wait
+    FullHash fh;
+    std::string my_full_hash;
+    for (;;)
+    {
+        my_full_hash = fh.get_full_hash();
+
+        if (!my_full_hash.empty())
+        {
+            break;
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(20));
+        }
+    }
+
     // input to create a transaction (tx)
-    while (true)
+    for (;;)
     {
         std::string to_full_hash = "", amount = "";
         std::cout << "Tx to: ";
         std::cin >> to_full_hash;
-
-        if (to_full_hash == "q")
-        {
-            // TODO send an intro_offline request here
-
-            P2pNetwork pn;
-            pn.set_quit_server_req(true);
-            break;
-        }
 
         std::cout << "Amount: ";
         std::cin >> amount;
@@ -44,8 +54,6 @@ void P2pNetworkC::start_coin()
             pl.handle_print_or_log({"Send hello_tx"});
             
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
-            FullHash fh;
-            std::string my_full_hash = fh.get_full_hash();
             PrevHash ph;
             std::string hash_latest_block = ph.calculate_hash_from_last_block();
             std::string prel_coordinator = my_full_hash + hash_latest_block;

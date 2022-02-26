@@ -20,7 +20,6 @@ using boost::asio::ip::tcp;
 using namespace Common;
 using namespace Crowd;
 
-bool P2pNetwork::quit_server_ = false;
 bool UI::Normal::goto_normal_mode_ = false;
 
 void P2pSession::handle_read_server(p2p_message read_msg_server)
