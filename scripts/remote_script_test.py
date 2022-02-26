@@ -30,15 +30,17 @@ def main():
     time.sleep(10) # estimated time to install the software, then start onze-terminal simultaneously over cloud servers
 
     # Start the command when synchronised with other servers
-    start_test_time = ((args.order - 1) * args.block_creation_delay) if (args.order == 1) else ((args.order - 1) * args.block_creation_delay) - 20
+    start_test_time = 0 if (args.order == 1) else ((args.order - 1) * args.block_creation_delay) - 20
     time.sleep(start_test_time)
-    
+
+    #print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
+
     # Let the onze-terminal process exist until al servers have finished
-    remaining_test_time = (((args.total_servers - args.order + 2) * args.block_creation_delay) + 15) if (args.order == 1) else (((args.total_servers - args.order + 2) * args.block_creation_delay) + 20 + 15)
+    remaining_test_time = ((args.total_servers * args.block_creation_delay) + 15) if (args.order == 1) else (((args.total_servers - args.order + 1) * args.block_creation_delay) + 20 + 15)
     
     # Execute onze-terminal --> start with intro_peer
     command = 'onze-terminal'
-    child = pexpect.spawn(command, encoding='utf-8', timeout=remaining_test_time)
+    child = pexpect.spawn(command, encoding='utf-8', timeout=5)
     child.logfile = sys.stdout
     child.setecho(False)
     child.expect("Email adress: ")
@@ -46,23 +48,26 @@ def main():
 
     time.sleep(remaining_test_time)
 
-    print(args.order, ",",args.total_servers, ",", datetime.utcnow())
-
-    # Test2 is killing (and restarting) each onze-terminal with 10 seconds in between to see if network is being informed in both cases
-    start_test2_time = (args.order - 1) * 10
-    time.sleep(start_test2_time)
+    # Test_time2 is killing (and restarting) each onze-terminal with 10 seconds in between to see if network is being informed in both cases
+    start_test_time2 = (args.order - 1) * 10
+    time.sleep(start_test_time2)
     child.sendcontrol('c') # ctrl-c
+    child.close()
+
+    #print("1st ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
     # Restarting the onze-terminals after 5 seconds
     time.sleep(5)
     child = pexpect.spawn(command, encoding='utf-8', timeout=5)
     child.logfile = sys.stdout
     child.setecho(False)
-    remaining_test2_time = (args.total_servers - args.order) * 10
-    time.sleep(remaining_test2_time)
+    remaining_test_time2 = (args.total_servers - args.order + 1) * 10
+    time.sleep(remaining_test_time2)
 
     # And killing
     child.sendcontrol('c') # ctrl-c
+    child.close()
+    print("2nd ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
     time.sleep(5)
 
     # Create file that contains amount of blocks present in log folder
