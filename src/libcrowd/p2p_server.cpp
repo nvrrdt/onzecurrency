@@ -1221,6 +1221,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             message_j["ip"] = socket_.remote_endpoint().address().to_string();
             message_j["server"] = buf_j["server"];
             message_j["fullnode"] = buf_j["fullnode"];
+            message_j["chosen_one"] = my_full_hash;
 
             int k;
             std::string v;
@@ -1234,6 +1235,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             to_sign_j["ip"] = message_j["ip"];
             to_sign_j["server"] = buf_j["server"];
             to_sign_j["fullnode"] = buf_j["fullnode"];
+            to_sign_j["chosen_one"] = message_j["chosen_one"];
             to_sign_j["chosen_ones"] = message_j["chosen_ones"];
             std::string to_sign_s = to_sign_j.dump();
 
@@ -1336,7 +1338,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             value_j["fullnode"] = buf_j["fullnode"];
             std::string value_s = value_j.dump();
             rocksy2->Put(full_hash, value_s);
-            delete rocksy2,
+            delete rocksy2;
 
             // update new user's blockchain, rocksdb and matrices
             pl.handle_print_or_log({"Update_you: send all blocks, rocksdb and matrices to server (server)"});
@@ -1421,8 +1423,6 @@ void P2pSession::intro_online(nlohmann::json buf_j)
 
             set_resp_msg_server(msg.dump());
 
-            delete rocksy1;
-
             // Signal the gui, go from Setup to Crowd there
             UI::Normal n;
             n.set_goto_normal_mode(true);
@@ -1451,6 +1451,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification intro online user not correct"});
     }
 
+    delete rocksy1;
     delete crypto;
 
     // Disconect from client
@@ -1470,11 +1471,12 @@ void P2pSession::new_online(nlohmann::json buf_j)
     to_verify_j["ip"] = buf_j["ip"];
     to_verify_j["server"] = buf_j["server"];
     to_verify_j["fullnode"] = buf_j["fullnode"];
+    to_verify_j["chosen_one"] = buf_j["chosen_one"];
     to_verify_j["chosen_ones"] = buf_j["chosen_ones"];
 
     Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
-    std::string full_hash = buf_j["full_hash"];
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
+    std::string chosen_one = buf_j["chosen_one"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(chosen_one));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
 
     Crypto* crypto = new Crypto();
@@ -1526,10 +1528,11 @@ void P2pSession::new_online(nlohmann::json buf_j)
 
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "new_online";
-            message_j["full_hash"] = full_hash;
+            message_j["full_hash"] = buf_j["full_hash"];
             message_j["ip"] = buf_j["ip"];
             message_j["server"] = buf_j["server"];
             message_j["fullnode"] = buf_j["fullnode"];
+            message_j["chosen_one"] = my_full_hash;
 
             int k;
             std::string v;
@@ -1539,10 +1542,11 @@ void P2pSession::new_online(nlohmann::json buf_j)
             }
 
             to_sign_j["req"] = message_j["req"];
-            to_sign_j["full_hash"] = full_hash;
+            to_sign_j["full_hash"] = message_j["full_hash"];
             to_sign_j["ip"] = message_j["ip"];
             to_sign_j["server"] = message_j["server"];
             to_sign_j["fullnode"] = message_j["fullnode"];
+            to_sign_j["chosen_one"] = message_j["chosen_one"];
             to_sign_j["chosen_ones"] = message_j["chosen_ones"];
             std::string to_sign_s = to_sign_j.dump();
 
@@ -1638,13 +1642,12 @@ void P2pSession::new_online(nlohmann::json buf_j)
 
             // update this rocksdb
             Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            std::string full_hash = buf_j["full_hash"];
             nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
             value_j["online"] = "true";
             std::string value_s = value_j.dump();
             rocksy2->Put(full_hash, value_s);
-            delete rocksy2,
-
-            delete rocksy1;
+            delete rocksy2;
         }
         else
         {
@@ -1656,6 +1659,7 @@ void P2pSession::new_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification new online user not correct"});
     }
 
+    delete rocksy1;
     delete crypto;
 
     // Disconect from client
@@ -1718,6 +1722,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "new_offline";
             message_j["full_hash"] = full_hash;
+            message_j["chosen_one"] = my_full_hash;
 
             int k;
             std::string v;
@@ -1728,6 +1733,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
 
             to_sign_j["req"] = message_j["req"];
             to_sign_j["full_hash"] = full_hash;
+            to_sign_j["chosen_one"] = my_full_hash;
             to_sign_j["chosen_ones"] = message_j["chosen_ones"];
             std::string to_sign_s = to_sign_j.dump();
 
@@ -1827,9 +1833,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
             value_j["online"] = "false";
             std::string value_s = value_j.dump();
             rocksy2->Put(full_hash, value_s);
-            delete rocksy2,
-
-            delete rocksy1;
+            delete rocksy2;
         }
         else
         {
@@ -1855,13 +1859,14 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification intro offline user not correct"});
     }
 
+    delete rocksy1;
     delete crypto;
 
     // Disconect from client
     nlohmann::json msg_j;
     msg_j["req"] = "close_this_conn";
     set_resp_msg_server(msg_j.dump());
-pl.handle_print_or_log({"__0001 okok", my_full_hash, full_hash});
+
     // Ctrl-c for when the requestor receives an intro_offline message --> then the circle is round
     // Graciously terminating the program
     if (my_full_hash == full_hash)
@@ -1879,11 +1884,12 @@ void P2pSession::new_offline(nlohmann::json buf_j)
     nlohmann::json to_verify_j;
     to_verify_j["req"] = buf_j["req"];
     to_verify_j["full_hash"] = buf_j["full_hash"];
+    to_verify_j["chosen_one"] = buf_j["chosen_one"];
     to_verify_j["chosen_ones"] = buf_j["chosen_ones"];
 
     Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
-    std::string full_hash = buf_j["full_hash"];
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
+    std::string chosen_one = buf_j["chosen_one"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(chosen_one));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
 
     Crypto* crypto = new Crypto();
@@ -1935,7 +1941,8 @@ void P2pSession::new_offline(nlohmann::json buf_j)
 
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "new_offline";
-            message_j["full_hash"] = full_hash;
+            message_j["full_hash"] = buf_j["full_hash"];
+            message_j["chosen_one"] = my_full_hash;
 
             int k;
             std::string v;
@@ -1945,7 +1952,8 @@ void P2pSession::new_offline(nlohmann::json buf_j)
             }
 
             to_sign_j["req"] = message_j["req"];
-            to_sign_j["full_hash"] = full_hash;
+            to_sign_j["full_hash"] = message_j["full_hash"];
+            to_sign_j["chosen_one"] = message_j["chosen_one"];
             to_sign_j["chosen_ones"] = message_j["chosen_ones"];
             std::string to_sign_s = to_sign_j.dump();
 
@@ -2041,13 +2049,12 @@ void P2pSession::new_offline(nlohmann::json buf_j)
 
             // update this rocksdb
             Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            std::string full_hash = buf_j["full_hash"];
             nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
             value_j["online"] = "false";
             std::string value_s = value_j.dump();
             rocksy2->Put(full_hash, value_s);
-            delete rocksy2,
-
-            delete rocksy1;
+            delete rocksy2;
         }
         else
         {
@@ -2059,13 +2066,16 @@ void P2pSession::new_offline(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification new offline user not correct"});
     }
 
+    delete rocksy1;
     delete crypto;
 
     // Disconect from client
     nlohmann::json msg_j;
     msg_j["req"] = "close_this_conn";
     set_resp_msg_server(msg_j.dump());
-pl.handle_print_or_log({"__0001 okok", my_full_hash, full_hash});
+
+    std::string full_hash = buf_j["full_hash"];
+
     // Ctrl-c for when the requestor receives an new_offline message --> then the circle is round
     // Graciously terminating the program
     if (my_full_hash == full_hash)

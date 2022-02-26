@@ -268,8 +268,8 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
         // then p2p_server()
 
         Verification verification;
-        std::string email_address = cred["email"];
-        if (verification.compare_email_with_saved_full_hash(email_address) && verification.verify_all_blocks())
+        //std::string email_address = cred["email"]; // TODO maybe implement later when complete login system with face and fingerprint recognition is there
+        if (/*verification.compare_email_with_saved_full_hash(email_address) &&*/ verification.verify_all_blocks())
         {
             //ok, continue
             pl.handle_print_or_log({"Existing peer ok"});
@@ -460,9 +460,7 @@ void P2p::signal_callback_handler(int signum)
         
         std::string ip = contents_j["ip"];
 
-pl.handle_print_or_log({"intro offline message sent to", ip});
-        P2pNetwork pn;
-        pn.p2p_client(ip, message_s);
+        pl.handle_print_or_log({"intro offline message sent to", ip});
 
         // Terminate program
         std::cout << "Preparing clean exit ... Please wait!" << std::endl;
@@ -470,5 +468,11 @@ pl.handle_print_or_log({"intro offline message sent to", ip});
         // exit(2) /* ctrl-c */ in p2p_server's intro_offline and new_offline
         // this exiting peer will receive such a request
         // if received the program is being terminated graciously
+
+        // Send message
+        P2pNetwork pn;
+        pn.p2p_client(ip, message_s);
+
+        
     }
 }
