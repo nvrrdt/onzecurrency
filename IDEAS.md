@@ -19,6 +19,7 @@
   + The dividing and merging blocks consists of: ...
 - There should be a confirmation when a transaction is waiting in a preliminary block, maybe the peer above the hash from the tx with payer and payee, is able to give an ok or nok.
 - The full_hash should consist of 3 parts (face and fingerprint, face and passwordprotected email, fingerprint and passwordprotected email) in which each part is able to login a user in the Onze network. This should be effectivelu sufficient to enable someone to login anytime.
+- There are full nodes and light nodes. Light nodes should be capable to create a user. And light nodes should also be capable of authenticating a full node. A light node is mostly a mobile android or ios device, while a full node can be a cloud server or a desktop computer. Also when the desktop is behind a nat there should be a solution. If artificial intelligence on a light node is able to read a string of some kind on a full node then the private key, public key, full hash and previous hash should be copied from light node to full node. That's the goal for the next year, then crowd and coin should be functional and we can start with the smart contracts.
 
 ### 51% voting mechanism
 Process to finalize a project:
