@@ -27,6 +27,11 @@ Rocksy::Rocksy(std::string which_db)
         rocksdb::Status s = rocksdb::DB::Open(options, transactionsdb_folder_path, &db);
         pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", transactionsdb_folder_path});
     }
+    else if (which_db == "transactionsdbradonly")
+    {
+        rocksdb::Status s = rocksdb::DB::OpenForReadOnly(options, transactionsdb_folder_path, &db);
+        pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", transactionsdb_folder_path});
+    }
 }
 Rocksy::~Rocksy()
 {

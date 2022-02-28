@@ -16,11 +16,12 @@
 #include "rocksy.hpp"
 #include "json.hpp"
 #include "full_hash.hpp"
-#include "prev_hash.hpp"
+#include "prev_hash_c.hpp"
 #include "transactions.hpp"
 #include "poco_coin.hpp"
 #include "block_matrix.hpp"
 #include "merkle_tree_c.hpp"
+#include "protocol_c.hpp"
 
 #include "print_or_log.hpp"
 
@@ -28,7 +29,7 @@ using namespace Common;
 using namespace Coin;
 using namespace Poco;
 
-void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
+void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j, tcp::socket socket)
 {
     //
     Common::Print_or_log pl;
@@ -45,6 +46,8 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
     req_conversion["intro_block_c"] =   26;
     req_conversion["hash_comparison_c"] =   27;
     req_conversion["new_block_c"] =     28;
+    req_conversion["intro_online_c"] =  29;
+    req_conversion["new_online_c"] =    30;
 
     switch (req_conversion[req])
     {
@@ -65,6 +68,10 @@ void P2pNetworkC::handle_read_server_c(nlohmann::json buf_j)
         case 27:    hash_comparison_c(buf_j);
                     break;
         case 28:    new_block_c(buf_j);
+                    break;
+        case 29:    intro_online_c(buf_j, std::move(socket));
+                    break;
+        case 30:    new_online_c(buf_j, std::move(socket));
                     break;
     }
 }
@@ -112,8 +119,8 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash();
 
-        PrevHash ph;
-        std::string hash_latest_block = ph.calculate_hash_from_last_block();
+        PrevHashC phc;
+        std::string hash_latest_block = phc.calculate_hash_from_last_block_c();
         std::string prel_coordinator = full_hash_req + hash_latest_block;
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
@@ -225,6 +232,8 @@ void P2pNetworkC::hello_tx(nlohmann::json buf_j)
         {
             Common::Print_or_log pl;
             pl.handle_print_or_log({"Hello_tx: I'm not the coordinator, try again in a few minutes"});
+
+            //TODO to new_co
         }
     }
     else
@@ -283,8 +292,8 @@ void P2pNetworkC::intro_tx(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash();
 
-        PrevHash ph;
-        std::string hash_latest_block = ph.calculate_hash_from_last_block();
+        PrevHashC phc;
+        std::string hash_latest_block = phc.calculate_hash_from_last_block_c();
         std::string coordinator = full_hash_req + hash_latest_block;
 
         bool is_chosen_one = false;
@@ -476,8 +485,8 @@ void P2pNetworkC::new_tx(nlohmann::json buf_j)
         FullHash fh;
         std::string my_full_hash = fh.get_full_hash();
 
-        PrevHash ph;
-        std::string hash_latest_block = ph.calculate_hash_from_last_block();
+        PrevHashC phc;
+        std::string hash_latest_block = phc.calculate_hash_from_last_block_c();
         std::string coordinator = full_hash_req + hash_latest_block;
 
         bool is_chosen_one = false;
@@ -1350,4 +1359,495 @@ void P2pNetworkC::new_block_c(nlohmann::json buf_j)
     // new_block --> TODO block and rocksdb should be saved
     Common::Print_or_log pl;
     pl.handle_print_or_log({"New_block_c:"});
+}
+
+void P2pNetworkC::intro_online_c(nlohmann::json buf_j, tcp::socket socket)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"intro peer online c: ", buf_j["full_hash"]});
+    
+    nlohmann::json to_verify_j;
+    to_verify_j["req"] = buf_j["req"];
+    to_verify_j["full_hash"] = buf_j["full_hash"];
+    to_verify_j["latest_block_nr"] = buf_j["latest_block_nr"];
+
+    Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
+    std::string full_hash = buf_j["full_hash"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
+    std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+
+    Crypto* crypto = new Crypto();
+    std::string to_verify_s = to_verify_j.dump();
+    ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+    crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+    std::string signature = buf_j["signature"];
+    std::string signature_bin = crypto->base64_decode(signature);
+    
+    std::string my_full_hash;
+    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
+    {
+        pl.handle_print_or_log({"verified intro online user c"});
+
+        PrevHashC phc;
+        std::string next_prev_hash = phc.calculate_hash_from_last_block_c();
+
+        std::string msg_and_nph = buf_j.dump() + next_prev_hash;
+        std::string hash_msg_and_nph =  crypto->bech32_encode_sha256(msg_and_nph);
+
+        FullHash fh;
+        my_full_hash = fh.get_full_hash();
+
+        Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+        std::string coordinator_from_hash = rocksy2->FindChosenOne(hash_msg_and_nph);
+        delete rocksy2;
+
+        pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
+        pl.handle_print_or_log({"coordinator_from_hash: ", coordinator_from_hash});
+
+        if (my_full_hash == coordinator_from_hash)
+        {
+            pl.handle_print_or_log({"I'm the intro online coordinator c"});
+
+            // inform the network of new online
+            Protocol proto;
+
+            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+
+            nlohmann::json message_j, to_sign_j;
+            message_j["req"] = "new_online";
+            message_j["full_hash"] = full_hash;
+            message_j["ip"] = socket.remote_endpoint().address().to_string();
+            message_j["chosen_one"] = my_full_hash;
+
+            int k;
+            std::string v;
+            for (auto &[k, v] : parts)
+            {
+                message_j["chosen_ones"].push_back(v);
+            }
+
+            to_sign_j["req"] = message_j["req"];
+            to_sign_j["full_hash"] = full_hash;
+            to_sign_j["ip"] = message_j["ip"];
+            to_sign_j["chosen_one"] = message_j["chosen_one"];
+            to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+            std::string to_sign_s = to_sign_j.dump();
+
+            Common::Crypto crypto;
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base64_encode(signature);
+            }
+            std::string message_s = message_j.dump();
+
+            int key;
+            std::string val;
+            Poco::BlockMatrix bm;
+            P2pNetwork pn;
+            for (int i = 1; i <= parts.size(); i++)
+            {
+                if (i == 1) continue;
+
+                // lookup in rocksdb
+                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                std::string peer_ip = value_j["ip"];
+
+                // inform the underlying network
+                if (parts[i] == my_full_hash) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                {
+                    // inform server's underlying network
+                    pl.handle_print_or_log({"Send intro_online c req: Inform my underlying network as coordinator"});
+
+                    std::string next_hash;
+                    if (i != parts.size())
+                    {
+                        next_hash = parts[i+1];
+                    }
+                    else
+                    {
+                        next_hash = parts[1];
+                    }
+                    
+                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::string key2, val2;
+                    Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
+                    for (int i = 1; i <= parts_underlying.size(); i++)
+                    {
+                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                        if (parts_underlying[i] == my_full_hash) continue;
+
+                        // lookup in rocksdb
+                        std::string val2 = parts_underlying[i];
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val2));
+                        std::string ip_underlying = value_j["ip"];
+
+                        pl.handle_print_or_log({"Send intro_online c req: Non-connected underlying peers - client: ", ip_underlying});
+
+                        Poco::PocoCrowd pc;
+                        bool cont = false;
+                        for (auto& el: pc.get_new_users_ip())
+                        {
+                            if (el == ip_underlying)
+                            {
+                                cont = true;
+                                break;
+                            }
+                        }
+                        if (cont) continue;
+
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        pn.p2p_client(ip_underlying, message);
+                    }
+                    delete rocksy3;
+                }
+                
+                pl.handle_print_or_log({"Preparation for new_online c:", peer_ip});
+
+                Poco::PocoCrowd pc;
+                bool cont = false;
+                for (auto& el: pc.get_new_users_ip())
+                {
+                    if (el == peer_ip)
+                    {
+                        cont = true;
+                        break;
+                    }
+                }
+                if (cont) continue;
+
+                // p2p_client() to all chosen ones
+                pn.p2p_client(peer_ip, message_s);
+            }
+
+            // update this rocksdb
+            Rocksy* rocksy4 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(full_hash));
+            value_j["online"] = true;
+            value_j["ip"] = buf_j["ip"];
+            std::string value_s = value_j.dump();
+            rocksy4->Put(full_hash, value_s);
+            delete rocksy4;
+
+            // update new user's blockchain, rocksdb and matrices
+            pl.handle_print_or_log({"Update_you c: send all blocks, rocksdb and matrices to server (server)"});
+
+            std::string req_latest_block = buf_j["latest_block_nr"];
+
+            nlohmann::json msg;
+            msg["req"] = "update_you_c";
+
+            // Update blockchain
+            ProtocolC protoc;
+            msg["blocks"] = protoc.get_blocks_from_c(req_latest_block);
+
+            nlohmann::json list_of_users_j = nlohmann::json::parse(protoc.get_all_users_from_c(req_latest_block)); // TODO: there are double parse/dumps everywhere
+                                                                                                                // maybe even a stack is better ...
+            // Update rocksdb
+            nlohmann::json rdb;
+            for (auto& user : list_of_users_j)
+            {
+                nlohmann::json usr;
+                std::string u = user;
+                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(u));
+                usr = {u: value_j};
+                rdb.push_back(usr);
+            }
+
+            msg["rocksdb"] = rdb;
+
+            // Update matrices
+            Poco::IntroMsgsMat imm;
+            Poco::IpAllHashes iah;
+            nlohmann::json contents_j;
+// __0000 --> matrices must be updated
+            // for (int i = 0; i < bm.get_block_matrix().size(); i++)
+            // {
+            //     for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+            //     {
+            //         contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
+            //     }
+            // }
+            // msg["bm"] = contents_j;
+            // contents_j.clear();
+
+            // for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
+            // {
+            //     for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
+            //     {
+            //         for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
+            //         {
+            //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
+            //         }
+            //     }
+            // }
+            // msg["imm"] = contents_j;
+            // contents_j.clear();
+
+            // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+            // {
+            //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+            //     {
+            //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+            //         {
+            //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
+            //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
+            //         }
+            //     }
+            // }
+            // msg["iah"] = contents_j;
+            // contents_j.clear();
+
+            // // Update intro_msg_vec and ip_hemail_vec
+            // msg["imv"];
+            // for (auto& el: intro_msg_vec_.get_intro_msg_vec())
+            // {
+            //     msg["imv"].push_back(*el);
+            // }
+
+            // msg["ihv"];
+            // for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
+            // {
+            //     msg["ihv"][(*el).first] = (*el).second;
+            // }
+
+            std::make_shared<P2pSessionC>(std::move(socket))->set_resp_msg_server(msg.dump());
+        }
+        else
+        {
+            pl.handle_print_or_log({"I'm not the intro online c coordinator"});
+
+            // There's another coordinator, send to real coordinator
+
+            nlohmann::json message_j;
+            message_j["req"] = "new_co_c_online";
+
+            Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy5->Get(coordinator_from_hash));
+            std::string peer_ip = value_j["ip"];
+            delete rocksy5;
+
+            message_j["full_hash_co"] = coordinator_from_hash;
+            message_j["ip_co"] = peer_ip;
+            std::make_shared<P2pSessionC>(std::move(socket))->set_resp_msg_server(message_j.dump());
+        }
+    }
+    else
+    {
+        pl.handle_print_or_log({"verification intro online c user not correct"});
+    }
+
+    delete crypto;
+
+    // Disconect from client
+    nlohmann::json msg_j;
+    msg_j["req"] = "close_this_conn";
+    std::make_shared<P2pSessionC>(std::move(socket))->set_resp_msg_server(msg_j.dump());
+}
+
+void P2pNetworkC::new_online_c(nlohmann::json buf_j, tcp::socket socket)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new peer c online:", buf_j["full_hash"], ", inform your bucket"});
+
+    nlohmann::json to_verify_j;
+    to_verify_j["req"] = buf_j["req"];
+    to_verify_j["full_hash"] = buf_j["full_hash"];
+    to_verify_j["ip"] = buf_j["ip"];
+    to_verify_j["chosen_one"] = buf_j["chosen_one"];
+    to_verify_j["chosen_ones"] = buf_j["chosen_ones"];
+
+    Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
+    std::string chosen_one = buf_j["chosen_one"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(chosen_one));
+    std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+    delete rocksy1;
+
+    Crypto* crypto = new Crypto();
+    std::string to_verify_s = to_verify_j.dump();
+    ECDSA<ECP, SHA256>::PublicKey public_key_ecdsa;
+    crypto->ecdsa_string_to_public_key(ecdsa_pub_key_s, public_key_ecdsa);
+    std::string signature = buf_j["signature"];
+    std::string signature_bin = crypto->base64_decode(signature);
+    
+    std::string my_full_hash;
+    if (crypto->ecdsa_verify_message(public_key_ecdsa, to_verify_s, signature_bin))
+    {
+        pl.handle_print_or_log({"verified new online c user"});
+
+        FullHash fh;
+        my_full_hash = fh.get_full_hash();
+
+        nlohmann::json chosen_ones = buf_j["chosen_ones"];
+        bool is_chosen_one  = false;
+        for (auto& el: chosen_ones.items())
+        {
+            if (el.value() == my_full_hash) is_chosen_one = true;
+        }
+
+        if (is_chosen_one) // full_hash_coord should be one of the chosen_ones
+        {
+            pl.handle_print_or_log({"I'm the new online c coordinator"});
+
+            // inform the network of new online
+
+            std::string next_full_hash;
+            for (int i = 0; i < chosen_ones.size(); i++)
+            {
+                if (chosen_ones[i] == my_full_hash)
+                {
+                    if (i != chosen_ones.size() - 1)
+                    {
+                        next_full_hash = chosen_ones[i+1];
+                    }
+                    else
+                    {
+                        next_full_hash = chosen_ones[0];
+                    }
+                }
+            }
+
+            Protocol proto;
+            std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, next_full_hash);
+
+            nlohmann::json message_j, to_sign_j;
+            message_j["req"] = "new_online";
+            message_j["full_hash"] = buf_j["full_hash"];
+            message_j["ip"] = buf_j["ip"];
+            message_j["chosen_one"] = my_full_hash;
+
+            int k;
+            std::string v;
+            for (auto &[k, v] : parts)
+            {
+                message_j["chosen_ones"].push_back(v);
+            }
+
+            to_sign_j["req"] = message_j["req"];
+            to_sign_j["full_hash"] = message_j["full_hash"];
+            to_sign_j["ip"] = message_j["ip"];
+            to_sign_j["chosen_one"] = message_j["chosen_one"];
+            to_sign_j["chosen_ones"] = message_j["chosen_ones"];
+            std::string to_sign_s = to_sign_j.dump();
+
+            Common::Crypto crypto;
+            ECDSA<ECP, SHA256>::PrivateKey private_key;
+            std::string signature;
+            crypto.ecdsa_load_private_key_from_string(private_key);
+            if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+            {
+                message_j["signature"] = crypto.base64_encode(signature);
+            }
+            std::string message_s = message_j.dump();
+
+            int key;
+            std::string val;
+            Poco::BlockMatrix bm;
+            P2pNetwork pn;
+            for (int i = 1; i <= parts.size(); i++)
+            {
+                if (i == 1) continue;
+
+                // lookup in rocksdb
+                Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+                nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(parts[i]));
+                std::string peer_ip = value_j["ip"];
+                delete rocksy2;
+
+                // inform the underlying network
+                if (parts[i] == my_full_hash) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                {
+                    // inform server's underlying network
+                    pl.handle_print_or_log({"Send new_online c req: Inform my underlying network as coordinator"});
+
+                    std::string next_hash;
+                    if (i != parts.size())
+                    {
+                        next_hash = parts[i+1];
+                    }
+                    else
+                    {
+                        next_hash = parts[1];
+                    }
+                    
+                    std::map<int, std::string> parts_underlying = proto.partition_in_buckets(my_full_hash, next_hash);
+                    std::string key2, val2;
+                    Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
+                    for (int i = 1; i <= parts_underlying.size(); i++)
+                    {
+                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                        if (parts_underlying[i] == my_full_hash) continue;
+
+                        // lookup in rocksdb
+                        std::string val2 = parts_underlying[i];
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val2));
+                        std::string ip_underlying = value_j["ip"];
+
+                        pl.handle_print_or_log({"Send new_online req: Non-connected underlying peers - client: ", ip_underlying});
+
+                        Poco::PocoCrowd pc;
+                        bool cont = false;
+                        for (auto& el: pc.get_new_users_ip())
+                        {
+                            if (el == ip_underlying)
+                            {
+                                cont = true;
+                                break;
+                            }
+                        }
+                        if (cont) continue;
+
+                        // message to non-connected peers
+                        std::string message = message_j.dump();
+                        pn.p2p_client(ip_underlying, message);
+                    }
+                    delete rocksy3;
+                }
+                
+                pl.handle_print_or_log({"Preparation for new_online c:", peer_ip});
+
+                Poco::PocoCrowd pc;
+                bool cont = false;
+                for (auto& el: pc.get_new_users_ip())
+                {
+                    if (el == peer_ip)
+                    {
+                        cont = true;
+                        break;
+                    }
+                }
+                if (cont) continue;
+
+                // p2p_client() to all chosen ones
+                pn.p2p_client(peer_ip, message_s);
+            }
+
+            // update this rocksdb
+            Rocksy* rocksy4 = new Rocksy("usersdbreadonly");
+            std::string full_hash = buf_j["full_hash"];
+            nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(full_hash));
+            value_j["online"] = "true";
+            std::string value_s = value_j.dump();
+            rocksy4->Put(full_hash, value_s);
+            delete rocksy4;
+        }
+        else
+        {
+            pl.handle_print_or_log({"I'm not the new online c coordinator"});
+        }
+    }
+    else
+    {
+        pl.handle_print_or_log({"verification new online c user not correct"});
+    }
+
+    delete crypto;
+
+    // Disconect from client
+    nlohmann::json msg_j;
+    msg_j["req"] = "close_this_conn";
+    std::make_shared<P2pSessionC>(std::move(socket))->set_resp_msg_server(msg_j.dump());
 }

@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 
         // start coin
         std::packaged_task<void()> task2([cred] {
-            P2pNetworkC pnc;
-            pnc.start_coin();
+            P2pC pc;
+            pc.start_coin();
         });
         // Run task on new thread.
         std::thread t2(std::move(task2));

@@ -12,7 +12,7 @@
 
 using namespace Coin;
 
-void P2pNetworkC::start_coin()
+void P2pC::start_coin()
 {
     Common::Print_or_log pl;
 
@@ -36,6 +36,10 @@ void P2pNetworkC::start_coin()
         }
     }
 
+    /////////////
+    // wait for update of my blockchain, my rocksdb and my matrices
+    /////////////
+
     // input to create a transaction (tx)
     for (;;)
     {
@@ -48,7 +52,7 @@ void P2pNetworkC::start_coin()
 
         std::cout << std::endl;
 
-        if (P2pNetworkC::validate_full_hash(to_full_hash) && P2pNetworkC::validate_amount(amount))
+        if (P2pC::validate_full_hash(to_full_hash) && P2pC::validate_amount(amount))
         {
             Common::Print_or_log pl;
             pl.handle_print_or_log({"Send hello_tx"});
@@ -98,7 +102,7 @@ void P2pNetworkC::start_coin()
     }
 }
 
-bool P2pNetworkC::validate_full_hash(std::string to_full_hash)
+bool P2pC::validate_full_hash(std::string to_full_hash)
 {
     Common::Crypto crypto;
     bool out_success;
@@ -107,7 +111,7 @@ bool P2pNetworkC::validate_full_hash(std::string to_full_hash)
     return out_success;
 }
 
-bool P2pNetworkC::validate_amount(std::string amount)
+bool P2pC::validate_amount(std::string amount)
 {
     std::string::const_iterator it = amount.begin();
     while (it != amount.end() && std::isdigit(*it)) ++it;

@@ -49,6 +49,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/full_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/p2p_network_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libcoin/protocol_c.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)

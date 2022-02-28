@@ -11,6 +11,9 @@
 #include "verification.hpp"
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
+#include "prev_hash_c.hpp"
+#include "p2p_network_c.hpp"
+#include "protocol_c.hpp"
 
 #include <vector>
 
@@ -277,6 +280,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             FullHash fh;
             std::string my_full_hash = fh.get_full_hash();
 
+            // includes updating crowd
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "intro_online";
             message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
@@ -312,12 +316,52 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
 
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
-            
+            delete rocksy;
+
             std::string ip = contents_j["ip"];
 
 pl.handle_print_or_log({"intro online message sent to", ip});
             P2pNetwork pn;
             pn.p2p_client(ip, message_s);
+
+            // includes updating coin
+            nlohmann::json message_c_j, to_sign_c_j;
+            message_c_j["req"] = "intro_online_c";
+            message_c_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
+            Coin::ProtocolC protocol_c;
+            message_c_j["latest_block_nr"] = protocol_c.get_last_block_nr_c();
+            
+            to_sign_c_j["req"] = message_c_j["req"];
+            to_sign_c_j["full_hash"] = message_c_j["full_hash"];
+            to_sign_c_j["latest_block_nr"] = message_c_j["latest_block_nr"];
+            std::string to_sign_c_s = to_sign_c_j.dump();
+
+            Common::Crypto crypto_c;
+            ECDSA<ECP, SHA256>::PrivateKey private_key_c;
+            std::string signature_c;
+            crypto_c.ecdsa_load_private_key_from_string(private_key_c);
+            if (crypto_c.ecdsa_sign_message(private_key_c, to_sign_c_s, signature_c))
+            {
+                message_j["signature"] = crypto_c.base64_encode(signature_c);
+            }
+            std::string message_c_s = message_c_j.dump();
+
+            Coin::PrevHashC phc;
+            std::string next_prev_hash_c = phc.calculate_hash_from_last_block_c();
+
+            std::string msg_and_nph_c = message_c_s + next_prev_hash_c;
+            std::string hash_msg_and_nph_c =  crypto_c.bech32_encode_sha256(msg_and_nph_c);
+
+            Rocksy* rocksy_c = new Rocksy("usersdbreadonly");
+            std::string coordinator_from_hash_c = rocksy_c->FindChosenOne(hash_msg_and_nph_c);
+
+            nlohmann::json contents_c_j = nlohmann::json::parse(rocksy_c->Get(coordinator_from_hash_c));
+            delete rocksy_c;
+
+            std::string ip_c = contents_c_j["ip"];
+
+pl.handle_print_or_log({"intro online c message sent to", ip_c});
+            pn.p2p_client(ip_c, message_c_s);
 
             return true;
         }

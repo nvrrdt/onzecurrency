@@ -91,7 +91,7 @@ namespace Crowd
         void update_me_client(nlohmann::json buf_j);
         void new_co_offline_client(nlohmann::json buf_j);
         void new_co_online_client(nlohmann::json buf_j);
-
+    protected:
         void set_resp_msg_client(std::string msg);
     private:
         boost::asio::io_context &io_context_;
@@ -120,12 +120,14 @@ namespace Crowd
         P2pSession(tcp::socket socket);
         void start();
         void deliver(const p2p_message &msg);
+
+        void set_resp_msg_server(std::string msg);
     private:
         void do_read_header();
         void do_read_body();
         void do_write();
 
-        void handle_read_server(p2p_message read_msg_server);
+        void handle_read_server(p2p_message read_msg_server, tcp::socket socket);
 
         void register_for_nat_traversal(nlohmann::json buf_j);
         void connect_to_nat(nlohmann::json buf_j);
@@ -142,10 +144,9 @@ namespace Crowd
         void intro_offline(nlohmann::json buf_j);
         void new_offline(nlohmann::json buf_j);
         void update_you_server(nlohmann::json buf_j);
-
-        void set_resp_msg_server(std::string msg);
-    private:
+    protected:
         tcp::socket socket_;
+    private:
         p2p_message read_msg_;
         p2p_message_queue write_msgs_;
 
