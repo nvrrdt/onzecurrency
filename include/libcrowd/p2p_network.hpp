@@ -69,13 +69,15 @@ namespace Crowd
         P2pClient(boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
         void write(const p2p_message &msg);
         void close();
+
+        void set_resp_msg_client(std::string msg);
     private:
         void do_connect(const tcp::resolver::results_type &endpoints);
         void do_read_header();
         void do_read_body();
         void do_write();
 
-        void handle_read_client(p2p_message read_msg_client);
+        void handle_read_client(p2p_message read_msg_client, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
 
         void register_for_nat_traversal_client(nlohmann::json buf_j);
         void connect_to_nat_client(nlohmann::json buf_j);
@@ -91,10 +93,9 @@ namespace Crowd
         void update_me_client(nlohmann::json buf_j);
         void new_co_offline_client(nlohmann::json buf_j);
         void new_co_online_client(nlohmann::json buf_j);
-    protected:
-        void set_resp_msg_client(std::string msg);
     private:
         boost::asio::io_context &io_context_;
+        const tcp::resolver::results_type &endpoints_;
         tcp::socket socket_;
         p2p_message read_msg_;
         p2p_message_queue write_msgs_;

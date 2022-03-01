@@ -21,9 +21,13 @@ namespace Coin
     class P2pNetworkC
     {
     public:
-        void handle_read_client_c(nlohmann::json buf_j);
+        void handle_read_client_c(nlohmann::json buf_j, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
         void handle_read_server_c(nlohmann::json buf_j, tcp::socket socket);
     private:
+        // client
+        void update_me_c_client(nlohmann::json buf_j, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
+    private:
+        // server
         void hello_tx(nlohmann::json buf_j);
         void intro_tx(nlohmann::json buf_j);
         void new_tx(nlohmann::json buf_j);
@@ -37,7 +41,15 @@ namespace Coin
         void new_block_c(nlohmann::json buf_j);
         void intro_online_c(nlohmann::json buf_j, tcp::socket socket);
         void new_online_c(nlohmann::json buf_j, tcp::socket socket);
+        void update_you_c(nlohmann::json buf_j, tcp::socket socket);
     private:
+    };
+
+    class P2pClientC: public P2pClient
+    {
+    public:
+        P2pClientC(boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints)
+            : P2pClient(std::ref(io_context), std::ref(endpoints)) {}
     };
 
     class P2pSessionC: public P2pSession

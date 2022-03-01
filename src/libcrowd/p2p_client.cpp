@@ -15,7 +15,7 @@ using namespace Crowd;
 std::string P2pNetwork::closed_client_ = "";
 std::string P2pNetwork::ip_new_co_ = "";
 
-void P2pClient::handle_read_client(p2p_message read_msg_client)
+void P2pClient::handle_read_client(p2p_message read_msg_client, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints)
 {
     if ( !read_msg_client.get_eom_flag())
     {
@@ -77,7 +77,7 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
             case 19:    new_co_online_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
-                        pnc.handle_read_client_c(buf_j);
+                        pnc.handle_read_client_c(buf_j, std::ref(io_context), std::ref(endpoints));
                         break;
         }
 
@@ -524,9 +524,9 @@ std::vector<std::string> P2pNetwork::split(const std::string& str, int splitLeng
 }
 
 P2pClient::P2pClient(boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints)
-    : io_context_(io_context), socket_(io_context)
+    : io_context_(io_context), socket_(io_context), endpoints_(endpoints)
 {
-    do_connect(endpoints);
+    do_connect(endpoints_);
 }
 
 void P2pClient::write(const p2p_message &msg)
@@ -588,7 +588,7 @@ void P2pClient::do_read_body()
                                 {
                                     std::cout.write(read_msg_.body(), read_msg_.body_length());
                                     std::cout << "\n";
-                                    handle_read_client(read_msg_);
+                                    handle_read_client(read_msg_, std::ref(io_context_), std::ref(endpoints_));
                                     do_read_header();
                                 }
                                 else

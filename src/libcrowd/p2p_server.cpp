@@ -12,6 +12,7 @@
 #include <utility>
 #include <boost/asio.hpp>
 #include "p2p_message.hpp"
+#include "protocol_c.hpp"
 
 #include "desktop.hpp"
 
@@ -1139,13 +1140,21 @@ void P2pSession::your_full_hash(nlohmann::json buf_j)
     nlohmann::json block_j = buf_j["block"];
     std::string req_latest_block_nr = buf_j["block_nr"];
 
-    // Update my blocks, rocksdb and matrices
+    // Update my blocks, rocksdb and matrices of crowd
     Protocol proto;
     std::string my_latest_block = proto.get_last_block_nr();
     nlohmann::json m_j;
     m_j["req"] = "update_me";
     m_j["block_nr"] = my_latest_block;
     set_resp_msg_server(m_j.dump());
+
+    // Update my blocks, rocksdb and matrices of coin
+    Coin::ProtocolC protoc;
+    std::string my_latest_block_c = protoc.get_last_block_nr_c();
+    nlohmann::json mm_j;
+    mm_j["req"] = "update_me_c";
+    mm_j["block_nr"] = my_latest_block_c;
+    set_resp_msg_server(mm_j.dump());
 }
 
 void P2pSession::hash_comparison(nlohmann::json buf_j)
