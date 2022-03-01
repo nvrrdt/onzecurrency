@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <enet/enet.h>
 
 #include "p2p_network.hpp"
 

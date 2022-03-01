@@ -18,8 +18,6 @@
 #include <stack>
 #include <memory>
 
-#include <enet/enet.h>
-
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
@@ -43,7 +41,7 @@ namespace Crowd
             j = nlohmann::json{{"ip_list", str}};
         }
         int ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr);
-        int number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string);
+        int number_to_ip_string(uint32 ipAddress, std::string& ip_string);
         static void signal_callback_handler(int signum); // handle ctrl-c
     };
     

@@ -5,7 +5,6 @@
 #include <stack>
 #include <string>
 #include <memory>
-#include <enet/enet.h>
 
 #include "json.hpp"
 #include "all_hashes_mat.hpp"

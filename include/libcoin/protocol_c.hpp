@@ -20,8 +20,6 @@
 #include <stack>
 #include <memory>
 
-#include <enet/enet.h>
-
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 

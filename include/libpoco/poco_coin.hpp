@@ -5,7 +5,6 @@
 #include <stack>
 #include <string>
 #include <memory>
-#include <enet/enet.h>
 
 // #include "poco_crowd.hpp"
 #include "json.hpp"

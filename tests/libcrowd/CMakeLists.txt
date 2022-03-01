@@ -7,7 +7,6 @@ find_package(Boost COMPONENTS system filesystem unit_test_framework REQUIRED)
 find_package(Threads)
 
 find_package(CryptoPP REQUIRED PATHS "${PROJECT_SOURCE_DIR}/build/cryptopp")
-find_package(ENet REQUIRED)
 
 add_executable(tests_crowd main.cpp
                            configdir_unittest.cpp
@@ -26,7 +25,6 @@ target_include_directories(tests_crowd PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libpoco"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           "${PROJECT_SOURCE_DIR}/include/plog"
-                          ${ENET_INCLUDE_DIRS}
                           )
 
 target_link_libraries(tests_crowd
@@ -43,5 +41,4 @@ target_link_libraries(tests_crowd
         "/usr/lib/librocksdb.so"
         "/usr/lib/x86_64-linux-gnu/libminiupnpc.a"
         "/usr/lib/x86_64-linux-gnu/libsnappy.a"
-        ${ENET_LIBRARIES}
 )

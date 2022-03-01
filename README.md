@@ -16,7 +16,7 @@ so e.g. a problem with the face recognition or fingerprint scanner has a huge im
 #### build and test procedure
 - docker and docker-compose needs to be installed
 - sudo docker-compose run -p 1975:1975/tcp -p 1975:1975/udp onzecurrency bash
-- python3 ./scripts/build.py -rcdl  # to install cryptopp, enet and the plog headers
+- python3 ./scripts/build.py -rcl  # to install cryptopp and the plog headers
 - python3 ./scripts/build.py -p     # to build and package the current state of onzecurrency
 - rm -rf ./config && onze-terminal  # for running onze-terminal once, see the test procedure below for a group of servers
 - python3 ./scripts/build.py -t     # there aren't many tests ...

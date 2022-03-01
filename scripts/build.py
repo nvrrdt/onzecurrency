@@ -14,7 +14,6 @@ def main():
     # Adding optional arguments
     parser.add_argument("-r", "--remove-build-and-log-dir", help = "Remove build and log directory", action="store_true")
     parser.add_argument("-c", "--cryptopp", help = "Install cryptopp with make", action="store_true")
-    parser.add_argument("-d", "--enet", help = "Install ENet with make", action="store_true")
     parser.add_argument("-l", "--plog", help = "Install plog", action="store_true")
     parser.add_argument("-m", "--make", help = "Make", action="store_true")
     parser.add_argument("-n", "--ninja", help = "Make", action="store_true")
@@ -40,12 +39,6 @@ def main():
             ' && wget -O CMakeLists.txt https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/CMakeLists.txt' \
             ' && wget -O cryptopp-config.cmake https://raw.githubusercontent.com/noloader/cryptopp-cmake/master/cryptopp-config.cmake' \
             ' && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && make install', shell=True)
-    if args.enet:
-        subprocess.call('cd ' + project_path("build") + \
-            ' && git clone --recursive https://github.com/lsalzman/enet.git' \
-            ' && cd enet' \
-            ' && git checkout e0e7045' \
-            ' && autoreconf -i && ./configure && make && make install', shell=True)
     if args.plog:
         if os.path.exists(project_path("include/plog")) :
             subprocess.call('rm -r ' + project_path("include/plog"), shell=True)

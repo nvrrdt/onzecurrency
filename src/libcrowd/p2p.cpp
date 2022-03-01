@@ -416,7 +416,7 @@ int P2p::ip_string_to_number (const char* pDottedQuad, unsigned int &pIpAddr)
     return 0;
 }
 
-int P2p::number_to_ip_string(enet_uint32 ipAddress, std::string& ip_string)
+int P2p::number_to_ip_string(uint32 ipAddress, std::string& ip_string)
 {
     char ipAddr[16];
     if (ipAddress) {
