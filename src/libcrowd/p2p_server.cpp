@@ -1176,6 +1176,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
     std::string full_hash = buf_j["full_hash"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+    delete rocksy1;
 
     Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
@@ -1198,7 +1199,9 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         FullHash fh;
         my_full_hash = fh.get_full_hash();
 
-        std::string coordinator_from_hash = rocksy1->FindChosenOne(hash_msg_and_nph);
+        Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+        std::string coordinator_from_hash = rocksy2->FindChosenOne(hash_msg_and_nph);
+        delete rocksy2;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
         pl.handle_print_or_log({"coordinator_from_hash: ", coordinator_from_hash});
@@ -1250,12 +1253,13 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             std::string val;
             Poco::BlockMatrix bm;
             P2pNetwork pn;
+            Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
             for (int i = 1; i <= parts.size(); i++)
             {
                 if (i == 1) continue;
 
                 // lookup in rocksdb
-                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(parts[i]));
                 std::string peer_ip = value_j["ip"];
 
                 // inform the underlying network
@@ -1283,7 +1287,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
 
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
-                        nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val2));
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val2));
                         std::string ip_underlying = value_j["ip"];
 
                         pl.handle_print_or_log({"Send intro_online req: Non-connected underlying peers - client: ", ip_underlying});
@@ -1305,6 +1309,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
                         pn.p2p_client(ip_underlying, message);
                     }
                 }
+                delete rocksy3;
                 
                 pl.handle_print_or_log({"Preparation for new_online:", peer_ip});
 
@@ -1325,15 +1330,15 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             }
 
             // update this rocksdb
-            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
-            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            Rocksy* rocksy4 = new Rocksy("usersdb");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(full_hash));
             value_j["online"] = true;
             value_j["ip"] = buf_j["ip"];
             value_j["server"] = buf_j["server"];
             value_j["fullnode"] = buf_j["fullnode"];
             std::string value_s = value_j.dump();
-            rocksy2->Put(full_hash, value_s);
-            delete rocksy2;
+            rocksy4->Put(full_hash, value_s);
+            delete rocksy4;
 
             // update new user's blockchain, rocksdb and matrices
             pl.handle_print_or_log({"Update_you: send all blocks, rocksdb and matrices to server (server)"});
@@ -1350,14 +1355,16 @@ void P2pSession::intro_online(nlohmann::json buf_j)
                                                                                                                 // maybe even a stack is better ...
             // Update rocksdb
             nlohmann::json rdb;
+            Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
             for (auto& user : list_of_users_j)
             {
                 nlohmann::json usr;
                 std::string u = user;
-                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(u));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy5->Get(u));
                 usr = {u: value_j};
                 rdb.push_back(usr);
             }
+            delete rocksy5;
 
             msg["rocksdb"] = rdb;
 
@@ -1431,8 +1438,10 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             nlohmann::json message_j;
             message_j["req"] = "new_co_online";
 
-            nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(coordinator_from_hash));
+            Rocksy* rocksy6 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy6->Get(coordinator_from_hash));
             std::string peer_ip = value_j["ip"];
+            delete rocksy6;
 
             message_j["full_hash_co"] = coordinator_from_hash;
             message_j["ip_co"] = peer_ip;
@@ -1444,7 +1453,6 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification intro online user not correct"});
     }
 
-    delete rocksy1;
     delete crypto;
 
     // Disconect from client
@@ -1471,6 +1479,7 @@ void P2pSession::new_online(nlohmann::json buf_j)
     std::string chosen_one = buf_j["chosen_one"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(chosen_one));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+    delete rocksy1;
 
     Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
@@ -1557,12 +1566,13 @@ void P2pSession::new_online(nlohmann::json buf_j)
             std::string val;
             Poco::BlockMatrix bm;
             P2pNetwork pn;
+            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
             for (int i = 1; i <= parts.size(); i++)
             {
                 if (i == 1) continue;
 
                 // lookup in rocksdb
-                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(parts[i]));
                 std::string peer_ip = value_j["ip"];
 
                 // inform the underlying network
@@ -1590,7 +1600,7 @@ void P2pSession::new_online(nlohmann::json buf_j)
 
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
-                        nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val2));
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(val2));
                         std::string ip_underlying = value_j["ip"];
 
                         pl.handle_print_or_log({"Send new_online req: Non-connected underlying peers - client: ", ip_underlying});
@@ -1631,14 +1641,16 @@ void P2pSession::new_online(nlohmann::json buf_j)
                 pn.p2p_client(peer_ip, message_s);
             }
 
+            delete rocksy2;
+
             // update this rocksdb
-            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            Rocksy* rocksy3 = new Rocksy("usersdb");
             std::string full_hash = buf_j["full_hash"];
-            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(full_hash));
             value_j["online"] = "true";
             std::string value_s = value_j.dump();
-            rocksy2->Put(full_hash, value_s);
-            delete rocksy2;
+            rocksy3->Put(full_hash, value_s);
+            delete rocksy3;
         }
         else
         {
@@ -1650,7 +1662,6 @@ void P2pSession::new_online(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification new online user not correct"});
     }
 
-    delete rocksy1;
     delete crypto;
 
     // Disconect from client
@@ -1672,6 +1683,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
     std::string full_hash = buf_j["full_hash"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(full_hash));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+    delete rocksy1;
 
     Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
@@ -1694,7 +1706,9 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
         FullHash fh;
         my_full_hash = fh.get_full_hash();
 
-        std::string coordinator_from_hash = rocksy1->FindChosenOne(hash_msg_and_nph);
+        Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+        std::string coordinator_from_hash = rocksy2->FindChosenOne(hash_msg_and_nph);
+        delete rocksy2;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
         pl.handle_print_or_log({"coordinator_from_hash: ", coordinator_from_hash});
@@ -1740,12 +1754,13 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
             std::string val;
             Poco::BlockMatrix bm;
             P2pNetwork pn;
+            Rocksy* rocksy3 = new Rocksy("usersdbreadonly");
             for (int i = 1; i <= parts.size(); i++)
             {
                 if (i == 1) continue;
 
                 // lookup in rocksdb
-                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(parts[i]));
                 std::string peer_ip = value_j["ip"];
 
                 // inform the underlying network
@@ -1773,7 +1788,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
 
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
-                        nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val2));
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(val2));
                         std::string ip_underlying = value_j["ip"];
 
                         pl.handle_print_or_log({"Send intro_offline req: Non-connected underlying peers - client: ", ip_underlying});
@@ -1814,13 +1829,15 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
                 pn.p2p_client(peer_ip, message_s);
             }
 
+            delete rocksy3;
+
             // update this rocksdb
-            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
-            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            Rocksy* rocksy4 = new Rocksy("usersdb");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(full_hash));
             value_j["online"] = "false";
             std::string value_s = value_j.dump();
-            rocksy2->Put(full_hash, value_s);
-            delete rocksy2;
+            rocksy4->Put(full_hash, value_s);
+            delete rocksy4;
         }
         else
         {
@@ -1831,8 +1848,10 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
             nlohmann::json message_j;
             message_j["req"] = "new_co_offline";
 
-            nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(coordinator_from_hash));
+            Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
+            nlohmann::json value_j = nlohmann::json::parse(rocksy5->Get(coordinator_from_hash));
             std::string peer_ip = value_j["ip"];
+            delete rocksy5;
 
             message_j["full_hash_co"] = coordinator_from_hash;
             message_j["ip_co"] = peer_ip;
@@ -1844,7 +1863,6 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification intro offline user not correct"});
     }
 
-    delete rocksy1;
     delete crypto;
 
     // Disconect from client
@@ -1876,6 +1894,7 @@ void P2pSession::new_offline(nlohmann::json buf_j)
     std::string chosen_one = buf_j["chosen_one"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy1->Get(chosen_one));
     std::string ecdsa_pub_key_s = contents_j["ecdsa_pub_key"];
+    delete rocksy1;
 
     Crypto* crypto = new Crypto();
     std::string to_verify_s = to_verify_j.dump();
@@ -1956,12 +1975,13 @@ void P2pSession::new_offline(nlohmann::json buf_j)
             std::string val;
             Poco::BlockMatrix bm;
             P2pNetwork pn;
+            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
             for (int i = 1; i <= parts.size(); i++)
             {
                 if (i == 1) continue;
 
                 // lookup in rocksdb
-                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(parts[i]));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(parts[i]));
                 std::string peer_ip = value_j["ip"];
 
                 // inform the underlying network
@@ -1989,7 +2009,7 @@ void P2pSession::new_offline(nlohmann::json buf_j)
 
                         // lookup in rocksdb
                         std::string val2 = parts_underlying[i];
-                        nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val2));
+                        nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(val2));
                         std::string ip_underlying = value_j["ip"];
 
                         pl.handle_print_or_log({"Send new_offline req: Non-connected underlying peers - client: ", ip_underlying});
@@ -2030,14 +2050,16 @@ void P2pSession::new_offline(nlohmann::json buf_j)
                 pn.p2p_client(peer_ip, message_s);
             }
 
+            delete rocksy2;
+
             // update this rocksdb
-            Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+            Rocksy* rocksy3 = new Rocksy("usersdb");
             std::string full_hash = buf_j["full_hash"];
-            nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(full_hash));
+            nlohmann::json value_j = nlohmann::json::parse(rocksy3->Get(full_hash));
             value_j["online"] = "false";
             std::string value_s = value_j.dump();
-            rocksy2->Put(full_hash, value_s);
-            delete rocksy2;
+            rocksy3->Put(full_hash, value_s);
+            delete rocksy3;
         }
         else
         {
@@ -2049,7 +2071,6 @@ void P2pSession::new_offline(nlohmann::json buf_j)
         pl.handle_print_or_log({"verification new offline user not correct"});
     }
 
-    delete rocksy1;
     delete crypto;
 
     // Disconect from client
