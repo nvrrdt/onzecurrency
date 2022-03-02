@@ -12,6 +12,8 @@
 
 using namespace Coin;
 
+bool P2pC::coin_update_complete_ = false;
+
 void P2pC::start_coin()
 {
     Common::Print_or_log pl;
@@ -19,14 +21,10 @@ void P2pC::start_coin()
     VerificationC verification;
     verification.verify_all_blocks();
 
-    // verify if full_hash exists, otherwise wait
-    FullHash fh;
-    std::string my_full_hash;
+    // wait for update of coin's blockchain, rocksdb and matrices
     for (;;)
     {
-        my_full_hash = fh.get_full_hash();
-
-        if (!my_full_hash.empty())
+        if (get_coin_update_complete())
         {
             break;
         }
@@ -35,10 +33,6 @@ void P2pC::start_coin()
             std::this_thread::sleep_for(std::chrono::seconds(20));
         }
     }
-
-    /////////////
-    // wait for update of my blockchain, my rocksdb and my matrices
-    /////////////
 
     // input to create a transaction (tx)
     for (;;)
@@ -58,7 +52,9 @@ void P2pC::start_coin()
             pl.handle_print_or_log({"Send hello_tx"});
             
             // See p2p_network_c.cpp for an explanation (in the beginning of the file)
+            FullHash fh;
             PrevHashC phc;
+            std::string my_full_hash = fh.get_full_hash();
             std::string hash_latest_block = phc.calculate_hash_from_last_block_c();
             std::string prel_coordinator = my_full_hash + hash_latest_block;
 

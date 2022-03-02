@@ -1433,10 +1433,6 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             }
 
             set_resp_msg_server(msg.dump());
-
-            // Signal the gui, go from Setup to Crowd there
-            UI::Normal n;
-            n.set_goto_normal_mode(true);
         }
         else
         {
@@ -2204,10 +2200,6 @@ void P2pSession::update_you_server(nlohmann::json buf_j)
     {
         ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     }
-
-    // Signal the gui, go from Setup to Crowd there
-    UI::Normal n;
-    n.set_goto_normal_mode(true);
 }
 
 void P2pSession::set_resp_msg_server(std::string msg)

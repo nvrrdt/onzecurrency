@@ -9,6 +9,8 @@
 #include <boost/asio.hpp>
 #include "p2p_message.hpp"
 
+#include "desktop.hpp"
+
 using boost::asio::ip::tcp;
 using namespace Crowd;
 
@@ -40,11 +42,12 @@ void P2pClient::handle_read_client(p2p_message read_msg_client, boost::asio::io_
         req_conversion["hash_comparison"] =     12;
         req_conversion["close_same_conn"] =     13;
         req_conversion["close_this_conn"] =     14;
-        req_conversion["close_this_conn_and_create"] =      15;
+        req_conversion["close_this_conn_and_create"] =  15;
         req_conversion["send_first_block"] =    16;
         req_conversion["update_me"] =           17;
         req_conversion["new_co_offline"] =      18;
-        req_conversion["new_co_online"] =      19;
+        req_conversion["update_you"] =          19;
+        req_conversion["new_co_online"] =       20;
 
         switch (req_conversion[req])
         {
@@ -74,7 +77,9 @@ void P2pClient::handle_read_client(p2p_message read_msg_client, boost::asio::io_
                         break;
             case 18:    new_co_offline_client(buf_j);
                         break;
-            case 19:    new_co_online_client(buf_j);
+            case 19:    update_you_client(buf_j);
+                        break;
+            case 20:    new_co_online_client(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
                         pnc.handle_read_client_c(buf_j, std::ref(io_context), std::ref(endpoints));
@@ -439,6 +444,118 @@ pl.handle_print_or_log({"intro offline message sent to", ip});
     }
 
     delete rocksy;
+}
+
+void P2pClient::update_you_client(nlohmann::json buf_j)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
+
+    // Disconect from client
+    nlohmann::json m_j;
+    m_j["req"] = "close_this_conn";
+    set_resp_msg_client(m_j.dump());
+
+    // Update blocks
+    nlohmann::json blocks_j = buf_j["blocks"];
+    for (auto& b: blocks_j.items())
+    {
+        nlohmann::json block_j = b.value()["block"];
+        std::string block_nr = b.value()["block_nr"];
+
+        merkle_tree mt;
+        mt.save_block_to_file(block_j, block_nr);
+    }
+
+    // Update rocksdb
+    nlohmann::json rdb_j = buf_j["rocksdb"];
+
+    for (auto& element : rdb_j)
+    {
+        std::string key_s = element["full_hash"];
+        std::string value_s = element.dump();
+
+        Rocksy* rocksy = new Rocksy("usersdb");
+        rocksy->Put(key_s, value_s);
+        delete rocksy;
+    }
+
+    // Update matrices
+    nlohmann::json block_matrix_j = buf_j["bm"];
+    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["iah"];
+
+    Poco::BlockMatrix bm;
+    Poco::IntroMsgsMat imm;
+    Poco::IpAllHashes iah;
+
+    bm.get_block_matrix().clear(); // TODO clear the matrix --> this doesn't clear it
+    bm.get_calculated_hash_matrix().clear();
+    bm.get_prev_hash_matrix().clear();
+
+    for (auto& [k1, v1] : block_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            bm.add_block_to_block_vector(v2);
+            bm.add_calculated_hash_to_calculated_hash_vector(v2);
+            bm.add_prev_hash_to_prev_hash_vector(v2);
+        }
+
+        bm.add_block_vector_to_block_matrix();
+        bm.add_calculated_hash_vector_to_calculated_hash_matrix();
+        bm.add_prev_hash_vector_to_prev_hash_matrix();
+    }
+
+    for (auto& [k1, v1] : intro_msg_s_matrix_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+            }
+
+            imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        }
+
+        imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
+    }
+
+    for (auto& [k1, v1] : ip_all_hashes_j.items())
+    {
+        for (auto& [k2, v2] : v1.items())
+        {
+            for (auto& [k3, v3] : v2.items())
+            {
+                std::pair<std::string, std::string> myPair = std::make_pair(v3["first"], v3["second"]);
+                std::shared_ptr<std::pair<std::string, std::string>> ptr(new std::pair<std::string, std::string> (myPair));
+                iah.add_ip_hemail_to_ip_all_hashes_vec(ptr);
+            }
+
+            iah.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        }
+
+        iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
+    }
+
+    // Update intro_msg_vec and ip_hemail_vec
+    nlohmann::json intro_msg_vec_j = buf_j["imv"];
+    nlohmann::json ip_hemail_vec_j = buf_j["ihv"];
+
+    for (auto& el: intro_msg_vec_j)
+    {
+        intro_msg_vec_.add_to_intro_msg_vec(el);
+    }
+
+    for (auto& [k, v]: ip_hemail_vec_j.items())
+    {
+        ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
+    }
+
+    // Signal the gui, go from Setup to Crowd there
+    UI::Normal n;
+    n.set_goto_normal_mode(true);
 }
 
 void P2pClient::new_co_online_client(nlohmann::json buf_j)

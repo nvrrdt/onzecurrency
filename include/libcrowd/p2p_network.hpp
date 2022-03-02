@@ -92,6 +92,7 @@ namespace Crowd
         void send_first_block_received_client(nlohmann::json buf_j);
         void update_me_client(nlohmann::json buf_j);
         void new_co_offline_client(nlohmann::json buf_j);
+        void update_you_client(nlohmann::json buf_j);
         void new_co_online_client(nlohmann::json buf_j);
     private:
         boost::asio::io_context &io_context_;

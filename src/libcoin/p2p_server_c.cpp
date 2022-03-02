@@ -1966,4 +1966,7 @@ void P2pNetworkC::update_you_c(nlohmann::json buf_j, tcp::socket socket)
     // {
     //     ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     // }
+
+    Coin::P2pC pc;
+    pc.set_coin_update_complete(true);
 }

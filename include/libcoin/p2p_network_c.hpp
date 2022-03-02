@@ -13,9 +13,20 @@ namespace Coin
     {
     public:
         void start_coin();
+
+        static void set_coin_update_complete(bool completed)
+        {
+            coin_update_complete_ = completed;
+        }
+    private:
+        static bool get_coin_update_complete()
+        {
+            return coin_update_complete_;
+        }
     private:
         bool validate_full_hash(std::string to_full_hash);
         bool validate_amount(std::string amount);
+        static bool coin_update_complete_;
     };
 
     class P2pNetworkC
@@ -26,6 +37,7 @@ namespace Coin
     private:
         // client
         void update_me_c_client(nlohmann::json buf_j, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
+        void update_you_c_client(nlohmann::json buf_j, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
     private:
         // server
         void hello_tx(nlohmann::json buf_j);
