@@ -129,7 +129,7 @@ namespace Crowd
         void do_read_body();
         void do_write();
 
-        void handle_read_server(p2p_message read_msg_server, tcp::socket socket);
+        void handle_read_server(p2p_message read_msg_server);
 
         void register_for_nat_traversal(nlohmann::json buf_j);
         void connect_to_nat(nlohmann::json buf_j);

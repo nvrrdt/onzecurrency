@@ -23,7 +23,7 @@ using namespace Crowd;
 
 bool UI::Normal::goto_normal_mode_ = false;
 
-void P2pSession::handle_read_server(p2p_message read_msg_server, tcp::socket socket)
+void P2pSession::handle_read_server(p2p_message read_msg_server)
 {
     Common::Print_or_log pl;
     if ( !read_msg_server.get_eom_flag()) {
@@ -86,7 +86,7 @@ void P2pSession::handle_read_server(p2p_message read_msg_server, tcp::socket soc
             case 20:    update_you_server(buf_j);
                         break;
             default:    Coin::P2pNetworkC pnc;
-                        pnc.handle_read_server_c(buf_j, std::move(socket));
+                        pnc.handle_read_server_c(buf_j, std::move(socket_));
                         break;
         }
 
@@ -1148,13 +1148,13 @@ void P2pSession::your_full_hash(nlohmann::json buf_j)
     m_j["block_nr"] = my_latest_block;
     set_resp_msg_server(m_j.dump());
 
-    // Update my blocks, rocksdb and matrices of coin
-    Coin::ProtocolC protoc;
-    std::string my_latest_block_c = protoc.get_last_block_nr_c();
-    nlohmann::json mm_j;
-    mm_j["req"] = "update_me_c";
-    mm_j["block_nr"] = my_latest_block_c;
-    set_resp_msg_server(mm_j.dump());
+    // // Update my blocks, rocksdb and matrices of coin
+    // Coin::ProtocolC protoc;
+    // std::string my_latest_block_c = protoc.get_last_block_nr_c();
+    // nlohmann::json mm_j;
+    // mm_j["req"] = "update_me_c";
+    // mm_j["block_nr"] = my_latest_block_c;
+    // set_resp_msg_server(mm_j.dump());
 }
 
 void P2pSession::hash_comparison(nlohmann::json buf_j)
@@ -2267,7 +2267,7 @@ void P2pSession::do_read_body()
                             {
                                 if (!ec)
                                 {
-                                    handle_read_server(read_msg_, std::move(socket_));
+                                    handle_read_server(read_msg_);
                                     do_read_header();
                                 }
                                 else
