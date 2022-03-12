@@ -82,6 +82,7 @@ def main():
         time.sleep(5)
 
         count_blocks()
+        get_full_hash()
     
     elif args.test_nr == 3:
         # Delete transactionsdb and log folder and its contents
@@ -93,30 +94,31 @@ def main():
         my_full_hashes_string = args.my_full_hashes
         my_full_hashes = split_str(my_full_hashes_string, 64)
 
-        # Start the command when synchronised with other servers
-        start_test_time = (args.order - 1) * 5 if args.order < args.total_servers else 0
-        time.sleep(start_test_time)
+        if args.order < len(my_full_hashes):
+            print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
-        #print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
+            # Execute onze-terminal --> start with intro_peer
+            command = 'onze-terminal'
+            child = pexpect.spawn(command, encoding='utf-8', timeout=60)
 
-        # Let the onze-terminal process exist until al servers have finished
-        remaining_test_time = (args.total_servers - args.order) * 5 if args.order < args.total_servers else 0
-        
-        # Execute onze-terminal --> start with intro_peer
-        command = 'onze-terminal'
-        child = pexpect.spawn(command, encoding='utf-8', timeout=5)
-        child.logfile = sys.stdout
-        child.setecho(False)
-        child.expect("Tx to: ")
-        child.send(my_full_hashes[args.order] + '\n') if args.order < args.total_servers - 1 else child.send('\n')
+            # Sleep the execute the transactions in order
+            start_test_time = (args.order - 1) * 5
+            time.sleep(start_test_time)
 
-        time.sleep(remaining_test_time)
+            child.logfile = sys.stdout
+            child.setecho(False)
+            child.expect("Tx to: ")
+            child.sendline(my_full_hashes[args.order])
 
-        # Ctrl-c
-        child.sendcontrol('c') # ctrl-c
-        child.close()
+            # Let the onze-terminal process exist until al servers have finished
+            remaining_test_time = (args.total_servers - args.order) * 5
+            time.sleep(remaining_test_time)
 
-        print("2nd ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
+            # Ctrl-c
+            child.sendcontrol('c') # ctrl-c
+            child.close()
+
+            print("ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
     
     elif args.test_nr == 4:
         time.sleep(10) # estimated time to install the software, then start onze-terminal simultaneously over cloud servers
@@ -125,30 +127,31 @@ def main():
         my_full_hashes_string = args.my_full_hashes
         my_full_hashes = split_str(my_full_hashes_string, 64)
 
-        # Start the command when synchronised with other servers
-        start_test_time = (args.order - 1) * 5 if args.order < args.total_servers else 0
-        time.sleep(start_test_time)
+        if args.order < len(my_full_hashes):
+            print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
-        #print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
+            # Execute onze-terminal --> start with intro_peer
+            command = 'onze-terminal'
+            child = pexpect.spawn(command, encoding='utf-8', timeout=60)
 
-        # Let the onze-terminal process exist until al servers have finished
-        remaining_test_time = (args.total_servers - args.order) * 5 if args.order < args.total_servers else 0
-        
-        # Execute onze-terminal --> start with intro_peer
-        command = 'onze-terminal'
-        child = pexpect.spawn(command, encoding='utf-8', timeout=5)
-        child.logfile = sys.stdout
-        child.setecho(False)
-        child.expect("Tx to: ")
-        child.send(my_full_hashes[args.order] + '\n') if args.order < args.total_servers - 1 else child.send('\n')
+            # Sleep the execute the transactions in order
+            start_test_time = (args.order - 1) * 5
+            time.sleep(start_test_time)
 
-        time.sleep(remaining_test_time)
+            child.logfile = sys.stdout
+            child.setecho(False)
+            child.expect("Tx to: ")
+            child.sendline(my_full_hashes[args.order])
 
-        # Ctrl-c
-        child.sendcontrol('c') # ctrl-c
-        child.close()
+            # Let the onze-terminal process exist until al servers have finished
+            remaining_test_time = (args.total_servers - args.order) * 5
+            time.sleep(remaining_test_time)
 
-        print("2nd ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
+            # Ctrl-c
+            child.sendcontrol('c') # ctrl-c
+            child.close()
+
+            print("ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
 def count_blocks():
     # Create file that contains amount of blocks present in log folder
@@ -159,6 +162,27 @@ def count_blocks():
         with open('/onzecurrency/.config/onzehub/log/blocks_count', 'w') as file:
             file.write(str(blocks_count))
         file.close()
+
+def get_full_hash():
+    # search for full_hashes and send them to execute a certain test
+    my_full_hash = ""
+    file = '/onzecurrency/.config/onzehub/log/loggi'
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            string1 = "New peer's full_hash (server): "
+            string2 = "my_full_hash:  "
+            if string1 in line:
+                my_full_hash = line.split('): ', 1)[1]
+                break
+            elif string2 in line:
+                my_full_hash = line.split('h:  ', 1)[1]
+                break
+    f.close()
+
+    with open('/onzecurrency/.config/onzehub/log/my_full_hash', 'w') as file2:
+        file2.write(str(my_full_hash))
+    file2.close()
 
 def worker_install():
     subprocess.call('dpkg -i ./onzecurrency-0.1.1-Linux.deb && apt-get -f install', shell=True)
