@@ -5,9 +5,9 @@
 
 #include "auth.hpp"
 #include "p2p.hpp"
+#include "p2p_c.hpp"
 #include "json.hpp"
 #include "p2p_network.hpp"
-#include "p2p_network_c.hpp"
 
 #include "print_or_log.hpp"
 #include "configdir.hpp"
@@ -18,6 +18,7 @@ extern int USE_LOG;
 
 using namespace Crowd;
 using namespace Coin;
+using namespace Network;
 
 int main(int argc, char *argv[])
 {

@@ -274,7 +274,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         }
         delete crypto;
 
-        Crowd::P2pNetwork pn;
+        Network::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -379,7 +379,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         delete crypto;
 
         // send req to chosen_ones
-        Crowd::P2pNetwork pn;
+        Network::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {
@@ -488,7 +488,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
             std::pair<std::string, std::string> ip_quad = *ip_all_hashes_.get_ip_all_hashes_3d_mat().at(place_in_mat).at(0).at(i);
             
             pl.handle_print_or_log({"_______key:", std::to_string(i), ", ip:", ip_quad.first});
-            Crowd::P2pNetwork pn;
+            Network::P2pNetwork pn;
             pn.p2p_client(ip_quad.first, msg_s);
         }
 
@@ -584,7 +584,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
 
     pl.handle_print_or_log({"Hello_reward request sent"});
 
-    Crowd::P2pNetwork pn;
+    Network::P2pNetwork pn;
     pn.p2p_client(ip, message_s);
 }
 

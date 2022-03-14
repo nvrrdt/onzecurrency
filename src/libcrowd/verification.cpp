@@ -32,7 +32,7 @@ bool Verification::verify_all_blocks()
         {
             if (i == blocks_vec.size() - 1 - 1) // because last block can't be verified because of the lack of a prev_hash
             {
-                pl.handle_print_or_log({"Blockchain verified and ok"});
+                pl.handle_print_or_log({"Blockchain crowd verified and ok"});
                 return true;
             }
             else
@@ -41,11 +41,11 @@ bool Verification::verify_all_blocks()
             }
         }
 
-        pl.handle_print_or_log({"Blockchain verified but not ok"});
+        pl.handle_print_or_log({"Blockchain crowd verified but not ok"});
         return false;
     }
 
-    pl.handle_print_or_log({"Blockchain not verified and not ok, it may be there's only 1 block"});
+    pl.handle_print_or_log({"Blockchain crowd not verified and not ok, it may be there's only 1 block"});
     return false;
 }
 

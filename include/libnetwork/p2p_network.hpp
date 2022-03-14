@@ -31,7 +31,7 @@
 // This is the port for the p2p_server and p2p_client
 #define PORT ("1975")
 
-namespace Crowd
+namespace Network
 {
     class P2pNetwork
     {
@@ -77,8 +77,9 @@ namespace Crowd
         void do_read_body();
         void do_write();
 
-        void handle_read_client(p2p_message read_msg_client, boost::asio::io_context &io_context, const tcp::resolver::results_type &endpoints);
+        void handle_read_client(p2p_message read_msg_client);
 
+        // Crowd client
         void register_for_nat_traversal_client(nlohmann::json buf_j);
         void connect_to_nat_client(nlohmann::json buf_j);
         void connect_true_client(nlohmann::json buf_j);
@@ -94,6 +95,10 @@ namespace Crowd
         void new_co_offline_client(nlohmann::json buf_j);
         void update_you_client(nlohmann::json buf_j);
         void new_co_online_client(nlohmann::json buf_j);
+
+        // Coin client
+        void update_me_c_client(nlohmann::json buf_j);
+        void update_you_c_client(nlohmann::json buf_j);
     private:
         boost::asio::io_context &io_context_;
         const tcp::resolver::results_type &endpoints_;
@@ -131,6 +136,7 @@ namespace Crowd
 
         void handle_read_server(p2p_message read_msg_server);
 
+        // Crowd server
         void register_for_nat_traversal(nlohmann::json buf_j);
         void connect_to_nat(nlohmann::json buf_j);
         void intro_peer(nlohmann::json buf_j);
@@ -146,6 +152,21 @@ namespace Crowd
         void intro_offline(nlohmann::json buf_j);
         void new_offline(nlohmann::json buf_j);
         void update_you_server(nlohmann::json buf_j);
+
+        // Coin server
+        void hello_tx(nlohmann::json buf_j);
+        void intro_tx(nlohmann::json buf_j);
+        void new_tx(nlohmann::json buf_j);
+        void hello_reward(nlohmann::json buf_j);
+        void intro_reward(nlohmann::json buf_j);
+        void new_reward(nlohmann::json buf_j);
+        void start_block_creation_thread();
+        void get_sleep_and_create_block_server_c();
+        void intro_block_c(nlohmann::json buf_j);
+        void hash_comparison_c(nlohmann::json buf_j);
+        void new_block_c(nlohmann::json buf_j);
+        void intro_online_c(nlohmann::json buf_j);
+        void new_online_c(nlohmann::json buf_j);
     protected:
         tcp::socket socket_;
     private:

@@ -4,7 +4,6 @@
 #include "p2p.hpp"
 #include "json.hpp"
 #include "p2p_network.hpp"
-#include "p2p_network_c.hpp"
 
 #include "print_or_log.hpp"
 #include "configdir.hpp"
@@ -39,7 +38,7 @@ Form::Form()
     tabControlSetup.insert_page(tabPageSetup3, "Normal", 2);
     tabControlSetup.insert_page(box_exit, "Exit", 3);
 
-    FullHash fh;
+    Crowd::FullHash fh;
     Normal n;
     std::string my_full_hash = fh.get_full_hash();
     if (my_full_hash.empty() && !input_setup1_create_ok)
@@ -109,12 +108,12 @@ void Form::on_button_create_clicked()
         input_setup1_create_ok = true;
 
         // Create log directory
-        ConfigDir cd;
+        Crowd::ConfigDir cd;
         cd.CreateDirInConfigDir("log");
 
         // start crowd
         std::packaged_task<void()> task1([cred] {
-            P2p p;
+            Crowd::P2p p;
             p.start_crowd(cred);
         });
         // Run task on new thread.
@@ -130,7 +129,7 @@ void Form::on_button_create_clicked()
 
         // start server
         std::packaged_task<void()> task3([] {
-            P2pNetwork pn;
+            Network::P2pNetwork pn;
             pn.p2p_server();
         });
         // Run task on new thread.
@@ -177,7 +176,7 @@ void Form::page_normal1_crowd()
     fixedPageCrowd.add(grid_normal1);
     fixedPageCrowd.move(grid_normal1, 250, 250);
 
-    FullHash fh;
+    Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash();
     label_crowd.set_text("Your user id is " + my_full_hash);
 

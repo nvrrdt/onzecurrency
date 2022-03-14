@@ -12,7 +12,6 @@
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
 #include "prev_hash_c.hpp"
-#include "p2p_network_c.hpp"
 #include "protocol_c.hpp"
 
 #include <vector>
@@ -117,7 +116,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             message_j["rocksdb"] = rocksdb_j;
             std::string message = message_j.dump();
 
-            P2pNetwork pn;
+            Network::P2pNetwork pn;
             for (;;) // new_co must be able to run multiple times
             {
                 pn.p2p_client(ip_mother_peer, message);
@@ -321,7 +320,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string ip = contents_j["ip"];
 
 pl.handle_print_or_log({"intro online message sent to", ip});
-            P2pNetwork pn;
+            Network::P2pNetwork pn;
             pn.p2p_client(ip, message_s);
 
             // includes updating coin
@@ -514,7 +513,7 @@ void P2p::signal_callback_handler(int signum)
         // if received the program is being terminated graciously
 
         // Send message
-        P2pNetwork pn;
+        Network::P2pNetwork pn;
         pn.p2p_client(ip, message_s);
 
         

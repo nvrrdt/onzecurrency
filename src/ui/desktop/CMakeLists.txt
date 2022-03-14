@@ -22,6 +22,7 @@ target_include_directories(onze-desktop PUBLIC
                           "${PROJECT_SOURCE_DIR}/include/libcrowd"
                           "${PROJECT_SOURCE_DIR}/include/libcoin"
                           "${PROJECT_SOURCE_DIR}/include/libpoco"
+                          "${PROJECT_SOURCE_DIR}/include/libnetwork"
                           "${PROJECT_SOURCE_DIR}/build/cryptopp"
                           )
 
@@ -32,6 +33,7 @@ target_link_libraries(onze-desktop
         LINK_PUBLIC common
         LINK_PUBLIC coin
         LINK_PUBLIC poco
+        LINK_PUBLIC network
         cryptopp-static
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}

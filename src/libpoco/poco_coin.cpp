@@ -328,7 +328,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
         }
         delete crypto;
 
-        Crowd::P2pNetwork pn;
+        Network::P2pNetwork pn;
         std::string key, val;
         for (auto &[key, val] : parts)
         {

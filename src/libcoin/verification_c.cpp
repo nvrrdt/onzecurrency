@@ -15,9 +15,17 @@ bool VerificationC::verify_all_blocks()
     // read next block and get prev hash --> compare hashes
     // create hash from the last block and continue for the following blocks
 
+    Common::Print_or_log pl;
+
     PrevHashC ph;
     auto prev_hashes_vec = ph.get_prev_hashes_vec_from_files_c();
     auto blocks_vec = ph.get_blocks_vec_from_files_c();
+
+    if (blocks_vec.empty())
+    {
+        pl.handle_print_or_log({"Blockchain coin verified and ok"});
+        return true;
+    }
 
     for (uint64_t i = 0; i < blocks_vec.size(); i++)
     {
@@ -30,8 +38,7 @@ bool VerificationC::verify_all_blocks()
         {
             if (i == blocks_vec.size() - 1 - 1) // because last block can't be verified because of the lack of a prev_hash
             {
-                Common::Print_or_log pl;
-                pl.handle_print_or_log({"Blockchain verified and ok"});
+                pl.handle_print_or_log({"Blockchain coin verified and ok"});
                 
                 return true;
             }
@@ -41,14 +48,12 @@ bool VerificationC::verify_all_blocks()
             }
         }
 
-        Common::Print_or_log pl;
-        pl.handle_print_or_log({"Blockchain verified but not ok"});
+        pl.handle_print_or_log({"Blockchain coin verified but not ok"});
         
         return false;
     }
 
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"Blockchain not verified and not ok, it may be there's only 1 block"});
+    pl.handle_print_or_log({"Blockchain coin not verified and not ok, it may be there's only 1 block"});
         
     return false;
 }

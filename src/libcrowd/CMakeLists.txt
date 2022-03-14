@@ -9,8 +9,6 @@ add_library(crowd SHARED
                      configdir.cpp
                      block.cpp
                      ip_peers.cpp
-                     p2p_client.cpp
-                     p2p_server.cpp
                      p2p.cpp
                      rocksy.cpp
                      protocol.cpp
@@ -29,6 +27,7 @@ target_include_directories(crowd PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
                         "${PROJECT_SOURCE_DIR}/include/libcoin"
                         "${PROJECT_SOURCE_DIR}/include/libpoco"
+                        "${PROJECT_SOURCE_DIR}/include/libnetwork"
                         "${PROJECT_SOURCE_DIR}/build/cryptopp"
                         "${PROJECT_SOURCE_DIR}/include/plog"
                           )
@@ -39,16 +38,14 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/liblogin/auth.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/configdir.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/ip_peers.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/merkle_tree.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_message.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/rocksy.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/random.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/prev_hash.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/verification.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcrowd/p2p_network.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcrowd/full_hash.hpp"
-                "${PROJECT_SOURCE_DIR}/include/libcoin/p2p_network_c.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libcoin/protocol_c.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libnetwork/p2p_network.hpp"
                 )
 
 INSTALL(TARGETS crowd ARCHIVE DESTINATION lib/onze COMPONENT libraries)

@@ -21,6 +21,7 @@ target_include_directories(poco PUBLIC
                         "${PROJECT_SOURCE_DIR}/include/libcrowd"
                         "${PROJECT_SOURCE_DIR}/include/libcoin"
                         "${PROJECT_SOURCE_DIR}/include/libpoco"
+                        "${PROJECT_SOURCE_DIR}/include/libnetwork"
                         "${PROJECT_SOURCE_DIR}/build/cryptopp"
                         "${PROJECT_SOURCE_DIR}/include/plog"
                           )
@@ -35,6 +36,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/transactions.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/block_matrix.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/synchronisation.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libnetwork/p2p_network.hpp"
                 )
 
 INSTALL(TARGETS poco ARCHIVE DESTINATION lib/onze COMPONENT libraries)

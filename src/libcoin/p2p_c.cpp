@@ -1,6 +1,6 @@
 #include <chrono>
 
-#include "p2p_network_c.hpp"
+#include "p2p_c.hpp"
 
 #include "full_hash.hpp"
 #include "prev_hash_c.hpp"
@@ -17,22 +17,23 @@ bool P2pC::coin_update_complete_ = false;
 void P2pC::start_coin()
 {
     Common::Print_or_log pl;
+    pl.handle_print_or_log({"Start_coin"});
 
     VerificationC verification;
-    verification.verify_all_blocks();
+    if (!verification.verify_all_blocks()) return;
 
-    // wait for update of coin's blockchain, rocksdb and matrices
-    for (;;)
-    {
-        if (get_coin_update_complete())
-        {
-            break;
-        }
-        else
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(20));
-        }
-    }
+    // // wait for update of coin's blockchain, rocksdb and matrices
+    // for (;;)
+    // {
+    //     if (get_coin_update_complete())
+    //     {
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         std::this_thread::sleep_for(std::chrono::seconds(3));
+    //     }
+    // }
 
     // input to create a transaction (tx)
     for (;;)
@@ -88,7 +89,7 @@ void P2pC::start_coin()
 
             std::string message_s = message_j.dump();
 
-            P2pNetwork pn;
+            Network::P2pNetwork pn;
             pn.p2p_client(ip, message_s);
         }
         else
