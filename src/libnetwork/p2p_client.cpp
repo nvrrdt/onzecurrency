@@ -53,9 +53,6 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
         req_conversion["update_you"] =          19;
         req_conversion["new_co_online"] =       20;
 
-        req_conversion["update_me_c"] =         100;
-        req_conversion["update_you_c"] =        101;
-
         switch (req_conversion[req])
         {
             case 1:     register_for_nat_traversal_client(buf_j);
@@ -87,11 +84,6 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
             case 19:    update_you_client(buf_j);
                         break;
             case 20:    new_co_online_client(buf_j);
-                        break;
-
-            case 100:   update_me_c_client(buf_j);
-                        break;
-            case 101:   update_you_c_client(buf_j);
                         break;
 
             default:    pl.handle_print_or_log({"Function not found: error client"});
@@ -422,7 +414,7 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     // }
     // delete rocksy;
 
-    // msg["rocksdb"] = rdb;
+    // msg["coin"]["rocksdb"] = rdb;
 
     // // Update matrices
     // Poco::BlockMatrix bm;
@@ -437,7 +429,7 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     //         contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
     //     }
     // }
-    // msg["bm"] = contents_j;
+    // msg["coin"]["bm"] = contents_j;
     // contents_j.clear();
 
     // for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
@@ -450,7 +442,7 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     //         }
     //     }
     // }
-    // msg["imm"] = contents_j;
+    // msg["coin"]["imm"] = contents_j;
     // contents_j.clear();
 
     // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
@@ -464,20 +456,20 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     //         }
     //     }
     // }
-    // msg["iah"] = contents_j;
+    // msg["coin"]["iah"] = contents_j;
     // contents_j.clear();
 
     // // Update intro_msg_vec and ip_hemail_vec
-    // msg["imv"];
+    // msg["coin"]["imv"];
     // for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     // {
-    //     msg["imv"].push_back(*el);
+    //     msg["coin"]["imv"].push_back(*el);
     // }
 
-    // msg["ihv"];
+    // msg["coin"]["ihv"];
     // for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
     // {
-    //     msg["ihv"][(*el).first] = (*el).second;
+    //     msg["coin"]["ihv"][(*el).first] = (*el).second;
     // }
 
 pl.handle_print_or_log({"__00000", msg.dump()});
@@ -552,13 +544,17 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
 
+    ///////////
+    // Update coin
+    ///////////
+
     // Disconect from client
     nlohmann::json m_j;
     m_j["req"] = "close_this_conn";
     set_resp_msg_client(m_j.dump());
 
     // Update blocks
-    nlohmann::json blocks_j = buf_j["blocks"];
+    nlohmann::json blocks_j = buf_j["crowd"]["blocks"];
     for (auto& b: blocks_j.items())
     {
         nlohmann::json block_j = b.value()["block"];
@@ -569,7 +565,7 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     }
 
     // Update rocksdb
-    nlohmann::json rdb_j = buf_j["rocksdb"];
+    nlohmann::json rdb_j = buf_j["crowd"]["rocksdb"];
 
     for (auto& element : rdb_j)
     {
@@ -582,9 +578,9 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     }
 
     // Update matrices
-    nlohmann::json block_matrix_j = buf_j["bm"];
-    nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
-    nlohmann::json ip_all_hashes_j = buf_j["iah"];
+    nlohmann::json block_matrix_j = buf_j["crowd"]["bm"];
+    nlohmann::json intro_msg_s_matrix_j = buf_j["crowd"]["imm"];
+    nlohmann::json ip_all_hashes_j = buf_j["crowd"]["iah"];
 
     Poco::BlockMatrix bm;
     Poco::IntroMsgsMat imm;
@@ -641,8 +637,8 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     }
 
     // Update intro_msg_vec and ip_hemail_vec
-    nlohmann::json intro_msg_vec_j = buf_j["imv"];
-    nlohmann::json ip_hemail_vec_j = buf_j["ihv"];
+    nlohmann::json intro_msg_vec_j = buf_j["crowd"]["imv"];
+    nlohmann::json ip_hemail_vec_j = buf_j["crowd"]["ihv"];
 
     for (auto& el: intro_msg_vec_j)
     {
@@ -654,161 +650,12 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
         ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     }
 
-    // Signal the gui, go from Setup to Crowd there
-    UI::Normal n;
-    n.set_goto_normal_mode(true);
-
-    Coin::P2pC pc; // TODO is this necessary???
-    pc.set_coin_update_complete(true);
-}
-
-void P2pClient::new_co_online_client(nlohmann::json buf_j)
-{
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"new_co_online"});
-
-    FullHash fh;
-    std::string my_full_hash = fh.get_full_hash();
-
-    Rocksy* rocksy = new Rocksy("usersdbreadonly");
-    std::string coordinator_from_peer = buf_j["full_hash_co"];
-    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_peer));
-    
-    std::string ip = buf_j["ip_co"];
-
-    nlohmann::json message_j, to_sign_j;
-    message_j["req"] = "intro_online";
-    message_j["full_hash"] = my_full_hash;
-    Protocol protocol;
-    message_j["latest_block_nr"] = protocol.get_last_block_nr();
-    message_j["server"] = true;
-    message_j["fullnode"] = true;
-    
-    to_sign_j["req"] = message_j["req"];
-    to_sign_j["full_hash"] = message_j["full_hash"];
-    to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
-    to_sign_j["server"] = message_j["server"];
-    to_sign_j["fullnode"] = message_j["fullnode"];
-    std::string to_sign_s = to_sign_j.dump();
-
-    Common::Crypto crypto;
-    ECDSA<ECP, SHA256>::PrivateKey private_key;
-    std::string signature;
-    crypto.ecdsa_load_private_key_from_string(private_key);
-    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
-    {
-        message_j["signature"] = crypto.base64_encode(signature);
-    }
-    std::string message_s = message_j.dump();
-pl.handle_print_or_log({"intro online message sent to", ip});
-    P2pNetwork pn;
-    pn.p2p_client(ip, message_s);
-
-    delete rocksy;
-}
-
-void P2pClient::update_me_c_client(nlohmann::json buf_j)
-{
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"Update_you_c: send all blocks, rocksdb and matrices to server (client)"});
-
-    std::string req_latest_block = buf_j["block_nr"];
-
-    nlohmann::json msg;
-    msg["req"] = "update_you_c";
-    ProtocolC protoc;
-
-    // Update blockchain
-    msg["blocks"] = protoc.get_blocks_from_c(req_latest_block);
-
-    // nlohmann::json list_of_users_j = nlohmann::json::parse(protoc.get_all_users_from_c(req_latest_block)); // TODO: there are double parse/dumps everywhere
-    //                                                                                                     // maybe even a stack is better ...
-    // // Update rocksdb
-    // nlohmann::json rdb;
-    // Rocksy* rocksy = new Rocksy("transactiondbreadonly");
-    // for (auto& user : list_of_users_j)
-    // {
-    //     nlohmann::json usr;
-    //     std::string u = user;
-    //     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(u));
-    //     usr = {u: value_j};
-    //     rdb.push_back(usr);
-    // }
-    // delete rocksy;
-
-    // msg["rocksdb"] = rdb;
-
-    // // Update matrices
-    // Poco::BlockMatrix bm;
-    // Poco::IntroMsgsMat imm;
-    // Poco::IpAllHashes iah;
-    // nlohmann::json contents_j;
-
-    // for (int i = 0; i < bm.get_block_matrix().size(); i++)
-    // {
-    //     for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
-    //     {
-    //         contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
-    //     }
-    // }
-    // msg["bm"] = contents_j;
-    // contents_j.clear();
-
-    // for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
-    // {
-    //     for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
-    //     {
-    //         for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
-    //         {
-    //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
-    //         }
-    //     }
-    // }
-    // msg["imm"] = contents_j;
-    // contents_j.clear();
-
-    // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
-    // {
-    //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
-    //     {
-    //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
-    //         {
-    //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
-    //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
-    //         }
-    //     }
-    // }
-    // msg["iah"] = contents_j;
-    // contents_j.clear();
-
-    // // Update intro_msg_vec and ip_hemail_vec
-    // msg["imv"];
-    // for (auto& el: intro_msg_vec_.get_intro_msg_vec())
-    // {
-    //     msg["imv"].push_back(*el);
-    // }
-
-    // msg["ihv"];
-    // for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
-    // {
-    //     msg["ihv"][(*el).first] = (*el).second;
-    // }
-
-    set_resp_msg_client(msg.dump());
-}
-
-void P2pClient::update_you_c_client(nlohmann::json buf_j)
-{
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
-
-    // Disconect from client should happen in last "update_you_" in your_full_hash
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_client(m_j.dump());
+    ///////////
+    // Update coin
+    ///////////
 
     // // Update blocks
-    // nlohmann::json blocks_j = buf_j["blocks"];
+    // nlohmann::json blocks_j = buf_j["coin"]["blocks"];
     // for (auto& b: blocks_j.items())
     // {
     //     nlohmann::json block_j = b.value()["block"];
@@ -819,7 +666,7 @@ void P2pClient::update_you_c_client(nlohmann::json buf_j)
     // }
 
     // // Update rocksdb
-    // nlohmann::json rdb_j = buf_j["rocksdb"];
+    // nlohmann::json rdb_j = buf_j["coin"]["rocksdb"];
 
     // for (auto& element : rdb_j)
     // {
@@ -832,9 +679,9 @@ void P2pClient::update_you_c_client(nlohmann::json buf_j)
     // }
 
     // // Update matrices
-    // nlohmann::json block_matrix_j = buf_j["bm"];
-    // nlohmann::json intro_msg_s_matrix_j = buf_j["imm"];
-    // nlohmann::json ip_all_hashes_j = buf_j["iah"];
+    // nlohmann::json block_matrix_j = buf_j["coin"]["bm"];
+    // nlohmann::json intro_msg_s_matrix_j = buf_j["coin"]["imm"];
+    // nlohmann::json ip_all_hashes_j = buf_j["coin"]["iah"];
 
     // Poco::BlockMatrix bm;
     // Poco::IntroMsgsMat imm;
@@ -891,8 +738,8 @@ void P2pClient::update_you_c_client(nlohmann::json buf_j)
     // }
 
     // // Update intro_msg_vec and ip_hemail_vec
-    // nlohmann::json intro_msg_vec_j = buf_j["imv"];
-    // nlohmann::json ip_hemail_vec_j = buf_j["ihv"];
+    // nlohmann::json intro_msg_vec_j = buf_j["coin"]["imv"];
+    // nlohmann::json ip_hemail_vec_j = buf_j["coin"]["ihv"];
 
     // for (auto& el: intro_msg_vec_j)
     // {
@@ -904,8 +751,57 @@ void P2pClient::update_you_c_client(nlohmann::json buf_j)
     //     ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(k, v);
     // }
 
-    Coin::P2pC pc;
+    // Signal the gui, go from Setup to Crowd there
+    UI::Normal n;
+    n.set_goto_normal_mode(true);
+
+    Coin::P2pC pc; // TODO is this necessary???
     pc.set_coin_update_complete(true);
+}
+
+void P2pClient::new_co_online_client(nlohmann::json buf_j)
+{
+    Common::Print_or_log pl;
+    pl.handle_print_or_log({"new_co_online"});
+
+    FullHash fh;
+    std::string my_full_hash = fh.get_full_hash();
+
+    Rocksy* rocksy = new Rocksy("usersdbreadonly");
+    std::string coordinator_from_peer = buf_j["full_hash_co"];
+    nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_peer));
+    
+    std::string ip = buf_j["ip_co"];
+
+    nlohmann::json message_j, to_sign_j;
+    message_j["req"] = "intro_online";
+    message_j["full_hash"] = my_full_hash;
+    Protocol protocol;
+    message_j["latest_block_nr"] = protocol.get_last_block_nr();
+    message_j["server"] = true;
+    message_j["fullnode"] = true;
+    
+    to_sign_j["req"] = message_j["req"];
+    to_sign_j["full_hash"] = message_j["full_hash"];
+    to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+    to_sign_j["server"] = message_j["server"];
+    to_sign_j["fullnode"] = message_j["fullnode"];
+    std::string to_sign_s = to_sign_j.dump();
+
+    Common::Crypto crypto;
+    ECDSA<ECP, SHA256>::PrivateKey private_key;
+    std::string signature;
+    crypto.ecdsa_load_private_key_from_string(private_key);
+    if (crypto.ecdsa_sign_message(private_key, to_sign_s, signature))
+    {
+        message_j["signature"] = crypto.base64_encode(signature);
+    }
+    std::string message_s = message_j.dump();
+pl.handle_print_or_log({"intro online message sent to", ip});
+    P2pNetwork pn;
+    pn.p2p_client(ip, message_s);
+
+    delete rocksy;
 }
 
 void P2pClient::set_resp_msg_client(std::string msg)

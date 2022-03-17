@@ -79,6 +79,10 @@ namespace Network
 
         void handle_read_client(p2p_message read_msg_client);
 
+        // Common
+        void update_me_client(nlohmann::json buf_j);
+        void update_you_client(nlohmann::json buf_j);
+
         // Crowd client
         void register_for_nat_traversal_client(nlohmann::json buf_j);
         void connect_to_nat_client(nlohmann::json buf_j);
@@ -91,14 +95,9 @@ namespace Network
         void close_this_conn_client(nlohmann::json buf_j);
         void close_this_conn_and_create_client(nlohmann::json buf_j);
         void send_first_block_received_client(nlohmann::json buf_j);
-        void update_me_client(nlohmann::json buf_j);
         void new_co_offline_client(nlohmann::json buf_j);
-        void update_you_client(nlohmann::json buf_j);
         void new_co_online_client(nlohmann::json buf_j);
 
-        // Coin client
-        void update_me_c_client(nlohmann::json buf_j);
-        void update_you_c_client(nlohmann::json buf_j);
     private:
         boost::asio::io_context &io_context_;
         const tcp::resolver::results_type &endpoints_;
