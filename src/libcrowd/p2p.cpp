@@ -279,18 +279,21 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             FullHash fh;
             std::string my_full_hash = fh.get_full_hash();
 
-            // includes updating crowd
+            // includes updating crowd and coin
             nlohmann::json message_j, to_sign_j;
             message_j["req"] = "intro_online";
             message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
             Protocol protocol;
-            message_j["latest_block_nr"] = protocol.get_last_block_nr();
+            message_j["latest_block_nr_crowd"] = protocol.get_last_block_nr();
+            Coin::ProtocolC protocol_c;
+            message_j["latest_block_nr_coin"] = protocol_c.get_last_block_nr_c();
             message_j["server"] = true;
             message_j["fullnode"] = true;
             
             to_sign_j["req"] = message_j["req"];
             to_sign_j["full_hash"] = message_j["full_hash"];
-            to_sign_j["latest_block_nr"] = message_j["latest_block_nr"];
+            to_sign_j["latest_block_nr_crowd"] = message_j["latest_block_nr_crowd"];
+            to_sign_j["latest_block_nr_coin"] = message_j["latest_block_nr_coin"];
             to_sign_j["server"] = message_j["server"];
             to_sign_j["fullnode"] = message_j["fullnode"];
             std::string to_sign_s = to_sign_j.dump();
@@ -319,48 +322,10 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             std::string ip = contents_j["ip"];
 
-pl.handle_print_or_log({"intro online message sent to", ip});
+            pl.handle_print_or_log({"intro online message sent to", ip});
+
             Network::P2pNetwork pn;
             pn.p2p_client(ip, message_s);
-
-            // includes updating coin
-            nlohmann::json message_c_j, to_sign_c_j;
-            message_c_j["req"] = "intro_online_c";
-            message_c_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
-            Coin::ProtocolC protocol_c;
-            message_c_j["latest_block_nr"] = protocol_c.get_last_block_nr_c();
-            
-            to_sign_c_j["req"] = message_c_j["req"];
-            to_sign_c_j["full_hash"] = message_c_j["full_hash"];
-            to_sign_c_j["latest_block_nr"] = message_c_j["latest_block_nr"];
-            std::string to_sign_c_s = to_sign_c_j.dump();
-
-            Common::Crypto crypto_c;
-            ECDSA<ECP, SHA256>::PrivateKey private_key_c;
-            std::string signature_c;
-            crypto_c.ecdsa_load_private_key_from_string(private_key_c);
-            if (crypto_c.ecdsa_sign_message(private_key_c, to_sign_c_s, signature_c))
-            {
-                message_j["signature"] = crypto_c.base64_encode(signature_c);
-            }
-            std::string message_c_s = message_c_j.dump();
-
-            Coin::PrevHashC phc;
-            std::string next_prev_hash_c = phc.calculate_hash_from_last_block_c();
-
-            std::string msg_and_nph_c = message_c_s + next_prev_hash_c;
-            std::string hash_msg_and_nph_c =  crypto_c.bech32_encode_sha256(msg_and_nph_c);
-
-            Rocksy* rocksy_c = new Rocksy("usersdbreadonly");
-            std::string coordinator_from_hash_c = rocksy_c->FindChosenOne(hash_msg_and_nph_c);
-
-            nlohmann::json contents_c_j = nlohmann::json::parse(rocksy_c->Get(coordinator_from_hash_c));
-            delete rocksy_c;
-
-            std::string ip_c = contents_c_j["ip"];
-
-pl.handle_print_or_log({"intro online c message sent to", ip_c});
-            pn.p2p_client(ip_c, message_c_s);
 
             return true;
         }

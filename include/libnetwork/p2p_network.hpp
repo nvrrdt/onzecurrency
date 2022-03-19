@@ -164,8 +164,6 @@ namespace Network
         void intro_block_c(nlohmann::json buf_j);
         void hash_comparison_c(nlohmann::json buf_j);
         void new_block_c(nlohmann::json buf_j);
-        void intro_online_c(nlohmann::json buf_j);
-        void new_online_c(nlohmann::json buf_j);
     protected:
         tcp::socket socket_;
     private:
