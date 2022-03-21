@@ -393,11 +393,11 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     ///////
     pl.handle_print_or_log({"Update_you_c: send all blocks, rocksdb and matrices to server (client)"});
 
-    std::string req_latest_block_c = buf_j["coin"]["block_nr"];
+    // std::string req_latest_block_c = buf_j["coin"]["block_nr"];
 
-    // Update blockchain
-    ProtocolC protoc;
-    msg["coin"]["blocks"] = protoc.get_blocks_from_c(req_latest_block_c);
+    // // Update blockchain
+    // ProtocolC protoc;
+    // msg["coin"]["blocks"] = protoc.get_blocks_from_c(req_latest_block_c);
 
     // nlohmann::json list_of_users_j = nlohmann::json::parse(protoc.get_all_users_from_c(req_latest_block_c)); // TODO: there are double parse/dumps everywhere
     //                                                                                                     // maybe even a stack is better ...
@@ -545,7 +545,7 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
 
     ///////////
-    // Update coin
+    // Update crowd
     ///////////
 
     // Disconect from client
@@ -755,7 +755,7 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     UI::Normal n;
     n.set_goto_normal_mode(true);
 
-    Coin::P2pC pc; // TODO is this necessary???
+    Coin::P2pC pc;
     pc.set_coin_update_complete(true);
 }
 
@@ -904,7 +904,7 @@ void P2pClient::do_read_body()
                             {
                                 if (!ec)
                                 {
-                                    std::cout.write(read_msg_.body(), read_msg_.body_length());
+                                    std::cout.write(read_msg_.body(), read_msg_.body_length()); // TODO comment this out
                                     std::cout << "\n";
                                     handle_read_client(read_msg_);
                                     do_read_header();

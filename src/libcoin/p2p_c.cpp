@@ -22,18 +22,18 @@ void P2pC::start_coin()
     VerificationC verification;
     if (!verification.verify_all_blocks()) return;
 
-    // // wait for update of coin's blockchain, rocksdb and matrices
-    // for (;;)
-    // {
-    //     if (get_coin_update_complete())
-    //     {
-    //         break;
-    //     }
-    //     else
-    //     {
-    //         std::this_thread::sleep_for(std::chrono::seconds(3));
-    //     }
-    // }
+    // wait for update of coin's blockchain, rocksdb and matrices
+    for (;;)
+    {
+        if (get_coin_update_complete())
+        {
+            break;
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+    }
 
     // input to create a transaction (tx)
     for (;;)

@@ -19,6 +19,10 @@
 #include <future>
 #include <thread>
 
+#include <csignal>
+#include <cstdlib>
+#include <cstdio>
+
 #include "p2p_network.hpp"
 
 #include "print_or_log.hpp"
@@ -284,16 +288,16 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             message_j["req"] = "intro_online";
             message_j["full_hash"] = my_full_hash; // TODO should be static set up in auth.hpp
             Protocol protocol;
-            message_j["latest_block_nr_crowd"] = protocol.get_last_block_nr();
+            message_j["crowd"]["block_nr"] = protocol.get_last_block_nr();
             Coin::ProtocolC protocol_c;
-            message_j["latest_block_nr_coin"] = protocol_c.get_last_block_nr_c();
+            message_j["coin"]["block_nr"] = protocol_c.get_last_block_nr_c();
             message_j["server"] = true;
             message_j["fullnode"] = true;
             
             to_sign_j["req"] = message_j["req"];
             to_sign_j["full_hash"] = message_j["full_hash"];
-            to_sign_j["latest_block_nr_crowd"] = message_j["latest_block_nr_crowd"];
-            to_sign_j["latest_block_nr_coin"] = message_j["latest_block_nr_coin"];
+            to_sign_j["crowd"]["block_nr"] = message_j["crowd"]["block_nr"];
+            to_sign_j["coin"]["block_nr"] = message_j["coin"]["block_nr"];
             to_sign_j["server"] = message_j["server"];
             to_sign_j["fullnode"] = message_j["fullnode"];
             std::string to_sign_s = to_sign_j.dump();
@@ -426,7 +430,7 @@ void P2p::save_blockchain(string response)
 
 
 // handle ctrl-c == signum 2 and send intro_offline to every peer
-void P2p::signal_callback_handler(int signum)
+void P2p::signal_callback_handler(sig_atomic_t signum)
 {
     Common::Print_or_log pl;
 

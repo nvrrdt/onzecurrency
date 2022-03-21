@@ -12,7 +12,9 @@
 #include "print_or_log.hpp"
 #include "configdir.hpp"
 
-#include <signal.h>
+#include <csignal>
+#include <cstdlib>
+#include <cstdio>
 
 extern int USE_LOG;
 

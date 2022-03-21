@@ -72,7 +72,7 @@ def main():
         child = pexpect.spawn(command, encoding='utf-8', timeout=5)
         child.logfile = sys.stdout
         child.setecho(False)
-        remaining_test_time2 = (args.total_servers - args.order + 1) * 10
+        remaining_test_time2 = ((args.total_servers - args.order + 1) * 10) - 5
         time.sleep(remaining_test_time2)
 
         # And killing
@@ -127,24 +127,25 @@ def main():
         my_full_hashes_string = args.my_full_hashes
         my_full_hashes = split_str(my_full_hashes_string, 64)
 
-        if args.order < len(my_full_hashes):
+        if args.order <= len(my_full_hashes):
             print("begin", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
             # Execute onze-terminal --> start with intro_peer
             command = 'onze-terminal'
             child = pexpect.spawn(command, encoding='utf-8', timeout=60)
 
+            child.logfile = sys.stdout
+            child.setecho(False)
+            child.expect("Tx to: ")
+
             # Sleep the execute the transactions in order
             start_test_time = (args.order - 1) * 5
             time.sleep(start_test_time)
 
-            child.logfile = sys.stdout
-            child.setecho(False)
-            child.expect("Tx to: ")
             child.sendline(my_full_hashes[args.order])
 
             # Let the onze-terminal process exist until al servers have finished
-            remaining_test_time = (args.total_servers - args.order) * 5
+            remaining_test_time = (args.total_servers - args.order + 1) * 5
             time.sleep(remaining_test_time)
 
             # Ctrl-c

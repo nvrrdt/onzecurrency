@@ -1206,8 +1206,8 @@ void P2pSession::intro_online(nlohmann::json buf_j)
     nlohmann::json to_verify_j;
     to_verify_j["req"] = buf_j["req"];
     to_verify_j["full_hash"] = buf_j["full_hash"];
-    to_verify_j["latest_block_nr_crowd"] = buf_j["latest_block_nr_crowd"];
-    to_verify_j["latest_block_nr_coin"] = buf_j["latest_block_nr_coin"];
+    to_verify_j["crowd"]["block_nr"] = buf_j["crowd"]["block_nr"];
+    to_verify_j["coin"]["block_nr"] = buf_j["coin"]["block_nr"];
     to_verify_j["server"] = buf_j["server"];
     to_verify_j["fullnode"] = buf_j["fullnode"];
 
@@ -1348,7 +1348,6 @@ void P2pSession::intro_online(nlohmann::json buf_j)
                         pn.p2p_client(ip_underlying, message);
                     }
                 }
-                delete rocksy3;
                 
                 pl.handle_print_or_log({"Preparation for new_online:", peer_ip});
 
@@ -1368,11 +1367,13 @@ void P2pSession::intro_online(nlohmann::json buf_j)
                 pn.p2p_client(peer_ip, message_s);
             }
 
+            delete rocksy3;
+
             // update this rocksdb
             Rocksy* rocksy4 = new Rocksy("usersdb");
             nlohmann::json value_j = nlohmann::json::parse(rocksy4->Get(full_hash));
             value_j["online"] = true;
-            value_j["ip"] = buf_j["ip"];
+            value_j["ip"] = socket_.remote_endpoint().address().to_string();
             value_j["server"] = buf_j["server"];
             value_j["fullnode"] = buf_j["fullnode"];
             std::string value_s = value_j.dump();
@@ -1383,7 +1384,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             // Update crowd
             ///////
             Common::Print_or_log pl;
-            pl.handle_print_or_log({"Update_you_crowd: send all blocks, rocksdb and matrices to server (serveer)"});
+            pl.handle_print_or_log({"Update_you_crowd: send all blocks, rocksdb and matrices to server (server)"});
 
             std::string req_latest_block_crowd = buf_j["crowd"]["block_nr"];
 
@@ -1399,16 +1400,16 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             
             // Update rocksdb
             nlohmann::json rdb;
-            Rocksy* rocksy = new Rocksy("usersdbreadonly");
+            Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
             for (auto& user : list_of_users_j_crowd)
             {
                 nlohmann::json usr;
                 std::string u = user;
-                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(u));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy5->Get(u));
                 usr = {u: value_j};
                 rdb.push_back(usr);
             }
-            delete rocksy;
+            delete rocksy5;
 
             msg["crowd"]["rocksdb"] = rdb;
 
@@ -1484,16 +1485,16 @@ void P2pSession::intro_online(nlohmann::json buf_j)
 
             // // Update rocksdb
             // nlohmann::json rdb;
-            // Rocksy* rocksy = new Rocksy("transactiondbreadonly");
+            // Rocksy* rocksy6 = new Rocksy("transactiondbreadonly");
             // for (auto& user : list_of_users_j_coin)
             // {
             //     nlohmann::json usr;
             //     std::string u = user;
-            //     nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(u));
+            //     nlohmann::json value_j = nlohmann::json::parse(rocksy6->Get(u));
             //     usr = {u: value_j};
             //     rdb.push_back(usr);
             // }
-            // delete rocksy;
+            // delete rocksy6;
 
             // msg["coin"]["rocksdb"] = rdb;
 
@@ -1552,6 +1553,9 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             // {
             //     msg["coin"]["ihv"][(*el).first] = (*el).second;
             // }
+
+            Coin::P2pC pc;
+            pc.set_coin_update_complete(true);
 
             set_resp_msg_server(msg.dump());
         }
@@ -2218,7 +2222,6 @@ void P2pSession::new_offline(nlohmann::json buf_j)
 void P2pSession::update_you_server(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"__00000000 hemels"});
 
     // Disconect from client
     nlohmann::json m_j;
