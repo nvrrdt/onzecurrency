@@ -31,10 +31,7 @@ so e.g. a problem with the face recognition or fingerprint scanner has a huge im
 
 - scripts/system_tester.py -s -t test_number
   * '-s' option: upload and install of the deb file and the remote_script_test.py to the servers before starting the tests
-  * '-t 1' option: selecting the first test, testing 'crowd', deletion of .config directory, start onze-terminal, after creation of all the full_hashes (depending on the amount of cloud servers in system_tester.py) stop the software, restart it (users are existant by then) and stop again
-  * '-t 3' option: selecting the third test, testing 'coin', first removal of the database file and the blockchain, then executing amount_of_full_hashes-1 transactions
-  * '-t 4' option: same as the third test, but no deletion of the database and blockchain
-
+  * '-t 1' option: selecting the first test, testing 'coin' after 'crowd'
 
 - scripts/logs_analyzer.py -c    # get amount of blocks made by every server
 - scripts/logs_analyzer.py -a    # assemble (merge and sort and reverse) one log file of all the log files

@@ -73,79 +73,34 @@ def main():
 
     test_nr = args.test
 
+    # Creating a thread for each server
+    threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay, test_nr)) for _i in range(len(ips)) ]
+    for thread in threads:
+        thread.start()
+
+    # Wait for all of them to finish
+    for x in threads:
+        x.join()
+
+    # Notify the user
+    subprocess.call('notify-send -t 2000 "Done"', shell=True)
+
+    # Remove log directory
+    shutil.rmtree('../log', ignore_errors=True)
+
+    # Cd to log directory
+    if not os.path.exists("../log"):
+        os.makedirs("../log")
+    os.chdir("../log")
+
     if test_nr == 1:
-        my_full_hashes = "None"
-
-        # Creating a thread for each server
-        threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay, test_nr, my_full_hashes)) for _i in range(len(ips)) ]
-        for thread in threads:
-            thread.start()
-
-        # Wait for all of them to finish
-        for x in threads:
-            x.join()
-
-        # Notify the user
-        subprocess.call('notify-send -t 2000 "Done"', shell=True)
-
-        # Remove log directory
-        shutil.rmtree('../log', ignore_errors=True)
-
         # Cd to log directory
         if not os.path.exists("../log"):
             os.makedirs("../log")
         os.chdir("../log")
 
-        # Assemble files in log folder and extract the my_full_hash
-        for ip in ips:
-            # Scp log files to main machine
-            subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
-
-            # Add ip adress and index to beginning of log file
-            new_loggi = "{index}_{ip}_loggi".format(index=ips.index(ip), ip=ip)
-            os.rename('loggi', new_loggi)
-
-            # Add ip adress and index to beginning of count file
-            if os.path.isfile('blocks_count'):
-                new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
-                os.rename('blocks_count', new_blocks_count)
-
-            # Add ip adress and index to beginning of my_full_hazh file
-            if os.path.isfile('my_full_hash'):
-                new_my_full_hash = "{index}_{ip}_my_full_hash".format(index=ips.index(ip), ip=ip)
-                os.rename('my_full_hash', new_my_full_hash)
-
-            # Scp blocks to main machine
-            subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ .', shell=True)
-
-            for file in glob.glob("crowd/block*"):
-                # Add ip adress and index to beginning of block/file
-                f = file.split('/')[1]
-                new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
-                os.rename(file, new_f)
-
-    if test_nr == 3 or test_nr == 4:
-        my_full_hashes = ""
-
-        # Cd to log directory
-        if not os.path.exists("../log"):
-            os.makedirs("../log")
-        os.chdir("../log")
-
-        print('__0000', str(Path(os.getcwd())))
-
-        # Assemble all my_full_hashes sorted
-        for file in sorted(glob.glob("./*_my_full_hash")):
-            with open(file, 'r') as f:
-                lines = f.readline()
-                for line in lines:
-                    my_full_hashes += line.rstrip('\n')
-            f.close()
-
-        print('__0001', my_full_hashes)
-
         # Creating a thread for each server
-        threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay, test_nr, my_full_hashes)) for _i in range(len(ips)) ]
+        threads = [ threading.Thread(target=worker, args=(q, len(ips), block_creation_delay, test_nr)) for _i in range(len(ips)) ]
         for thread in threads:
             thread.start()
 
@@ -161,41 +116,34 @@ def main():
             os.makedirs("../log")
         os.chdir("../log")
 
-        print('__0002', str(Path(os.getcwd())))
+    # Assemble files in log folder
+    for ip in ips:
+        # Scp log files to main machine
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
 
-        # Assemble files in log folder and get coin logs
-        for ip in ips:
-            # Scp log files to main machine
-            subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/log ..', shell=True)
+        # Add ip adress and index to beginning of log file
+        new_loggi = "{index}_{ip}_loggi".format(index=ips.index(ip), ip=ip)
+        os.rename('loggi', new_loggi)
 
-            # Add ip adress and index to beginning of log file
-            new_loggi = "{index}_{ip}_loggi".format(index=ips.index(ip), ip=ip)
-            os.rename('loggi', new_loggi)
+        # Add ip adress and index to beginning of count file
+        if os.path.isfile('blocks_count'):
+            new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
+            os.rename('blocks_count', new_blocks_count)
 
-            # Add ip adress and index to beginning of count file
-            if os.path.isfile('blocks_count'):
-                new_blocks_count = "{index}_{ip}_blocks_count".format(index=ips.index(ip), ip=ip)
-                os.rename('blocks_count', new_blocks_count)
+        # Scp blocks to main machine
+        subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ .', shell=True)
 
-            # Add ip adress and index to beginning of my_full_hazh file
-            if os.path.isfile('my_full_hash'):
-                new_my_full_hash = "{index}_{ip}_my_full_hash".format(index=ips.index(ip), ip=ip)
-                os.rename('my_full_hash', new_my_full_hash)
+        for file in glob.glob("crowd/block*"):
+            # Add ip adress and index to beginning of block/file
+            f = file.split('/')[1]
+            new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
+            os.rename(file, new_f)
 
-            # Scp blocks to main machine
-            subprocess.call('scp -r root@' + ip + ':/onzecurrency/.config/onzehub/blockchain/crowd/ .', shell=True)
-
-            for file in glob.glob("crowd/block*"):
-                # Add ip adress and index to beginning of block/file
-                f = file.split('/')[1]
-                new_f = "crowd/{index}_{ip}_{f}".format(index=ips.index(ip), ip=ip, f=f)
-                os.rename(file, new_f)
-
-def worker(q, total_servers, block_creation_delay, test_nr, my_full_hashes):
+def worker(q, total_servers, block_creation_delay, test_nr):
     ip = q.get()
     order = total_servers - q.qsize()
     subprocess.call('ssh root@' + ip + ' python3 remote_script_test.py ' + str(order) + ' ' + str(total_servers) + ' ' + str(block_creation_delay) \
-                    + ' ' + str(test_nr) + ' ' + str(my_full_hashes) + ' && exit', shell=True)
+                    + ' ' + str(test_nr) + ' && exit', shell=True)
     return
 
 def project_path(sub_dir):
