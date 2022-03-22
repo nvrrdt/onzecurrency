@@ -544,14 +544,13 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
 
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn");
+
     ///////////
     // Update crowd
     ///////////
-
-    // Disconect from client
-    nlohmann::json m_j;
-    m_j["req"] = "close_this_conn";
-    set_resp_msg_client(m_j.dump());
 
     // Update blocks
     nlohmann::json blocks_j = buf_j["crowd"]["blocks"];
@@ -764,6 +763,10 @@ void P2pClient::new_co_online_client(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"new_co_online"});
 
+    close();
+    P2pNetwork pn;
+    pn.set_closed_client("close_this_conn");
+
     FullHash fh;
     std::string my_full_hash = fh.get_full_hash();
 
@@ -798,7 +801,7 @@ void P2pClient::new_co_online_client(nlohmann::json buf_j)
     }
     std::string message_s = message_j.dump();
 pl.handle_print_or_log({"intro online message sent to", ip});
-    P2pNetwork pn;
+
     pn.p2p_client(ip, message_s);
 
     delete rocksy;
