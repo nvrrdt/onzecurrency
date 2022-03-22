@@ -318,18 +318,36 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string msg_and_nph = message_s + next_prev_hash;
             std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
 
-            Rocksy* rocksy = new Rocksy("usersdbreadonly");
-            std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+            Rocksy rocksy("usersdbreadonly");
+            std::string coordinator_from_hash = rocksy.FindChosenOne(hash_msg_and_nph);
 
-            nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
-            delete rocksy;
+            nlohmann::json contents_j = nlohmann::json::parse(rocksy.Get(coordinator_from_hash));
 
             std::string ip = contents_j["ip"];
 
             pl.handle_print_or_log({"intro online message sent to", ip});
 
             Network::P2pNetwork pn;
-            pn.p2p_client(ip, message_s);
+            int succeeded_conn = pn.p2p_client(ip, message_s);
+
+            for (;;) // search for a succesful connection in the rocksdb list of users
+            {
+                if (succeeded_conn)
+                {
+                    break;
+                }
+                else
+                {
+                    coordinator_from_hash = rocksy.FindNextPeer(coordinator_from_hash);
+
+                    contents_j = nlohmann::json::parse(rocksy.Get(coordinator_from_hash));
+
+                    ip = contents_j["ip"];
+
+                    succeeded_conn = pn.p2p_client(ip, message_s);
+                }
+
+            }
 
             return true;
         }
