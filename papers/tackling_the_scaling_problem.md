@@ -34,6 +34,8 @@ maximum 128 shards, maybe even more (?)
 time_synchronization, ha time is time he, block_creation_delay of 64 seconds, every shard fires every 64 / 128 second, they must wait for previous hash (congestion possible? but 0.5 seconds is a cautious number)
 
 headless prevention algorithm
+
+Make blockchain size smaller by distributing the transactions into shards, h_txs that leads to a certain shard (first characters of h_txs) should save the transactions, other users should save a hash
 ****
 
 ### Conclusion
