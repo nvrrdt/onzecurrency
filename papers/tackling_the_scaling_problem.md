@@ -42,7 +42,7 @@ If a block is approximatelly 1 mb with 2048 transactions in and a block_creation
 
 As the prev_hash in a block is not known at block creation, informing the network of a block takes more time then creating the blocks in parallel, a minute later the prev_hash is communicated with the next block and the block can be sealed then.
 
-When a user goes online, this user must be added to the database at the start of the block_creation_delay, otherwise this user might upset the order of the chosen-ones.
+When a user goes online, this user must be added to the database at the start of the block_creation_delay, otherwise this user might upset the order of the chosen-ones and the division of the shards.
 
 There's also a risk of users becoming headless, that is when a block or prev_hash communication didn't happen. Pinging another user is the solution, who can then communicate a correct block/prev_hash.
 
