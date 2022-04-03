@@ -25,42 +25,32 @@ In proof-of-chosen-ones v1: every minute a block is created which contains a max
 
 ### Solution (proof-of-chosen-ones v2)
 
-**** Work in progress ****
+The hash space (sha256 or from 0 to (2^256)-1) is divided in a dynamic binary amount of shards fluctuating from 1 shard to 128 shards.
 
-The hash of a transaction leads to users whose first characters are the same as the first characters of this hash, these characters define the partitions of users. The transaction is sent to all these users.
+When communicating transactions or blocks the first characters of the hash of a transaction or block leads to users (fair_user_id) with the same first characters, these characters define the shards and an amount of users (minimum 5) is present in each shard. So when minimum 5+5 users are reached in every shard then the shards are growing to the next binary number until a maximum of 128 shards (may be higher?) is reached, schrinking is also possible. Calculating the shards is a database operation!
 
-When the block_creation_delay is due or if more than 2048 transactions arrived at these partitioned users, then one of these users is chosen (hash_block % hash_user[i] --> lowest remainder wins) to send all the transactions to the coordinator of the chosen_ones for this block. The coordinator sends these transactions to the chosen_ones. The other users send their hash of the block to all the chosen ones (they must be informed of the correct chosen_ones by the coordinator), just to compare. If a threshold of an amount of users is reached (3 for example), then these chosen_ones may inform their part of the network. 
+The user_id is a hash coming from a face recognition and/or fingerprint recognition constant. These user_id's aren't fairly distributed over the 2^256 space, so what needs to be introduced is a fair_user_id, which is calculated by fair_user_id = (2^256 * order_nr_user_id / total_user_id's), every shard has so approximately an equal part of users and this results in a fairer distribution of rewards.
 
-Every partition has another start of the block_creation_delay resulting in a parallel distribution of transactions, which can than be processed thus also in parallel.
+The hash of a transaction leads to a shard and all the shard's users should be informed of this transaction. (Might be sometime that a fairer transaction distribution algorithm is needed when there are too many users in a shard.) Only the shard's users are aware of this transaction and not all the users!  
+Tx % fair_user_id = smallest fair_user_id confirms payer and payee of transaction being processed.
 
-If a block is approx. 1 mb with 2048 transactions in and a block_creation_delay of 1 minute while all the users are distributed in 64 partitions, then every user must be able to process a block of 1 mb in 1 minute / 64 partitions = 0.9375 seconds/mb and the total throughput is 2048 x 64 or 131072 transactions per minute or 2184 transactions per second, theoretically.
+For blocks, when the block_creation_delay (of 1 minute) is due, then the first of maximum 128 (hash_block % fair_user_id_in_shard[i] --> 128 with lowest remainder) of the fair_users in a shard (chosen-ones) inform their part of the network, based on the order_nr of each fair_user_id in the shard starting from the first characters of the hash of the block.  
+Every 60 seconds / total_shards a shard creates a block based on the order of the shards in de 2^256 space. This results in parallel processing of blocks and should improve the throughput tremendously.  
+The chosen-ones must first communicate to establish the maximum amount of included transactions in the block.
 
-There's also something fishy, block_creation delay is a minute, every second a new block, while sending the block to all the users takes 10 seconds at least
-and the prev_hash is based on the previous block, block creation maybe a minute later and compared in the network? and thje transactions may also be delayed in the first step?
+If a block is approximatelly 1 mb with 2048 transactions in and a block_creation_delay of 1 minute while all the users are distributed in 128 shards, then must proof-of-chosen-ones be able to process a block of 1 mb in 1 minute / 128 partitions = 0.46875 seconds/mb and the total throughput is 2048 x 128 or 262144 transactions per minute or 4369 transactions per second, theoretically. It is every 0.46875 second a block for the whole system, while every shard has 1 minute to receive transactions, to create a block, and to inform the whole network of a block. So it might be that 1 minute is not enough if there are a lot of users (100^3 or so), informing the whole network is the bottleneck. There is no limit on block size, it eventually might be one day.
 
-****
-fair distribution of chosen_ones algorithm --> every shard must have approximately the same amount of users
+As the prev_hash in a block is not known at block creation, informing the network of a block takes more time then creating the blocks in parallel, a minute later the prev_hash is communicated with the next block and the block can be sealed then.
 
-tx % user_id = smallest for confirmation towards payer and payee
+When a user goes online, this user must be added to the database at the start of the block_creation_delay, otherwise this user might upset the order of the chosen-ones.
 
-maximum 128 shards, maybe even more (?)
+There's also a risk of users becoming headless, that is when a block or prev_hash communication didn't happen. Pinging another user is the solution, who can then communicate a correct block/prev_hash.
 
-128 smallest user_id % h_block (= chosen_ones) must include prev_hash (rewards must also be included --> risk of becoming headless , what if new user goes online at same time, delayed going online?), wait so, then inform whole network based on h_block
-
-time_synchronization, ha time is time he, block_creation_delay of 64 seconds, every shard fires every 64 / 128 second, they must wait for previous hash (congestion possible? but 0.5 seconds is a cautious number)
-
-headless prevention algorithm
-
-Make blockchain size smaller by distributing the transactions into shards, h_txs that leads to a certain shard (first characters of h_txs) should save the transactions, other users should save a hash
-****
+Make blockchain size smaller by distributing the transactions into the correct shard, h_txs that leads to a certain shard (first characters of h_txs) should save the transactions, other users should save a hash.
 
 ### Conclusion
 
-**** Work in progress ****
-
-This means that the traditional bottleneck in scaling blockchain transactions is solved. Although, on a sidenote, visa is at 1700 transactions per second which makes my calculations look unreal, so I would be glad if more than 1000 transactions per second is attainable.
-
-It's also a sort of sharding I couldn't yet imagine.
+This means that the traditional bottleneck in scaling blockchain transactions might be solved. Although, on a sidenote, visa has 1700 transactions per second which makes my calculations look unreal, so I would be glad if more than 500 transactions per second is attainable.
 
 In proof of stake this trick isn't applicable as the stake pool participants form the bottleneck, they all send their block proposal to all the users so there's more network congestion.
 
