@@ -12,6 +12,7 @@ add_library(poco SHARED
                      block_matrix.cpp
                      block_matrix_c.cpp
                      synchronisation.cpp
+                     database_sharding.cpp
 )
 
 target_include_directories(poco PUBLIC
@@ -37,6 +38,7 @@ set(all_HEADERS "${PROJECT_SOURCE_DIR}/include/libcommon/json.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/block_matrix.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libpoco/synchronisation.hpp"
                 "${PROJECT_SOURCE_DIR}/include/libnetwork/p2p_network.hpp"
+                "${PROJECT_SOURCE_DIR}/include/libpoco/sharding.hpp"
                 )
 
 INSTALL(TARGETS poco ARCHIVE DESTINATION lib/onze COMPONENT libraries)
