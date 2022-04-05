@@ -2,6 +2,10 @@
 
 #include <iostream>
 #include <string>
+#include <map>
+
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
 
 namespace Poco
 {
@@ -10,7 +14,7 @@ namespace Poco
     public:
         
     private:
-        void partitioning();
+        std::map<std::string, uint256_t> fair_partitioning();
     };
 
     class NetworkSharding /* TODO */

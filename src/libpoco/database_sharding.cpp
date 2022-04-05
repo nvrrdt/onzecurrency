@@ -2,6 +2,9 @@
 
 #include "rocksy.hpp"
 
+#include <math.h>
+#include <limits>
+
 using namespace Poco;
 
 /**
@@ -11,7 +14,19 @@ using namespace Poco;
  * @brief Dynamically partitioning the total_users in rocksdb into 1 to 128 shards
  */
 
-void DatabaseSharding::partitioning()
+std::map<std::string, uint256_t> DatabaseSharding::fair_partitioning()
 {
-    //
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+    uint256_t total_users = rocksy->TotalAmountOfPeers();
+    delete rocksy;
+    uint256_t uint256_max = std::numeric_limits<uint256_t>::max();
+    uint256_t shard_distance = uint256_max / total_users;
+    uint256_t shard_remainder = uint256_max % total_users;
+
+    std::map<std::string, uint256_t> shards;
+    shards["total_users"] = total_users;
+    shards["shard_remainder"] = shard_remainder;
+    shards["shard_distance"] = shard_distance;
+
+    return shards;
 }
