@@ -82,7 +82,7 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     for (;;)
     {
         // limit at 128 users per shard until maximum of 128 shards (2^7)
-        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x <= 7)
+        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x < 7)
         {
             x++;
         }
