@@ -71,7 +71,27 @@ std::pair<std::string, uint256_t> DatabaseSharding::get_fair_order_nr(std::strin
     return fair_order_nr;
 }
 
-void DatabaseSharding::dynamic_sharding()
+// calculation of dynamic sharding
+uint32_t DatabaseSharding::get_amount_of_shards()
 {
-    //
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+    uint256_t total_users = rocksy->TotalAmountOfPeers();
+    delete rocksy;
+
+    int x = 0; // amount of shards: 2^x
+    for (;;)
+    {
+        // limit at 128 users per shard until maximum of 128 shards (2^7)
+        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x <= 7)
+        {
+            x++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    uint32_t shard_amount = pow(2, x);
+    return shard_amount;
 }

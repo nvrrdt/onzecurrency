@@ -18,7 +18,7 @@ namespace Poco
     private:
         std::map<std::string, uint256_t> fair_partitioning();
         std::pair<std::string, uint256_t> get_fair_order_nr(std::string user_id);
-        void dynamic_sharding();
+        uint32_t get_amount_of_shards();
     };
 
     class NetworkSharding /* TODO */
