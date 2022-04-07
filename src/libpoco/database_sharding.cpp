@@ -20,13 +20,58 @@ std::map<std::string, uint256_t> DatabaseSharding::fair_partitioning()
     uint256_t total_users = rocksy->TotalAmountOfPeers();
     delete rocksy;
     uint256_t uint256_max = std::numeric_limits<uint256_t>::max();
-    uint256_t shard_distance = uint256_max / total_users;
-    uint256_t shard_remainder = uint256_max % total_users;
+    uint256_t users_distance = uint256_max / total_users;
+    uint256_t users_remainder = uint256_max % total_users;
 
-    std::map<std::string, uint256_t> shards;
-    shards["total_users"] = total_users;
-    shards["shard_remainder"] = shard_remainder;
-    shards["shard_distance"] = shard_distance;
+    std::map<std::string, uint256_t> fair_shards;
+    fair_shards["total_users"] = total_users;
+    fair_shards["users_distance"] = users_distance;
+    fair_shards["users_remainder"] = users_remainder;
 
-    return shards;
+    return fair_shards;
+}
+
+std::pair<std::string, uint256_t> DatabaseSharding::get_fair_order_nr(std::string user_id)
+{
+    Common::Print_or_log pl;
+
+    Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+    std::string zero = "0";
+    uint256_t order_nr = rocksy->CountPeersFromTo(zero, user_id);
+    delete rocksy;
+
+    std::map<std::string, uint256_t> fair_shards = fair_partitioning();
+
+    std::pair<std::string, uint256_t> fair_order_nr;
+    uint256_t total_users = fair_shards["total_users"];
+    uint256_t users_distance = fair_shards["users_distance"];
+    uint256_t users_remainder = fair_shards["users_remainder"];
+    if (order_nr <= total_users)
+    {
+        fair_order_nr.first = "ok";
+
+        if (order_nr <= users_remainder)
+        {
+            // remainder has one more user in distance
+            fair_order_nr.second = order_nr * (users_distance + 1);
+        }
+        else
+        {
+            fair_order_nr.second = ((order_nr - users_remainder) * users_distance) + (users_remainder * (users_distance + 1));
+        }
+    }
+    else
+    {
+        fair_order_nr.first = "error";
+        fair_order_nr.second = 0;
+
+        pl.handle_print_or_log({"ERROR: total_users < order_nr"});
+    }
+
+    return fair_order_nr;
+}
+
+void DatabaseSharding::dynamic_sharding()
+{
+    //
 }
