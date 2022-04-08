@@ -95,3 +95,8 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     uint32_t shard_amount = pow(2, x);
     return shard_amount;
 }
+
+uint256_t DatabaseSharding::get_shard_distance()
+{
+    return std::numeric_limits<uint256_t>::max() / get_amount_of_shards();
+}
