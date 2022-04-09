@@ -31,7 +31,7 @@ std::map<std::string, uint256_t> DatabaseSharding::fair_partitioning()
     return fair_shards;
 }
 
-std::pair<std::string, uint256_t> DatabaseSharding::get_fair_order_nr(std::string user_id)
+std::pair<std::string, uint256_t> DatabaseSharding::get_fair_user_id(std::string user_id)
 {
     Common::Print_or_log pl;
 
@@ -42,33 +42,33 @@ std::pair<std::string, uint256_t> DatabaseSharding::get_fair_order_nr(std::strin
 
     std::map<std::string, uint256_t> fair_shards = fair_partitioning();
 
-    std::pair<std::string, uint256_t> fair_order_nr;
+    std::pair<std::string, uint256_t> fair_user_id;
     uint256_t total_users = fair_shards["total_users"];
     uint256_t users_distance = fair_shards["users_distance"];
     uint256_t users_remainder = fair_shards["users_remainder"];
     if (order_nr <= total_users)
     {
-        fair_order_nr.first = "ok";
+        fair_user_id.first = "ok";
 
         if (order_nr <= users_remainder)
         {
             // remainder has one more user in distance
-            fair_order_nr.second = order_nr * (users_distance + 1);
+            fair_user_id.second = order_nr * (users_distance + 1);
         }
         else
         {
-            fair_order_nr.second = ((order_nr - users_remainder) * users_distance) + (users_remainder * (users_distance + 1));
+            fair_user_id.second = ((order_nr - users_remainder) * users_distance) + (users_remainder * (users_distance + 1));
         }
     }
     else
     {
-        fair_order_nr.first = "error";
-        fair_order_nr.second = 0;
+        fair_user_id.first = "error";
+        fair_user_id.second = 0;
 
         pl.handle_print_or_log({"ERROR: total_users < order_nr"});
     }
 
-    return fair_order_nr;
+    return fair_user_id;
 }
 
 // calculation of dynamic sharding
