@@ -98,5 +98,6 @@ uint32_t DatabaseSharding::get_amount_of_shards()
 
 uint256_t DatabaseSharding::get_shard_distance()
 {
+    // if get_amount_of_shards() == 1 --> 0 is returned, otherwise it's the distance
     return (std::numeric_limits<uint256_t>::max() / get_amount_of_shards()) + 1;
 }
