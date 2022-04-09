@@ -96,8 +96,25 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     return shard_amount;
 }
 
-uint256_t DatabaseSharding::get_shard_distance()
+std::pair<uint256_t, uint256_t> DatabaseSharding::get_shard_range(std::string user_id)
 {
-    // if get_amount_of_shards() == 1 --> 0 is returned, otherwise it's the distance
-    return (std::numeric_limits<uint256_t>::max() / get_amount_of_shards()) + 1;
+    auto fair_user_id = get_fair_user_id(user_id);
+    std::pair<uint256_t, uint256_t> range;
+    if (fair_user_id.first == "ok")
+    {
+        auto amount_of_shards = get_amount_of_shards();
+
+        for (int i = 0; i < amount_of_shards; i++)
+        {
+            // (0 3)(4 7)(8 11)(12 15)(16 19)
+            range.first = i * ((std::numeric_limits<uint256_t>::max() / get_amount_of_shards()) + 1);
+            range.second = range.first + std::numeric_limits<uint256_t>::max() / get_amount_of_shards();
+        }
+    }
+    else
+    {
+        range.first = 0, range.second = 0;
+    }
+
+    return range;
 }
