@@ -220,14 +220,26 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                 }
                 else if (pn.get_closed_client() == "new_co")
                 {
-                    std::string ip_new_co = pn.get_ip_new_co();
+                    /**
+                     * @brief Introduction of poco v2
+                     * 
+                     * A shard needs to be informed of this new peer
+                     * So, ips_in_shard should consist of all ip's in a shard (instead of ip_new_co)
+                     * ((At every intro_online and intro_offline (when they are all introduced every minute)
+                     * the ranges of the shards should be recalculated))
+                     * If you have received this ips_in_shard then p2p_client them all with an intro_peer
+                     */
 
-                    message_j["ip"] = ip_new_co;
-                    rocksdb_j["ip"] = ip_new_co;
-                    message_j["rocksdb"] = rocksdb_j;
-                    message = message_j.dump();
+                    std::vector ips_in_shard = pn.get_ips_in_shard();
 
-                    ip_mother_peer = ip_new_co;
+                    // std::string ip_new_co = pn.get_ip_new_co();
+
+                    // message_j["ip"] = ip_new_co;
+                    // rocksdb_j["ip"] = ip_new_co;
+                    // message_j["rocksdb"] = rocksdb_j;
+                    // message = message_j.dump();
+
+                    // ip_mother_peer = ip_new_co;
 
                     pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
                 }
