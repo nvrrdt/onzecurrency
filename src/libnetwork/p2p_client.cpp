@@ -18,7 +18,7 @@ using namespace Coin;
 using namespace Network;
 
 std::string P2pNetwork::closed_client_ = "";
-std::string P2pNetwork::ip_new_co_ = "";
+std::vector<std::string> P2pNetwork::ips_in_shard_ = {};
 
 void P2pClient::handle_read_client(p2p_message read_msg_client)
 {
@@ -41,7 +41,7 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
         req_conversion["connect"] =             2;
         req_conversion["connect_true"] =        3;
         req_conversion["new_peer"] =            9;
-        req_conversion["new_co"] =              10;
+        req_conversion["ips_shard"] =           10;
         req_conversion["your_full_hash"] =      11;
         req_conversion["hash_comparison"] =     12;
         req_conversion["close_same_conn"] =     13;
@@ -63,7 +63,7 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
                         break;
             case 9:     new_peer_client(buf_j);
                         break;
-            case 10:    new_co_client(buf_j);
+            case 10:    ips_in_shard_client(buf_j);
                         break;
             case 11:    your_full_hash_client(buf_j);
                         break;
@@ -181,19 +181,19 @@ void P2pClient::new_peer_client(nlohmann::json buf_j)
     }
 }
 
-void P2pClient::new_co_client(nlohmann::json buf_j)
+void P2pClient::ips_in_shard_client(nlohmann::json buf_j)
 {
     // send flag to start_crowd function
 
     P2p p2p;
-    std::string peer_ip = buf_j["ip_co"];
+    std::vector<std::string> peer_ips = (buf_j["ips_shard"]).get<std::vector<std::string>>();
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"new_co:", peer_ip});
+    pl.handle_print_or_log({"ips_in_shard:"});
 
     close();
 
     P2pNetwork pn;
-    pn.set_ip_new_co(peer_ip); // TODO dunno yet, should be in P2pNetwork
+    pn.set_ips_in_shard(peer_ips); // TODO dunno yet, should be in P2pNetwork
     pn.set_closed_client("new_co");
 }
 
@@ -774,7 +774,7 @@ void P2pClient::new_co_online_client(nlohmann::json buf_j)
     std::string coordinator_from_peer = buf_j["full_hash_co"];
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_peer));
     
-    std::string ip = buf_j["ip_co"];
+    std::string ip = buf_j["ips_shard"]; // TODO adapt became vector
 
     nlohmann::json message_j, to_sign_j;
     message_j["req"] = "intro_online";

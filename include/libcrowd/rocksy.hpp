@@ -46,5 +46,6 @@ namespace Crowd
         uint256_t CountPeersFromTo(std::string &my_hash, std::string &next_hash);
         std::string FindPeerFromTillCount(std::string &key, uint256_t &count);
         void DatabaseDump();
+        std::vector<std::string> GetPeersInRange(uint256_t from, uint256_t till);
     };
 }

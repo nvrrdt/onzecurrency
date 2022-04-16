@@ -16,6 +16,7 @@
 #include "p2p_c.hpp"
 #include "prev_hash_c.hpp"
 #include "transactions.hpp"
+#include "sharding.hpp"
 
 #include "desktop.hpp"
 
@@ -381,15 +382,25 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
             // There's another chosen_one, reply with the correct chosen_one
             pl.handle_print_or_log({"New_co: Chosen_one is someone else!"});
 
+            // find shard and put its ip's in an json array:
+            // calculate_shard_nr and its limits
+            // search these limits in rocksdb and put in json array
+
             nlohmann::json message_j;
             message_j["req"] = "new_co";
 
+            Poco::DatabaseSharding ds;
+            auto shard_users = ds.get_shard_users(prel_first_coordinator_server);
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
-            nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(prel_first_coordinator_server));
-            std::string peer_ip = value_j["ip"];
+            nlohmann::json peer_ips;
+            for (auto& user: shard_users)
+            {
+                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(user));
+                peer_ips.push_back(value_j["ip"]);
+            }
             delete rocksy;
 
-            message_j["ip_co"] = peer_ip;
+            message_j["ips_shard"] = peer_ips;
             set_resp_msg_server(message_j.dump());
         }
         
@@ -1574,7 +1585,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             delete rocksy6;
 
             message_j["full_hash_co"] = coordinator_from_hash;
-            message_j["ip_co"] = peer_ip;
+            message_j["ips_shard"] = peer_ip; // TODO adapt became vector
             set_resp_msg_server(message_j.dump());
         }
     }
@@ -1984,7 +1995,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
             delete rocksy5;
 
             message_j["full_hash_co"] = coordinator_from_hash;
-            message_j["ip_co"] = peer_ip;
+            message_j["ips_shard"] = peer_ip; // TODO adapt became vector
             set_resp_msg_server(message_j.dump());
         }
     }

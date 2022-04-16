@@ -314,3 +314,24 @@ void Rocksy::DatabaseDump()
         pl.handle_print_or_log({"DatabaseDump:", it->key().ToString()});
     }
 }
+
+std::vector<std::string> Rocksy::GetPeersInRange(uint256_t from, uint256_t till)
+{
+    std::vector<std::string> peers_in_range;
+    uint256_t count = 0;
+
+    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    for (it->SeekToFirst(); it->Valid(); it->Next())
+    {
+        count++;
+
+        if (count >= from && count <= till)
+        {
+            peers_in_range.push_back(it->key().ToString());
+        }
+        else if (count > till) break;
+    }
+    delete it;
+
+    return peers_in_range;
+}

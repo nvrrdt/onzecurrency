@@ -96,9 +96,9 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     return shard_amount;
 }
 
-std::pair<uint256_t, uint256_t> DatabaseSharding::get_shard_range(std::string user_id)
+std::pair<uint256_t, uint256_t> DatabaseSharding::get_fair_shard_range(std::string user_id)
 {
-    auto fair_user_id = get_fair_user_id(user_id);
+    auto fair_user_id = get_fair_user_id(user_id); // TODO it isn't used correctly, did I mean to do something else?
     std::pair<uint256_t, uint256_t> range;
     if (fair_user_id.first == "ok")
     {
@@ -107,8 +107,8 @@ std::pair<uint256_t, uint256_t> DatabaseSharding::get_shard_range(std::string us
         for (int i = 0; i < amount_of_shards; i++)
         {
             // (0 3)(4 7)(8 11)(12 15)(16 19)
-            range.first = i * ((std::numeric_limits<uint256_t>::max() / get_amount_of_shards()) + 1);
-            range.second = range.first + std::numeric_limits<uint256_t>::max() / get_amount_of_shards();
+            range.first = i * ((std::numeric_limits<uint256_t>::max() / amount_of_shards) + 1);
+            range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards);
         }
     }
     else
@@ -117,4 +117,52 @@ std::pair<uint256_t, uint256_t> DatabaseSharding::get_shard_range(std::string us
     }
 
     return range;
+}
+
+std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
+{
+    auto fair_user_id = get_fair_user_id(user_id);
+    std::vector<std::string> shard_users;
+    std::pair<uint256_t, uint256_t> range;
+    uint32_t shard_nr;
+    if (fair_user_id.first == "ok")
+    {
+        auto amount_of_shards = get_amount_of_shards();
+
+        // calculate the shard_nr for the fair_user
+        for (int i = 0; i < amount_of_shards; i++)
+        {
+            // (0 3)(4 7)(8 11)(12 15)(16 19)
+            range.first = i * ((std::numeric_limits<uint256_t>::max() / amount_of_shards) + 1);
+            range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards);
+
+            if (fair_user_id.second >= range.first && fair_user_id.second < range.second)
+            {
+                shard_nr = i;
+                break;
+            }
+        }
+
+        Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
+        uint256_t total_users = rocksy->TotalAmountOfPeers();
+        delete rocksy;
+
+        // calculate the range for that shard
+        for (int i = 0; i < amount_of_shards; i++)
+        {
+            range.first = i * ((total_users / amount_of_shards) + 1);
+            range.second = range.first + (total_users / amount_of_shards);
+
+            if (shard_nr = i) break;
+        }
+
+        // lookup the user with the order_nr in rocksy
+        shard_users = rocksy->GetPeersInRange(range.first, range.second);
+    }
+    else
+    {
+        shard_users.push_back("error");
+    }
+
+    return shard_users;
 }

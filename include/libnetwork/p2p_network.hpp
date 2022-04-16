@@ -44,22 +44,22 @@ namespace Network
         {
             closed_client_ = closed;
         }
-        static void set_ip_new_co(std::string ip)
+        static void set_ips_in_shard(std::vector<std::string> ip)
         {
-            ip_new_co_ = ip;
+            ips_in_shard_ = ip;
         }
 
         static std::string get_closed_client()
         {
             return closed_client_;
         }
-        static std::string get_ip_new_co()
+        static std::vector<std::string> get_ips_in_shard()
         {
-            return ip_new_co_;
+            return ips_in_shard_;
         }
     private:
         static std::string closed_client_;
-        static std::string ip_new_co_;
+        static std::vector<std::string> ips_in_shard_;
     };
 
     typedef std::deque<p2p_message> p2p_message_queue;
@@ -88,7 +88,7 @@ namespace Network
         void connect_to_nat_client(nlohmann::json buf_j);
         void connect_true_client(nlohmann::json buf_j);
         void new_peer_client(nlohmann::json buf_j);
-        void new_co_client(nlohmann::json buf_j);
+        void ips_in_shard_client(nlohmann::json buf_j);
         void your_full_hash_client(nlohmann::json buf_j);
         void hash_comparison_client(nlohmann::json buf_j);
         void close_same_conn_client(nlohmann::json buf_j);
