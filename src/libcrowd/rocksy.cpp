@@ -33,10 +33,12 @@ Rocksy::Rocksy(std::string which_db)
         pl.handle_print_or_log({"s == ok:", std::to_string(s.ok()), ":", s.ToString(), ":", transactionsdb_folder_path});
     }
 }
+
 Rocksy::~Rocksy()
 {
     delete db;
 }
+
 std::string Rocksy::Get(std::string &key)
 {
     s = db->Get(rocksdb::ReadOptions(), key, &value);
@@ -50,46 +52,65 @@ std::string Rocksy::Get(std::string &key)
         return "";
     }
 }
+
 bool Rocksy::Put(std::string &key, std::string &value) // TODO: value must be json!!
 {
     s = db->Put(rocksdb::WriteOptions(), key, value);
     if (s.ok()) return true;
     else return false;    
 }
+
 bool Rocksy::Delete(std::string &key)
 {
     rocksdb::Status s = db->Delete(rocksdb::WriteOptions(), key);
     if (s.ok()) return true;
     else return false;
 }
-std::string Rocksy::FindChosenOne(std::string &key)
+
+std::string Rocksy::FindCoordinator(std::string &key)
 {
-    std::string string_key_real_chosen_one;
+    /**
+     * - find shard
+     * - hash_block % (fair_)user_id_in_shard[i] --> 1 with lowest remainder is coordinator
+     * 
+     */
 
-    rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
-    for (it->SeekToFirst(); it->Valid(); it->Next())
-    {
-        if (it->key().ToString() >= key)
-        {
-            string_key_real_chosen_one = it->key().ToString();
-            break;
-        }
-    }
+    // std::string string_key_real_chosen_one;
 
-    if (string_key_real_chosen_one == "")
-    {
-        // if next peer is the first in whole db, go search from start
-        for (it->SeekToFirst(); it->Valid(); it->Next())
-        {
-            string_key_real_chosen_one = it->key().ToString();
-            break;
-        }
-    }
+    // rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
+    // for (it->SeekToFirst(); it->Valid(); it->Next())
+    // {
+    //     if (it->key().ToString() >= key)
+    //     {
+    //         string_key_real_chosen_one = it->key().ToString();
+    //         break;
+    //     }
+    // }
 
-    delete it;
+    // if (string_key_real_chosen_one == "")
+    // {
+    //     // if next peer is the first in whole db, go search from start
+    //     for (it->SeekToFirst(); it->Valid(); it->Next())
+    //     {
+    //         string_key_real_chosen_one = it->key().ToString();
+    //         break;
+    //     }
+    // }
 
-    return string_key_real_chosen_one;
+    // delete it;
+
+    // return string_key_real_chosen_one;
 }
+
+std::string Rocksy::FindChosenOnes(std::string &key)
+{
+    /**
+     * - find shard
+     * - hash_block % (fair_)user_id_in_shard[i] --> max 128 with lowest remainder are chosen_ones
+     * 
+     */
+}
+
 std::string Rocksy::FindNextPeer(std::string &key)
 {
     std::string string_key_next_peer = "";
@@ -120,6 +141,7 @@ std::string Rocksy::FindNextPeer(std::string &key)
 
     return string_key_next_peer;
 }
+
 std::string Rocksy::FindServerPeer(std::string &key)
 {
     std::string string_key_server_peer;
@@ -149,6 +171,7 @@ std::string Rocksy::FindServerPeer(std::string &key)
 
     return string_key_server_peer;
 }
+
 std::string Rocksy::FindNextServerPeer(std::string &string_key)
 {
     std::istringstream iss (string_key);
@@ -188,6 +211,7 @@ std::string Rocksy::FindNextServerPeer(std::string &string_key)
 
     return string_key_server_peer;
 }
+
 uint256_t Rocksy::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
 {
     std::string string_num;

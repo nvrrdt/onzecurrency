@@ -230,7 +230,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                      * If you have received this ips_in_shard then p2p_client them all with an intro_peer
                      */
 
-                    std::vector ips_in_shard = pn.get_ips_in_shard();
+                    auto ips_in_shard = pn.get_ips_in_shard();
 
                     // std::string ip_new_co = pn.get_ip_new_co();
 
