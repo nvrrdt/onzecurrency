@@ -153,7 +153,7 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
             range.first = i * ((total_users / amount_of_shards) + 1);
             range.second = range.first + (total_users / amount_of_shards);
 
-            if (shard_nr = i) break;
+            if (shard_nr == i) break;
         }
 
         // lookup the user with the order_nr in rocksy

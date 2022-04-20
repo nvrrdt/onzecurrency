@@ -1,3 +1,7 @@
+#include <math.h>
+#include <limits>
+#include <algorithm>
+
 #include "json.hpp"
 
 #include "rocksy.hpp"
@@ -67,7 +71,7 @@ bool Rocksy::Delete(std::string &key)
     else return false;
 }
 
-std::string Rocksy::FindCoordinator(std::string &key)
+std::string Rocksy::FindCoordinator(std::string &user_id, std::string &hash_data)
 {
     /**
      * - find shard
@@ -75,40 +79,76 @@ std::string Rocksy::FindCoordinator(std::string &key)
      * 
      */
 
-    // std::string string_key_real_chosen_one;
+    Poco::DatabaseSharding ds;
+    auto shard_users = ds.get_shard_users(user_id);
+    
+    std::string coordinator;
+    uint256_t lowest = std::numeric_limits<uint256_t>::max(), remainder;
+    for (auto& user: shard_users)
+    {
+        if (user >= hash_data)
+        {
+            remainder = user % hash_data;
+            if (remainder < lowest)
+            {
+                lowest = remainder;
+                coordinator = user;
+            }
+        }
+        else
+        {
+            remainder = hash_data % user;
+            if (remainder < lowest)
+            {
+                lowest = remainder;
+                coordinator = user;
+            }
+        }
+    }
 
-    // rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
-    // for (it->SeekToFirst(); it->Valid(); it->Next())
-    // {
-    //     if (it->key().ToString() >= key)
-    //     {
-    //         string_key_real_chosen_one = it->key().ToString();
-    //         break;
-    //     }
-    // }
-
-    // if (string_key_real_chosen_one == "")
-    // {
-    //     // if next peer is the first in whole db, go search from start
-    //     for (it->SeekToFirst(); it->Valid(); it->Next())
-    //     {
-    //         string_key_real_chosen_one = it->key().ToString();
-    //         break;
-    //     }
-    // }
-
-    // delete it;
-
-    // return string_key_real_chosen_one;
+    return coordinator;
 }
 
-std::string Rocksy::FindChosenOnes(std::string &key)
+std::vector<std::string> Rocksy::FindChosenOnes(std::string &user_id, std::string &hash_data)
 {
     /**
      * - find shard
      * - hash_block % (fair_)user_id_in_shard[i] --> max 128 with lowest remainder are chosen_ones
      * 
      */
+
+    Poco::DatabaseSharding ds;
+    auto shard_users = ds.get_shard_users(user_id);
+
+    std::vector<std::string> chosen_ones;
+    std::vector<std::pair<uint256_t, std::string>> preps;
+    uint256_t remainder;
+    for (auto& user: shard_users)
+    {
+        if (user >= hash_data)
+        {
+            remainder = user % hash_data;
+        }
+        else
+        {
+            remainder = hash_data % user;
+        }
+
+        std::pair<uint256_t, std::string> pair;
+        pair.first = remainder;
+        pair.second = user;
+        preps.push_back(pair);
+    }
+
+    std::sort (preps.begin(), preps.end());
+    for (uint64_t i = 0; i < preps.size(); i++)
+    {
+        chosen_ones.push_back(preps.at(i).second);
+
+        if (chosen_ones.size() > 128) break;
+    }
+
+    return chosen_ones;
 }
 
 std::string Rocksy::FindNextPeer(std::string &key)
