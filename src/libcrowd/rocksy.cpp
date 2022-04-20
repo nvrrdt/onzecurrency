@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "json.hpp"
+#include "sharding.hpp"
 
 #include "rocksy.hpp"
 
