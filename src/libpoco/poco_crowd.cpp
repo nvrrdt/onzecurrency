@@ -224,7 +224,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;
@@ -334,7 +334,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;
@@ -440,7 +440,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
     bool is_part = false;
     BlockMatrix bm;
     for (;;)
@@ -554,7 +554,7 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string chosen_ones_s = chosen_ones_reward_j.dump();
     std::string hash_of_cos = crypto.bech32_encode_sha256(chosen_ones_s);
-    std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
+    std::string coordinator = rocksy->FindCoordinator(hash_of_cos);
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     delete rocksy;
     

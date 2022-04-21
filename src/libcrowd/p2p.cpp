@@ -331,7 +331,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
 
             Rocksy rocksy("usersdbreadonly");
-            std::string coordinator_from_hash = rocksy.FindChosenOne(hash_msg_and_nph);
+            std::string coordinator_from_hash = rocksy.FindCoordinator(hash_msg_and_nph);
 
             nlohmann::json contents_j = nlohmann::json::parse(rocksy.Get(coordinator_from_hash));
 
@@ -496,7 +496,7 @@ void P2p::signal_callback_handler(sig_atomic_t signum)
         std::string hash_msg_and_nph =  crypto.bech32_encode_sha256(msg_and_nph);
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
-        std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+        std::string coordinator_from_hash = rocksy->FindCoordinator(hash_msg_and_nph);
 
         nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator_from_hash));
         

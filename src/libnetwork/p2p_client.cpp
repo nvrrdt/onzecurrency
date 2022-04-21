@@ -493,7 +493,7 @@ void P2pClient::new_co_offline_client(nlohmann::json buf_j)
     std::string my_full_hash = fh.get_full_hash();
 
     Rocksy* rocksy = new Rocksy("usersdbreadonly");
-    std::string coordinator_from_hash = rocksy->FindChosenOne(hash_msg_and_nph);
+    std::string coordinator_from_hash = rocksy->FindCoordinator(hash_msg_and_nph);
 
     std::string coordinator_from_peer = buf_j["full_hash_co"];
 

@@ -84,7 +84,7 @@ namespace Crowd
     public:
         LookupPeer(std::string &peer_hash)
         {
-            key_ = rocksy_->FindChosenOne(peer_hash);
+            key_ = rocksy_->FindCoordinator(peer_hash);
             value_j_ = nlohmann::json::parse(rocksy_->Get(key_));
             id_ = value_j_["id"];
             ip_ = value_j_["ip"];

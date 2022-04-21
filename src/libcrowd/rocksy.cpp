@@ -205,7 +205,7 @@ std::string Rocksy::FindServerPeer(std::string &key)
         else if (false)
         {
             // TODO: what if you are at the and of rocksdb and need to restart searching from the beginning
-            // see FindChosenOne()
+            // see FindCoordinator()
         }
     }
     delete it;
@@ -245,7 +245,7 @@ std::string Rocksy::FindNextServerPeer(std::string &string_key)
         else if (false)
         {
             // TODO: what if you are at the and of rocksdb and need to restart searching from the beginning
-            // see FindChosenOne()
+            // see FindCoordinator()
         }
     }
     delete it;

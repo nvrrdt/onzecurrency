@@ -60,7 +60,7 @@ void P2pC::start_coin()
             std::string prel_coordinator = my_full_hash + hash_latest_block;
 
             Rocksy* rocksy = new Rocksy("usersdbreadonly");
-            std::string full_hash_coordinator = rocksy->FindChosenOne(prel_coordinator);
+            std::string full_hash_coordinator = rocksy->FindCoordinator(prel_coordinator);
             nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(full_hash_coordinator));
             delete rocksy;
             

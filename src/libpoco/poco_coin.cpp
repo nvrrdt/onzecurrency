@@ -258,7 +258,7 @@ void PocoCoin::inform_chosen_ones_c(std::string my_next_block_nr, nlohmann::json
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindChosenOne(hash_of_block);
+    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;

@@ -228,7 +228,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
         pl.handle_print_or_log({"______: ", "fh =", prel_first_full_hash_req, "ph =", prel_first_prev_hash_req, email_of_req});
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
-        std::string prel_first_coordinator_server = rocksy->FindChosenOne(prel_first_full_hash_req);
+        std::string prel_first_coordinator_server = rocksy->FindCoordinator(prel_first_full_hash_req, tx);
         delete rocksy;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
@@ -798,7 +798,7 @@ void P2pSession::intro_final_block(nlohmann::json buf_j)
     Common::Crypto crypto;
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
     Rocksy* rocksy = new Rocksy("usersdbreadonly");
-    std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
+    std::string full_hash_coord_from_me = rocksy->FindCoordinator(prev_hash_me);
 
     delete rocksy;
 
@@ -1250,7 +1250,7 @@ void P2pSession::intro_online(nlohmann::json buf_j)
         my_full_hash = fh.get_full_hash();
 
         Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
-        std::string coordinator_from_hash = rocksy2->FindChosenOne(hash_msg_and_nph);
+        std::string coordinator_from_hash = rocksy2->FindCoordinator(hash_msg_and_nph);
         delete rocksy2;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
@@ -1848,7 +1848,7 @@ void P2pSession::intro_offline(nlohmann::json buf_j)
         my_full_hash = fh.get_full_hash();
 
         Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
-        std::string coordinator_from_hash = rocksy2->FindChosenOne(hash_msg_and_nph);
+        std::string coordinator_from_hash = rocksy2->FindCoordinator(hash_msg_and_nph);
         delete rocksy2;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});
@@ -2495,7 +2495,7 @@ void P2pSession::hello_tx(nlohmann::json buf_j)
         std::string prel_coordinator = full_hash_req + hash_latest_block;
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
-        std::string full_hash_coordinator = rocksy->FindChosenOne(prel_coordinator);
+        std::string full_hash_coordinator = rocksy->FindCoordinator(prel_coordinator);
         delete rocksy;
         
         if (my_full_hash == full_hash_coordinator && my_full_hash != full_hash_req)
@@ -3048,7 +3048,7 @@ void P2pSession::hello_reward(nlohmann::json buf_j)
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
         std::string chosen_ones_s = chosen_ones_reward.dump();
         std::string hash_of_cos = crypto->bech32_encode_sha256(chosen_ones_s);
-        std::string coordinator = rocksy->FindChosenOne(hash_of_cos);
+        std::string coordinator = rocksy->FindCoordinator(hash_of_cos);
         delete rocksy;
         
         if (my_full_hash == coordinator)
@@ -3609,7 +3609,7 @@ void P2pSession::intro_block_c(nlohmann::json buf_j)
     std::string prev_hash_me = crypto.bech32_encode_sha256(recv_block_s);
 
     Rocksy* rocksy = new Rocksy("usersdbreadonly");
-    std::string full_hash_coord_from_me = rocksy->FindChosenOne(prev_hash_me);
+    std::string full_hash_coord_from_me = rocksy->FindCoordinator(prev_hash_me);
     if (full_hash_coord_from_me == buf_j["full_hash_req"])
     {
         full_hash_coord_from_me = rocksy->FindNextPeer(full_hash_coord_from_me);
