@@ -228,7 +228,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
         pl.handle_print_or_log({"______: ", "fh =", prel_first_full_hash_req, "ph =", prel_first_prev_hash_req, email_of_req});
 
         Rocksy* rocksy = new Rocksy("usersdbreadonly");
-        std::string prel_first_coordinator_server = rocksy->FindCoordinator(prel_first_full_hash_req, tx);
+        std::string prel_first_coordinator_server = rocksy->FindCoordinator(prel_first_full_hash_req);
         delete rocksy;
 
         pl.handle_print_or_log({"my_full_hash: ", my_full_hash});

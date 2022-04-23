@@ -1,6 +1,7 @@
 #include <math.h>
 #include <limits>
 #include <algorithm>
+#include <sstream>
 
 #include "json.hpp"
 #include "sharding.hpp"
@@ -72,7 +73,7 @@ bool Rocksy::Delete(std::string &key)
     else return false;
 }
 
-std::string Rocksy::FindCoordinator(std::string &user_id, std::string &hash_data)
+std::string Rocksy::FindCoordinator(std::string &user_id)
 {
     /**
      * - find shard
@@ -83,13 +84,20 @@ std::string Rocksy::FindCoordinator(std::string &user_id, std::string &hash_data
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
     
+    uint256_t value_user_id;
+    std::istringstream is(user_id);
+    is >> value_user_id;
     std::string coordinator;
     uint256_t lowest = std::numeric_limits<uint256_t>::max(), remainder;
     for (auto& user: shard_users)
     {
-        if (user >= hash_data)
+        uint256_t value_user;
+        std::istringstream is(user);
+        is >> value_user;
+        
+        if (value_user >= value_user_id)
         {
-            remainder = user % hash_data;
+            remainder = value_user % value_user_id;
             if (remainder < lowest)
             {
                 lowest = remainder;
@@ -98,7 +106,7 @@ std::string Rocksy::FindCoordinator(std::string &user_id, std::string &hash_data
         }
         else
         {
-            remainder = hash_data % user;
+            remainder = value_user_id % value_user;
             if (remainder < lowest)
             {
                 lowest = remainder;
@@ -110,7 +118,7 @@ std::string Rocksy::FindCoordinator(std::string &user_id, std::string &hash_data
     return coordinator;
 }
 
-std::vector<std::string> Rocksy::FindChosenOnes(std::string &user_id, std::string &hash_data)
+std::vector<std::string> Rocksy::FindChosenOnes(std::string &user_id)
 {
     /**
      * - find shard
@@ -121,18 +129,25 @@ std::vector<std::string> Rocksy::FindChosenOnes(std::string &user_id, std::strin
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
 
+    uint256_t value_user_id;
+    std::istringstream is(user_id);
+    is >> value_user_id;
     std::vector<std::string> chosen_ones;
     std::vector<std::pair<uint256_t, std::string>> preps;
     uint256_t remainder;
     for (auto& user: shard_users)
     {
-        if (user >= hash_data)
+        uint256_t value_user;
+        std::istringstream iss(user);
+        iss >> value_user;
+        
+        if (value_user >= value_user_id)
         {
-            remainder = user % hash_data;
+            remainder = value_user % value_user_id;
         }
         else
         {
-            remainder = hash_data % user;
+            remainder = value_user_id % value_user;
         }
 
         std::pair<uint256_t, std::string> pair;

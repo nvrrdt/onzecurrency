@@ -39,18 +39,18 @@ BOOST_AUTO_TEST_CASE(PutGetDelete)
     RocksyT::Delete(key);
 }
 
-BOOST_AUTO_TEST_CASE(FindChosenOne)
-{
-    std::string key1 = "1";
-    std::string key2 = "2";
-    std::string key3 = "3";
-    std::string value = "test2";
-    BOOST_CHECK(RocksyT::Put(key2, value) == true);
-    BOOST_CHECK(RocksyT::FindChosenOne(key1) == "2");
-    BOOST_CHECK(RocksyT::FindChosenOne(key2) == "2");
-    BOOST_CHECK(RocksyT::FindChosenOne(key3) == "2");
-    RocksyT::Delete(key2);
-}
+// BOOST_AUTO_TEST_CASE(FindChosenOne)
+// {
+//     std::string key1 = "1";
+//     std::string key2 = "2";
+//     std::string key3 = "3";
+//     std::string value = "test2";
+//     BOOST_CHECK(RocksyT::Put(key2, value) == true);
+//     BOOST_CHECK(RocksyT::FindChosenOne(key1) == "2");
+//     BOOST_CHECK(RocksyT::FindChosenOne(key2) == "2");
+//     BOOST_CHECK(RocksyT::FindChosenOne(key3) == "2");
+//     RocksyT::Delete(key2);
+// }
 
 BOOST_AUTO_TEST_CASE(FindNextPeer)
 {
