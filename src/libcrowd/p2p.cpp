@@ -98,10 +98,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             std::string ip_mother_peer = "212.47.231.236"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
-            message_j["ip"] = ip_mother_peer;
-
             rocksdb_j["version"] = "O.1";
-            rocksdb_j["ip"] = ip_mother_peer;
             rocksdb_j["online"] = true;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
@@ -232,16 +229,17 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
                     auto ips_in_shard = pn.get_ips_in_shard();
 
-                    // std::string ip_new_co = pn.get_ip_new_co();
+                    message_j["rocksdb"] = rocksdb_j;
+                    message = message_j.dump();
 
-                    // message_j["ip"] = ip_new_co;
-                    // rocksdb_j["ip"] = ip_new_co;
-                    // message_j["rocksdb"] = rocksdb_j;
-                    // message = message_j.dump();
+                    for (auto& ip: ips_in_shard)
+                    {
+                        pn.p2p_client(ip, message);
+                    }
 
-                    // ip_mother_peer = ip_new_co;
+                    pl.handle_print_or_log({"The p2p_client did it's job and the new_co's too"});
 
-                    pl.handle_print_or_log({"The p2p_client did it's job and the new_co too"});
+                    break;
                 }
                 else
                 {

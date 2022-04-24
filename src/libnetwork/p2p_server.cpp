@@ -170,7 +170,6 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
     std::string rsa_pub_key = buf_j["rsa_pub_key"];
     std::string signature = buf_j["signature"];
     std::string req_latest_block = buf_j["latest_block"];
-    std::string req_ip = buf_j["ip"];
 
     // close the conn when you're genesis
     Protocol* proto = new Protocol();
@@ -288,14 +287,14 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                 if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
                 if (parts[i] == "") continue; // UGLY hack: "" should be "0"
 
-                Rocksy* rocksy = new Rocksy("usersdbreadonly");
+                Rocksy* rocksy1 = new Rocksy("usersdbreadonly");
 
                 // lookup in rocksdb
                 std::string val = parts[i];
-                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+                nlohmann::json value_j = nlohmann::json::parse(rocksy1->Get(val));
                 std::string ip = value_j["ip"];
 
-                delete rocksy;
+                delete rocksy1;
 
                 // if peer ip == this server's ip --> send new_peer to kids
                 // --> from_to(my_hash, my_hash) if just me then connected_peers + from_to(my_hash, next hash)
@@ -304,54 +303,50 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
 
                 P2pNetwork pn;
                 // inform the underlying network
-                if (req_ip == ip) // TODO the else part isn't activated, dunno why, search in test terminals for new_peer
+                pl.handle_print_or_log({"Send new_peer req: Inform my underlying network as coordinator"});
+
+                std::string next_hash;
+                if (i != parts.size())
                 {
-                    // inform server's underlying network
-                    pl.handle_print_or_log({"Send new_peer req: Inform my underlying network as coordinator"});
-
-                    std::string next_hash;
-                    if (i != parts.size())
-                    {
-                        next_hash = parts[i+1];
-                    }
-                    else
-                    {
-                        next_hash = parts[1];
-                    }
-                    
-                    std::map<int, std::string> parts_underlying = proto->partition_in_buckets(my_full_hash, next_hash);
-                    std::string key2, val2;
-                    Rocksy* rocksy = new Rocksy("usersdbreadonly");
-                    for (int i = 1; i <= parts_underlying.size(); i++)
-                    {
-                        if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
-                        if (parts_underlying[i] == my_full_hash) continue;
-
-                        // lookup in rocksdb
-                        std::string val2 = parts_underlying[i];
-                        nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val2));
-                        std::string ip_underlying = value_j["ip"];
-
-                        pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", ip_underlying});
-
-                        Poco::PocoCrowd pc;
-                        bool cont = false;
-                        for (auto& el: pc.get_new_users_ip())
-                        {
-                            if (el == ip_underlying)
-                            {
-                                cont = true;
-                                break;
-                            }
-                        }
-                        if (cont) continue;
-
-                        // message to non-connected peers
-                        std::string message = message_j.dump();
-                        pn.p2p_client(ip_underlying, message);
-                    }
-                    delete rocksy;
+                    next_hash = parts[i+1];
                 }
+                else
+                {
+                    next_hash = parts[1];
+                }
+                
+                std::map<int, std::string> parts_underlying = proto->partition_in_buckets(my_full_hash, next_hash);
+                std::string key2, val2;
+                Rocksy* rocksy2 = new Rocksy("usersdbreadonly");
+                for (int i = 1; i <= parts_underlying.size(); i++)
+                {
+                    if (i == 1) continue; // ugly hack for a problem in proto.partition_in_buckets()
+                    if (parts_underlying[i] == my_full_hash) continue;
+
+                    // lookup in rocksdb
+                    std::string val2 = parts_underlying[i];
+                    nlohmann::json value_j = nlohmann::json::parse(rocksy2->Get(val2));
+                    std::string ip_underlying = value_j["ip"];
+
+                    pl.handle_print_or_log({"Send new_peer req: Non-connected underlying peers - client: ", ip_underlying});
+
+                    Poco::PocoCrowd pc;
+                    bool cont = false;
+                    for (auto& el: pc.get_new_users_ip())
+                    {
+                        if (el == ip_underlying)
+                        {
+                            cont = true;
+                            break;
+                        }
+                    }
+                    if (cont) continue;
+
+                    // message to non-connected peers
+                    std::string message = message_j.dump();
+                    pn.p2p_client(ip_underlying, message);
+                }
+                delete rocksy2;
 
                 // inform the other peer's in the same layer (as coordinator)
                 pl.handle_print_or_log({"Send new_peer req: Inform my equal layer as coordinator: ", ip});
