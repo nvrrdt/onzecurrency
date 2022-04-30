@@ -85,6 +85,15 @@ void PocoCrowd::create_prel_blocks()
 
             for (int counter = 0; counter < 10; counter++) // Create 10 different blocks with the same number of included transactions
             {
+                /**
+                 * - remove this counter --> ddos prevention might not be needed anymore
+                 * - a block is created per shard
+                 * - the FindChosenOnes() communicate the blocks to all users the poco v1 way
+                 * - finalizing the block happens later at the next block, then the prev_hash is known
+                 * - adapt the above comments
+                 * 
+                 */
+
                 pl.handle_print_or_log({"Crowd: 3rd for loop with block matrix", std::to_string(counter)});
 
                 if (sync.get_break_block_creation_loops()) break;
