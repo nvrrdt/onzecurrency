@@ -82,10 +82,16 @@ void PocoCrowd::create_prel_blocks()
             if (sync.get_break_block_creation_loops()) break;
 
             /**
-             * - a block is created per shard
+             * - a block is created per shard --> are preliminary blocks still necessary?
              * - the FindChosenOnes() communicate the blocks to all users the poco v1 way
              * - finalizing the block happens later at the next block, then the prev_hash is known
              * - adapt the above comments
+             * 
+             * - a finalize function must be added where the prev_hash is added
+             * - inform_chosen_ones_prel_block() (must be renamed) sends a block without prev_hash
+             *   while the prev_hashes from a block_creation_delay earlier must be communicated and validated
+             * - the sifting function must run independently every start of block_creation_delay,
+             *   sifting only for parallel blocks with different amount of transactions
              * 
              */
 
