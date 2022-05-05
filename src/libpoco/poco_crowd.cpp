@@ -167,7 +167,7 @@ void PocoCrowd::create_prel_blocks()
             // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
             // send intro_block to co's
-            inform_chosen_ones_prel_block(my_next_block_nr, block_j_);
+            inform_network(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
 
             // Add blocks to vector<vector<block_j_>>
             bm->add_block_to_block_vector(block_j_);
@@ -216,10 +216,23 @@ void PocoCrowd::create_prel_blocks()
 pl.handle_print_or_log({"--------5:"});
 }
 
-void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nlohmann::json block_j)
+void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json block_j)
 {
+    /**
+     * Send prev_hashes and prel_block to everyone through the chosen_ones
+     * Amount of shards has nothing to do with amount of chosen_ones
+     * 
+     */
+
+
+    Common::Globals globals;
+    Crowd::Protocol proto;
+    proto.partition_in_buckets2(globals.get_amount_of_chosen_ones());
+
+
+    
     Crowd::FullHash fh;
-    std::string my_full_hash = fh.get_full_hash(); // TODO this is a file lookup and thus takes time --> static var should be
+    std::string my_full_hash = fh.get_full_hash();
     Common::Print_or_log pl;
     // pl.handle_print_or_log({"My_full_hash already present in file:__ ", my_full_hash});
 
@@ -239,7 +252,7 @@ void PocoCrowd::inform_chosen_ones_prel_block(std::string my_next_block_nr, nloh
         // You are the preliminary coordinator!
         pl.handle_print_or_log({"Inform my fellow chosen_ones as prel coordinator"});
 
-        Crowd::Protocol proto;
+        //////_____________________________________________________________________Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
 
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not

@@ -33,7 +33,7 @@ namespace Poco
             return new_users_ip_;
         }
     private:
-        void inform_chosen_ones_prel_block(std::string my_next_block, nlohmann::json block_j);
+        void inform_network(std::string my_next_block, nlohmann::json block_j);
     private:
         static nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
