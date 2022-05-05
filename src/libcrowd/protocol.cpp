@@ -199,6 +199,19 @@ std::map<int, std::string> Protocol::partition_in_buckets(std::string &my_hash, 
     return h;
 }
 
+void Protocol::partition_in_buckets2(int amount_of_chosen_ones)
+{
+    /**
+     * @brief The whole network needs to be informed of certain data - poco v2
+     * 
+     * Divide all the users in the amount_of_chosen_ones, and then the distribution
+     * of the data in layer 0, layer 1, layer 2, ... the same way as with partition_in_buckets()
+     * Every chosen_one in that certain shard is ranked accordingly and will supply the data
+     * --> chosen_one needs to be verified
+     * 
+     */
+}
+
 std::map<int, std::string> Protocol::get_calculated_hashes(std::string &my_hash, std::map<uint32_t, uint256_t> &chosen_ones_counter)
 {
     // Get the hashes from rocksdb, the count is accessible now
