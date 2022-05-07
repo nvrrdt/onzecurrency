@@ -83,7 +83,7 @@ void PocoCrowd::create_prel_blocks()
 
             /**
              * - a block is created per shard --> are preliminary blocks still necessary?
-             * - the FindChosenOnes() communicate the blocks to all users the poco v1 way
+             * - the FindShardChosenOnes() and then communicate the blocks to all users the poco v1 way
              * - finalizing the block happens later at the next block, then the prev_hash is known
              * - adapt the above comments
              * 
@@ -234,14 +234,14 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::vector<std::string> chosen_ones_for_this_block = rocksy->FindChosenOnes(hash_of_block);
+    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;
     Synchronisation sync;
 
     bool present = false;
-    for (auto &co: chosen_ones_for_this_block)
+    for (auto &co: shard_chosen_ones_for_this_block)
     {
         if (co == my_full_hash) present = true;
     }

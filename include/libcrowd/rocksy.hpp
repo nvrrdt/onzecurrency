@@ -39,7 +39,7 @@ namespace Crowd
         bool Put(std::string &key, std::string &value);
         bool Delete(std::string &key);
         std::string FindCoordinator(std::string &user_id);
-        std::vector<std::string> FindChosenOnes(std::string &user_id);
+        std::vector<std::string> FindShardChosenOnes(std::string &user_id);
         std::string FindNextPeer(std::string &key);
         std::string FindServerPeer(std::string &key);
         std::string FindNextServerPeer(std::string &key);

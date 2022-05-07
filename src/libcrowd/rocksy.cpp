@@ -118,7 +118,7 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
     return coordinator;
 }
 
-std::vector<std::string> Rocksy::FindChosenOnes(std::string &user_id)
+std::vector<std::string> Rocksy::FindShardChosenOnes(std::string &user_id)
 {
     /**
      * - find shard
