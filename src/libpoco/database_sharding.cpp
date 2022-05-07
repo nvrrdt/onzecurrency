@@ -79,10 +79,11 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     delete rocksy;
 
     int x = 0; // amount of shards: 2^x
+    Common::Globals globals;
     for (;;)
     {
-        // limit at 128 users per shard until maximum of 128 shards (2^7)
-        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x < 7)
+        // limit at 128 users per shard until maximum of 128 shards (2^7) --> 7 == preliminary max_pow (please verify)
+        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x < globals.get_max_pow())
         {
             x++;
         }
