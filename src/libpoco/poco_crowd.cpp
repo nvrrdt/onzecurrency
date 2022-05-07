@@ -248,8 +248,8 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
 
     if (present)
     {
-        // You are the preliminary coordinator!
-        pl.handle_print_or_log({"Inform my fellow chosen_ones as prel coordinator"});
+        // You are the coordinator!
+        pl.handle_print_or_log({"Inform my fellow chosen_ones as coordinator"});
 
         Crowd::Protocol proto;
         std::map<int, std::string> parts = proto.partition_in_buckets(hash_of_block, hash_of_block);
@@ -332,8 +332,8 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
     }
     else
     {
-        // You're not the preliminary coordinator!
-        pl.handle_print_or_log({"You're not the prel coordinator!"});
+        // You're not the coordinator!
+        pl.handle_print_or_log({"You're not the coordinator!"});
     }
 }
 
