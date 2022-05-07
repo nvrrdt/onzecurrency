@@ -68,7 +68,6 @@ namespace Crowd
     public:
         std::string get_last_block_nr();
         std::map<int, std::string> partition_in_buckets(std::string &my_hash, std::string &next_hash);
-        void partition_in_buckets2(int amount_of_peers);
         std::map<uint32_t, uint256_t>layers_management(uint256_t &amount_of_peers);
         nlohmann::json get_blocks_from(std::string &latest_block_peer);
         std::string get_all_users_from(std::string &latest_block_peer);

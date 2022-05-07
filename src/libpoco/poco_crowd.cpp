@@ -224,13 +224,6 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
      * 
      */
 
-
-    Common::Globals globals;
-    Crowd::Protocol proto;
-    proto.partition_in_buckets2(globals.get_amount_of_chosen_ones());
-
-
-    
     Crowd::FullHash fh;
     std::string my_full_hash = fh.get_full_hash();
     Common::Print_or_log pl;
@@ -241,19 +234,25 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
+    std::vector<std::string> chosen_ones_for_this_block = rocksy->FindChosenOnes(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;
     Synchronisation sync;
 
-    if (co_from_this_block == my_full_hash)
+    bool present = false;
+    for (auto &co: chosen_ones_for_this_block)
+    {
+        if (co == my_full_hash) present = true;
+    }
+
+    if (present)
     {
         // You are the preliminary coordinator!
         pl.handle_print_or_log({"Inform my fellow chosen_ones as prel coordinator"});
 
-        //////_____________________________________________________________________Crowd::Protocol proto;
-        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+        Crowd::Protocol proto;
+        std::map<int, std::string> parts = proto.partition_in_buckets(hash_of_block, hash_of_block);
 
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_prel_block";
@@ -261,7 +260,7 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
         message_j["block"] = block_j;
         Crowd::PrevHash ph;
         message_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        message_j["full_hash_coord"] = co_from_this_block;
+        message_j["full_hash_coord"] = my_full_hash;
 
         int k;
         std::string v;
@@ -277,7 +276,7 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
-        to_sign_j["full_hash_coord"] = co_from_this_block;
+        to_sign_j["full_hash_coord"] = my_full_hash;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         // to_sign_j["rocksdb"] = message_j["rocksdb"];
         std::string to_sign_s = to_sign_j.dump();
