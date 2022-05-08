@@ -45,6 +45,10 @@ void PocoCrowd::create_prel_blocks()
     pl.handle_print_or_log({"Create prel_blocks"});
 
     BlockMatrix *bm = new BlockMatrix();
+    // start the sifting process and save a final block --> must be in beginning of loops at start of block_creation_delay
+    bm->sifting_function_for_both_block_matrices();
+    bm->save_final_block_to_file();
+
     Synchronisation sync;
 
     nlohmann::json rocksdb_out;
@@ -196,10 +200,6 @@ void PocoCrowd::create_prel_blocks()
 
     intro_msg_s_mat_.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-
-    // start the sifting process and save a final block
-    bm->sifting_function_for_both_block_matrices();
-    bm->save_final_block_to_file();
 
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
