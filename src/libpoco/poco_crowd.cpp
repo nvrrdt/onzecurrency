@@ -258,8 +258,8 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
         message_j["req"] = "intro_prel_block";
         message_j["latest_block_nr"] = my_next_block_nr;
         message_j["block"] = block_j;
-        Crowd::PrevHash ph;
-        message_j["prev_hash"] = ph.calculate_hash_from_last_block();
+        Poco::BlockMatrix bm;
+        message_j["prev_hash"] = *bm.get_calculated_hash_matrix().front().at(0); // --> could also be (front() = at(1)) --> it's a guess now
         message_j["full_hash_coord"] = my_full_hash;
 
         int k;
@@ -275,7 +275,7 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
 
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
-        to_sign_j["prev_hash"] = ph.calculate_hash_from_last_block();
+        to_sign_j["prev_hash"] = message_j["prev_hash"];
         to_sign_j["full_hash_coord"] = my_full_hash;
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         // to_sign_j["rocksdb"] = message_j["rocksdb"];
@@ -327,7 +327,6 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
         }
 
         // Should also fill the sent block vector
-        Poco::BlockMatrix bm;
         bm.add_sent_block_to_sent_block_vector(block_j_);
     }
     else
