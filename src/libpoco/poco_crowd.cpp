@@ -47,7 +47,7 @@ void PocoCrowd::create_prel_blocks()
     BlockMatrix *bm = new BlockMatrix();
     // start the sifting process and save a final block --> must be in beginning of loops at start of block_creation_delay
     bm->sifting_function_for_both_block_matrices();
-    bm->save_final_block_to_file();
+    bm->save_final_block_to_file(); // --> does this save correctly?
 
     Synchronisation sync;
 

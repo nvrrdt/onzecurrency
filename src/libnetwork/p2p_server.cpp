@@ -572,9 +572,9 @@ void P2pSession::intro_prel_block(nlohmann::json buf_j)
         std::string val;
         for (auto &[key, val] : parts)
         {
-            if (key == 1) continue;
-            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+            // if (key == 1) continue;
+            // if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            // if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
 
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
@@ -727,10 +727,10 @@ void P2pSession::new_prel_block(nlohmann::json buf_j)
         std::string val;
         for (auto &[key, val] : parts)
         {
-            if (key == 1) continue;
-            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-            if (val == full_hash_coord) continue;
-            if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
+            // if (key == 1) continue;
+            // if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
+            // if (val == full_hash_coord) continue;
+            // if (val == parts[1]) continue; // TODO --> UGLY --> somehow the first and the last chosen_one are the same, you don't need both
             
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
