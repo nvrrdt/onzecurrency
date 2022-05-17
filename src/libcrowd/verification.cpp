@@ -21,6 +21,8 @@ bool Verification::verify_all_blocks()
 
     Common::Print_or_log pl;
 
+    if (blocks_vec.size() == 1) return true;
+
     for (uint64_t i = 0; i < blocks_vec.size(); i++)
     {
         Common::Crypto crypto;
@@ -45,7 +47,7 @@ bool Verification::verify_all_blocks()
         return false;
     }
 
-    pl.handle_print_or_log({"Blockchain crowd not verified and not ok, it may be there's only 1 block"});
+    pl.handle_print_or_log({"Blockchain crowd not verified and not ok"});
     return false;
 }
 
