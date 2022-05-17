@@ -171,7 +171,7 @@ void PocoCrowd::create_prel_blocks()
             // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
             // send intro_block to co's
-            inform_network(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
+            inform_network_prel_block(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
 
             // Add blocks to vector<vector<block_j_>>
             bm->add_block_to_block_vector(block_j_);
@@ -216,7 +216,7 @@ void PocoCrowd::create_prel_blocks()
 pl.handle_print_or_log({"--------5:"});
 }
 
-void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json block_j)
+void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann::json block_j)
 {
     /**
      * Send prev_hashes and prel_block to everyone through the chosen_ones
@@ -296,9 +296,6 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
         {
             if (sync.get_break_block_creation_loops()) break;
 
-            if (key == 1) continue;
-            if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -337,7 +334,7 @@ void PocoCrowd::inform_network(std::string my_next_block_nr, nlohmann::json bloc
 }
 
 
-void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j)
+void PocoCrowd::inform_network_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j)
 {
     Common::Print_or_log pl;
 
@@ -349,12 +346,19 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
     std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
+
+    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(hash_of_block);
     delete rocksy;
 
     nlohmann::json message_j;
 
-    if (co_from_this_block == my_full_hash)
+    bool present = false;
+    for (auto &co: shard_chosen_ones_for_this_block)
+    {
+        if (co == my_full_hash) present = true;
+    }
+
+    if (present)
     {
         // You are the coordinator!
         pl.handle_print_or_log({"Inform my fellow chosen_ones as final coordinator"});
@@ -366,7 +370,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         message_j["req"] = "intro_final_block";
         message_j["latest_block_nr"] = new_block_nr;
         message_j["block"] = final_block_j;
-        message_j["full_hash_coord"] = co_from_this_block;
+        message_j["full_hash_coord"] = my_full_hash;
 
         message_j["rocksdb"] = rocksdb_j;
 
@@ -379,7 +383,7 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
 
         to_sign_j["latest_block_nr"] = new_block_nr;
         to_sign_j["block"] = final_block_j;
-        to_sign_j["full_hash_coord"] = co_from_this_block;
+        to_sign_j["full_hash_coord"] = message_j["full_hash_coord"];
         to_sign_j["rocksdb"] = message_j["rocksdb"];
         to_sign_j["chosen_ones"] = message_j["chosen_ones"];
         std::string to_sign_s = to_sign_j.dump();
@@ -398,10 +402,6 @@ void PocoCrowd::inform_chosen_ones_final_block(nlohmann::json final_block_j, std
         std::string key, val;
         for (auto &[key, val] : parts)
         {
-            if (key == 1) continue;
-            //if (val == co_from_this_block) continue; // = coordinator
-            //if (val == my_full_hash || val == "") continue; // UGLY: sometimes it's "" and sometimes "0" --> should be one or the other
-
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb

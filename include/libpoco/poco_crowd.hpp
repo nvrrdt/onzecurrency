@@ -25,7 +25,7 @@ namespace Poco
         static std::string get_hash_of_new_block();
         static void set_hash_of_new_block(std::string block);
         void reward_for_chosen_ones(std::string co_from_this_block, nlohmann::json chosen_ones_j);
-        void inform_chosen_ones_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j);
+        void inform_network_final_block(nlohmann::json final_block_j, std::string new_block_nr, nlohmann::json rocksdb_j);
         void send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_block_j, std::string new_block_nr);
 
         static std::vector<std::string> get_new_users_ip()
@@ -33,7 +33,7 @@ namespace Poco
             return new_users_ip_;
         }
     private:
-        void inform_network(std::string my_next_block, nlohmann::json block_j);
+        void inform_network_prel_block(std::string my_next_block, nlohmann::json block_j);
     private:
         static nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();

@@ -428,6 +428,12 @@ void BlockMatrix::save_final_block_to_file()
      * --> TODO if not the same: update blockchain from someone, but this shouldn't happen
      */
 
+    /**
+     * finalize also the previous received block by adding the prev_hash
+     * is inform_chosen_ones_final_block() still necessary?
+     * 
+     */
+
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Save final block"});
 
@@ -527,7 +533,7 @@ void BlockMatrix::save_final_block_to_file()
                 rocksdb_j["server"] = true;
                 rocksdb_j["fullnode"] = true;
                 // rocksdb_j["hash_email"] = m_j["hash_of_email"]; // might be extra controlling mechanism
-                rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
+                //rocksdb_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
                 rocksdb_j["full_hash"] = full_hash_req;
                 Crowd::Protocol proto;
                 rocksdb_j["block_nr"] = new_block_nr;
@@ -557,7 +563,24 @@ void BlockMatrix::save_final_block_to_file()
             Poco::PocoCrowd pc;
             pc.send_your_full_hash(i+1, final_block_j, new_block_nr);
             // inform chosen ones for final block
-            pc.inform_chosen_ones_final_block(final_block_j, new_block_nr, m_j_rocksdb);
+            pc.inform_network_final_block(final_block_j, new_block_nr, m_j_rocksdb);
+
+            // actual saving prev_hash to rocksdb
+            m_j = {}, m_j_rocksdb = {};
+            for (uint16_t j = 0; j < intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).size(); j++)
+            {
+                m_j = *intro_msg_s_mat_.get_intro_msg_s_3d_mat().at(i).at(0).at(j);
+
+                std::string full_hash_req = m_j["rocksdb"]["full_hash"];
+
+                // Store to rocksdb for coordinator
+                Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdb");
+                nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(full_hash_req));
+                value_j["prev_hash"] = m_j["rocksdb"]["prev_hash"];
+                std::string rocksdb_s = value_j.dump();
+                rocksy->Put(full_hash_req, rocksdb_s);
+                delete rocksy;
+            }
         }
         else
         {
