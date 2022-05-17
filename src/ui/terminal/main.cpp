@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
         // Run task on new thread.
         std::thread t1(std::move(task1));
 
-        // start coin
-        std::packaged_task<void()> task2([cred] {
-            P2pC pc;
-            pc.start_coin();
-        });
-        // Run task on new thread.
-        std::thread t2(std::move(task2));
+        // // start coin
+        // std::packaged_task<void()> task2([cred] {
+        //     P2pC pc;
+        //     pc.start_coin();
+        // });
+        // // Run task on new thread.
+        // std::thread t2(std::move(task2));
 
         // start server
         std::packaged_task<void()> task3([] {
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         std::thread t3(std::move(task3));
 
         t1.join();
-        t2.join();
+        // t2.join();
         t3.join();
        
     }
