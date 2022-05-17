@@ -65,14 +65,14 @@ def main():
 
     #print("1st ctrl-c", args.order, ",",args.total_servers, ",", datetime.utcnow())
 
-    # Restarting the onze-terminals after 5 seconds
-    time.sleep(5)
-    child = pexpect.spawn(command, encoding='utf-8', timeout=60)
-    child.logfile = sys.stdout
-    child.setecho(False)
+    # # Restarting the onze-terminals after 5 seconds
+    # time.sleep(5)
+    # child = pexpect.spawn(command, encoding='utf-8', timeout=60)
+    # child.logfile = sys.stdout
+    # child.setecho(False)
 
-    remaining_test_time2 = ((args.total_servers - args.order + 1) * 10) - 5
-    time.sleep(remaining_test_time2)
+    # remaining_test_time2 = ((args.total_servers - args.order + 1) * 10) - 5
+    # time.sleep(remaining_test_time2)
 
     count_blocks()
     
