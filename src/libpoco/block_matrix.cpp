@@ -192,6 +192,9 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     add_sent_block_vector_to_sent_block_matrix();
     auto copy_sent_block_matrix(get_sent_block_matrix());
 
+    // sifting function must run before poco_crowd loops, but at start bloakc_matrix size is zero so return here
+    if (get_block_matrix().size() == 0) return;
+
 pl.handle_print_or_log({"evaluate_both_block_matrices m", std::to_string(get_block_matrix().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices v", std::to_string(get_block_matrix().back().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices mcph", std::to_string(get_calculated_hash_matrix().size())});
@@ -488,6 +491,8 @@ void BlockMatrix::save_final_block_to_file()
 
         nlohmann::json l_block_j = *get_block_matrix().at(i).at(0);
         std::string l_block_s = l_block_j.dump();
+
+        pl.handle_print_or_log({"__001 block matrix size", std::to_string(get_block_matrix().size())});
 
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
