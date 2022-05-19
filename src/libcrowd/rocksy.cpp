@@ -81,9 +81,12 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
      * 
      */
 
+    Common::Print_or_log pl;
+pl.handle_print_or_log({"___0000 FindCoordinator"});
+
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
-    
+pl.handle_print_or_log({"___0001 FindCoordinator"});    
     uint256_t value_user_id;
     std::istringstream is(user_id);
     is >> value_user_id;

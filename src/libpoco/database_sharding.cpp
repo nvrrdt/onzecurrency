@@ -83,7 +83,7 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     for (;;)
     {
         // limit at 128 users per shard until maximum of 128 shards (2^7) --> 7 == preliminary max_pow (please verify)
-        if (total_users <= static_cast<uint256_t>(128 * pow(2, x)) && x < globals.get_max_pow())
+        if (total_users >= static_cast<uint256_t>(128 * pow(2, x)) && x < globals.get_max_pow())
         {
             x++;
         }
@@ -122,7 +122,10 @@ std::pair<uint256_t, uint256_t> DatabaseSharding::get_fair_shard_range(std::stri
 
 std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
 {
+    Common::Print_or_log pl;
+
     auto fair_user_id = get_fair_user_id(user_id);
+
     std::vector<std::string> shard_users;
     std::pair<uint256_t, uint256_t> range;
     uint32_t shard_nr;
@@ -133,6 +136,7 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
         // calculate the shard_nr for the fair_user
         for (int i = 0; i < amount_of_shards; i++)
         {
+
             // (0 3)(4 7)(8 11)(12 15)(16 19)
             range.first = i * ((std::numeric_limits<uint256_t>::max() / amount_of_shards) + 1);
             range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards);
@@ -151,14 +155,15 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
         // calculate the range for that shard
         for (int i = 0; i < amount_of_shards; i++)
         {
-            range.first = i * ((total_users / amount_of_shards) + 1);
-            range.second = range.first + (total_users / amount_of_shards);
+            range.first = i * (std::numeric_limits<uint256_t>::max() / amount_of_shards);
+            range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards) - 1;
 
             if (shard_nr == i) break;
         }
-
+pl.handle_print_or_log({"___0000 get_shard_users"});
         // lookup the user with the order_nr in rocksy
         shard_users = rocksy->GetPeersInRange(range.first, range.second);
+pl.handle_print_or_log({"___0001 get_shard_users"});
     }
     else
     {
