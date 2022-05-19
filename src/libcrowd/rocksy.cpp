@@ -82,11 +82,10 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
      */
 
     Common::Print_or_log pl;
-pl.handle_print_or_log({"___0000 FindCoordinator"});
 
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
-pl.handle_print_or_log({"___0001 FindCoordinator"});    
+
     uint256_t value_user_id;
     std::istringstream is(user_id);
     is >> value_user_id;
@@ -271,7 +270,7 @@ std::string Rocksy::FindNextServerPeer(std::string &string_key)
     return string_key_server_peer;
 }
 
-uint256_t Rocksy::TotalAmountOfPeers() // TODO: shouldn't uint256_t should be used?
+uint256_t Rocksy::TotalAmountOfPeers()
 {
     std::string string_num;
     db->GetProperty("rocksdb.estimate-num-keys", &string_num);
@@ -400,19 +399,18 @@ void Rocksy::DatabaseDump()
 
 std::vector<std::string> Rocksy::GetPeersInRange(uint256_t from, uint256_t till)
 {
-    std::vector<std::string> peers_in_range;
-    uint256_t count = 0;
+    Common::Print_or_log pl;
+
+    std::vector<std::string> peers_in_range = {};
 
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        count++;
-
-        if (count >= from && count <= till)
+        if (it->key().ToString() >= from.str() && it->key().ToString() <= till.str())
         {
             peers_in_range.push_back(it->key().ToString());
         }
-        else if (count > till) break;
+        else if (it->key().ToString() > till.str()) break;
     }
     delete it;
 

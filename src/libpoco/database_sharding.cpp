@@ -126,7 +126,7 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
 
     auto fair_user_id = get_fair_user_id(user_id);
 
-    std::vector<std::string> shard_users;
+    std::vector<std::string> shard_users = {};
     std::pair<uint256_t, uint256_t> range;
     uint32_t shard_nr;
     if (fair_user_id.first == "ok")
@@ -150,7 +150,6 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
 
         Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
         uint256_t total_users = rocksy->TotalAmountOfPeers();
-        delete rocksy;
 
         // calculate the range for that shard
         for (int i = 0; i < amount_of_shards; i++)
@@ -160,10 +159,11 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
 
             if (shard_nr == i) break;
         }
-pl.handle_print_or_log({"___0000 get_shard_users"});
+
         // lookup the user with the order_nr in rocksy
         shard_users = rocksy->GetPeersInRange(range.first, range.second);
-pl.handle_print_or_log({"___0001 get_shard_users"});
+
+        delete rocksy;
     }
     else
     {
