@@ -7,6 +7,7 @@
 #include "sharding.hpp"
 
 #include "rocksy.hpp"
+#include "crypto.hpp"
 
 #include "print_or_log.hpp"
 
@@ -82,10 +83,11 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
      */
 
     Common::Print_or_log pl;
-
+pl.handle_print_or_log({"___0000 FindCoordinator"});
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
-
+pl.handle_print_or_log({"___0001 FindCoordinator"});
+pl.handle_print_or_log({"___0001 FindCoordinator", shard_users[0]});
     uint256_t value_user_id;
     std::istringstream is(user_id);
     is >> value_user_id;
@@ -116,7 +118,7 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
             }
         }
     }
-
+pl.handle_print_or_log({"___0002 coordinator", coordinator});
     return coordinator;
 }
 
@@ -403,14 +405,32 @@ std::vector<std::string> Rocksy::GetPeersInRange(uint256_t from, uint256_t till)
 
     std::vector<std::string> peers_in_range = {};
 
+    Common::Crypto crypto;
+    std::string hexstr = "";
+    std::string fromhexstr = "";
+    std::string tillhexstr = "";
+
+    std::stringstream ss;
+    ss << std::hex << from;
+    fromhexstr = ss.str();
+    ss = {};
+    ss << std::hex << till;
+    tillhexstr = ss.str();
+
     rocksdb::Iterator* it = db->NewIterator(rocksdb::ReadOptions());
     for (it->SeekToFirst(); it->Valid(); it->Next())
     {
-        if (it->key().ToString() >= from.str() && it->key().ToString() <= till.str())
+        bool success = false;
+        hexstr = crypto.bech32_decode(it->key().ToString(), success);
+
+        if (success && hexstr >= fromhexstr && hexstr <= tillhexstr)
         {
             peers_in_range.push_back(it->key().ToString());
         }
-        else if (it->key().ToString() > till.str()) break;
+        else if (hexstr > tillhexstr)
+        {
+            break;
+        }
     }
     delete it;
 

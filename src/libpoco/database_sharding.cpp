@@ -155,7 +155,7 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
         for (int i = 0; i < amount_of_shards; i++)
         {
             range.first = i * (std::numeric_limits<uint256_t>::max() / amount_of_shards);
-            range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards) - 1;
+            range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards);
 
             if (shard_nr == i) break;
         }
