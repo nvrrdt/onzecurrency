@@ -185,12 +185,19 @@ void BlockMatrix::sifting_function_for_both_block_matrices()
     pl.handle_print_or_log({"sifting_function_for_both_block_matrices"});
 
     auto block_matrix = get_block_matrix();
+pl.handle_print_or_log({"__000"});
     auto calculated_hashes = get_calculated_hash_matrix();
+pl.handle_print_or_log({"__001"});
     auto hashes_from_contents = get_prev_hash_matrix();
+pl.handle_print_or_log({"__002"});
     add_received_block_vector_to_received_block_matrix();
+pl.handle_print_or_log({"__003"});
     auto copy_received_block_matrix(get_received_block_matrix());
+pl.handle_print_or_log({"__004"});
     add_sent_block_vector_to_sent_block_matrix();
+pl.handle_print_or_log({"__005"});
     auto copy_sent_block_matrix(get_sent_block_matrix());
+pl.handle_print_or_log({"__006"});
 
     // sifting function must run before poco_crowd loops, but at start bloakc_matrix size is zero so return here
     if (get_block_matrix().size() == 0) return;

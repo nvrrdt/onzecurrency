@@ -105,50 +105,64 @@ std::string Synchronisation::get_genesis_datetime() // TODO make a static variab
 
     Common::Print_or_log pl;
 
-    if (!boost::filesystem::exists(p))
+    // if (!boost::filesystem::exists(p)) // --> should already exist --> intro_peer should send the genesis block
+    // {
+    //     try
+    //     {
+    //         boost::filesystem::create_directories(p);
+    //     }
+    //     catch (boost::filesystem::filesystem_error &e)
+    //     {
+    //         pl.handle_print_or_log({"error: path doesn't exist", e.what()});
+    //     }
+    // }
+
+    try
     {
-        try
+        if (boost::filesystem::exists(p))    // does p actually exist?
         {
-            boost::filesystem::create_directories(p);
+            if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+            {
+                pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
+            }
+            else if (boost::filesystem::is_directory(p))      // is p a directory?
+            {
+                pl.handle_print_or_log({p.string(), "is a directory containing:"});
+
+                typedef std::vector<boost::filesystem::path> vec;             // store paths,
+                vec v;                                // so we can sort them later
+
+                copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
+
+                sort(v.begin(), v.end());             // sort, since directory iteration
+                                                    // is not ordered on some file systems
+
+                // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
+                // {
+                //     cout << "   " << *it << '\n';
+                // }
+
+                // uint64_t n = v.size(); 
+
+                std::ifstream stream(v[0].string(), std::ios::in | std::ios::binary);
+                std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+                nlohmann::json contents_j = nlohmann::json::parse(contents);
+
+                latest_datetime = contents_j["starttime"];
+            }
+            else
+            {
+                pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
+            }
         }
-        catch (boost::filesystem::filesystem_error &e)
+        else
         {
-            pl.handle_print_or_log({"error: path doesn't exist", e.what()});
+            pl.handle_print_or_log({p.string(), "does not exist"});
         }
     }
-
-    if (boost::filesystem::is_regular_file(p))        // is p a regular file?
+    catch (const boost::filesystem::filesystem_error& ex)
     {
-        pl.handle_print_or_log({p.string(), "size is", boost::lexical_cast<std::string>(boost::filesystem::file_size(p))});
-    }
-    else if (boost::filesystem::is_directory(p))      // is p a directory?
-    {
-        pl.handle_print_or_log({p.string(), "is a directory containing:"});
-
-        typedef std::vector<boost::filesystem::path> vec;             // store paths,
-        vec v;                                // so we can sort them later
-
-        copy(boost::filesystem::directory_iterator(p), boost::filesystem::directory_iterator(), back_inserter(v));
-
-        sort(v.begin(), v.end());             // sort, since directory iteration
-                                            // is not ordered on some file systems
-
-        // for (vec::const_iterator it(v.begin()), it_end(v.end()); it != it_end; ++it)
-        // {
-        //     cout << "   " << *it << '\n';
-        // }
-
-        // uint64_t n = v.size(); 
-
-        std::ifstream stream(v[0].string(), std::ios::in | std::ios::binary);
-        std::string contents((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        nlohmann::json contents_j = nlohmann::json::parse(contents);
-
-        latest_datetime = contents_j["starttime"];
-    }
-    else
-    {
-        pl.handle_print_or_log({p.string(), "exists, but is neither a regular file nor a directory"});
+        pl.handle_print_or_log({"error fs:", ex.what()});
     }
 
     return latest_datetime;
