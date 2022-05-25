@@ -83,42 +83,50 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
      */
 
     Common::Print_or_log pl;
-pl.handle_print_or_log({"___0000 FindCoordinator"});
+
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
-pl.handle_print_or_log({"___0001 FindCoordinator"});
-pl.handle_print_or_log({"___0001 FindCoordinator", shard_users[0]});
-    uint256_t value_user_id;
-    std::istringstream is(user_id);
-    is >> value_user_id;
-    std::string coordinator;
-    uint256_t lowest = std::numeric_limits<uint256_t>::max(), remainder;
-    for (auto& user: shard_users)
+
+    Common::Crypto crypto;
+    std::string hexstr1 = "";
+    std::string hexstr2 = "";
+    bool success = false;
+    hexstr1 = crypto.bech32_decode(user_id, success);
+
+    uint256_t user_id_nr1;
+    std::istringstream is(hexstr1);
+    is >> user_id_nr1;
+
+    std::string coordinator = "";
+    uint256_t lowest = std::numeric_limits<uint256_t>::max(), remainder = 0;
+    for (auto& user_id2: shard_users)
     {
-        uint256_t value_user;
-        std::istringstream is(user);
-        is >> value_user;
-        
-        if (value_user >= value_user_id)
+        hexstr2 = crypto.bech32_decode(user_id2, success);
+
+        uint256_t user_id_nr2;
+        std::istringstream is(hexstr2);
+        is >> user_id_nr2;
+
+        if (user_id_nr1 >= user_id_nr2)
         {
-            remainder = value_user % value_user_id;
+            remainder = user_id_nr1 % user_id_nr2;
             if (remainder < lowest)
             {
                 lowest = remainder;
-                coordinator = user;
+                coordinator = user_id2;
             }
         }
         else
         {
-            remainder = value_user_id % value_user;
+            remainder = user_id_nr2 % user_id_nr1;
             if (remainder < lowest)
             {
                 lowest = remainder;
-                coordinator = user;
+                coordinator = user_id2;
             }
         }
     }
-pl.handle_print_or_log({"___0002 coordinator", coordinator});
+
     return coordinator;
 }
 
