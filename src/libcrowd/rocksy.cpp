@@ -138,33 +138,44 @@ std::vector<std::string> Rocksy::FindShardChosenOnes(std::string &user_id)
      * 
      */
 
+    Common::Print_or_log pl;
+
     Poco::DatabaseSharding ds;
     auto shard_users = ds.get_shard_users(user_id);
 
-    uint256_t value_user_id;
-    std::istringstream is(user_id);
-    is >> value_user_id;
-    std::vector<std::string> chosen_ones;
-    std::vector<std::pair<uint256_t, std::string>> preps;
-    uint256_t remainder;
-    for (auto& user: shard_users)
+    Common::Crypto crypto;
+    std::string hexstr1 = "";
+    std::string hexstr2 = "";
+    bool success = false;
+    hexstr1 = crypto.bech32_decode(user_id, success);
+
+    uint256_t user_id_nr1;
+    std::istringstream is(hexstr1);
+    is >> user_id_nr1;
+
+    std::vector<std::string> chosen_ones = {};
+    std::vector<std::pair<uint256_t, std::string>> preps = {};
+    uint256_t remainder = 0;
+    for (auto& user_id2: shard_users)
     {
-        uint256_t value_user;
-        std::istringstream iss(user);
-        iss >> value_user;
-        
-        if (value_user >= value_user_id)
+        hexstr2 = crypto.bech32_decode(user_id2, success);
+
+        uint256_t user_id_nr2;
+        std::istringstream is(hexstr2);
+        is >> user_id_nr2;
+
+        if (user_id_nr1 >= user_id_nr2)
         {
-            remainder = value_user % value_user_id;
+            remainder = user_id_nr1 % user_id_nr2;
         }
         else
         {
-            remainder = value_user_id % value_user;
+            remainder = user_id_nr2 % user_id_nr1;
         }
 
-        std::pair<uint256_t, std::string> pair;
+        std::pair<uint256_t, std::string> pair = {};
         pair.first = remainder;
-        pair.second = user;
+        pair.second = user_id2;
         preps.push_back(pair);
     }
 
@@ -173,7 +184,7 @@ std::vector<std::string> Rocksy::FindShardChosenOnes(std::string &user_id)
     {
         chosen_ones.push_back(preps.at(i).second);
 
-        if (chosen_ones.size() > 128) break;
+        if (chosen_ones.size() > 128) break; // TODO: make the 128 a global, maybe is already a globa
     }
 
     return chosen_ones;
