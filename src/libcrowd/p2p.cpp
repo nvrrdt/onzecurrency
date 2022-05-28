@@ -98,7 +98,10 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
 
             std::string ip_mother_peer = "212.47.231.236"; // TODO: ip should later be randomly taken from rocksdb and/or a pre-defined list
 
+            message_j["ip"] = ip_mother_peer;
+
             rocksdb_j["version"] = "O.1";
+            rocksdb_j["ip"] = ip_mother_peer;
             rocksdb_j["online"] = true;
             rocksdb_j["server"] = true;
             rocksdb_j["fullnode"] = true;
