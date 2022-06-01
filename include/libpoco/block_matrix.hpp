@@ -42,6 +42,7 @@ namespace Poco
         static void sifting_function_for_both_block_matrices();
         static void save_final_block_to_file();
 
+        static void add_to_new_users(std::string full_hash_req);
         static std::vector<std::string> get_new_users();
         static void clear_new_users();
     private:
@@ -58,7 +59,6 @@ namespace Poco
     private:
         static IntroMsgsMat intro_msg_s_mat_;
     private:
-        static void add_to_new_users(std::string full_hash_req);
         static std::vector<std::string> new_users_;
     };
 
