@@ -95,7 +95,7 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
 
     uint256_t user_id_nr1;
     std::istringstream is(hexstr1);
-    is >> user_id_nr1;
+    is >> std::hex >> user_id_nr1;
 
     std::string coordinator = "";
     uint256_t lowest = std::numeric_limits<uint256_t>::max(), remainder = 0;
@@ -104,8 +104,8 @@ std::string Rocksy::FindCoordinator(std::string &user_id)
         hexstr2 = crypto.bech32_decode(user_id2, success);
 
         uint256_t user_id_nr2;
-        std::istringstream is(hexstr2);
-        is >> user_id_nr2;
+        std::istringstream iss(hexstr2);
+        iss >> std::hex >> user_id_nr2;
 
         if (user_id_nr1 >= user_id_nr2)
         {
@@ -151,7 +151,7 @@ std::vector<std::string> Rocksy::FindShardChosenOnes(std::string &user_id)
 
     uint256_t user_id_nr1;
     std::istringstream is(hexstr1);
-    is >> user_id_nr1;
+    is >> std::hex >> user_id_nr1;
 
     std::vector<std::string> chosen_ones = {};
     std::vector<std::pair<uint256_t, std::string>> preps = {};
@@ -161,8 +161,8 @@ std::vector<std::string> Rocksy::FindShardChosenOnes(std::string &user_id)
         hexstr2 = crypto.bech32_decode(user_id2, success);
 
         uint256_t user_id_nr2;
-        std::istringstream is(hexstr2);
-        is >> user_id_nr2;
+        std::istringstream iss(hexstr2);
+        iss >> std::hex >> user_id_nr2;
 
         if (user_id_nr1 >= user_id_nr2)
         {
