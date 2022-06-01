@@ -561,8 +561,6 @@ void BlockMatrix::save_final_block_to_file()
                 m_j_rocksdb.push_back(rocksdb_j);
                 std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
                 temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
-
-                add_to_new_users(full_hash_req);
             }
 
             m_j["rocksdb"] = m_j_rocksdb;

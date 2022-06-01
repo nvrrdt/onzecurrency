@@ -48,7 +48,7 @@ void PocoCrowd::create_prel_blocks()
     // start the sifting process and save a final block --> must be in beginning of loops at start of block_creation_delay
     bm->sifting_function_for_both_block_matrices();
     bm->save_final_block_to_file(); // --> does this save correctly?
-
+pl.handle_print_or_log({"____0000 cpb"});
     Synchronisation sync;
 
     nlohmann::json rocksdb_out;
@@ -56,18 +56,21 @@ void PocoCrowd::create_prel_blocks()
 
     uint16_t limit_count = 0;
     std::string datetime = sync.get_datetime_now();
-
+pl.handle_print_or_log({"____0002 cpb"});
     bm->clear_new_users();
     clear_new_users_ip();
-
+pl.handle_print_or_log({"____0002 cpb"});
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
     std::vector<std::shared_ptr<nlohmann::json>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_vec_.reset_intro_msg_vec();
-
+pl.handle_print_or_log({"____0003 cpb"});
     if (copy_intro_msg_vec.empty()) return;
-
+    if (bm->get_block_matrix().empty()) return;
+pl.handle_print_or_log({"____0004 cpb"});
+pl.handle_print_or_log({"____0004.1 cpb", std::to_string(bm->get_block_matrix().size())});
+pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().back().size())});
     // Start of the loops
     for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
     {
@@ -105,8 +108,9 @@ void PocoCrowd::create_prel_blocks()
             nlohmann::json to_block_j;
             std::string fh_s;
             std::string prel_full_hash_req;
+pl.handle_print_or_log({"____0000 2th"});
             std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
-
+pl.handle_print_or_log({"____0001 2th"});
             Crowd::P2p p2p;
             std::string ip_quad;
 
@@ -123,14 +127,14 @@ void PocoCrowd::create_prel_blocks()
                 // create prel full hash
                 Common::Crypto crypto;
                 std::string hash_of_email = imv_j["hash_of_email"];
-                std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req;
+                std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; 
                 prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
-
+pl.handle_print_or_log({"____0000 3th"});
                 // update rocksdb
                 imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
                 imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
                 intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
-
+pl.handle_print_or_log({"____0001 3th"});
                 // create block
                 to_block_j["full_hash"] = prel_full_hash_req;
                 to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
@@ -147,18 +151,19 @@ void PocoCrowd::create_prel_blocks()
                 // Sometimes new_prel_block() is received before your_full_hash is received
                 // and then it doesn't work
                 add_to_new_users_ip((*ip_hemail).first);
+                bm->add_to_new_users(prel_full_hash_req);
             }
 
             s_shptr_ = mt->calculate_root_hash(s_shptr_);
             std::string root_hash_data = s_shptr_->top();
             block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
-
+pl.handle_print_or_log({"____0002 3th"});
             block_j_["prev_hash"] = prel_prev_hash_req;
-
+pl.handle_print_or_log({"____0003 3th"});
             Crowd::Protocol proto;
             std::string my_last_block_nr = proto.get_last_block_nr();
-
+pl.handle_print_or_log({"____0003.1 3th"});
             uint64_t value;
             std::istringstream iss(my_last_block_nr);
             iss >> value;
@@ -166,22 +171,22 @@ void PocoCrowd::create_prel_blocks()
             std::ostringstream oss;
             oss << value;
             my_next_block_nr = oss.str();
-
+pl.handle_print_or_log({"____0003.2 3th"});
             // send hash of this block with the block contents to the co's, forget save_block_to_file
             // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
             // send intro_block to co's
             inform_network_prel_block(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
-
+pl.handle_print_or_log({"____0004 3th"});
             // Add blocks to vector<vector<block_j_>>
             bm->add_block_to_block_vector(block_j_);
             bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
             bm->add_prev_hash_to_prev_hash_vector(block_j_);
-
+pl.handle_print_or_log({"____0005 3th"});
             // Update rocksdb and prepare your_full_hash
             intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
             ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
-
+pl.handle_print_or_log({"____0006 3th"});
             delete mt;
 
             limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
@@ -192,15 +197,15 @@ void PocoCrowd::create_prel_blocks()
     // clear these vectors
     copy_ip_hemail_vec.clear();
     copy_intro_msg_vec.clear();
-
+pl.handle_print_or_log({"____0007 3th"});
     // fill the matrices
     bm->add_block_vector_to_block_matrix();
     bm->add_calculated_hash_vector_to_calculated_hash_matrix();
     bm->add_prev_hash_vector_to_prev_hash_matrix();
-
+pl.handle_print_or_log({"____0008 3th"});
     intro_msg_s_mat_.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
-
+pl.handle_print_or_log({"____0009 3th"});
     // for debugging purposes:
     for (int i = 0; i < bm->get_block_matrix().size(); i++)
     {
@@ -228,15 +233,16 @@ void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann
     std::string my_full_hash = fh.get_full_hash();
     Common::Print_or_log pl;
     // pl.handle_print_or_log({"My_full_hash already present in file:__ ", my_full_hash});
-
+pl.handle_print_or_log({"____0000 inf"});
     Crypto* crypto = new Crypto();
     std::string block_s = block_j.dump();
-    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    std::string bech32 = crypto->bech32_encode_sha256(block_s);
+pl.handle_print_or_log({"____0000.1 inf", bech32});
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(hash_of_block);
+    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(bech32);
     delete rocksy;
-
+pl.handle_print_or_log({"____0001 inf"});
     nlohmann::json message_j;
     Synchronisation sync;
 
@@ -245,15 +251,15 @@ void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann
     {
         if (co == my_full_hash) present = true;
     }
-
+pl.handle_print_or_log({"____0002 inf"});
     if (present)
     {
         // You are the coordinator!
         pl.handle_print_or_log({"Inform my fellow chosen_ones as coordinator"});
 
         Crowd::Protocol proto;
-        std::map<int, std::string> parts = proto.partition_in_buckets(hash_of_block, hash_of_block);
-
+        std::map<int, std::string> parts = proto.partition_in_buckets(my_full_hash, my_full_hash);
+pl.handle_print_or_log({"____0003 inf"});
         nlohmann::json to_sign_j; // maybe TODO: maybe you should communicate the partitions, maybe not
         message_j["req"] = "intro_prel_block";
         message_j["latest_block_nr"] = my_next_block_nr;
@@ -261,7 +267,7 @@ void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann
         Poco::BlockMatrix bm;
         message_j["prev_hash"] = *bm.get_calculated_hash_matrix().front().at(0); // --> could also be (front() = at(1)) --> it's a guess now
         message_j["full_hash_coord"] = my_full_hash;
-
+pl.handle_print_or_log({"____0004 inf"});
         int k;
         std::string v;
         for (auto &[k, v] : parts)
@@ -272,7 +278,7 @@ void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann
 
             message_j["chosen_ones"].push_back(v);
         }
-
+pl.handle_print_or_log({"____0005 inf", message_j["chosen_ones"].dump()});
         to_sign_j["latest_block_nr"] = my_next_block_nr;
         to_sign_j["block"] = block_j;
         to_sign_j["prev_hash"] = message_j["prev_hash"];
@@ -292,32 +298,39 @@ void PocoCrowd::inform_network_prel_block(std::string my_next_block_nr, nlohmann
 
         Network::P2pNetwork pn;
         std::string key, val;
+        bool is_part = false;
         for (auto &[key, val] : parts)
         {
             if (sync.get_break_block_creation_loops()) break;
 
+            for (auto& element: bm.get_new_users())
+            {
+pl.handle_print_or_log({"____0005.1 inf", element});
+                if (val == element)
+                {
+                    is_part = true;
+                }
+            }
+pl.handle_print_or_log({"____0005.2 inf"});
+            if (is_part)
+            {
+                is_part = false;
+                continue;
+            }
+pl.handle_print_or_log({"____0005.3 inf"});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-
+pl.handle_print_or_log({"____0006 inf"});
             // lookup in rocksdb
+pl.handle_print_or_log({"____0006.1 inf", val});
             nlohmann::json value_j = nlohmann::json::parse(rocksy->Get(val));
+pl.handle_print_or_log({"____0006.2 inf", value_j.dump()});
             std::string peer_ip = value_j["ip"];
-
+pl.handle_print_or_log({"____0007 inf"});
             delete rocksy;
             
             std::string message = message_j.dump();
 
             pl.handle_print_or_log({"Preparation for intro_prel_block:", peer_ip});
-
-            bool cont = false;
-            for (auto& el: get_new_users_ip())
-            {
-                if (el == peer_ip)
-                {
-                    cont = true;
-                    break;
-                }
-            }
-            if (cont) continue;
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(peer_ip, message);
@@ -343,11 +356,11 @@ void PocoCrowd::inform_network_final_block(nlohmann::json final_block_j, std::st
 
     Crypto* crypto = new Crypto();
     std::string block_s = final_block_j.dump();
-    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    std::string bech32 = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
-    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(hash_of_block);
+    std::vector<std::string> shard_chosen_ones_for_this_block = rocksy->FindShardChosenOnes(bech32);
     delete rocksy;
 
     nlohmann::json message_j;
@@ -400,8 +413,23 @@ void PocoCrowd::inform_network_final_block(nlohmann::json final_block_j, std::st
         // send req to chosen_ones
         Network::P2pNetwork pn;
         std::string key, val;
+        Poco::BlockMatrix bm;
+        bool is_part;
         for (auto &[key, val] : parts)
         {
+            for (auto& element: bm.get_new_users())
+            {
+                if (val == element)
+                {
+                    is_part = true;
+                }
+            }
+            if (is_part)
+            {
+                is_part = false;
+                continue;
+            }
+
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 
             // lookup in rocksdb
@@ -411,17 +439,6 @@ void PocoCrowd::inform_network_final_block(nlohmann::json final_block_j, std::st
             delete rocksy;
             
             std::string message = message_j.dump();
-
-            bool cont = false;
-            for (auto& el: get_new_users_ip())
-            {
-                if (el == peer_ip)
-                {
-                    cont = true;
-                    break;
-                }
-            }
-            if (cont) continue;
 
             // p2p_client() to all chosen ones with intro_peer request
             pn.p2p_client(peer_ip, message);
@@ -452,10 +469,10 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
 
     Crypto* crypto = new Crypto();
     std::string block_s = final_block_j.dump();
-    std::string hash_of_block = crypto->bech32_encode_sha256(block_s);
+    std::string bech32 = crypto->bech32_encode_sha256(block_s);
     delete crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
-    std::string co_from_this_block = rocksy->FindCoordinator(hash_of_block);
+    std::string co_from_this_block = rocksy->FindCoordinator(bech32);
     bool is_part = false;
     BlockMatrix bm;
     for (;;)
@@ -568,8 +585,8 @@ void PocoCrowd::reward_for_chosen_ones(std::string co_from_this_block, nlohmann:
     Common::Crypto crypto;
     Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
     std::string chosen_ones_s = chosen_ones_reward_j.dump();
-    std::string hash_of_cos = crypto.bech32_encode_sha256(chosen_ones_s);
-    std::string coordinator = rocksy->FindCoordinator(hash_of_cos);
+    std::string bech32 = crypto.bech32_encode_sha256(chosen_ones_s);
+    std::string coordinator = rocksy->FindCoordinator(bech32);
     nlohmann::json contents_j = nlohmann::json::parse(rocksy->Get(coordinator));
     delete rocksy;
     
