@@ -44,10 +44,6 @@ void PocoCrowd::create_prel_blocks()
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Create prel_blocks"});
 
-    BlockMatrix *bm = new BlockMatrix();
-    // start the sifting process and save a final block --> must be in beginning of loops at start of block_creation_delay
-    bm->sifting_function_for_both_block_matrices();
-    bm->save_final_block_to_file(); // --> does this save correctly?
 pl.handle_print_or_log({"____0000 cpb"});
     Synchronisation sync;
 
@@ -57,6 +53,7 @@ pl.handle_print_or_log({"____0000 cpb"});
     uint16_t limit_count = 0;
     std::string datetime = sync.get_datetime_now();
 pl.handle_print_or_log({"____0002 cpb"});
+    BlockMatrix *bm = new BlockMatrix();
     bm->clear_new_users();
     clear_new_users_ip();
 pl.handle_print_or_log({"____0002 cpb"});
@@ -71,6 +68,15 @@ pl.handle_print_or_log({"____0003 cpb"});
 pl.handle_print_or_log({"____0004 cpb"});
 pl.handle_print_or_log({"____0004.1 cpb", std::to_string(bm->get_block_matrix().size())});
 pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().back().size())});
+
+    /*
+     * start the sifting process and save a final block
+     * --> must be in beginning of loops at start of block_creation_delay
+     * --> because of synchronisation or so, I think somehow new blocks need to be communicated at the start of block_creation and not afterwards
+     */
+    bm->sifting_function_for_both_block_matrices();
+    bm->save_final_block_to_file(); // --> does this save correctly?
+
     // Start of the loops
     for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
     {
