@@ -280,7 +280,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
             {
                 message_j["signature"] = crypto->base64_encode(signature);
             }
-
+pl.handle_print_or_log({"___0000 ip", std::to_string(parts.size())});
             Poco::BlockMatrix bm;
             for (int i = 1; i <= parts.size(); i++)
             {

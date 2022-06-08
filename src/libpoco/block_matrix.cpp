@@ -501,6 +501,26 @@ void BlockMatrix::save_final_block_to_file()
 
         pl.handle_print_or_log({"__001 block matrix size", std::to_string(get_block_matrix().size())});
 
+        /**
+         * @brief strategy for finalizing poco v2
+         * 
+         * What happens when creating a block: the procedure
+         * --> every second a new block without prev_hash, every second also a prev_hash from a minute ago
+         * --> so the latest final_block on disk is from a minute ago
+         * --> what with the matrices? how must the sifting be done?
+         * --> sifting: block vector should be decided if prev_hash is added or not, something like that
+         *              block vector is added every second, a ranking must be added when communicating blocks
+         * --> saving: save after one minute when prev_hash is available
+         * --> monitor correctness of received final_blocks
+         * (a final_block is a block with prev_hash)
+         * 
+         * so with 4 users in the cloud, creating a block should take less then 2 minutes --> is this correct?
+         * 
+         * plan: change get_sleep_and_create_block() so that create_prel_blocks() runs every second,
+         * sift when a block receives a prev_hash, then save the final_block
+         *
+         */
+        
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
         {
             // save block
