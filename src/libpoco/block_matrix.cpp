@@ -516,8 +516,12 @@ void BlockMatrix::save_final_block_to_file()
          * 
          * so with 4 users in the cloud, creating a block should take less then 2 minutes --> is this correct?
          * 
+         * --> a correct shard_chooser must also be run every second, and in intro_peer (or so)
+         *     intro_msg_vec must be put in the correct shard
+         *     then blocks can be made with the correct messages/transactions
+         * 
          * plan: change get_sleep_and_create_block() so that create_prel_blocks() runs every second,
-         * sift when a block receives a prev_hash, then save the final_block
+         * implement shard_chooser(), sift when a block receives a prev_hash, then save the final_block
          *
          */
         
