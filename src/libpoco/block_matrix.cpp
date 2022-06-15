@@ -523,8 +523,11 @@ void BlockMatrix::save_final_block_to_file()
          * plan: change get_sleep_and_create_block() so that create_prel_blocks() runs every second,
          * implement shard_chooser(), sift when a block receives a prev_hash, then save the final_block
          *
-         * - prel_full_hash_req and prel_prev_hash_req must be assembled when finalising a block
-         *   and not when creating the prel_blocks
+         * --> prel_full_hash_req and prel_prev_hash_req must be assembled when finalising a block
+         *     and not when creating the prel_blocks
+         * 
+         * --> in create_prel_block(): every transaction's hash decides in which shard it comes, only then must this function proceed
+         * 
          */
         
         if (i != get_block_matrix().size() - 1 && get_block_matrix().at(i+1).size() == 1 && l_block_s == latest_block_s)
