@@ -25,6 +25,6 @@ namespace Common
         int use_log = 1;
         int amount_of_chosen_ones = 128;
         int max_pow = 7; // 2^max_pow = amount_of_shards
-        int block_time = 64;
+        int block_time = 64; // must be 2^x
     };
 }
