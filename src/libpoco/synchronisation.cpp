@@ -1,9 +1,14 @@
 #include "synchronisation.hpp"
 
-#include "print_or_log.hpp"
 #include <boost/lexical_cast.hpp>
+#include <math.h>
+
+#include "print_or_log.hpp"
+#include "globals.hpp"
+
 
 using namespace Poco;
+using namespace std::chrono;
 
 bool Synchronisation::break_block_creation_loops_ = false;
 std::string Synchronisation::datetime_ = "";
@@ -39,7 +44,7 @@ void Synchronisation::get_sleep_and_create_block()
     get_sleep_until();
 
     //t1.join();
-    t2.join();
+    // t2.join();
 
     set_break_block_creation_loops(false);
 
@@ -53,42 +58,27 @@ void Synchronisation::get_sleep_until()
     Common::Print_or_log pl;
 
     // get datetime from latest block
-    std::string datetime = get_genesis_datetime();
+    uint64_t datetime;
+    std::istringstream iss(get_genesis_datetime());
+    iss >> datetime;
 
-    int yy, month, dd, hh, mm, ss;
-    struct tm whenStart;
-    const char *zStart = datetime.c_str();
-
-    sscanf(zStart, "%4d/%02d/%02d %02d:%02d:%02d", &yy, &month, &dd, &hh, &mm, &ss);
-    whenStart.tm_year = yy - 1900;
-    whenStart.tm_mon = month - 1;
-    whenStart.tm_mday = dd;
-    whenStart.tm_hour = hh;
-    whenStart.tm_min = mm;
-    whenStart.tm_sec = ss;
-    whenStart.tm_isdst = -1;
-
-    std::time_t time = mktime(&whenStart);
-    std::tm utc_tm_block = *gmtime(&time);
+    Common::Globals globals;
 
     for (;;)
     {
         // get system datetime
-        std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+        uint64_t now = std::chrono::system_clock::now().time_since_epoch().count();
 
-        std::time_t tt = std::chrono::system_clock::to_time_t(now);
-        std::tm utc_tm = *gmtime(&tt);
-        
-        if (utc_tm.tm_sec == utc_tm_block.tm_sec)
+        uint32_t shard_time = (globals.get_block_time() * 1000 /* milliseconds */ ) / static_cast<uint32_t>(pow(2, globals.get_max_pow()));
+        if ((now - datetime) % shard_time == 0) // let every shard run in time
         {
-            pl.handle_print_or_log({"break: datetime block ", std::to_string(utc_tm_block.tm_year + 1900), "/", std::to_string(utc_tm_block.tm_mon + 1), "/", std::to_string(utc_tm_block.tm_mday), " ", std::to_string(utc_tm_block.tm_hour), ":", std::to_string(utc_tm_block.tm_min), ":", std::to_string(utc_tm_block.tm_sec)});
+            pl.handle_print_or_log({"break: datetime block ", std::to_string(now)});
 
-            std::string datetime = std::to_string(utc_tm_block.tm_year + 1900) + "/" + std::to_string(utc_tm_block.tm_mon + 1) + "/" + std::to_string(utc_tm_block.tm_mday) + " " + std::to_string(utc_tm_block.tm_hour) + ":" + std::to_string(utc_tm_block.tm_min) + ":" + std::to_string(utc_tm_block.tm_sec);
-            set_datetime_now(datetime);
+            set_datetime_now(std::to_string(now));
 
             set_break_block_creation_loops(true);
 
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             break;
         }
     }
