@@ -115,7 +115,7 @@ pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().
             std::string fh_s;
             std::string prel_full_hash_req;
 pl.handle_print_or_log({"____0000 2th"});
-            std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
+            // std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
 pl.handle_print_or_log({"____0001 2th"});
             Crowd::P2p p2p;
             std::string ip_quad;
@@ -131,23 +131,23 @@ pl.handle_print_or_log({"____0001 2th"});
                 ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
                 // create prel full hash
-                Common::Crypto crypto;
-                std::string hash_of_email = imv_j["hash_of_email"];
-                std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; 
-                prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
-pl.handle_print_or_log({"____0000 3th"});
-                // update rocksdb
-                imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
-                imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
+//                 Common::Crypto crypto;
+//                 std::string hash_of_email = imv_j["hash_of_email"];
+//                 std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; 
+//                 prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
+// pl.handle_print_or_log({"____0000 3th"});
+//                 // update rocksdb
+//                 imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
+//                 imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
                 intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
 pl.handle_print_or_log({"____0001 3th"});
                 // create block
-                to_block_j["full_hash"] = prel_full_hash_req;
+                // to_block_j["full_hash"] = prel_full_hash_req;
                 to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
                 to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
                 s_shptr_->push(to_block_j.dump());
 
-                entry_tx_j["full_hash"] = to_block_j["full_hash"];
+                // entry_tx_j["full_hash"] = to_block_j["full_hash"];
                 entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
                 entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
                 entry_transactions_j.push_back(entry_tx_j);
@@ -157,7 +157,7 @@ pl.handle_print_or_log({"____0001 3th"});
                 // Sometimes new_prel_block() is received before your_full_hash is received
                 // and then it doesn't work
                 add_to_new_users_ip((*ip_hemail).first);
-                bm->add_to_new_users(prel_full_hash_req);
+                // bm->add_to_new_users(prel_full_hash_req);
             }
 
             s_shptr_ = mt->calculate_root_hash(s_shptr_);
@@ -165,7 +165,7 @@ pl.handle_print_or_log({"____0001 3th"});
             block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
 pl.handle_print_or_log({"____0002 3th"});
-            block_j_["prev_hash"] = prel_prev_hash_req;
+            // block_j_["prev_hash"] = prel_prev_hash_req;
 pl.handle_print_or_log({"____0003 3th"});
             Crowd::Protocol proto;
             std::string my_last_block_nr = proto.get_last_block_nr();
@@ -304,25 +304,25 @@ pl.handle_print_or_log({"____0005 inf", message_j["chosen_ones"].dump()});
 
         Network::P2pNetwork pn;
         std::string key, val;
-        bool is_part = false;
+        // bool is_part = false;
         for (auto &[key, val] : parts)
         {
             if (sync.get_break_block_creation_loops()) break;
 
-            for (auto& element: bm.get_new_users())
-            {
-pl.handle_print_or_log({"____0005.1 inf", element});
-                if (val == element)
-                {
-                    is_part = true;
-                }
-            }
-pl.handle_print_or_log({"____0005.2 inf"});
-            if (is_part)
-            {
-                is_part = false;
-                continue;
-            }
+//             for (auto& element: bm.get_new_users()) // --> new user's full_hash isn't know at this time
+//             {
+// pl.handle_print_or_log({"____0005.1 inf", element});
+//                 if (val == element)
+//                 {
+//                     is_part = true;
+//                 }
+//             }
+// pl.handle_print_or_log({"____0005.2 inf"});
+//             if (is_part)
+//             {
+//                 is_part = false;
+//                 continue;
+//             }
 pl.handle_print_or_log({"____0005.3 inf"});
             Crowd::Rocksy* rocksy = new Crowd::Rocksy("usersdbreadonly");
 pl.handle_print_or_log({"____0006 inf"});
@@ -423,7 +423,7 @@ void PocoCrowd::inform_network_final_block(nlohmann::json final_block_j, std::st
         bool is_part;
         for (auto &[key, val] : parts)
         {
-            for (auto& element: bm.get_new_users())
+            for (auto& element: bm.get_new_users()) // --> new user's full_hash might be known at this point --> find out
             {
                 if (val == element)
                 {
@@ -484,7 +484,7 @@ void PocoCrowd::send_your_full_hash(uint16_t place_in_mat, nlohmann::json final_
     for (;;)
     {
         // it breaks when the new users (from a new block) are yet part of all the users
-        for (auto& element: bm.get_new_users())
+        for (auto& element: bm.get_new_users()) // --> dunno if user's full_hash is known at this point
         {
             if (co_from_this_block == element)
             {
