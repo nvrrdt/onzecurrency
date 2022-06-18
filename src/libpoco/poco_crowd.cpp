@@ -59,7 +59,7 @@ pl.handle_print_or_log({"____0002 cpb"});
 pl.handle_print_or_log({"____0002 cpb"});
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
-    std::vector<std::shared_ptr<nlohmann::json>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
+    std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_vec_.reset_intro_msg_vec();
 pl.handle_print_or_log({"____0003 cpb"});
@@ -110,7 +110,8 @@ pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().
 
             Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-            nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+            std::pair<std::string, nlohmann::json> imv_j;
+            nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
             nlohmann::json to_block_j;
             std::string fh_s;
             std::string prel_full_hash_req;
@@ -125,6 +126,10 @@ pl.handle_print_or_log({"____0001 2th"});
                 pl.handle_print_or_log({"Crowd: 3th for loop with block matrix", std::to_string(l)});
                 
                 imv_j = *copy_intro_msg_vec.at(l);
+
+
+                // put imv_j in the now treated shard, remove or continue depending on shard
+
 
                 // link an ip to a user
                 std::shared_ptr<std::pair<std::string, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
@@ -143,8 +148,8 @@ pl.handle_print_or_log({"____0001 2th"});
 pl.handle_print_or_log({"____0001 3th"});
                 // create block
                 // to_block_j["full_hash"] = prel_full_hash_req;
-                to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
-                to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
+                to_block_j["ecdsa_pub_key"] = imv_j.second["ecdsa_pub_key"];
+                to_block_j["rsa_pub_key"] = imv_j.second["rsa_pub_key"];
                 s_shptr_->push(to_block_j.dump());
 
                 // entry_tx_j["full_hash"] = to_block_j["full_hash"];

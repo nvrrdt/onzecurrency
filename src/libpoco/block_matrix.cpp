@@ -588,7 +588,7 @@ void BlockMatrix::save_final_block_to_file()
                 delete rocksy;
 
                 m_j_rocksdb.push_back(rocksdb_j);
-                std::shared_ptr<nlohmann::json> ptr = std::make_shared<nlohmann::json> (m_j);
+                std::shared_ptr<std::pair<std::string, nlohmann::json>> ptr = std::make_shared<std::pair<std::string, nlohmann::json>> (m_j);
                 temporary_intro_msg_s_3d_mat.at(i+1).at(0).at(j) = ptr; // adding rocksdb
             }
 

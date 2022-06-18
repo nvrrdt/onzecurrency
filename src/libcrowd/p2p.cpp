@@ -166,6 +166,14 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                     message_j["rocksdb"]["full_hash"] = full_hash;
                     message_j["rocksdb"]["prev_hash"] = prev_hash;
 
+                    // Add a hash
+                    Common::Crypto crypto;
+                    std::string message_s = message_j.dump();
+                    std::string hash = crypto.sha256_create(message_s);
+                    std::pair<std::string, nlohmann::json> hash_msg_j;
+                    hash_msg_j.first = hash;
+                    hash_msg_j.second = message_j;
+
                     // fill the matrices
                     Poco::BlockMatrix bm;
                     bm.add_block_to_block_vector(block_j);
@@ -175,7 +183,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                     bm.add_prev_hash_to_prev_hash_vector(block_j);
                     bm.add_prev_hash_vector_to_prev_hash_matrix();
                     Poco::IntroMsgsMat imm;
-                    imm.add_intro_msg_to_intro_msg_s_vec(message_j);
+                    imm.add_intro_msg_to_intro_msg_s_vec(hash_msg_j);
                     imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
                     imm.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
                     Poco::IpHEmail ihe;

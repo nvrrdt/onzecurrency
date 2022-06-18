@@ -158,9 +158,16 @@ void P2pClient::new_peer_client(nlohmann::json buf_j)
     Common::Print_or_log pl;
     pl.handle_print_or_log({"new_peer client:"});
     // should read the timestamp of the first new_peer request received
+
+    Common::Crypto crypto;
+    std::string message_s = buf_j.dump();
+    std::string hash = crypto.sha256_create(message_s);
+    std::pair<std::string, nlohmann::json> hash_msg_j;
+    hash_msg_j.first = hash;
+    hash_msg_j.second = buf_j;
     
     // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
-    intro_msg_vec_.add_to_intro_msg_vec(buf_j);
+    intro_msg_vec_.add_to_intro_msg_vec(hash_msg_j);
     
     if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
     {
@@ -379,7 +386,7 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     msg["crowd"]["imv"];
     for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     {
-        msg["crowd"]["imv"].push_back(*el);
+        msg["crowd"]["imv"][(*el).first] = (*el).second;
     }
 
     msg["crowd"]["ihv"];
@@ -609,7 +616,8 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
         {
             for (auto& [k3, v3] : v2.items())
             {
-                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+                std::pair<std::string, nlohmann::json> myPair = std::make_pair(v3["first"], v3["second"]);
+                imm.add_intro_msg_to_intro_msg_s_vec(myPair);
             }
 
             imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
@@ -639,9 +647,12 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     nlohmann::json intro_msg_vec_j = buf_j["crowd"]["imv"];
     nlohmann::json ip_hemail_vec_j = buf_j["crowd"]["ihv"];
 
-    for (auto& el: intro_msg_vec_j)
+    for (auto& [k, v]: intro_msg_vec_j.items())
     {
-        intro_msg_vec_.add_to_intro_msg_vec(el);
+        std::pair<std::string, nlohmann::json> kv;
+        kv.first = k;
+        kv.second = v;
+        intro_msg_vec_.add_to_intro_msg_vec(kv);
     }
 
     for (auto& [k, v]: ip_hemail_vec_j.items())
