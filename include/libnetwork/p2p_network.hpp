@@ -106,7 +106,7 @@ namespace Network
         p2p_message_queue write_msgs_;
 
         std::string buf_client_;
-        Poco::IntroMsgVec intro_msg_vec_;
+        Poco::IntroMsgMap intro_msg_map_;
         Poco::IpHEmail ip_hemail_vec_;
     };
 
@@ -171,7 +171,7 @@ namespace Network
         p2p_message_queue write_msgs_;
 
         std::string buf_server_;
-        Poco::IntroMsgVec intro_msg_vec_;
+        Poco::IntroMsgMap intro_msg_map_;
         Poco::IpHEmail ip_hemail_vec_;
     };
 }

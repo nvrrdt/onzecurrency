@@ -30,7 +30,7 @@ void Synchronisation::get_sleep_and_create_block()
     // get_latest_block --> get datetime from block && get system time --> proceed when multiple of 10 or ???
 
     Common::Print_or_log pl;
-    pl.handle_print_or_log({"intro_msg_vec.size() in Poco:", std::to_string(intro_msg_vec_.get_intro_msg_vec().size())});
+    pl.handle_print_or_log({"intro_msg_map.size() in Poco:", std::to_string(intro_msg_map_.get_intro_msg_map().size())});
     pl.handle_print_or_log({"transactions.size() in Coin:", std::to_string(tx_.get_transactions().size())});
 
     //std::thread t1(&Poco::Synchronisation::get_sleep_until, this);
