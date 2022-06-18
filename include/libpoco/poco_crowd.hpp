@@ -38,7 +38,7 @@ namespace Poco
         static nlohmann::json block_j_;
         std::shared_ptr<std::stack<std::string>> s_shptr_ = std::make_shared<std::stack<std::string>>();
         static std::string hash_of_block_;
-        IntroMsgVec intro_msg_vec_;
+        IntroMsgMap intro_msg_map_;
         IntroMsgsMat intro_msg_s_mat_;
         IpHEmail ip_hemail_vec_;
         IpAllHashes ip_all_hashes_;

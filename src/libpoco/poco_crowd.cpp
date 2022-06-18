@@ -59,7 +59,7 @@ pl.handle_print_or_log({"____0002 cpb"});
 pl.handle_print_or_log({"____0002 cpb"});
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
-    std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> copy_intro_msg_map(intro_msg_map_.get_intro_msg_map());
+    std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> copy_intro_msg_map(intro_msg_map_.get_intro_msg_map());
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_map_.reset_intro_msg_map();
 pl.handle_print_or_log({"____0003 cpb"});
@@ -128,7 +128,9 @@ pl.handle_print_or_log({"____0001 2th"});
                 hash_imv_j = *copy_intro_msg_map.at(l);
 
 
-                // put hahs_imv_j in the now treated shard, remove or continue depending on shard
+                // put hash_imv_j in the now treated shard, remove or continue depending on shard
+
+                
 
 
 
