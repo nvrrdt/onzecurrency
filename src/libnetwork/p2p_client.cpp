@@ -167,17 +167,17 @@ void P2pClient::new_peer_client(nlohmann::json buf_j)
     hash_msg_j.second = buf_j;
     
     // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
-    intro_msg_map_.add_to_intro_msg_map(hash_msg_j);
+    intro_msg_vec_.add_to_intro_msg_vec(hash_msg_j);
     
-    if (intro_msg_map_.get_intro_msg_map().size() > 2048) // 2048x 512 bit hashes
+    if (intro_msg_vec_.get_intro_msg_vec().size() > 2048) // 2048x 512 bit hashes
     {
         // Create block
         Poco::PocoCrowd poco;
         poco.create_prel_blocks();
 
-        intro_msg_map_.reset_intro_msg_map();
+        intro_msg_vec_.reset_intro_msg_vec();
     }
-    else if (intro_msg_map_.get_intro_msg_map().size() == 1)
+    else if (intro_msg_vec_.get_intro_msg_vec().size() == 1)
     {
         // wait x secs
         // then create block --> don't forget the counter in the search for a coordinator
@@ -382,9 +382,9 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     msg["crowd"]["iah"] = contents_j;
     contents_j.clear();
 
-    // Update intro_msg_map and ip_hemail_vec
+    // Update intro_msg_vec and ip_hemail_vec
     msg["crowd"]["imv"];
-    for (auto& el: intro_msg_map_.get_intro_msg_map())
+    for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     {
         msg["crowd"]["imv"][(*el).first] = (*el).second;
     }
@@ -466,9 +466,9 @@ void P2pClient::update_me_client(nlohmann::json buf_j)
     // msg["coin"]["iah"] = contents_j;
     // contents_j.clear();
 
-    // // Update intro_msg_map and ip_hemail_vec
+    // // Update intro_msg_vec and ip_hemail_vec
     // msg["coin"]["imv"];
-    // for (auto& el: intro_msg_map_.get_intro_msg_map())
+    // for (auto& el: intro_msg_vec_.get_intro_msg_vec())
     // {
     //     msg["coin"]["imv"].push_back(*el);
     // }
@@ -643,16 +643,16 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
         iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
     }
 
-    // Update intro_msg_map and ip_hemail_vec
-    nlohmann::json intro_msg_map_j = buf_j["crowd"]["imv"];
+    // Update intro_msg_vec and ip_hemail_vec
+    nlohmann::json intro_msg_vec_j = buf_j["crowd"]["imv"];
     nlohmann::json ip_hemail_vec_j = buf_j["crowd"]["ihv"];
 
-    for (auto& [k, v]: intro_msg_map_j.items())
+    for (auto& [k, v]: intro_msg_vec_j.items())
     {
         std::pair<std::string, nlohmann::json> kv;
         kv.first = k;
         kv.second = v;
-        intro_msg_map_.add_to_intro_msg_map(kv);
+        intro_msg_vec_.add_to_intro_msg_vec(kv);
     }
 
     for (auto& [k, v]: ip_hemail_vec_j.items())
@@ -747,13 +747,13 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
     //     iah.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
     // }
 
-    // // Update intro_msg_map and ip_hemail_vec
-    // nlohmann::json intro_msg_map_j = buf_j["coin"]["imv"];
+    // // Update intro_msg_vec and ip_hemail_vec
+    // nlohmann::json intro_msg_vec_j = buf_j["coin"]["imv"];
     // nlohmann::json ip_hemail_vec_j = buf_j["coin"]["ihv"];
 
-    // for (auto& el: intro_msg_map_j)
+    // for (auto& el: intro_msg_vec_j)
     // {
-    //     intro_msg_map_.add_to_intro_msg_map(el);
+    //     intro_msg_vec_.add_to_intro_msg_vec(el);
     // }
 
     // for (auto& [k, v]: ip_hemail_vec_j.items())

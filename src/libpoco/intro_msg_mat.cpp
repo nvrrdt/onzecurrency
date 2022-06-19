@@ -1,25 +1,20 @@
 #include "intro_msg_mat.hpp"
-#include "sharding.hpp"
 
 using namespace Poco;
 
-void IntroMsgMap::add_to_intro_msg_map(std::pair<std::string, nlohmann::json> &message_j)
+void IntroMsgVec::add_to_intro_msg_vec(std::pair<std::string, nlohmann::json> &message_j)
 {
-    // I want the messages here distributed into the right shard
-    // so it can easily be processed in poco_crowd's create_prel_blocks()
-    // so intro_msg_vec must become intro_msg_map
-    Poco::DatabaseSharding ds;
-    intro_msg_map_[ds.get_fair_shard_range(message_j.first)] = std::make_shared<std::pair<std::string, nlohmann::json>>(message_j);
+    intro_msg_vec_.push_back(std::make_shared<std::pair<std::string, nlohmann::json>>(message_j));
 }
 
-std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgMap::get_intro_msg_map()
+std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgVec::get_intro_msg_vec()
 {
-    return intro_msg_map_;
+    return intro_msg_vec_;
 }
 
-void IntroMsgMap::reset_intro_msg_map()
+void IntroMsgVec::reset_intro_msg_vec()
 {
-    intro_msg_map_.clear();
+    intro_msg_vec_.clear();
 }
 
 void IntroMsgsMat::add_intro_msg_to_intro_msg_s_vec(std::pair<std::string, nlohmann::json> &message_j)
@@ -61,7 +56,7 @@ void IntroMsgsMat::reset_intro_msg_s_3d_mat()
     intro_msg_s_3d_mat_.clear();
 }
 
-std::map<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgMap::intro_msg_map_ = {};
+std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgVec::intro_msg_vec_ = {};
 
 std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgsMat::intro_msg_s_vec_ = {};
 std::vector<std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>>> IntroMsgsMat::intro_msg_s_2d_mat_ = {};

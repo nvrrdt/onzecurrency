@@ -15,11 +15,11 @@ namespace Poco
     {
     public:
         std::vector<std::string> get_shard_users(std::string user_id);
-        std::pair<uint256_t, uint256_t> get_fair_shard_range(std::string user_id);
     private:
         std::map<std::string, uint256_t> fair_partitioning();
         std::pair<std::string, uint256_t> get_fair_user_id(std::string user_id);
         uint32_t get_amount_of_shards();
+        std::pair<uint256_t, uint256_t> get_fair_shard_range(std::string user_id);
     };
 
     class NetworkSharding /* TODO */
