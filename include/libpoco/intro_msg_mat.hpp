@@ -4,17 +4,19 @@
 #include <vector>
 
 #include "json.hpp"
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
 
 namespace Poco
 {
     class IntroMsgMap
     {
     public:
-        static void add_to_intro_msg_map(std::pair<std::string, nlohmann::json> &message_j);
-        static std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> get_intro_msg_map();
+        static void add_to_intro_msg_map(std::string hash, nlohmann::json &message_j);
+        static std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> get_intro_msg_map();
         static void reset_intro_msg_map();
     private:
-        static std::map<std::shared_ptr<std::pair<std::string, nlohmann::json>>> intro_msg_map_;
+        static std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> intro_msg_map_;
     };
 
     class IntroMsgsMat
