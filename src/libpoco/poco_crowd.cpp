@@ -17,7 +17,7 @@ std::vector<std::string> Poco::PocoCrowd::new_users_ip_ = {};
 void PocoCrowd::create_prel_blocks()
 {
     // The capstone implemenation, an algorithm for block creation arithmetic:
-    // 1) Evaluate NewPeers (in intro_msg_vec) (also take care of an analogy with double spend) (not implemented yet)
+    // 1) Evaluate NewPeers (in intro_msg_map) (also take care of an analogy with double spend) (not implemented yet)
     //    - for every new_peer: lookup its hash_email and compare what is in rocksdb if it already exists
     // 2) Produce candidate blocks:
     //    - first ever iteration:
@@ -59,11 +59,11 @@ pl.handle_print_or_log({"____0002 cpb"});
 pl.handle_print_or_log({"____0002 cpb"});
     // create copies of these vectors and reset the original
     std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
-    std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> copy_intro_msg_vec(intro_msg_vec_.get_intro_msg_vec());
+    std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> copy_intro_msg_map(intro_msg_map_.get_intro_msg_map());
     ip_hemail_vec_.reset_ip_hemail_vec();
-    intro_msg_vec_.reset_intro_msg_vec();
+    intro_msg_map_.reset_intro_msg_map();
 pl.handle_print_or_log({"____0003 cpb"});
-    if (copy_intro_msg_vec.empty()) return;
+    if (copy_intro_msg_map.empty()) return;
     if (bm->get_block_matrix().empty()) return;
 pl.handle_print_or_log({"____0004 cpb"});
 pl.handle_print_or_log({"____0004.1 cpb", std::to_string(bm->get_block_matrix().size())});
@@ -88,7 +88,7 @@ pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().
         // in the future there will be a lot of finetuning work on this function
         // preliminarly this is ok
 
-        for (uint16_t j = copy_intro_msg_vec.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
+        for (uint16_t j = copy_intro_msg_map.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
         {
             pl.handle_print_or_log({"Crowd: 2nd for loop with block matrix", std::to_string(j)});
 
@@ -110,7 +110,7 @@ pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().
 
             Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-            std::pair<std::string, nlohmann::json> imv_j;
+            std::pair<std::string, nlohmann::json> hash_imv_j;
             nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
             nlohmann::json to_block_j;
             std::string fh_s;
@@ -125,10 +125,11 @@ pl.handle_print_or_log({"____0001 2th"});
             {
                 pl.handle_print_or_log({"Crowd: 3th for loop with block matrix", std::to_string(l)});
                 
-                imv_j = *copy_intro_msg_vec.at(l);
+                hash_imv_j = *copy_intro_msg_map.at(l);
 
 
-                // put imv_j in the now treated shard, remove or continue depending on shard
+                // put hahs_imv_j in the now treated shard, remove or continue depending on shard
+
 
 
                 // link an ip to a user
@@ -207,7 +208,7 @@ pl.handle_print_or_log({"____0006 3th"});
 
     // clear these vectors
     copy_ip_hemail_vec.clear();
-    copy_intro_msg_vec.clear();
+    copy_intro_msg_map.clear();
 pl.handle_print_or_log({"____0007 3th"});
     // fill the matrices
     bm->add_block_vector_to_block_matrix();

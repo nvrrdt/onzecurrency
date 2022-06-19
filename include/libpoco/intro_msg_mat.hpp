@@ -7,14 +7,14 @@
 
 namespace Poco
 {
-    class IntroMsgVec
+    class IntroMsgMap
     {
     public:
-        static void add_to_intro_msg_vec(std::pair<std::string, nlohmann::json> &message_j);
-        static std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> get_intro_msg_vec();
-        static void reset_intro_msg_vec();
+        static void add_to_intro_msg_map(std::pair<std::string, nlohmann::json> &message_j);
+        static std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> get_intro_msg_map();
+        static void reset_intro_msg_map();
     private:
-        static std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> intro_msg_vec_;
+        static std::map<std::shared_ptr<std::pair<std::string, nlohmann::json>>> intro_msg_map_;
     };
 
     class IntroMsgsMat
