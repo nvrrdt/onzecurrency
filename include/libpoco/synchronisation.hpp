@@ -46,7 +46,7 @@ namespace Poco
         void get_sleep_until();
         static void set_datetime_now(std::string datetime);
     private:
-        IntroMsgMap intro_msg_map_;
+        IntroMsgVec intro_msg_vec_;
         IpHEmail ip_hemail_vec_;
         
         PocoCrowd pococr_;
