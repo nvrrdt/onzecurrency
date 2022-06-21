@@ -58,8 +58,8 @@ pl.handle_print_or_log({"____0002 cpb"});
     clear_new_users_ip();
 pl.handle_print_or_log({"____0002 cpb"});
     // create copies of these vectors and reset the original
-    std::vector<std::shared_ptr<std::pair<std::string, std::string>>> copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
-    std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> copy_intro_msg_map(intro_msg_map_.get_intro_msg_map());
+    auto copy_ip_hemail_vec(ip_hemail_vec_.get_all_ip_hemail_vec());
+    auto copy_intro_msg_map(intro_msg_map_.get_intro_msg_map());
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_map_.reset_intro_msg_map();
 pl.handle_print_or_log({"____0003 cpb"});

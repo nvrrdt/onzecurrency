@@ -10,10 +10,10 @@ void IntroMsgMap::add_to_intro_msg_map(std::string hash, nlohmann::json &message
     // so it can easily be processed in poco_crowd's create_prel_blocks()
     // so intro_msg_vec must become intro_msg_map
     Poco::DatabaseSharding ds;
-    intro_msg_map_[ds.get_fair_shard_range(hash)] = std::make_shared<nlohmann::json>(message_j);
+    intro_msg_map_[ds.get_fair_shard_range(hash)].push_back(std::make_shared<nlohmann::json>(message_j));
 }
 
-std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> IntroMsgMap::get_intro_msg_map()
+std::map<std::pair<uint256_t, uint256_t>, std::vector<std::shared_ptr<nlohmann::json>>> IntroMsgMap::get_intro_msg_map()
 {
     return intro_msg_map_;
 }
@@ -62,7 +62,7 @@ void IntroMsgsMat::reset_intro_msg_s_3d_mat()
     intro_msg_s_3d_mat_.clear();
 }
 
-std::map<std::pair<uint256_t, uint256_t>, std::shared_ptr<nlohmann::json>> IntroMsgMap::intro_msg_map_ = {};
+std::map<std::pair<uint256_t, uint256_t>, std::vector<std::shared_ptr<nlohmann::json>>> IntroMsgMap::intro_msg_map_ = {};
 
 std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>> IntroMsgsMat::intro_msg_s_vec_ = {};
 std::vector<std::vector<std::shared_ptr<std::pair<std::string, nlohmann::json>>>> IntroMsgsMat::intro_msg_s_2d_mat_ = {};
