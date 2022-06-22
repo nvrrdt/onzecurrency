@@ -57,7 +57,7 @@ void Synchronisation::get_sleep_until()
 
     Common::Print_or_log pl;
 
-    // get datetime from latest block
+    // get genesis datetime from latest block
     uint64_t datetime;
     std::istringstream iss(get_genesis_datetime());
     iss >> datetime;

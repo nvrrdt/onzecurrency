@@ -4,6 +4,9 @@
 
 #include <math.h>
 #include <limits>
+#include <chrono>
+
+#include "synchronisation.hpp"
 
 using namespace Poco;
 
@@ -97,10 +100,12 @@ uint32_t DatabaseSharding::get_amount_of_shards()
     return shard_amount;
 }
 
-std::pair<uint256_t, uint256_t> DatabaseSharding::get_fair_shard_range(std::string user_id)
+std::pair<std::uint32_t, std::pair<uint256_t, uint256_t>> DatabaseSharding::get_fair_shard_range(std::string user_id)
 {
     auto fair_user_id = get_fair_user_id(user_id); // TODO it isn't used correctly, did I mean to do something else?
+    std::pair<uint32_t, std::pair<uint256_t, uint256_t>> shardrange;
     std::pair<uint256_t, uint256_t> range;
+
     if (fair_user_id.first == "ok")
     {
         auto amount_of_shards = get_amount_of_shards();
@@ -110,6 +115,12 @@ std::pair<uint256_t, uint256_t> DatabaseSharding::get_fair_shard_range(std::stri
             // (0 3)(4 7)(8 11)(12 15)(16 19)
             range.first = i * ((std::numeric_limits<uint256_t>::max() / amount_of_shards) + 1);
             range.second = range.first + (std::numeric_limits<uint256_t>::max() / amount_of_shards);
+
+            if (fair_user_id.second >= range.first && fair_user_id.second < range.second)
+            {
+                shardrange.first = i;
+                break;
+            }
         }
     }
     else
@@ -117,7 +128,9 @@ std::pair<uint256_t, uint256_t> DatabaseSharding::get_fair_shard_range(std::stri
         range.first = 0, range.second = 0;
     }
 
-    return range;
+    shardrange.second = range;
+
+    return shardrange;
 }
 
 std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
@@ -171,4 +184,30 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
     }
 
     return shard_users;
+}
+
+/**
+ * Decide which shard to process based on the genesis time
+ * 
+ */
+ uint32_t DatabaseSharding::which_shard_to_process()
+{
+    // get_time
+    // get_genesis_time
+    // divide the shards over block_time
+    // return correct transactions
+
+    // get system datetime
+    uint64_t now = std::chrono::system_clock::now().time_since_epoch().count();
+
+    // get genesis datetime from latest block
+    uint64_t genesis;
+    Synchronisation sync;
+    std::istringstream iss(sync.get_genesis_datetime()); // TODO create a global vaiable from this genesis datetime
+    iss >> genesis;
+
+    Common::Globals globals;
+    uint32_t shard_number = (now - genesis) % (globals.get_block_time() * 1000);
+
+    return shard_number;
 }

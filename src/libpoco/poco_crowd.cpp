@@ -6,6 +6,7 @@
 #include "merkle_tree.hpp"
 #include "block_matrix.hpp"
 #include "synchronisation.hpp"
+#include "sharding.hpp"
 
 #include "print_or_log.hpp"
 
@@ -110,8 +111,7 @@ pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().
 
             Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-            std::pair<std::string, nlohmann::json> hash_imv_j;
-            nlohmann::json entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+            nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
             nlohmann::json to_block_j;
             std::string fh_s;
             std::string prel_full_hash_req;
@@ -125,10 +125,16 @@ pl.handle_print_or_log({"____0001 2th"});
             {
                 pl.handle_print_or_log({"Crowd: 3th for loop with block matrix", std::to_string(l)});
                 
-                hash_imv_j = *copy_intro_msg_map.at(l);
+                Poco::DatabaseSharding ds;
+                auto shard_number = ds.which_shard_to_process();
 
+                auto it = copy_intro_msg_map.begin();
+                std::advance(it, shard_number);
+                imv_j = *(it->second).at(l);
+                
 
                 // put hash_imv_j in the now treated shard, remove or continue depending on shard
+                // calculate the timing of shard handling based on genesis_block_time
 
                 
 
@@ -151,8 +157,8 @@ pl.handle_print_or_log({"____0001 2th"});
 pl.handle_print_or_log({"____0001 3th"});
                 // create block
                 // to_block_j["full_hash"] = prel_full_hash_req;
-                to_block_j["ecdsa_pub_key"] = imv_j.second["ecdsa_pub_key"];
-                to_block_j["rsa_pub_key"] = imv_j.second["rsa_pub_key"];
+                to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
+                to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
                 s_shptr_->push(to_block_j.dump());
 
                 // entry_tx_j["full_hash"] = to_block_j["full_hash"];

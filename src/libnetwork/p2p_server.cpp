@@ -371,12 +371,9 @@ pl.handle_print_or_log({"___0000 ip", std::to_string(parts.size())});
             Common::Crypto crypto;
             std::string message_s = message_j.dump();
             std::string hash = crypto.sha256_create(message_s);
-            std::pair<std::string, nlohmann::json> hash_msg_j;
-            hash_msg_j.first = hash;
-            hash_msg_j.second = message_j;
 
             // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
-            intro_msg_map_.add_to_intro_msg_map(hash_msg_j); // --> make pair: <hash of message_j, message_j>
+            intro_msg_map_.add_to_intro_msg_map(hash, message_j);
 
             ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(message_j["ip"], hash_of_email); // TODO you have to reset this
         }
@@ -458,12 +455,9 @@ void P2pSession::new_peer(nlohmann::json buf_j)
     Common::Crypto crypto;
     std::string message_s = buf_j.dump();
     std::string hash = crypto.sha256_create(message_s);
-    std::pair<std::string, nlohmann::json> hash_msg_j;
-    hash_msg_j.first = hash;
-    hash_msg_j.second = buf_j;
     
     // wait 20 seconds or > 1 MB to create block, to process the timestamp if you are the first new_peer request
-    intro_msg_map_.add_to_intro_msg_map(hash_msg_j);
+    intro_msg_map_.add_to_intro_msg_map(hash, buf_j);
 
     ip_hemail_vec_.add_ip_hemail_to_ip_hemail_vec(buf_j["ip"], buf_j["hash_of_email"]); // TODO you have to reset this
 
@@ -1480,7 +1474,10 @@ void P2pSession::intro_online(nlohmann::json buf_j)
             msg["crowd"]["imv"];
             for (auto& el: intro_msg_map_.get_intro_msg_map())
             {
-                msg["crowd"]["imv"][(*el).first] = (*el).second;
+                for (auto& elel: el.second)
+                {
+                    msg["crowd"]["imv"][el.first.first.str()] = (*elel).dump();            
+                }
             }
 
             msg["crowd"]["ihv"];
@@ -2311,8 +2308,8 @@ void P2pSession::update_you_server(nlohmann::json buf_j)
         {
             for (auto& [k3, v3] : v2.items())
             {
-                std::pair<std::string, nlohmann::json> myPair = std::make_pair(v3["first"], v3["second"]);
-                imm.add_intro_msg_to_intro_msg_s_vec(myPair);
+                imm.add_intro_msg_to_intro_msg_s_vec(v3);
+                pl.handle_print_or_log({"____00012 is v3 correct? must be tx:", v3.dump()});
             }
 
             imm.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
@@ -2342,12 +2339,13 @@ void P2pSession::update_you_server(nlohmann::json buf_j)
     nlohmann::json intro_msg_map_j = buf_j["crowd"]["imv"];
     nlohmann::json ip_hemail_vec_j = buf_j["crowd"]["ihv"];
 
+    Common::Crypto crypto;
     for (auto& [k, v]: intro_msg_map_j.items())
     {
-        std::pair<std::string, nlohmann::json> kv;
-        kv.first = k;
-        kv.second = v;
-        intro_msg_map_.add_to_intro_msg_map(kv);
+        // Get the hash of the transaction into place
+        std::string message_s = v.dump();
+        std::string hash = crypto.sha256_create(message_s);
+        intro_msg_map_.add_to_intro_msg_map(hash, v);
     }
 
     for (auto& [k, v]: ip_hemail_vec_j.items())
