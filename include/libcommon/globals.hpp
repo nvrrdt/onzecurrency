@@ -22,9 +22,9 @@ namespace Common
             return block_time;
         }
     private:
-        int use_log = 1;
-        int amount_of_chosen_ones = 128;
-        int max_pow = 7; // 2^max_pow = amount_of_shards
-        int block_time = 64; // must be 2^x
+        const int use_log = 1;
+        const int amount_of_chosen_ones = 128;
+        const int max_pow = 7; // 2^max_pow = amount_of_shards
+        const int block_time = 64; // must be 2^x
     };
 }
