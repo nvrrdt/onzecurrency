@@ -58,9 +58,9 @@ void Synchronisation::get_sleep_until()
     Common::Print_or_log pl;
 
     // get genesis datetime from latest block
-    uint64_t datetime;
-    std::istringstream iss(get_genesis_datetime());
-    iss >> datetime;
+    uint64_t genesis;
+    std::istringstream iss(get_genesis_datetime()); // TODO make static variable genesis_datetime
+    iss >> genesis;
 
     Common::Globals globals;
 
@@ -70,7 +70,7 @@ void Synchronisation::get_sleep_until()
         uint64_t now = std::chrono::system_clock::now().time_since_epoch().count();
 
         uint32_t shard_time = (globals.get_block_time() * 1000 /* milliseconds */ ) / static_cast<uint32_t>(pow(2, globals.get_max_pow()));
-        if ((now - datetime) % shard_time == 0) // let every shard run in time
+        if ((now - genesis) % shard_time == 0) // let every shard run in time
         {
             pl.handle_print_or_log({"break: datetime block ", std::to_string(now)});
 
@@ -78,7 +78,7 @@ void Synchronisation::get_sleep_until()
 
             set_break_block_creation_loops(true);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(shard_time));
             break;
         }
     }
