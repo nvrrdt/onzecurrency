@@ -47,11 +47,10 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
         req_conversion["close_same_conn"] =     13;
         req_conversion["close_this_conn"] =     14;
         req_conversion["close_this_conn_and_create"] =  15;
-        req_conversion["send_first_block"] =    16;
-        req_conversion["update_me"] =           17;
-        req_conversion["new_co_offline"] =      18;
-        req_conversion["update_you"] =          19;
-        req_conversion["new_co_online"] =       20;
+        req_conversion["update_me"] =           16;
+        req_conversion["new_co_offline"] =      17;
+        req_conversion["update_you"] =          18;
+        req_conversion["new_co_online"] =       19;
 
         switch (req_conversion[req])
         {
@@ -75,15 +74,13 @@ void P2pClient::handle_read_client(p2p_message read_msg_client)
                         break;
             case 15:    close_this_conn_and_create_client(buf_j);
                         break;
-            case 16:    send_first_block_received_client(buf_j);
+            case 16:    update_me_client(buf_j);
                         break;
-            case 17:    update_me_client(buf_j);
+            case 17:    new_co_offline_client(buf_j);
                         break;
-            case 18:    new_co_offline_client(buf_j);
+            case 18:    update_you_client(buf_j);
                         break;
-            case 19:    update_you_client(buf_j);
-                        break;
-            case 20:    new_co_online_client(buf_j);
+            case 19:    new_co_online_client(buf_j);
                         break;
 
             default:    pl.handle_print_or_log({"Function not found: error client"});
@@ -288,18 +285,6 @@ void P2pClient::close_this_conn_and_create_client(nlohmann::json buf_j)
     close();
     P2pNetwork pn;
     pn.set_closed_client("close_this_conn_and_create");
-}
-
-void P2pClient::send_first_block_received_client(nlohmann::json buf_j)
-{
-    Common::Print_or_log pl;
-    pl.handle_print_or_log({"Received first block (client)"});
-
-    nlohmann::json first_block_j = buf_j["block"];
-    std::string block_nr = "0";
-
-    merkle_tree mt;
-    mt.save_block_to_file(first_block_j, block_nr);
 }
 
 void P2pClient::update_me_client(nlohmann::json buf_j)
@@ -550,10 +535,6 @@ void P2pClient::update_you_client(nlohmann::json buf_j)
 {
     Common::Print_or_log pl;
     pl.handle_print_or_log({"Update_me: receive all blocks, rocksdb and matrices from server (client)"});
-
-    close();
-    P2pNetwork pn;
-    pn.set_closed_client("close_this_conn");
 
     ///////////
     // Update crowd

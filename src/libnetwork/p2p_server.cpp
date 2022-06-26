@@ -240,12 +240,183 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
 
             if (req_latest_block < my_latest_block || req_latest_block == "no blockchain present in folder")
             {
-                // Send first block to peer to enable datetime synchonisation
-                nlohmann::json first_block_j = proto->get_block_at("0");
+                Protocol proto;
+                Poco::BlockMatrix bm;
 
                 nlohmann::json msg;
-                msg["req"] = "send_first_block";
-                msg["block"] = first_block_j;
+                msg["req"] = "update_you";
+
+                pl.handle_print_or_log({"Update_you_crowd: send all blocks, rocksdb and matrices to server (server)"});
+
+                // Update blockchain
+                std::string from_genesis_crowd = "0";
+                msg["crowd"]["blocks"] = proto.get_blocks_from(from_genesis_crowd);
+
+                nlohmann::json list_of_users_j_crowd = nlohmann::json::parse(proto.get_all_users_from(from_genesis_crowd));
+                // TODO: there are double nlohmann::json::parse/dumps everywhere
+                // maybe even a stack is better ...
+                
+                // Update rocksdb
+                nlohmann::json rdb;
+                Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
+                for (auto& user : list_of_users_j_crowd)
+                {
+                    nlohmann::json usr;
+                    std::string u = user;
+                    nlohmann::json value_j = nlohmann::json::parse(rocksy5->Get(u));
+                    usr = {u: value_j};
+                    rdb.push_back(usr);
+                }
+                delete rocksy5;
+
+                msg["crowd"]["rocksdb"] = rdb;
+
+                // Update matrices
+                Poco::IntroMsgsMat imm;
+                Poco::IpAllHashes iah;
+                nlohmann::json contents_j;
+
+                for (int i = 0; i < bm.get_block_matrix().size(); i++)
+                {
+                    for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+                    {
+                        contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
+                    }
+                }
+                msg["crowd"]["bm"] = contents_j;
+                contents_j.clear();
+
+                for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
+                {
+                    for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
+                    {
+                        for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
+                        {
+                            contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
+                        }
+                    }
+                }
+                msg["crowd"]["imm"] = contents_j;
+                contents_j.clear();
+
+                for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+                {
+                    for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+                    {
+                        for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+                        {
+                            contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
+                            contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
+                        }
+                    }
+                }
+                msg["crowd"]["iah"] = contents_j;
+                contents_j.clear();
+
+                // Update intro_msg_map and ip_hemail_vec
+                msg["crowd"]["imv"];
+                for (auto& el: intro_msg_map_.get_intro_msg_map())
+                {
+                    for (auto& elel: el.second)
+                    {
+                        msg["crowd"]["imv"][el.first.first.str()] = (*elel).dump();            
+                    }
+                }
+
+                msg["crowd"]["ihv"];
+                for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
+                {
+                    msg["crowd"]["ihv"][(*el).first] = (*el).second;
+                }
+
+                // ///////
+                // // Update coin
+                // ///////
+                // pl.handle_print_or_log({"Update_you_coin: send all blocks, rocksdb and matrices to server (server)"});
+
+                // // Update blockchain
+                // ProtocolC protoc;
+                // std::string from_genesis_coin = "0";
+                // msg["coin"]["blocks"] = protoc.get_blocks_from_c(from_genesis_coin);
+
+                // nlohmann::json list_of_users_j_coin = nlohmann::json::parse(protoc.get_all_users_from_c(from_genesis_coin));
+                // // TODO: there are double nlohmann::json::parse/dumps everywhere
+                // // maybe even a stack is better ...
+
+                // // Update rocksdb
+                // nlohmann::json rdb;
+                // Rocksy* rocksy6 = new Rocksy("transactiondbreadonly");
+                // for (auto& user : list_of_users_j_coin)
+                // {
+                //     nlohmann::json usr;
+                //     std::string u = user;
+                //     nlohmann::json value_j = nlohmann::json::parse(rocksy6->Get(u));
+                //     usr = {u: value_j};
+                //     rdb.push_back(usr);
+                // }
+                // delete rocksy6;
+
+                // msg["coin"]["rocksdb"] = rdb;
+
+                // // Update matrices
+                // Poco::BlockMatrix bm;
+                // Poco::IntroMsgsMat imm;
+                // Poco::IpAllHashes iah;
+                // nlohmann::json contents_j;
+
+                // for (int i = 0; i < bm.get_block_matrix().size(); i++)
+                // {
+                //     for (int j = 0; j < bm.get_block_matrix().at(i).size(); j++)
+                //     {
+                //         contents_j[std::to_string(i)][std::to_string(j)] = *bm.get_block_matrix().at(i).at(j);
+                //     }
+                // }
+                // msg["coin"]["bm"] = contents_j;
+                // contents_j.clear();
+
+                // for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
+                // {
+                //     for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
+                //     {
+                //         for (int k = 0; k < imm.get_intro_msg_s_3d_mat().at(i).at(j).size(); k++)
+                //         {
+                //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)] = *imm.get_intro_msg_s_3d_mat().at(i).at(j).at(k);
+                //         }
+                //     }
+                // }
+                // msg["coin"]["imm"] = contents_j;
+                // contents_j.clear();
+
+                // for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
+                // {
+                //     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
+                //     {
+                //         for (int k = 0; k < iah.get_ip_all_hashes_3d_mat().at(i).at(j).size(); k++)
+                //         {
+                //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["first"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).first;
+                //             contents_j[std::to_string(i)][std::to_string(j)][std::to_string(k)]["second"] = (*iah.get_ip_all_hashes_3d_mat().at(i).at(j).at(k)).second;
+                //         }
+                //     }
+                // }
+                // msg["coin"]["iah"] = contents_j;
+                // contents_j.clear();
+
+                // // Update intro_msg_map and ip_hemail_vec
+                // msg["coin"]["imv"];
+                // for (auto& el: intro_msg_map_.get_intro_msg_map())
+                // {
+                //     msg["coin"]["imv"].push_back(*el);
+                // }
+
+                // msg["coin"]["ihv"];
+                // for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
+                // {
+                //     msg["coin"]["ihv"][(*el).first] = (*el).second;
+                // }
+
+                // Coin::P2pC pc;
+                // pc.set_coin_update_complete(true);
+
                 set_resp_msg_server(msg.dump());
             }
 

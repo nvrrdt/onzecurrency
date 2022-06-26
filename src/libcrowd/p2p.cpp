@@ -113,7 +113,6 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
             std::string full_hash = crypto.bech32_encode_sha256(email_prev_hash_app);
             rocksdb_j["full_hash"] = full_hash;
             rocksdb_j["block_nr"] = proto.get_last_block_nr();
-            pl.handle_print_or_log({"get last block number from the first block: ", rocksdb_j["block_nr"]});
             rocksdb_j["ecdsa_pub_key"] = message_j["ecdsa_pub_key"];
             rocksdb_j["rsa_pub_key"] = message_j["rsa_pub_key"];
 

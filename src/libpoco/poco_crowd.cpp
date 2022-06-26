@@ -64,11 +64,6 @@ pl.handle_print_or_log({"____0002 cpb"});
     ip_hemail_vec_.reset_ip_hemail_vec();
     intro_msg_map_.reset_intro_msg_map();
 pl.handle_print_or_log({"____0003 cpb"});
-    if (copy_intro_msg_map.empty()) return;
-    if (bm->get_block_matrix().empty()) return;
-pl.handle_print_or_log({"____0004 cpb"});
-pl.handle_print_or_log({"____0004.1 cpb", std::to_string(bm->get_block_matrix().size())});
-pl.handle_print_or_log({"____0004.2 cpb", std::to_string(bm->get_block_matrix().back().size())});
 
     /*
      * start the sifting process and save a final block
