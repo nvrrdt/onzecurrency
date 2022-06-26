@@ -33,15 +33,9 @@ std::string merkle_tree::time_now()
 {
     using namespace std::chrono;
 
-    system_clock::time_point now = system_clock::now();
+    uint64_t now = system_clock::now().time_since_epoch().count();
 
-    time_t tt = system_clock::to_time_t(now);
-    tm utc_tm = *gmtime(&tt);
-
-    char datetime[20];
-    sprintf(datetime, "%4d/%02d/%02d %02d:%02d:%02d", 1900 + utc_tm.tm_year, utc_tm.tm_mon + 1, utc_tm.tm_mday, utc_tm.tm_hour, utc_tm.tm_min, utc_tm.tm_sec);
-
-    return datetime;
+    return std::to_string(now);
 }
 
 std::shared_ptr<std::stack<std::string>> merkle_tree::calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr)
