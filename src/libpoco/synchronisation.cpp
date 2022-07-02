@@ -49,7 +49,7 @@ void Synchronisation::get_sleep_and_create_block()
     //t1.join();
     t2.detach();
 
-    set_break_block_creation_loops(false);
+    set_break_block_creation_loops(false); //--> break and poco_crowd is running together, poco_crowd must run until end, and break may disappear I guess
 
     get_sleep_and_create_block();
 }
@@ -88,7 +88,7 @@ void Synchronisation::get_sleep_until()
 
             set_datetime_now(std::to_string(now));
 
-            set_break_block_creation_loops(true);
+            //set_break_block_creation_loops(true); // preliminary commenting out, none of these breaks work now
 
             std::this_thread::sleep_for(std::chrono::milliseconds(shard_time));
             break;
