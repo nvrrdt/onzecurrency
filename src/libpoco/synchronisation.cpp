@@ -8,6 +8,7 @@
 
 #include "print_or_log.hpp"
 #include "globals.hpp"
+#include "sharding.hpp"
 
 
 using namespace Poco;
@@ -66,8 +67,9 @@ void Synchronisation::get_sleep_until()
     iss >> genesis;
 
     Common::Globals globals;
+    Poco::DatabaseSharding dbs;
 
-    uint32_t shard_time = (globals.get_block_time() * 1000 /* milliseconds */ ) / static_cast<uint32_t>(pow(2, globals.get_max_pow()));
+    uint32_t shard_time = (globals.get_block_time() * 1000 /* milliseconds */ ) / dbs.get_amount_of_shards();
 
     for (;;)
     {
