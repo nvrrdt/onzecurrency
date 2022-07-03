@@ -51,7 +51,6 @@ pl.handle_print_or_log({"____0000 cpb"});
     nlohmann::json rocksdb_out;
     std::string my_next_block_nr;
 
-    uint16_t limit_count = 0;
     std::string datetime = sync.get_datetime_now();
 pl.handle_print_or_log({"____0002 cpb"});
     BlockMatrix *bm = new BlockMatrix();
@@ -194,9 +193,6 @@ pl.handle_print_or_log({"____0005 3th"});
         ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
 pl.handle_print_or_log({"____0006 3th"});
         delete mt;
-
-        limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
-        if (limit_count == 100) sync.set_break_block_creation_loops(true);
     }
 
     // clear these vectors
@@ -277,8 +273,6 @@ pl.handle_print_or_log({"____0004 inf"});
         std::string v;
         for (auto &[k, v] : parts)
         {
-            if (sync.get_break_block_creation_loops()) break;
-
             if (v == "0" || v == "") break; // TODO the parts need to be refactored everywhere as it's an ugly hack
 
             message_j["chosen_ones"].push_back(v);
@@ -306,8 +300,6 @@ pl.handle_print_or_log({"____0005 inf", message_j["chosen_ones"].dump()});
         // bool is_part = false;
         for (auto &[key, val] : parts)
         {
-            if (sync.get_break_block_creation_loops()) break;
-
 //             for (auto& element: bm.get_new_users()) // --> new user's full_hash isn't know at this time
 //             {
 // pl.handle_print_or_log({"____0005.1 inf", element});

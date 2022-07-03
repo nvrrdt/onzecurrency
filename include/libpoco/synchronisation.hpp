@@ -30,17 +30,8 @@ namespace Poco
         }
         void get_sleep_and_create_block();
 
-        static bool get_break_block_creation_loops()
-        {
-            return break_block_creation_loops_;
-        }
-
         std::string get_genesis_datetime();
 
-        static void set_break_block_creation_loops(bool break_loops)
-        {
-            break_block_creation_loops_ = break_loops;
-        }
         static std::string get_datetime_now();
     private:
         void get_sleep_until();
@@ -55,7 +46,6 @@ namespace Poco
         BlockMatrix *bm_crowd_ = new Poco::BlockMatrix();
         BlockMatrixC *bm_coin_ = new Poco::BlockMatrixC();
 
-        static bool break_block_creation_loops_;
         static std::string datetime_;
     };
 }

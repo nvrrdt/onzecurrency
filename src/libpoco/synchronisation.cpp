@@ -14,7 +14,6 @@
 using namespace Poco;
 using namespace std::chrono;
 
-bool Synchronisation::break_block_creation_loops_ = false;
 std::string Synchronisation::datetime_ = "";
 
 /**
@@ -49,8 +48,6 @@ void Synchronisation::get_sleep_and_create_block()
 
     //t1.join();
     t2.detach();
-
-    set_break_block_creation_loops(false); //--> break and poco_crowd is running together, poco_crowd must run until end, and break may disappear I guess
 
     get_sleep_and_create_block();
 }
@@ -89,8 +86,6 @@ void Synchronisation::get_sleep_until()
             pl.handle_print_or_log({"break: datetime block ", std::to_string(now), ss.str()});
 
             set_datetime_now(std::to_string(now));
-
-            //set_break_block_creation_loops(true); // preliminary commenting out, none of these breaks work now
 
             std::this_thread::sleep_for(std::chrono::milliseconds(shard_time));
             break;
