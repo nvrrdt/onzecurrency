@@ -70,8 +70,7 @@ pl.handle_print_or_log({"____0003 cpb"});
      * --> must be in beginning of loops at start of block_creation_delay
      * --> because of synchronisation or so, I think somehow new blocks need to be communicated at the start of block_creation and not afterwards
      */
-    bm->sifting_function_for_both_block_matrices();
-    bm->save_final_block_to_file(); // --> does this save correctly?
+    if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
 
     // Start of the loops
     for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)

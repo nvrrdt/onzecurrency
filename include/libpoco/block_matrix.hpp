@@ -39,7 +39,7 @@ namespace Poco
         static std::deque<std::deque<std::shared_ptr<nlohmann::json>>> get_sent_block_matrix();
         static void clear_sent_block_matrix();
 
-        static void sifting_function_for_both_block_matrices();
+        static bool sifting_function_for_both_block_matrices();
         static void save_final_block_to_file();
 
         static void add_to_new_users(std::string full_hash_req);

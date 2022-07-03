@@ -177,7 +177,7 @@ void BlockMatrix::clear_new_users()
     new_users_.clear();
 }
 
-void BlockMatrix::sifting_function_for_both_block_matrices()
+bool BlockMatrix::sifting_function_for_both_block_matrices()
 {
     // Compare block_matrix with received_block_matrix and remove not received entries from block_matrix
 
@@ -200,7 +200,7 @@ pl.handle_print_or_log({"__005"});
 pl.handle_print_or_log({"__006"});
 
     // sifting function must run before poco_crowd loops, but at start bloakc_matrix size is zero so return here
-    if (get_block_matrix().size() == 0) return;
+    if (get_block_matrix().size() == 0) return false;
 
 pl.handle_print_or_log({"evaluate_both_block_matrices m", std::to_string(get_block_matrix().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices v", std::to_string(get_block_matrix().back().size())});
@@ -214,7 +214,7 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
 
     if (get_block_matrix().back().size() == 0 ||
         get_calculated_hash_matrix().back().size() == 0 ||
-        get_prev_hash_matrix().back().size() == 0) return;
+        get_prev_hash_matrix().back().size() == 0) return false;
 
 // // for debugging purposes:
 // pl.handle_print_or_log({"recv_block_matrix size", std::to_string(copy_received_block_matrix.size())});
@@ -428,6 +428,8 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
         //     }
         // }
     }
+
+    return true;
 }
 
 void BlockMatrix::save_final_block_to_file()
