@@ -72,73 +72,65 @@ pl.handle_print_or_log({"____0003 cpb"});
      */
     if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
 
-    // Start of the loops
-    for (uint16_t i = 0; i < bm->get_block_matrix().back().size(); i++)
-    {
-        pl.handle_print_or_log({"Crowd: 1st for loop with block matrix", std::to_string(i)});
+    /**
+     * What needs to be done in poco v2:
+     * - create a block from the txs in a shard
+     * - create also a block while removeing txs from the vector in the shard
+     * 
+     */
 
-        if (sync.get_break_block_creation_loops()) break;
+    Crowd::merkle_tree *mt = new Crowd::merkle_tree();
 
-        /// base new_blocks on prev_blocks: prev_blocks --> decreasing txs --> count to 10
-        // in the future there will be a lot of finetuning work on this function
-        // preliminarly this is ok
-
-        for (uint16_t j = copy_intro_msg_map.size(); j > 0; j--) // Decrease the amount of transactions in the blocks
-        {
-            pl.handle_print_or_log({"Crowd: 2nd for loop with block matrix", std::to_string(j)});
-
-            if (sync.get_break_block_creation_loops()) break;
-
-            /**
-             * - a block is created per shard --> are preliminary blocks still necessary?
-             * - the FindShardChosenOnes() and then communicate the blocks to all users the poco v1 way
-             * - finalizing the block happens later at the next block, then the prev_hash is known
-             * - adapt the above comments
-             * 
-             * - a finalize function must be added where the prev_hash is added
-             * - inform_chosen_ones_prel_block() (must be renamed) sends a block without prev_hash
-             *   while the prev_hashes from a block_creation_delay earlier must be communicated and validated
-             * - the sifting function must run independently every start of block_creation_delay,
-             *   sifting only for parallel blocks with different amount of transactions
-             * 
-             */
-
-            Crowd::merkle_tree *mt = new Crowd::merkle_tree();
-
-            nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
-            nlohmann::json to_block_j;
-            std::string fh_s;
-            std::string prel_full_hash_req;
+    std::vector<std::shared_ptr<nlohmann::json>> txs_bucket_vec;
+    nlohmann::json imv_j, entry_tx_j, entry_transactions_j, exit_tx_j, exit_transactions_j;
+    nlohmann::json to_block_j;
+    std::string fh_s;
+    std::string prel_full_hash_req;
 pl.handle_print_or_log({"____0000 2th"});
-            // std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
+    // std::string prel_prev_hash_req = *bm->get_calculated_hash_matrix().back().at(i);
 pl.handle_print_or_log({"____0001 2th"});
-            Crowd::P2p p2p;
-            std::string ip_quad;
+    Crowd::P2p p2p;
+    std::string ip_quad;
 
-            for (int l = 0; l < j; l++) // Add the transactions till the i-th transaction to the block
-            {
-                pl.handle_print_or_log({"Crowd: 3th for loop with block matrix", std::to_string(l)});
+    /**
+     * - a block is created per shard --> are preliminary blocks still necessary?
+     * - the FindShardChosenOnes() and then communicate the blocks to all users the poco v1 way
+     * - finalizing the block happens later at the next block, then the prev_hash is known
+     * - adapt the above comments
+     * 
+     * - a finalize function must be added where the prev_hash is added
+     * - inform_chosen_ones_prel_block() (must be renamed) sends a block without prev_hash
+     *   while the prev_hashes from a block_creation_delay earlier must be communicated and validated
+     * - the sifting function must run independently every start of block_creation_delay,
+     *   sifting only for parallel blocks with different amount of transactions
+     * 
+     */
+
+    // Which shard?
+    Poco::DatabaseSharding ds;
+    auto shard_number = ds.which_shard_to_process();
+
+    // Get transactions from correct shard
+    auto it = copy_intro_msg_map.begin();
+    std::advance(it, shard_number);
+    txs_bucket_vec = it->second;
+
+    // Start of the loops
+    for (uint32_t i = txs_bucket_vec.size(); i > 0; i--) // Amount of comprised transactions differs
+    {
+        pl.handle_print_or_log({"Crowd: 1th for loop", std::to_string(i)});
+
+        for (int j = 0; j < i; j++) // Add the transactions till the j-th transaction to the block
+        {
+            pl.handle_print_or_log({"Crowd: 2nd for loop", std::to_string(j)});
+
+            imv_j = *txs_bucket_vec.at(j);
                 
-                Poco::DatabaseSharding ds;
-                auto shard_number = ds.which_shard_to_process();
+            // link an ip to a user
+            std::shared_ptr<std::pair<std::string, std::string>> ip_hemail = copy_ip_hemail_vec.at(j);
+            ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
-                auto it = copy_intro_msg_map.begin();
-                std::advance(it, shard_number);
-                imv_j = *(it->second).at(l);
-                
-
-                // put hash_imv_j in the now treated shard, remove or continue depending on shard
-                // calculate the timing of shard handling based on genesis_block_time
-
-                
-
-
-
-                // link an ip to a user
-                std::shared_ptr<std::pair<std::string, std::string>> ip_hemail = copy_ip_hemail_vec.at(l);
-                ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
-
-                // create prel full hash
+            // create prel full hash
 //                 Common::Crypto crypto;
 //                 std::string hash_of_email = imv_j["hash_of_email"];
 //                 std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; 
@@ -147,65 +139,64 @@ pl.handle_print_or_log({"____0001 2th"});
 //                 // update rocksdb
 //                 imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
 //                 imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
-                intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
+            intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
 pl.handle_print_or_log({"____0001 3th"});
-                // create block
-                // to_block_j["full_hash"] = prel_full_hash_req;
-                to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
-                to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
-                s_shptr_->push(to_block_j.dump());
+            // create block
+            // to_block_j["full_hash"] = prel_full_hash_req;
+            to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
+            to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
+            s_shptr_->push(to_block_j.dump());
 
-                // entry_tx_j["full_hash"] = to_block_j["full_hash"];
-                entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
-                entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
-                entry_transactions_j.push_back(entry_tx_j);
-                exit_tx_j["full_hash"] = "";
-                exit_transactions_j.push_back(exit_tx_j);
+            // entry_tx_j["full_hash"] = to_block_j["full_hash"];
+            entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
+            entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
+            entry_transactions_j.push_back(entry_tx_j);
+            exit_tx_j["full_hash"] = "";
+            exit_transactions_j.push_back(exit_tx_j);
 
-                // Sometimes new_prel_block() is received before your_full_hash is received
-                // and then it doesn't work
-                add_to_new_users_ip((*ip_hemail).first);
-                // bm->add_to_new_users(prel_full_hash_req);
-            }
+            // Sometimes new_prel_block() is received before your_full_hash is received
+            // and then it doesn't work
+            add_to_new_users_ip((*ip_hemail).first);
+            // bm->add_to_new_users(prel_full_hash_req);
+        }
 
-            s_shptr_ = mt->calculate_root_hash(s_shptr_);
-            std::string root_hash_data = s_shptr_->top();
-            block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
+        s_shptr_ = mt->calculate_root_hash(s_shptr_);
+        std::string root_hash_data = s_shptr_->top();
+        block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
 pl.handle_print_or_log({"____0002 3th"});
-            // block_j_["prev_hash"] = prel_prev_hash_req;
+        // block_j_["prev_hash"] = prel_prev_hash_req;
 pl.handle_print_or_log({"____0003 3th"});
-            Crowd::Protocol proto;
-            std::string my_last_block_nr = proto.get_last_block_nr();
+        Crowd::Protocol proto;
+        std::string my_last_block_nr = proto.get_last_block_nr();
 pl.handle_print_or_log({"____0003.1 3th"});
-            uint64_t value;
-            std::istringstream iss(my_last_block_nr);
-            iss >> value;
-            value++;
-            std::ostringstream oss;
-            oss << value;
-            my_next_block_nr = oss.str();
+        uint64_t value;
+        std::istringstream iss(my_last_block_nr);
+        iss >> value;
+        value++;
+        std::ostringstream oss;
+        oss << value;
+        my_next_block_nr = oss.str();
 pl.handle_print_or_log({"____0003.2 3th"});
-            // send hash of this block with the block contents to the co's, forget save_block_to_file
-            // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
+        // send hash of this block with the block contents to the co's, forget save_block_to_file
+        // is the merkle tree sorted, then find the last blocks that are gathered for all the co's
 
-            // send intro_block to co's
-            inform_network_prel_block(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
+        // send intro_block to co's
+        inform_network_prel_block(my_next_block_nr, block_j_); // sending prev_hashes for finalization and sending prel_blocks
 pl.handle_print_or_log({"____0004 3th"});
-            // Add blocks to vector<vector<block_j_>>
-            bm->add_block_to_block_vector(block_j_);
-            bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
-            bm->add_prev_hash_to_prev_hash_vector(block_j_);
+        // Add blocks to vector<vector<block_j_>>
+        bm->add_block_to_block_vector(block_j_);
+        bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
+        bm->add_prev_hash_to_prev_hash_vector(block_j_);
 pl.handle_print_or_log({"____0005 3th"});
-            // Update rocksdb and prepare your_full_hash
-            intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
-            ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
+        // Update rocksdb and prepare your_full_hash
+        intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
+        ip_all_hashes_.add_ip_all_hashes_vec_to_ip_all_hashes_2d_mat();
 pl.handle_print_or_log({"____0006 3th"});
-            delete mt;
+        delete mt;
 
-            limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
-            if (limit_count == 100) sync.set_break_block_creation_loops(true);
-        }
+        limit_count++; // TODO this 100 is a variable that can be changed, there are others as well
+        if (limit_count == 100) sync.set_break_block_creation_loops(true);
     }
 
     // clear these vectors
