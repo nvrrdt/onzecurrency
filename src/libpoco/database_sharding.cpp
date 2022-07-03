@@ -206,8 +206,8 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
     std::istringstream iss(sync.get_genesis_datetime()); // TODO create a global vaiable from this genesis datetime
     iss >> genesis;
 
-    Common::Globals globals;
-    uint32_t shard_number = (now - genesis) % (globals.get_block_time() * 1000);
+    Poco::DatabaseSharding dbs;
+    uint32_t shard_number = (now - genesis) % (dbs.get_amount_of_shards() * 1000);
 
     return shard_number;
 }
