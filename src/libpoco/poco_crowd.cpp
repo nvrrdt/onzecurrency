@@ -70,11 +70,12 @@ pl.handle_print_or_log({"____0003 cpb"});
      * --> because of synchronisation or so, I think somehow new blocks need to be communicated at the start of block_creation and not afterwards
      */
     if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
+    if (copy_intro_msg_map.size() == 0) return;
 
     /**
      * What needs to be done in poco v2:
      * - create a block from the txs in a shard
-     * - create also a block while removeing txs from the vector in the shard
+     * - create also a block while removing txs from the vector in the shard
      * 
      */
 
@@ -108,12 +109,12 @@ pl.handle_print_or_log({"____0001 2th"});
     // Which shard?
     Poco::DatabaseSharding ds;
     auto shard_number = ds.which_shard_to_process();
-
+pl.handle_print_or_log({"____0001.1 2th", std::to_string(shard_number), std::to_string(copy_intro_msg_map.size())});
     // Get transactions from correct shard
     auto it = copy_intro_msg_map.begin();
     std::advance(it, shard_number);
     txs_bucket_vec = it->second;
-
+pl.handle_print_or_log({"____0001.2 2th"});
     // Start of the loops
     for (uint32_t i = txs_bucket_vec.size(); i > 0; i--) // Amount of comprised transactions differs
     {
@@ -145,22 +146,28 @@ pl.handle_print_or_log({"____0001 3th"});
             to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
             to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
             s_shptr_->push(to_block_j.dump());
-
+pl.handle_print_or_log({"____0001.1 3th"});
             // entry_tx_j["full_hash"] = to_block_j["full_hash"];
             entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
             entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
             entry_transactions_j.push_back(entry_tx_j);
             exit_tx_j["full_hash"] = "";
             exit_transactions_j.push_back(exit_tx_j);
-
+pl.handle_print_or_log({"____0001.2 3th"});
             // Sometimes new_prel_block() is received before your_full_hash is received
             // and then it doesn't work
             add_to_new_users_ip((*ip_hemail).first);
             // bm->add_to_new_users(prel_full_hash_req);
+pl.handle_print_or_log({"____0001.3 3th"});
         }
 
         s_shptr_ = mt->calculate_root_hash(s_shptr_);
+pl.handle_print_or_log({"____0001.4 3th"});
         std::string root_hash_data = s_shptr_->top();
+pl.handle_print_or_log({"____0001.5 3th"});
+pl.handle_print_or_log({"____0001.5 3th", datetime});
+pl.handle_print_or_log({"____0001.5 3th", root_hash_data});
+pl.handle_print_or_log({"____0001.5 3th", entry_transactions_j.dump()}); // full_hash is missing
         block_j_ = mt->create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);
 
 pl.handle_print_or_log({"____0002 3th"});

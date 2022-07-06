@@ -214,7 +214,7 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
 
     if (get_block_matrix().back().size() == 0 ||
         get_calculated_hash_matrix().back().size() == 0 ||
-        get_prev_hash_matrix().back().size() == 0) return false;
+        get_prev_hash_matrix().back().size() == 0) return true;
 
 // // for debugging purposes:
 // pl.handle_print_or_log({"recv_block_matrix size", std::to_string(copy_received_block_matrix.size())});

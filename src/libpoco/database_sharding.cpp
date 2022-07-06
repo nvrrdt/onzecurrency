@@ -192,6 +192,8 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
  */
  uint32_t DatabaseSharding::which_shard_to_process()
 {
+    Common::Print_or_log pl;
+
     // get_time
     // get_genesis_time
     // divide the shards over block_time
@@ -207,7 +209,7 @@ std::vector<std::string> DatabaseSharding::get_shard_users(std::string user_id)
     iss >> genesis;
 
     Poco::DatabaseSharding dbs;
-    uint32_t shard_number = (now - genesis) % (dbs.get_amount_of_shards() * 1000);
-
+    uint32_t shard_number = ((now - genesis) / 1000) % dbs.get_amount_of_shards();
+pl.handle_print_or_log({"___0000 wstp", std::to_string(shard_number), std::to_string(dbs.get_amount_of_shards())});
     return shard_number;
 }
