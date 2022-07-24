@@ -187,8 +187,8 @@ pl.handle_print_or_log({"____0003.2 3th"});
 pl.handle_print_or_log({"____0004 3th"});
         // Add blocks to vector<vector<block_j_>>
         bm->add_block_to_block_vector(block_j_);
-        bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
-        bm->add_prev_hash_to_prev_hash_vector(block_j_);
+        // bm->add_calculated_hash_to_calculated_hash_vector(block_j_);
+        // bm->add_prev_hash_to_prev_hash_vector(block_j_);
 pl.handle_print_or_log({"____0005 3th"});
         // Update rocksdb and prepare your_full_hash
         intro_msg_s_mat_.add_intro_msg_s_vec_to_intro_msg_s_2d_mat();
@@ -203,8 +203,8 @@ pl.handle_print_or_log({"____0006 3th"});
 pl.handle_print_or_log({"____0007 3th"});
     // fill the matrices
     bm->add_block_vector_to_block_matrix();
-    bm->add_calculated_hash_vector_to_calculated_hash_matrix();
-    bm->add_prev_hash_vector_to_prev_hash_matrix();
+    // bm->add_calculated_hash_vector_to_calculated_hash_matrix();
+    // bm->add_prev_hash_vector_to_prev_hash_matrix();
 pl.handle_print_or_log({"____0008 3th"});
     intro_msg_s_mat_.add_intro_msg_s_2d_mat_to_intro_msg_s_3d_mat();
     ip_all_hashes_.add_ip_all_hashes_2d_mat_to_ip_all_hashes_3d_mat();
