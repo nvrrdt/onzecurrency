@@ -130,24 +130,19 @@ pl.handle_print_or_log({"____0001.2 2th"});
             std::shared_ptr<std::pair<std::string, std::string>> ip_hemail = copy_ip_hemail_vec.at(j);
             ip_all_hashes_.add_ip_hemail_to_ip_all_hashes_vec(ip_hemail);
 
-            // create prel full hash
-//                 Common::Crypto crypto;
-//                 std::string hash_of_email = imv_j["hash_of_email"];
-//                 std::string email_prev_hash_concatenated = hash_of_email + prel_prev_hash_req; 
-//                 prel_full_hash_req =  crypto.bech32_encode_sha256(email_prev_hash_concatenated);
-// pl.handle_print_or_log({"____0000 3th"});
+pl.handle_print_or_log({"____0000 3th"});
 //                 // update rocksdb
 //                 imv_j["rocksdb"]["prev_hash"] = prel_prev_hash_req;
 //                 imv_j["rocksdb"]["full_hash"] = prel_full_hash_req;
             intro_msg_s_mat_.add_intro_msg_to_intro_msg_s_vec(imv_j);
 pl.handle_print_or_log({"____0001 3th"});
             // create block
-            // to_block_j["full_hash"] = prel_full_hash_req;
+            to_block_j["full_hash"] = "incomplete";
             to_block_j["ecdsa_pub_key"] = imv_j["ecdsa_pub_key"];
             to_block_j["rsa_pub_key"] = imv_j["rsa_pub_key"];
             s_shptr_->push(to_block_j.dump());
 pl.handle_print_or_log({"____0001.1 3th"});
-            // entry_tx_j["full_hash"] = to_block_j["full_hash"];
+            entry_tx_j["full_hash"] = to_block_j["full_hash"];
             entry_tx_j["ecdsa_pub_key"] = to_block_j["ecdsa_pub_key"];
             entry_tx_j["rsa_pub_key"] = to_block_j["rsa_pub_key"];
             entry_transactions_j.push_back(entry_tx_j);
