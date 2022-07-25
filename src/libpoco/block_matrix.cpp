@@ -212,6 +212,16 @@ pl.handle_print_or_log({"evaluate_both_block_matrices vphfc", std::to_string(get
 pl.handle_print_or_log({"evaluate_both_block_matrices rm", std::to_string(get_received_block_matrix().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_received_block_matrix().back().size())});
 
+    /**
+     * @brief Poco v2 how?
+     * 
+     * - also save empty blocks (with a place holder) every second  (or so) --> in create_prel_blocks()
+     * - store prel blocks every second (or so) for one block_time (1 minute or so)
+     * - calculated_hashes and prev_hashes are assembled after block_time --> they don't need to be stored I think
+     * - where to add the prev_hash to the block to finalize? should be called in the sifting, but implemented in separate function
+     * 
+     */
+
     if (get_block_matrix().back().size() == 0 ||
         get_calculated_hash_matrix().back().size() == 0 ||
         get_prev_hash_matrix().back().size() == 0) return true;
