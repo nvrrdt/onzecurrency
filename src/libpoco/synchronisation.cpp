@@ -71,11 +71,11 @@ void Synchronisation::get_sleep_until()
     for (;;)
     {
         // get system datetime
-        uint64_t now = std::chrono::system_clock::now().time_since_epoch().count();
+        auto now = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())).count();
 
-// pl.handle_print_or_log({"____00000 gsu", std::to_string(shard_time), std::to_string(now - genesis)});
         if ((now - genesis) % shard_time == 0) // let every shard run in time
         {
+pl.handle_print_or_log({"____0000 gsu", std::to_string(shard_time), std::to_string(genesis), std::to_string(now), std::to_string(now - genesis)});
             std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
             std::time_t tt = std::chrono::system_clock::to_time_t(time);
             std::tm tm = *std::gmtime(&tt); //GMT (UTC)
@@ -87,7 +87,7 @@ void Synchronisation::get_sleep_until()
 
             set_datetime_now(std::to_string(now));
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(shard_time));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             break;
         }
     }

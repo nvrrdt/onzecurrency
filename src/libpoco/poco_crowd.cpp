@@ -69,7 +69,7 @@ pl.handle_print_or_log({"____0003 cpb"});
      * --> must be in beginning of loops at start of block_creation_delay
      * --> because of synchronisation or so, I think somehow new blocks need to be communicated at the start of block_creation and not afterwards
      */
-    if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
+
     if (copy_intro_msg_map.size() == 0)
     {
         // Add an empty block
@@ -81,6 +81,7 @@ pl.handle_print_or_log({"____0003 cpb"});
 
         return;
     } // TODO: make an else statement
+    if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
 
     /**
      * What needs to be done in poco v2:

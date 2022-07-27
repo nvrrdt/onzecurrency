@@ -153,7 +153,7 @@ bool P2p::start_crowd(std::map<std::string, std::string> cred)
                     entry_transactions_j.push_back(entry_tx_j);
                     exit_tx_j["full_hash"] = "";
                     exit_transactions_j.push_back(exit_tx_j);
-                    std::string datetime = mt.time_now();
+                    std::string datetime = std::to_string(mt.time_now().count());
                     std::string root_hash_data = s_shptr->top();
     pl.handle_print_or_log({"root_hash_data:", root_hash_data});
                     nlohmann::json block_j = mt.create_block(datetime, root_hash_data, entry_transactions_j, exit_transactions_j);

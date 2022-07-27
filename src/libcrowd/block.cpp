@@ -29,13 +29,11 @@
 
 using namespace Crowd;
 
-std::string merkle_tree::time_now()
+std::chrono::milliseconds merkle_tree::time_now()
 {
-    using namespace std::chrono;
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 
-    uint64_t now = system_clock::now().time_since_epoch().count();
-
-    return std::to_string(now);
+    return now;
 }
 
 std::shared_ptr<std::stack<std::string>> merkle_tree::calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr)

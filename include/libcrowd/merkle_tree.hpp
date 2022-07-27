@@ -6,6 +6,8 @@
 #include <stack>
 #include <memory>
 
+#include <chrono>
+
 #include "json.hpp"
 
 namespace Crowd
@@ -15,7 +17,7 @@ namespace Crowd
     public:
         int prep_block_creation();
         nlohmann::json create_block(std::string &datetime, std::string &root_hash_data, nlohmann::json &entry_data_j, nlohmann::json &exit_data_j);
-        std::string time_now();
+        std::chrono::milliseconds time_now();
         std::shared_ptr<std::stack<std::string>> calculate_root_hash(std::shared_ptr<std::stack<std::string>> &s_shptr);
         std::string save_block_to_file(nlohmann::json &block_j, std::string &latest_block);
         std::string get_genesis_prev_hash();
