@@ -70,7 +70,17 @@ pl.handle_print_or_log({"____0003 cpb"});
      * --> because of synchronisation or so, I think somehow new blocks need to be communicated at the start of block_creation and not afterwards
      */
     if (bm->sifting_function_for_both_block_matrices()) bm->save_final_block_to_file(); // --> does this save correctly?
-    if (copy_intro_msg_map.size() == 0) return;
+    if (copy_intro_msg_map.size() == 0)
+    {
+        // Add an empty block
+        block_j_ = { "entry", "false" };
+        bm->add_block_to_block_vector(block_j_);
+        bm->add_block_vector_to_block_matrix();
+        copy_ip_hemail_vec.clear();
+        copy_intro_msg_map.clear();
+
+        return;
+    } // TODO: make an else statement
 
     /**
      * What needs to be done in poco v2:

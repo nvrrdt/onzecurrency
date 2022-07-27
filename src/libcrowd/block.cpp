@@ -125,6 +125,8 @@ nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &roo
         j["entry"][user_count]["ecdsa_pub_key"] = ecdsa_pub_key;
         j["entry"][user_count]["rsa_pub_key"] = rsa_pub_key;
 
+        j["entry"] = true;
+
         user_count++;
     }
 

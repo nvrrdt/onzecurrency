@@ -204,10 +204,6 @@ pl.handle_print_or_log({"__006"});
 
 pl.handle_print_or_log({"evaluate_both_block_matrices m", std::to_string(get_block_matrix().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices v", std::to_string(get_block_matrix().back().size())});
-pl.handle_print_or_log({"evaluate_both_block_matrices mcph", std::to_string(get_calculated_hash_matrix().size())});
-pl.handle_print_or_log({"evaluate_both_block_matrices vcph", std::to_string(get_calculated_hash_matrix().back().size())});
-pl.handle_print_or_log({"evaluate_both_block_matrices mphfc", std::to_string(get_prev_hash_matrix().size())});
-pl.handle_print_or_log({"evaluate_both_block_matrices vphfc", std::to_string(get_prev_hash_matrix().back().size())});
 
 pl.handle_print_or_log({"evaluate_both_block_matrices rm", std::to_string(get_received_block_matrix().size())});
 pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_received_block_matrix().back().size())});
@@ -222,9 +218,8 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
      * 
      */
 
-    if (get_block_matrix().back().size() == 0 ||
-        get_calculated_hash_matrix().back().size() == 0 ||
-        get_prev_hash_matrix().back().size() == 0) return true;
+    auto entry = (*(get_block_matrix().back().at(0))).at("entry");
+    if (entry == false) return true; // TODO: make an else statement
 
 // // for debugging purposes:
 // pl.handle_print_or_log({"recv_block_matrix size", std::to_string(copy_received_block_matrix.size())});
