@@ -111,6 +111,7 @@ nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &roo
         {"hash_co", root_hash_data}
     };
 
+    if (entry_data_j.empty()) j["new_entries"] = false;
     int user_count = 0;
     for (auto& element : entry_data_j) {
         std::string full_hash, ecdsa_pub_key, rsa_pub_key;
@@ -123,7 +124,7 @@ nlohmann::json merkle_tree::create_block(std::string &datetime, std::string &roo
         j["entry"][user_count]["ecdsa_pub_key"] = ecdsa_pub_key;
         j["entry"][user_count]["rsa_pub_key"] = rsa_pub_key;
 
-        j["entry"] = true;
+        j["new_entries"] = true;
 
         user_count++;
     }

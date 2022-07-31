@@ -218,8 +218,8 @@ pl.handle_print_or_log({"evaluate_both_block_matrices rv", std::to_string(get_re
      * 
      */
 
-    auto entry = (*(get_block_matrix().back().at(0))).at("entry");
-    if (entry == false) return true; // TODO: make an else statement
+    auto new_entries = (*(get_block_matrix().back().at(0))).at("new_entries");
+    if (new_entries == false) return true; // TODO: make an else statement
 
 // // for debugging purposes:
 // pl.handle_print_or_log({"recv_block_matrix size", std::to_string(copy_received_block_matrix.size())});

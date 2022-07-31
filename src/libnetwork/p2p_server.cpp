@@ -255,7 +255,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                 nlohmann::json list_of_users_j_crowd = nlohmann::json::parse(proto.get_all_users_from(from_genesis_crowd));
                 // TODO: there are double nlohmann::json::parse/dumps everywhere
                 // maybe even a stack is better ...
-                
+pl.handle_print_or_log({"___0000 ip"});
                 // Update rocksdb
                 nlohmann::json rdb;
                 Rocksy* rocksy5 = new Rocksy("usersdbreadonly");
@@ -268,7 +268,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                     rdb.push_back(usr);
                 }
                 delete rocksy5;
-
+pl.handle_print_or_log({"___0001 ip"});
                 msg["crowd"]["rocksdb"] = rdb;
 
                 // Update matrices
@@ -285,7 +285,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                 }
                 msg["crowd"]["bm"] = contents_j;
                 contents_j.clear();
-
+pl.handle_print_or_log({"___0002 ip"});
                 for (int i = 0; i < imm.get_intro_msg_s_3d_mat().size(); i++)
                 {
                     for (int j = 0; j < imm.get_intro_msg_s_3d_mat().at(i).size(); j++)
@@ -298,7 +298,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                 }
                 msg["crowd"]["imm"] = contents_j;
                 contents_j.clear();
-
+pl.handle_print_or_log({"___0003 ip"});
                 for (int i = 0; i < iah.get_ip_all_hashes_3d_mat().size(); i++)
                 {
                     for (int j = 0; j < iah.get_ip_all_hashes_3d_mat().at(i).size(); j++)
@@ -312,7 +312,7 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                 }
                 msg["crowd"]["iah"] = contents_j;
                 contents_j.clear();
-
+pl.handle_print_or_log({"___0004 ip"});
                 // Update intro_msg_map and ip_hemail_vec
                 msg["crowd"]["imv"];
                 for (auto& el: intro_msg_map_.get_intro_msg_map())
@@ -322,13 +322,13 @@ void P2pSession::intro_peer(nlohmann::json buf_j)
                         msg["crowd"]["imv"][el.first.first.str()] = (*elel).dump();            
                     }
                 }
-
+pl.handle_print_or_log({"___0005 ip"});
                 msg["crowd"]["ihv"];
                 for (auto& el: ip_hemail_vec_.get_all_ip_hemail_vec())
                 {
                     msg["crowd"]["ihv"][(*el).first] = (*el).second;
                 }
-
+pl.handle_print_or_log({"___0006 ip"});
                 // ///////
                 // // Update coin
                 // ///////
