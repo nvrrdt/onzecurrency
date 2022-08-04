@@ -8,7 +8,7 @@ a sortofachain
 - more decentralised as every node doesn't have to communicate everything like blocks, just txs
 - every node does the verification/validation, so every node's id must also have a file on disk with contents, no need for a database (unless for ip's of nodes)
 
-attack vectors: everyone looks at itself, so malicious peers won't be communicated with, there is no 51% attack of some sorts
+attack vectors: everyone looks at itself, so malicious peers won't be communicated with, there is a 51% Sybil attack, but a Sybil attack detector can be introduced through restarting (or so) the software from time to time
 --> there is not really a consensus algorithm during running the software, only when starting the software
 
 rewards: see bootstrap
